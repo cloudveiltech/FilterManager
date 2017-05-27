@@ -286,3 +286,27 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+# Laravel 5.4 Ignore
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+/.idea
+/.vagrant
+Homestead.json
+Homestead.yaml
+npm-debug.log
+.env
+
+#Ignore installer project stuff.
+CitadelManager/resources/views/vendor/
+
+# Netbeans IDE specific ignores.
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/

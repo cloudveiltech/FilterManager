@@ -1,0 +1,21 @@
+// Place your settings in this file to overwrite default and user settings.
+{   
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+
+        // Ignore the uploads folder. It doesn't need to be shown.
+        "**/uploads": true,
+
+        // Ignore the vendor composer folder.
+        "**/vendor": true,
+
+        // Ignore all JS and JS map files. They clutter up the file browser
+        // really badly and are irrelevant because they're all generated
+        // from the typescript source code.
+        "**/*.js": true,
+        "**/*.js.map": true
+    }
+}

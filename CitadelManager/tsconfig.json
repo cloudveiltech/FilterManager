@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "sourceMap": true,
+        "listFiles": true,    
+        "declaration": false,
+        "removeComments": true,
+        "noLib": false,            
+        "noImplicitAny": false,
+        "outDir": "public/js",
+        "forceConsistentCasingInFileNames": true
+    },    
+    "exclude": [
+        "vendor/**/*.ts",
+        "node_modules**/*.ts"
+    ],
+    "include": [
+        "resources/assets/js/**/*.ts",
+        "typings/**/*.d.ts"
+    ],
+    "typeRoots": [
+        "typings/global",
+        "typings/modules"
+    ]
+}
