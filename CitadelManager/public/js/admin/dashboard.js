@@ -538,7 +538,7 @@ var Citadel;
         };
         Dashboard.prototype.OnSignOutClicked = function (e) {
             if (confirm("Are you sure you'd like to sign out?")) {
-                $.post('/logout', function (data, textStatus, jqXHR) {
+                $.post('logout', function (data, textStatus, jqXHR) {
                     window.location.href = '/';
                 });
             }

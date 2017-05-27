@@ -57,7 +57,9 @@ class GroupController extends Controller
         
         $input = $request->all();
         
-        Group::create($input);
+        $myGroup = Group::firstOrCreate($input);
+            
+        $myGroup->rebuildGroupData();
         
         return response('', 204);
     }
@@ -126,6 +128,10 @@ class GroupController extends Controller
         
         if(!is_null($thisGroup))
         {
+            // Update timestamps.
+            $thisGroup->touch();
+            
+            // Rebuild payload for this group.
             $thisGroup->rebuildGroupData();
         }
         

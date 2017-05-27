@@ -1243,7 +1243,7 @@ namespace Citadel
             if (confirm("Are you sure you'd like to sign out?"))
             {
                 $.post(
-                    '/logout',
+                    'logout',
                     (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
                     {
                         window.location.href = '/';
