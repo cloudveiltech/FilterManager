@@ -279,8 +279,12 @@ class FilterListController extends Controller {
         // /category_name/urls[none|.txt]
         // /category_name/filters[none|.txt]
         // /category_name/rules[none|.txt]
+
+        $storageDir = storage_path();
+        $tmpArchiveLoc = $storageDir . DIRECTORY_SEPARATOR . basename($file->getPathname()) . '.' . $file->getClientOriginalExtension();
+        move_uploaded_file($file->getPathname(), $tmpArchiveLoc);
         
-        $pharIterator = new \RecursiveIteratorIterator(new \PharData($file->getPathname() . '.' . $file->getClientOriginalExtension()), \RecursiveIteratorIterator::CHILD_FIRST);
+        $pharIterator = new \RecursiveIteratorIterator(new \PharData($tmpArchiveLoc), \RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($pharIterator as $pharFileInfo) {
             if (!$pharFileInfo->isDir()) {
                 $categoryName = strtolower(basename(dirname($pharFileInfo->getPathname())));
