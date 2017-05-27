@@ -527,7 +527,7 @@ namespace Citadel
                 // control API with the appropriate arguments.
                 let userTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
-                        url: "/api/admin/users",
+                        url: "api/admin/users",
                         dataSrc: "",                        
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -622,7 +622,7 @@ namespace Citadel
                 // control API with the appropriate arguments.
                 let groupTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
-                        url: "/api/admin/groups",
+                        url: "api/admin/groups",
                         dataSrc: "",
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -705,7 +705,7 @@ namespace Citadel
                 // control API with the appropriate arguments.
                 let filterTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
-                        url: "/api/admin/filterlists",
+                        url: "api/admin/filterlists",
                         dataSrc: "",
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -800,7 +800,7 @@ namespace Citadel
                 // control API with the appropriate arguments.
                 let userDeactivationRequestTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
-                        url: "/api/admin/deactivationreq",
+                        url: "api/admin/deactivationreq",
                         dataSrc: "",
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

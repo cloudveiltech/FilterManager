@@ -138,7 +138,7 @@ var Citadel;
                     }
                 ];
                 var userTablesLoadFromAjaxSettings = {
-                    url: "/api/admin/users",
+                    url: "api/admin/users",
                     dataSrc: "",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -206,7 +206,7 @@ var Citadel;
                     }
                 ];
                 var groupTablesLoadFromAjaxSettings = {
-                    url: "/api/admin/groups",
+                    url: "api/admin/groups",
                     dataSrc: "",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -267,7 +267,7 @@ var Citadel;
                     }
                 ];
                 var filterTablesLoadFromAjaxSettings = {
-                    url: "/api/admin/filterlists",
+                    url: "api/admin/filterlists",
                     dataSrc: "",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -334,7 +334,7 @@ var Citadel;
                     }
                 ];
                 var userDeactivationRequestTablesLoadFromAjaxSettings = {
-                    url: "/api/admin/deactivationreq",
+                    url: "api/admin/deactivationreq",
                     dataSrc: "",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
