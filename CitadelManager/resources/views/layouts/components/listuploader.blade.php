@@ -1,5 +1,5 @@
 <!-- Include List Upload Overlay JS. -->
-<script src="{{ asset('js/admin/ListUploadOverlay.js') }}">
+<script src="{{ asset('js/admin/listuploadoverlay.js') }}">
 </script>
 
 <!-- Group Editing Overlay -->

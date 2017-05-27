@@ -1,5 +1,5 @@
 <!-- Include User Record Record Type JS. -->
-<script src="{{ asset('js/admin/records/DeactivationRequestRecord.js') }}">
+<script src="{{ asset('js/admin/records/deactivationrequestrecord.js') }}">
 </script>
 
 <!-- Deactivation Request Editing Overlay -->

@@ -7,7 +7,7 @@
 @section('content')
 
 <!-- Include BaseRecord Record Type JS. Must be done to serve any record type correctly. -->
-<script src="{{ asset('js/admin/records/BaseRecord.js') }}">
+<script src="{{ asset('js/admin/records/baserecord.js') }}">
 </script>
 
 <!-- Primary admin menu. -->
@@ -174,6 +174,6 @@
 @include('layouts.components.listuploader')
 
 <!-- Include dashboard JS to drive UI. -->
-<script src="{{ asset('js/admin/Dashboard.js') }}">
+<script src="{{ asset('js/admin/dashboard.js') }}">
 </script>
 @endsection

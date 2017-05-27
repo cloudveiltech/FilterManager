@@ -1,5 +1,5 @@
 <!-- Include User Record Record Type JS. -->
-<script src="{{ asset('js/admin/records/GroupRecord.js') }}">
+<script src="{{ asset('js/admin/records/grouprecord.js') }}">
 </script>
 
 <!-- Group Editing Overlay -->

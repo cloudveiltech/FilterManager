@@ -1,9 +1,5 @@
-<!-- Include BaseRecord Record Type JS. Must be done to serve any record type correctly. -->
-<script src="{{ asset('js/admin/records/BaseRecord.js') }}">
-</script>
-
 <!-- Include User Record Record Type JS. -->
-<script src="{{ asset('js/admin/records/UserRecord.js') }}">
+<script src="{{ asset('js/admin/records/userrecord.js') }}">
 </script>
 
 

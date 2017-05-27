@@ -3,5 +3,5 @@
 </script>
 
 <!-- Include Filter List Record Record Type JS. -->
-<script src="{{ asset('js/admin/records/FilterListRecord.js') }}">
+<script src="{{ asset('js/admin/records/filterlistrecord.js') }}">
 </script>

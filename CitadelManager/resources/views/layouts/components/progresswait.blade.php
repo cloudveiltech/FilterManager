@@ -14,5 +14,5 @@
     </div>
 </div>
 
-<script src="{{ asset('js/ProgressWait.js') }}">
+<script src="{{ asset('js/progresswait.js') }}">
 </script>

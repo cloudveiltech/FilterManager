@@ -32,7 +32,7 @@ class CreateGroupsTable extends Migration
             $table->string('name');
             
             // The app config for users in this group.
-            $table->json('app_cfg');
+            $table->mediumText('app_cfg');
             
             // The sha1 sum of the group's current data payload.
             $table->char('data_sha1', 40);
