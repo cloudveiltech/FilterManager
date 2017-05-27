@@ -20,7 +20,9 @@ use App\Role;
   |
  */
 
-Auth::routes();
+Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
+Route::post('login', 'Auth\LoginController@login');
+Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 
 Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function() {
     Route::get('/', function () {
@@ -36,23 +38,3 @@ Route::get('/', function () {
         return redirect('/login');
     }
 });
-
-/*
-Route::get('/', function () {    
-                // check the current user
-                if (!Entrust::hasRole('admin')) {                    
-                    //App::abort(403);
-                    //return redirect('/test');
-                }
-                
-                return view('adminhome');
-            });
-            
-Route::get('/test', function () {
-    return view('test');
-});
- */
-
-
-
-//Route::get('/home', 'HomeController@index')->name('home');

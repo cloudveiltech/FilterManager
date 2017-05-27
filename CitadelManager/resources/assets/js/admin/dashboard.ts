@@ -1246,7 +1246,7 @@ namespace Citadel
                     'logout',
                     (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
                     {
-                        window.location.href = '/';
+                        location.reload();
                     }
                 )
             }

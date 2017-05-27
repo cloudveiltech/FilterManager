@@ -22,8 +22,26 @@ trait AuthenticatesLicensedUsers {
 
     use AuthenticatesUsers {
         AuthenticatesUsers::authenticated as authenticated;
+        //AuthenticatesUsers::logout as logout;
     }
 
+    /**
+     * Log the user out of the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function logout(Request $request)
+    {
+        $this->guard()->logout();
+
+        $request->session()->flush();
+
+        $request->session()->regenerate();
+
+        return redirect(config('app.url'));
+    }
+    
     /**
      * The user has been authenticated. Now we want to do some checks
      * and enforce some extra auth stuff for our app. If these checks
