@@ -146,15 +146,23 @@ class GroupController extends Controller
      */
     public function destroy($id)
     {
-        Group::destroy($id);
-        
-        // Ensure we orphan all users of this group properly.
-        // For this, we need to set their group ID to -1. Otherwise,
-        // the retained value will cause them to suddenly become a 
-        // part of the next group created after this delete.
-        User::where('group_id', $id)->update(['group_id' => -1]);
-        
-        GroupFilterAssignment::where('group_id', $id)->delete();
+        $thisGroup = Group::where('id', $id)->first();
+        if(!is_null($thisGroup))
+        {
+            // Ensure we orphan all users of this group properly.
+            // For this, we need to set their group ID to -1. Otherwise,
+            // the retained value will cause them to suddenly become a 
+            // part of the next group created after this delete.
+            User::where('group_id', $id)->update(['group_id' => -1]);
+
+            GroupFilterAssignment::where('group_id', $id)->delete();
+            
+            // Get any payload stuff off the file system.
+            $thisGroup->destroyGroupData();
+            
+            // Finally, do away with this group.
+            $thisGroup->delete();
+        }
         
         return response('', 204);
     }

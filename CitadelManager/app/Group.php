@@ -56,8 +56,7 @@ class Group extends Model {
         return $this->hasMany('App\GroupFilterAssignment');
     }
 
-    public function getGroupDataPayloadPath(): string
-    {
+    public function getGroupDataPayloadPath(): string {
         $storageDir = storage_path();
         $groupDataZipFolder = $storageDir . DIRECTORY_SEPARATOR . 'group_data' . DIRECTORY_SEPARATOR . $this->id;
         if (!file_exists($groupDataZipFolder)) {
@@ -65,14 +64,14 @@ class Group extends Model {
         }
 
         $groupDataZipPath = $groupDataZipFolder . DIRECTORY_SEPARATOR . 'data.zip';
-        
+
         return $groupDataZipPath;
     }
-    
+
     public function rebuildGroupData() {
-        
+
         $groupDataZipPath = $this->getGroupDataPayloadPath();
-        
+
         $zip = new \ZipArchive();
         $zip->open($groupDataZipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
@@ -140,26 +139,24 @@ class Group extends Model {
                             $entryRelativePath = '/' . $listNamespace . '/nlp/nlp.model';
 
                             if (!array_key_exists($entryRelativePath, $nlpEnabledCategories)) {
-                                
+
                                 // Because of our weird setup here with NLP list entries, we
                                 // have to get all entries for this namespace to accurately
                                 // track down the BLOB entry for the actual NLP model that
                                 // this selected category belongs to.
                                 $allNlpListForNamespace = FilterList::where(['namespace' => $listNamespace, 'type' => 'NLP'])->get();
-                                
+
                                 $filter = null;
-                                foreach($allNlpListForNamespace as $nlpListInNamespace)
-                                {
-                                    if(is_null($filter))
-                                    {
-                                        $filter = NlpFilteringRule::where('filter_list_id', '=', $nlpListInNamespace->id)->first();    
+                                foreach ($allNlpListForNamespace as $nlpListInNamespace) {
+                                    if (is_null($filter)) {
+                                        $filter = NlpFilteringRule::where('filter_list_id', '=', $nlpListInNamespace->id)->first();
                                     }
                                 }
 
                                 // We have not discovered this NLP model file yet, so add it to the zip
                                 // and create a new array key using the ZIP relative path.
                                 $zip->addFromString($entryRelativePath, $filter->data);
-                                    
+
                                 $nlpEnabledCategories[$entryRelativePath] = array();
                             }
 
@@ -185,18 +182,24 @@ class Group extends Model {
         }
 
         // Now process NLP model configurations, if any.
-        foreach(array_keys($nlpEnabledCategories) as $nlpEnabledCategoryKey)
-        {            
-            array_push($compiledAppConfiguration['ConfiguredNlpModels'], new NLPConfigurationModel($nlpEnabledCategoryKey, $nlpEnabledCategories[$nlpEnabledCategoryKey]));    
+        foreach (array_keys($nlpEnabledCategories) as $nlpEnabledCategoryKey) {
+            array_push($compiledAppConfiguration['ConfiguredNlpModels'], new NLPConfigurationModel($nlpEnabledCategoryKey, $nlpEnabledCategories[$nlpEnabledCategoryKey]));
         }
-        
+
         $compiledAppConfiguration = array_merge($compiledAppConfiguration, json_decode($this->app_cfg, true));
         $serializedFinalConfiguration = json_encode($compiledAppConfiguration);
         $zip->addFromString('cfg.json', $serializedFinalConfiguration);
         $zip->close();
-        
+
         // Lastly, update this group's data hash.
         Group::where('id', $this->id)->update(['data_sha1' => sha1_file($groupDataZipPath)]);
+    }
+
+    public function destroyGroupData() {
+        $groupDataZipPath = $this->getGroupDataPayloadPath();
+        if (file_exists($groupDataZipPath)) {
+            unlink($groupDataZipPath);
+        }
     }
 
 }
