@@ -35,10 +35,10 @@ class CreateGroupsTable extends Migration
             $table->mediumText('app_cfg');
             
             // The sha1 sum of the group's current data payload.
-            $table->char('data_sha1', 40);
+            $table->char('data_sha1', 40)->default('');
             
             // Whether or not the group is activated.
-            $table->boolean('isactive');
+            $table->boolean('isactive')->default(true);
             
             // Created at/modified at.
             $table->timestamps();
