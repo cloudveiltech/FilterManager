@@ -141,7 +141,7 @@ namespace Citadel
                     contents: { _token: $('meta[name="csrf-token"]').attr('content') },
 
                     // Sent to setup.php.
-                    url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/',
+                    url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'],
 
                     // Callback if the call was a success.
                     success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>

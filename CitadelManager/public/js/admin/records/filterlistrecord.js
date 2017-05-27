@@ -54,7 +54,7 @@ var Citadel;
                 method: "DELETE",
                 timeout: 60000,
                 contents: { _token: $('meta[name="csrf-token"]').attr('content') },
-                url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/',
+                url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'],
                 success: function (data, textStatus, jqXHR) {
                     _this.m_progressWait.Hide();
                     if (_this.m_actionCompleteCallback != null) {

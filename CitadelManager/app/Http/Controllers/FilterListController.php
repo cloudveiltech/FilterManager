@@ -279,9 +279,8 @@ class FilterListController extends Controller {
         // /category_name/urls[none|.txt]
         // /category_name/filters[none|.txt]
         // /category_name/rules[none|.txt]
-
-        $pharUrl = 'phar://' . $file . DIRECTORY_SEPARATOR;
-        $pharIterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($pharUrl), \RecursiveIteratorIterator::CHILD_FIRST);
+        
+        $pharIterator = new \RecursiveIteratorIterator(new \PharData($file->getPathname() . '.' . $file->getClientOriginalExtension()), \RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($pharIterator as $pharFileInfo) {
             if (!$pharFileInfo->isDir()) {
                 $categoryName = strtolower(basename(dirname($pharFileInfo->getPathname())));
@@ -318,6 +317,8 @@ class FilterListController extends Controller {
                         break;
 
                     case 'rules':
+                    case 'filters':
+                    case 'filters.txt':
                     case 'rules.txt': {
                             // These rules are untouched. Assumed to already
                             // be in ABP filter format.
@@ -368,6 +369,8 @@ class FilterListController extends Controller {
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
         $this->forceRebuildOnGroups($affectedGroups);
+        
+        unlink($tmpArchiveLoc);
     }
 
     /**
