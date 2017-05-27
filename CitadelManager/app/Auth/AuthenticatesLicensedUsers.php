@@ -22,7 +22,7 @@ trait AuthenticatesLicensedUsers {
 
     use AuthenticatesUsers {
         AuthenticatesUsers::authenticated as authenticated;
-        //AuthenticatesUsers::logout as logout;
+        AuthenticatesUsers::logout as logout;
     }
 
     /**
