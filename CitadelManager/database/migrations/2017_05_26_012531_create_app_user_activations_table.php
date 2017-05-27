@@ -16,7 +16,7 @@ class CreateAppUserActivationsTable extends Migration
         Schema::create('app_user_activations', function (Blueprint $table) {
             $table->bigIncrements('id');
             
-            $table->bigInteger('user_id');
+            $table->bigInteger('user_id')->unsigned();
             
             // A unique indentifier that should identify the user's installation
             // PER DEVICE. Expected to be a SHA1 sum.

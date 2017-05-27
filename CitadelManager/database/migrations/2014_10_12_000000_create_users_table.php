@@ -24,7 +24,7 @@ class CreateUsersTable extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->bigIncrements('id')->unsigned();
             
             // The name of the user. Required. Could be just a first name, 
             // a full name, or last name, whatever.
@@ -38,7 +38,7 @@ class CreateUsersTable extends Migration
             
             // The group that the user is assigned to. By default, a new
             // user is not assigned to any group, so a value of -1 is used.
-            $table->integer('group_id')->default(-1);
+            $table->bigInteger('group_id')->default(-1);
             
             // By default, a new user is not active. Must be manually enabled
             // by an administrator.
