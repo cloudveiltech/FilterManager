@@ -55,10 +55,28 @@ class GroupController extends Controller
             'name' => 'required'
         ]);
         
-        $input = $request->all();
+        $groupInput = $request->except('assigned_filter_ids');
+        $groupListAssigments = $request->only('assigned_filter_ids');
         
-        $myGroup = Group::firstOrCreate($input);
+        $myGroup = Group::firstOrCreate($groupInput);
+
+        if(!is_null($groupListAssigments) && array_key_exists('assigned_filter_ids', $groupListAssigments) && is_array($groupListAssigments['assigned_filter_ids']))
+        {
+            $createdAt = Carbon::now();
+            $updatedAt = Carbon::now();
+            $groupListAssignmentMassInsert = array();
             
+            foreach($groupListAssigments['assigned_filter_ids'] as $groupList)
+            {
+                $groupList['group_id'] = $myGroup->id;
+                $groupList['created_at'] = $createdAt;
+                $groupList['updated_at'] = $updatedAt;
+                array_push($groupListAssignmentMassInsert, $groupList);                
+            }
+            
+            GroupFilterAssignment::insertIgnore($groupListAssignmentMassInsert);
+        }
+        
         $myGroup->rebuildGroupData();
         
         return response('', 204);
@@ -107,12 +125,12 @@ class GroupController extends Controller
         
         GroupFilterAssignment::where('group_id', $id)->delete();
         
-        $createdAt = Carbon::now();
-        $updatedAt = Carbon::now();
-        $groupListAssignmentMassInsert = array();
-        
         if(!is_null($groupListAssigments) && array_key_exists('assigned_filter_ids', $groupListAssigments) && is_array($groupListAssigments['assigned_filter_ids']))
         {
+            $createdAt = Carbon::now();
+            $updatedAt = Carbon::now();
+            $groupListAssignmentMassInsert = array();
+            
             foreach($groupListAssigments['assigned_filter_ids'] as $groupList)
             {
                 $groupList['group_id'] = $id;
