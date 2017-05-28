@@ -10,6 +10,7 @@
 namespace App\Auth;
 
 use Illuminate\Http\Request;
+use App\User;
 use App\UserActivationAttemptResult;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Validator;
@@ -65,7 +66,7 @@ trait AuthenticatesLicensedUsers {
         ]);
 
         if (!$validator->fails()) {
-            handleAppUserValidation($request, $user);
+            $this->handleAppUserValidation($request, $user);
         } else {
             if ($user->hasRole('user')) {
                 $this->logout($request);
@@ -74,7 +75,7 @@ trait AuthenticatesLicensedUsers {
         }
     }
 
-    private function handleAppUserValidation(Request $request, App\User $user) {
+    private function handleAppUserValidation(Request $request, User $user) {
         $userActivateResult = $user->tryActivateUser($request);
 
         switch ($userActivateResult) {

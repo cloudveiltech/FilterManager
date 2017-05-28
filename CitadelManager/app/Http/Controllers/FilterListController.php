@@ -390,14 +390,14 @@ class FilterListController extends Controller {
         switch ($convertToAbp) {
             case true: {
                     $lineFeedFunc = function(string $in): string {
-                        return $this->formatStringAsAbpFilter($in);
+                        return $this->formatStringAsAbpFilter(trim($in));
                     };
                 }
                 break;
 
             case false: {
                     $lineFeedFunc = function(string $in): string {
-                        return $in;
+                        return trim($in);
                     };
                 }
                 break;
@@ -409,10 +409,15 @@ class FilterListController extends Controller {
 
         $count = 0;
         foreach ($file as $lineNumber => $content) {
+            
             $content = $lineFeedFunc($content);
-            array_push($fillArr, ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt]);
-            $count++;
-
+            
+            if(strlen($content) > 0)
+            {
+                array_push($fillArr, ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt]);
+                $count++;
+            }
+            
             // Doing a mass insert of 5K at a time seems to be best.
             if ($count > 4999) {
                 TextFilteringRule::insertIgnore($fillArr);

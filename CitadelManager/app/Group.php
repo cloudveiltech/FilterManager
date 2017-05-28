@@ -101,7 +101,7 @@ class Group extends Model {
                             $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
 
                             foreach ($filters as $filter) {
-                                $inMemFilterFile .= $filter->rule . '\n';
+                                $inMemFilterFile .= $filter->rule . "\n";
                             }
 
                             $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/rules.txt';
@@ -123,7 +123,7 @@ class Group extends Model {
                             $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
 
                             foreach ($filters as $filter) {
-                                $inMemFilterFile .= $filter->rule . '\n';
+                                $inMemFilterFile .= $filter->rule . "\n";
                             }
 
                             $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/triggers.txt';
