@@ -43,12 +43,12 @@ Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function() {
 // Users should only be able to pull list updates. The routes available to them
 // are routes to get the sum of the current user data server side, and to request
 // a download of their user data.
-Route::group(['prefix' => 'user', 'middleware' => ['role:admin']], function() {
+Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user']], function() {
 
-    Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
-    Route::post('/me/terms', 'UserController@getUserTerms');
+    Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');    
     Route::post('/me/data/check', 'UserController@checkUserData');
     Route::post('/me/data/get', 'UserController@getUserData');
+    Route::post('/me/terms', 'UserController@getUserTerms');
     
 });
 
