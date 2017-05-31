@@ -357,7 +357,7 @@ namespace Citadel
 
             // Only add these params when the passwords are not
             // equal to our dummy insert text.
-            if(this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x")))
+            if(this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x")))
             {
                 obj['password'] = this.m_userPassword;
                 obj['password_verify'] = this.m_passwordConfirmInput.value;

@@ -11,7 +11,9 @@ namespace App\Http\Controllers;
 
 use Validator;
 use App\User;
+use App\Group;
 use App\Role;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\DeactivationRequest;
 use App\AppUserActivation;
@@ -24,7 +26,7 @@ class UserController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function index() {
-        return User::with(['group', 'roles'])->get();        
+        return User::with(['group', 'roles'])->get();
     }
 
     /**
@@ -48,16 +50,17 @@ class UserController extends Controller {
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|same:password_verify',
-            'roles' => 'required'
+            'role_id' => 'required|exists:roles,id'
         ]);
 
-        $input = $request->all();
+        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id']);
         $input['password'] = Hash::make($input['password']);
 
         $user = User::create($input);
-        foreach ($request->input('roles') as $key => $value) {
-            $user->attachRole($value);
-        }
+
+        $suppliedRoleId = $request->input('role_id');
+        $suppliedRole = Role::where('id', $suppliedRoleId)->first();
+        $user->attachRole($suppliedRole);
 
         return response('', 204);
     }
@@ -91,54 +94,53 @@ class UserController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id) {
-        
+
         // The javascript side/admin UI will not send
         // password or password_verify unless they are
         // intentionally trying to change a user's password.
-        
+
         $inclPassword = false;
-        
-        if($request->has('password_verify') && $request->has('password'))
-        {
+
+        if ($request->has('password_verify') && $request->has('password')) {
             $this->validate($request, [
                 'name' => 'required',
                 'email' => 'required',
                 'password' => 'required|same:password_verify'
             ]);
-            
+
             $inclPassword = true;
-        }
-        else            
-        {
+        } else {
             $this->validate($request, [
                 'name' => 'required',
-                'email' => 'required'                
+                'email' => 'required'
             ]);
         }
 
         $input = $request->except(['password', 'password_verify', 'role_id']);
-        
-        if($inclPassword)
-        {
+
+        if ($inclPassword) {
             $pInput = $request->only(['password', 'password_verify']);
             $input['password'] = bcrypt($pInput['password']);
         }
-        
+
         User::where('id', $id)->update($input);
 
-        if($request->has('role_id'))
-        {
+        if ($request->has('role_id')) {
+
+            $this->validate($request, [
+                'role_id' => 'required|exists:roles,id'
+            ]);
+
             $suppliedRoleId = $request->input('role_id');
             $suppliedRole = Role::where('id', $suppliedRoleId)->first();
-            
+
             $suppliedUser = User::where('id', $id)->first();
-            if(!$suppliedUser->hasRole($suppliedRole))
-            {
+            if (!$suppliedUser->hasRole($suppliedRole)) {
                 $suppliedUser->detachRoles();
                 $suppliedUser->attachRole($suppliedRole);
             }
         }
-        
+
         return response('', 204);
     }
 
@@ -149,7 +151,15 @@ class UserController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function destroy($id) {
-        Group::destroy($id);
+
+        $user = User::where('id', $id)->first();
+        if (!is_null($user)) {
+            
+            $user->detachRoles();
+            
+            $user->delete();
+        }
+
         return response('', 204);
     }
 
@@ -233,12 +243,13 @@ class UserController extends Controller {
      * @param Request $request
      */
     public function getUserTerms(Request $request) {
-        
+
         $userLicensePath = resource_path() . DIRECTORY_SEPARATOR . 'UserLicense.txt';
-        
+
         if (file_exists($userLicensePath) && filesize($userLicensePath) > 0) {
             return response()->download($userLicensePath);
         }
         return response('', 500);
     }
+
 }

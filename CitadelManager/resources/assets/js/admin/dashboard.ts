@@ -1324,6 +1324,7 @@ namespace Citadel
                 catch (e)
                 {
                     console.log('Failed to load user record from table selection.');
+                    console.log(e);
                 }
             }
         }

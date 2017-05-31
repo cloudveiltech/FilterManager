@@ -123,6 +123,11 @@ class User extends Authenticatable {
                 $activation->delete();
                 return UserActivationAttemptResult::ActivationLimitExceeded;
             }
+            
+            // Update timestamp on this user's access. This can be used to
+            // track/identify stale activations.
+            $activation->touch();
+            
         } catch (Exception $ex) {
             error_log(print_r($ex, true));
             return UserActivationAttemptResult::UnknownError;  
