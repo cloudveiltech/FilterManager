@@ -123,6 +123,18 @@ var Citadel;
                         this.m_editorTitle.innerText = "Create New User";
                         this.m_submitBtn.innerText = "Create User";
                         this.m_mainForm.reset();
+                        if (this.m_groupIdInput.options != null && this.m_groupIdInput.options.length > 0) {
+                            this.m_groupIdInput.selectedIndex = 0;
+                        }
+                        else {
+                            this.m_groupIdInput.selectedIndex = -1;
+                        }
+                        if (this.m_roleInput.options != null && this.m_roleInput.options.length > 0) {
+                            this.m_roleInput.selectedIndex = 0;
+                        }
+                        else {
+                            this.m_roleInput.selectedIndex = -1;
+                        }
                     }
                     break;
                 case false:
@@ -142,7 +154,12 @@ var Citadel;
                             }
                         }
                         else {
-                            this.m_groupIdInput.selectedIndex = -1;
+                            if (this.m_groupIdInput.options != null && this.m_groupIdInput.options.length > 0) {
+                                this.m_groupIdInput.selectedIndex = 0;
+                            }
+                            else {
+                                this.m_groupIdInput.selectedIndex = -1;
+                            }
                         }
                         if (this.m_roleId != -1) {
                             var optionInList = this.m_roleInput.querySelector('option[value="' + this.m_roleId.toString() + '"]');
@@ -153,6 +170,9 @@ var Citadel;
                         else {
                             if (this.m_roleInput.options != null && this.m_roleInput.options.length > 0) {
                                 this.m_roleInput.selectedIndex = 0;
+                            }
+                            else {
+                                this.m_roleInput.selectedIndex = -1;
                             }
                         }
                         this.m_isActiveInput.checked = this.m_isActive != 0;
@@ -173,14 +193,6 @@ var Citadel;
             $(this.m_editorOverlay).fadeOut(200);
         };
         UserRecord.prototype.ToObject = function () {
-            if (this.m_groupIdInput.selectedIndex != -1) {
-                var selectedGroupOption = this.m_groupIdInput.options[this.m_groupIdInput.selectedIndex];
-                this.m_groupId = parseInt(selectedGroupOption.value);
-            }
-            if (this.m_roleInput.selectedIndex != -1) {
-                var selectedRoleOption = this.m_roleInput.options[this.m_roleInput.selectedIndex];
-                this.m_roleId = parseInt(selectedRoleOption.value);
-            }
             var obj = {
                 'id': this.m_userId,
                 'name': this.m_userFullName,

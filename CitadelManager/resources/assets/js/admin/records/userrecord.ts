@@ -68,7 +68,7 @@ namespace Citadel
 
         private m_groupIdInput: HTMLSelectElement;
 
-        
+
 
         private m_roleInput: HTMLSelectElement;
 
@@ -216,7 +216,7 @@ namespace Citadel
 
         public StartEditing(allGroups: DataTables.DataTable, userData: Object = null): void
         {
-            
+
             // Clear any existing options.
             if (this.m_groupIdInput.options != null)
             {
@@ -224,11 +224,11 @@ namespace Citadel
             }
 
             // Populate group options with what we have available.
-            allGroups.each((elm: any) : void =>
+            allGroups.each((elm: any): void =>
             {
-                let option = document.createElement('option') as HTMLOptionElement;                
+                let option = document.createElement('option') as HTMLOptionElement;
                 option.text = elm['name'];
-                option.value = elm['id'];                
+                option.value = elm['id'];
                 this.m_groupIdInput.options.add(option);
             });
 
@@ -243,6 +243,25 @@ namespace Citadel
                         this.m_submitBtn.innerText = "Create User";
 
                         this.m_mainForm.reset();
+
+                        // Default to no group set.
+                        if (this.m_groupIdInput.options != null && this.m_groupIdInput.options.length > 0)
+                        {
+                            this.m_groupIdInput.selectedIndex = 0;
+                        }
+                        else
+                        {
+                            this.m_groupIdInput.selectedIndex = -1;
+                        }
+
+                        if (this.m_roleInput.options != null && this.m_roleInput.options.length > 0)
+                        {
+                            this.m_roleInput.selectedIndex = 0;
+                        }
+                        else
+                        {
+                            this.m_roleInput.selectedIndex = -1;
+                        }
                     }
                     break;
 
@@ -278,7 +297,14 @@ namespace Citadel
                         else
                         {
                             // Default to no group set.
-                            this.m_groupIdInput.selectedIndex = -1;
+                            if (this.m_groupIdInput.options != null && this.m_groupIdInput.options.length > 0)
+                            {
+                                this.m_groupIdInput.selectedIndex = 0;
+                            }
+                            else
+                            {
+                                this.m_groupIdInput.selectedIndex = -1;
+                            }
                         }
 
                         if (this.m_roleId != -1)
@@ -293,9 +319,13 @@ namespace Citadel
                         }
                         else
                         {
-                            if(this.m_roleInput.options != null && this.m_roleInput.options.length > 0)
+                            if (this.m_roleInput.options != null && this.m_roleInput.options.length > 0)
                             {
                                 this.m_roleInput.selectedIndex = 0;
+                            }
+                            else
+                            {
+                                this.m_roleInput.selectedIndex = -1;
                             }
                         }
 
@@ -329,25 +359,11 @@ namespace Citadel
 
         public ToObject(): Object
         {
-            // Check if a group has been selected and update our value to match it, if selected.
-            if (this.m_groupIdInput.selectedIndex != -1)
-            {
-                let selectedGroupOption = this.m_groupIdInput.options[this.m_groupIdInput.selectedIndex] as HTMLOptionElement;
-                this.m_groupId = parseInt(selectedGroupOption.value);
-            }
-
-            // Check if a role has been selected and update our value to match it, if selected.
-            if (this.m_roleInput.selectedIndex != -1)
-            {
-                let selectedRoleOption = this.m_roleInput.options[this.m_roleInput.selectedIndex] as HTMLOptionElement;
-                this.m_roleId = parseInt(selectedRoleOption.value);
-            }
-
             let obj =
                 {
                     'id': this.m_userId,
                     'name': this.m_userFullName,
-                    'email': this.m_userEmail,                    
+                    'email': this.m_userEmail,
                     'group_id': this.m_groupId,
                     'role_id': this.m_roleId,
                     'activations_allowed': this.m_numActivations,
@@ -357,7 +373,7 @@ namespace Citadel
 
             // Only add these params when the passwords are not
             // equal to our dummy insert text.
-            if(this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x")))
+            if (this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x")))
             {
                 obj['password'] = this.m_userPassword;
                 obj['password_verify'] = this.m_passwordConfirmInput.value;
