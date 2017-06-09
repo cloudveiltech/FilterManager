@@ -289,6 +289,13 @@ class FilterListController extends Controller {
             if (!$pharFileInfo->isDir()) {
                 $categoryName = strtolower(basename(dirname($pharFileInfo->getPathname())));
 
+                if($categoryName == '/' || $categoryName == '\\' || $categoryName == '.' || $categoryName == '..')
+                {
+                    // This is an improperly formatted zip.
+                    // This is a file inside the root directory.
+                    continue;
+                }
+                
                 // We have to limit the length of our string to the max length
                 // constraint of our DB field.
                 if (strlen($categoryName) > 64) {
@@ -331,6 +338,12 @@ class FilterListController extends Controller {
                         break;
                 }
 
+                if(is_null($finalListType))
+                {
+                    // Invalid/improperly named/unrecognized file.
+                    continue;
+                }
+                
                 // Delete existing if overwrite is true.
                 if ($overwrite) {
                     $existingList = FilterList::where(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType])->first();
@@ -408,6 +421,7 @@ class FilterListController extends Controller {
         $updatedAt = Carbon::now();
 
         $count = 0;
+        
         foreach ($file as $lineNumber => $content) {
             
             $content = $lineFeedFunc($content);
@@ -441,6 +455,11 @@ class FilterListController extends Controller {
      * @return string
      */
     private function formatStringAsAbpFilter(string $input): string {
+        if(strlen($input) <= 0)
+        {
+            return $input;
+        }
+        
         return '||' . str_replace('/', '^', $input);
     }
 
