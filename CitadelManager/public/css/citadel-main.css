@@ -120,16 +120,16 @@ Group editor.
 #div_ea30_16{width: 100%;}
 #div_ea30_17{margin: 4px;}
 #group_blacklist_filters_search_input{color: white;}
-#group_blacklist_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden;}
+#group_blacklist_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden; word-wrap: break-word;}
 #div_ea30_18{margin: 4px;}
 #group_whitelist_filters_search_input{color: white;}
-#group_whitelist_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden;}
+#group_whitelist_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden; word-wrap: break-word;}
 #div_ea30_19{margin: 4px;}
 #group_bypass_filters_search_input{color: white;}
-#group_bypass_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden;}
+#group_bypass_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden; word-wrap: break-word;}
 #div_ea30_20{margin: 4px;}
 #group_unassigned_filters_search_input{color: white;}
-#group_unassigned_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden;}
+#group_unassigned_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden; word-wrap: break-word;}
 #app_filtering_tab{background: transparent;}
 #div_ea30_21{width: 100%;}
 #div_ea30_22{height: 100%;}
