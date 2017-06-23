@@ -38,3 +38,23 @@ Route::get('/', function () {
         return redirect('/login');
     }
 });
+
+Route::get('/update/win{platform}/update.xml', function ($platform) {
+    return response()
+        ->view('update.windows.update_xml',
+            [
+                'platform' => $platform,
+                'app_name' => 'CloudVeil',
+                'file_name' => 'cloudveil',
+                'version_name' => '0.6.21 Beta',
+                'version_number' => '0.6.21',
+                'changes' =>
+                    [
+                        'Fixes failure to load and apply whitelists.',
+                    ],
+                'date' => 'Fri, 11 Mar 2017 07:20:00 EST'
+
+            ]
+        )
+        ->header('Content-Type', 'text/xml');
+});
