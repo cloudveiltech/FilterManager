@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\DeactivationRequest;
 use App\AppUserActivation;
+use App\Events\DeactivationRequestReceived;
 
 class UserController extends Controller {
 
@@ -154,9 +155,9 @@ class UserController extends Controller {
 
         $user = User::where('id', $id)->first();
         if (!is_null($user)) {
-            
+
             $user->detachRoles();
-            
+
             $user->delete();
         }
 
@@ -164,7 +165,7 @@ class UserController extends Controller {
     }
 
     /**
-     * Get information about the currently applied user data. This includes 
+     * Get information about the currently applied user data. This includes
      * filter rules and configuration data.
      *
      * @return \Illuminate\Http\Response
@@ -183,7 +184,7 @@ class UserController extends Controller {
     }
 
     /**
-     * Request the current user data. This includes filter rules and 
+     * Request the current user data. This includes filter rules and
      * configuration data.
      *
      * @return \Illuminate\Http\Response
@@ -203,8 +204,8 @@ class UserController extends Controller {
     }
 
     /**
-     * The current authenticated user is requesting an app deactivation. 
-     * 
+     * The current authenticated user is requesting an app deactivation.
+     *
      * @return \Illuminate\Http\Response
      */
     public function getCanUserDeactivate(Request $request) {
@@ -232,6 +233,9 @@ class UserController extends Controller {
                 AppUserActivation::where($reqArgs)->delete();
 
                 return response('', 204);
+            } else {
+              // If this is a deactivate request that has not been granted then we fire an event.
+                event(new DeactivationRequestReceived($deactivateRequest));
             }
         }
 
