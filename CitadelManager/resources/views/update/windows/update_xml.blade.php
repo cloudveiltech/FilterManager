@@ -10,7 +10,7 @@
                     <ul>
                     @foreach ($changes AS $change)
                         <li>{{ $change }}</li>
-                        
+
                     @endforeach
                     </ul>
                 ]]>

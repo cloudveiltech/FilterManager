@@ -45,14 +45,14 @@ Route::get('/update/win{platform}/update.xml', function ($platform) {
             [
                 'platform' => $platform,
                 'app_name' => 'CloudVeil',
-                'file_name' => 'cloudveil',
-                'version_name' => '0.6.21 Beta',
-                'version_number' => '0.6.21',
+                'file_name' => 'CloudVeil',
+                'version_name' => '0.6.23 Beta',
+                'version_number' => '0.6.23',
                 'changes' =>
                     [
                         'Fixes failure to load and apply whitelists.',
                     ],
-                'date' => 'Fri, 11 Mar 2017 07:20:00 EST'
+                'date' => 'Fri, 23 Jun 2017 07:20:00 EST'
 
             ]
         )
