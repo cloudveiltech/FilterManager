@@ -160,6 +160,8 @@ namespace Citadel
 
         private m_groupNlpThresholdInput : HTMLInputElement;
 
+        private m_textTriggerMaxSizeInput : HTMLInputElement;
+
         /**
          * Text area where users can list applications, one per line, that should be treated as a 
          * whitelist or blacklist by the filtering app for which applications to filter.
@@ -424,6 +426,8 @@ namespace Citadel
             this.m_antiTamperBypassDurationInput = document.querySelector('#editor_cfg_bypass_duration_input') as HTMLInputElement;
 
             this.m_groupNlpThresholdInput = document.querySelector('#editor_cfg_nlp_threshold_input') as HTMLInputElement;
+            this.m_textTriggerMaxSizeInput = document.querySelector('#editor_cfg_trigger_max_size_input') as HTMLInputElement;
+            
 
             // Enforce input range when typing. Since this represents a percent, should
             // always be between 0 and 1.0.
@@ -699,7 +703,8 @@ namespace Citadel
                     'ThresholdTimeoutPeriod': this.m_antiTamperThresholdTimeoutInput.valueAsNumber,
                     'BypassesPermitted': this.m_antiTamperBypassesPerDayInput.valueAsNumber,
                     'BypassDuration': this.m_antiTamperBypassDurationInput.valueAsNumber,
-                    'NlpThreshold' : this.m_groupNlpThresholdInput.valueAsNumber
+                    'NlpThreshold' : this.m_groupNlpThresholdInput.valueAsNumber,
+                    'MaxTextTriggerScanningSize': this.m_textTriggerMaxSizeInput.valueAsNumber,
                 };
 
             appConfig[filterAppsKey] = allFilteredAppLines;
@@ -767,6 +772,7 @@ namespace Citadel
             this.m_antiTamperBypassDurationInput.valueAsNumber = 0;
 
             this.m_groupNlpThresholdInput.valueAsNumber = 0;
+            this.m_textTriggerMaxSizeInput.valueAsNumber = -1;
 
             this.m_groupUpdateCheckFrequencyInput.valueAsNumber = 5;
             this.m_groupPrimaryDnsInput.value = '';
@@ -897,6 +903,7 @@ namespace Citadel
                         this.m_antiTamperBypassesPerDayInput.valueAsNumber = parseInt(this.m_appConfig['BypassesPermitted']);
                         this.m_antiTamperBypassDurationInput.valueAsNumber = parseInt(this.m_appConfig['BypassDuration']);
                         this.m_groupNlpThresholdInput.valueAsNumber = parseFloat(this.m_appConfig['NlpThreshold']);
+                        this.m_textTriggerMaxSizeInput.valueAsNumber = parseInt(this.m_appConfig['MaxTextTriggerScanningSize']);
                         this.m_groupUpdateCheckFrequencyInput.valueAsNumber = parseInt(this.m_appConfig['UpdateFrequency']);
                         this.m_groupPrimaryDnsInput.value = this.m_appConfig['PrimaryDns'];
                         this.m_groupSecondaryDnsInput.value = this.m_appConfig['SecondaryDns'];
