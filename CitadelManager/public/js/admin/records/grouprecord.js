@@ -1,16 +1,22 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Citadel;
 (function (Citadel) {
     var GroupRecord = (function (_super) {
         __extends(GroupRecord, _super);
         function GroupRecord() {
-            _super.call(this);
-            this.ConstructFormReferences();
-            this.ConstructFilterAssignmentArea();
+            var _this = _super.call(this) || this;
+            _this.ConstructFormReferences();
+            _this.ConstructFilterAssignmentArea();
+            return _this;
         }
         Object.defineProperty(GroupRecord.prototype, "RecordRoute", {
             get: function () {
@@ -66,6 +72,7 @@ var Citadel;
             this.m_antiTamperBypassesPerDayInput = document.querySelector('#editor_cfg_bypasses_allowed_input');
             this.m_antiTamperBypassDurationInput = document.querySelector('#editor_cfg_bypass_duration_input');
             this.m_groupNlpThresholdInput = document.querySelector('#editor_cfg_nlp_threshold_input');
+            this.m_textTriggerMaxSizeInput = document.querySelector('#editor_cfg_trigger_max_size_input');
             this.m_groupNlpThresholdInput.onkeyup = function (e) {
                 var inputBox = e.target;
                 var value = inputBox.valueAsNumber;
@@ -232,7 +239,8 @@ var Citadel;
                 'ThresholdTimeoutPeriod': this.m_antiTamperThresholdTimeoutInput.valueAsNumber,
                 'BypassesPermitted': this.m_antiTamperBypassesPerDayInput.valueAsNumber,
                 'BypassDuration': this.m_antiTamperBypassDurationInput.valueAsNumber,
-                'NlpThreshold': this.m_groupNlpThresholdInput.valueAsNumber
+                'NlpThreshold': this.m_groupNlpThresholdInput.valueAsNumber,
+                'MaxTextTriggerScanningSize': this.m_textTriggerMaxSizeInput.valueAsNumber,
             };
             appConfig[filterAppsKey] = allFilteredAppLines;
             this.m_appConfig = appConfig;
@@ -271,6 +279,7 @@ var Citadel;
             this.m_antiTamperBypassesPerDayInput.valueAsNumber = 0;
             this.m_antiTamperBypassDurationInput.valueAsNumber = 0;
             this.m_groupNlpThresholdInput.valueAsNumber = 0;
+            this.m_textTriggerMaxSizeInput.valueAsNumber = -1;
             this.m_groupUpdateCheckFrequencyInput.valueAsNumber = 5;
             this.m_groupPrimaryDnsInput.value = '';
             this.m_groupSecondaryDnsInput.value = '';
@@ -362,6 +371,7 @@ var Citadel;
                         this.m_antiTamperBypassesPerDayInput.valueAsNumber = parseInt(this.m_appConfig['BypassesPermitted']);
                         this.m_antiTamperBypassDurationInput.valueAsNumber = parseInt(this.m_appConfig['BypassDuration']);
                         this.m_groupNlpThresholdInput.valueAsNumber = parseFloat(this.m_appConfig['NlpThreshold']);
+                        this.m_textTriggerMaxSizeInput.valueAsNumber = parseInt(this.m_appConfig['MaxTextTriggerScanningSize']);
                         this.m_groupUpdateCheckFrequencyInput.valueAsNumber = parseInt(this.m_appConfig['UpdateFrequency']);
                         this.m_groupPrimaryDnsInput.value = this.m_appConfig['PrimaryDns'];
                         this.m_groupSecondaryDnsInput.value = this.m_appConfig['SecondaryDns'];

@@ -14,16 +14,6 @@ var Citadel;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(BaseRecord.prototype, "RecordRoute", {
-            get: function () { },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(BaseRecord.prototype, "ValidationOptions", {
-            get: function () { },
-            enumerable: true,
-            configurable: true
-        });
         BaseRecord.CreateFromObject = function (type, data) {
             var inst = new type();
             inst.LoadFromObject(data);

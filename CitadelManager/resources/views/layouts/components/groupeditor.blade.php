@@ -100,6 +100,17 @@
                                 </div>
                             
                             </div>
+                            
+                            <div class="row cells3">
+                                <div class="cell" id="div_ea30_6">
+                                    <label for="editor_cfg_trigger_max_size_input">Text Trigger Scan Window Size (-1 for unlimited)</label>
+                                    <br>
+                                    <br>
+                                    <label class="input-control" id="label_ea30_2">
+                                        <input type="number" id="editor_cfg_trigger_max_size_input" name="editor_cfg_trigger_max_size_input" min="-1" value="-1">                                    
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </form>
 
