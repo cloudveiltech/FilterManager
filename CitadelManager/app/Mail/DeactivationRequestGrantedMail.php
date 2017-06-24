@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use App\DeactivationRequest;
 use App\User;
 
-class DeactivationRequestReceivedMail extends Mailable
+class DeactivationRequestGrantedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -45,6 +45,6 @@ class DeactivationRequestReceivedMail extends Mailable
      */
     public function build()
     {
-        return $this->view('emails.deactivation_request_received');
+        return $this->view('emails.deactivation_request_granted');
     }
 }

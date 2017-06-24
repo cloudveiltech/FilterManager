@@ -2,6 +2,7 @@
 
 return [
 
+    'company_name' => env('APP_COMPANY_NAME', 'Citadel'),
     /*
     |--------------------------------------------------------------------------
     | Application Name

@@ -11,6 +11,8 @@ namespace App\Http\Controllers;
 
 use App\DeactivationRequest;
 use Illuminate\Http\Request;
+use App\Events\DeactivationRequestGranted;  
+use Log;
 
 class DeactivationRequestController extends Controller
 {
@@ -86,7 +88,13 @@ class DeactivationRequestController extends Controller
         ]);
         
         $input = $request->only(['granted']);
-        DeactivationRequest::where('id', $id)->update($input);
+        $deactivateRequest = DeactivationRequest::where('id', $id)->first();
+        $deactivateRequest->update($input);
+        Log::info("Logging an object: " . print_r($input, true));
+        // If this is a deactivate request that we are granting then we fire an event.
+        if ($input['granted'] == 1) {
+          event(new DeactivationRequestGranted($deactivateRequest));
+        }
     }
 
     /**

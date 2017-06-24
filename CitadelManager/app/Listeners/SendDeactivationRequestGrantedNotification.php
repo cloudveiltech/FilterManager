@@ -2,14 +2,14 @@
 
 namespace App\Listeners;
 
-use App\Events\DeactivationRequestReceived;
+use App\Events\DeactivationRequestGranted;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use App\Mail\DeactivationRequestReceivedMail;
+use App\Mail\DeactivationRequestGrantedMail;
 use Illuminate\Support\Facades\Mail;
 use Log;
 
-class SendDeactivationRequestNotification
+class SendDeactivationRequestGrantedNotification
 {
     /**
      * Create the event listener.
@@ -24,14 +24,15 @@ class SendDeactivationRequestNotification
     /**
      * Handle the event.
      *
-     * @param  DeactivationRequestReceived  $event
+     * @param  DeactivationRequestGranted  $event
      * @return void
      */
-    public function handle(DeactivationRequestReceived $event)
+    public function handle(DeactivationRequestGranted $event)
     {
         // We access the deactivationRequest via $event->deactivationRequest;
+        //Log::info("Logging an object: " . print_r($event, true));
         $user = \App\User::find($event->deactivationRequest->user_id);
         Mail::to($user->email)
-          ->send(new DeactivationRequestReceivedMail($event->deactivationRequest, $user));
+          ->send(new DeactivationRequestGrantedMail($event->deactivationRequest, $user));
     }
 }
