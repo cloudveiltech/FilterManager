@@ -46,15 +46,23 @@ Route::get('/update/win{platform}/update.xml', function ($platform) {
                 'platform' => $platform,
                 'app_name' => 'CloudVeil',
                 'file_name' => 'CloudVeil',
-                'version_name' => '0.6.23 Beta',
-                'version_number' => '0.6.23',
+                'version_name' => '0.6.28 Beta',
+                'version_number' => '0.6.28',
                 'changes' =>
                     [
-                        'Fixes failure to load and apply whitelists.',
+                        'Many fixes. Beta 2',
                     ],
-                'date' => 'Fri, 23 Jun 2017 07:20:00 EST'
+                'date' => 'Fri, 30 Jun 2017 19:21:00 MST'
 
             ]
         )
         ->header('Content-Type', 'text/xml');
+});
+
+Route::get('/download/latest/64', function() {
+  return redirect('/releases/CloudVeil-0.6.28-x64.msi');
+});
+
+Route::get('/download/latest/32', function() {
+  return redirect('/releases/CloudVeil-0.6.28-x86.msi');
 });
