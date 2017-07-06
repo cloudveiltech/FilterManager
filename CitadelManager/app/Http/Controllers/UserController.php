@@ -56,8 +56,9 @@ class UserController extends Controller {
 
         $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id']);
         $input['password'] = Hash::make($input['password']);
+        $input['api_token'] = str_random(60);
 
-        $user = User::create($input);
+        $user = User::create($input);   
 
         $suppliedRoleId = $request->input('role_id');
         $suppliedRole = Role::where('id', $suppliedRoleId)->first();
