@@ -56,15 +56,9 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Begin V1 of Restful API.
-
-Route::group(['prefix' => 'v1', 'middleware' => ['role:admin','auth:token']], function() {
+Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:admin']], function() {
+    Route::get('/users', 'UserController@index');
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    Route::post('/users', function (Request $request) {
-        return $request;
-    });
 });
-
-
