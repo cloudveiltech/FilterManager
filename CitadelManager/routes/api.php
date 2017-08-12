@@ -58,13 +58,16 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 // Begin V1 of Restful API.
 
-Route::group(['prefix' => 'v1', 'middleware' => ['role:admin','auth:token']], function() {
+Route::group(['prefix' => 'v1'], function() { //     , 'middleware' => ['role:admin','auth:token']
     Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+        //return Auth::guard('api')->user();
+
+        //return $request->user();
+    })->middleware('auth.basic');
+    
     Route::post('/users', function (Request $request) {
         return $request;
-    });
+    })->middleware('auth.basic');
 });
 
 
