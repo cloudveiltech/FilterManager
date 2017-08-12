@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use App\DeactivationRequest;
 use App\AppUserActivation;
 use App\Events\DeactivationRequestReceived;
+use Laravel\Passport\Passport;
 
 class UserController extends Controller {
 
@@ -255,6 +256,30 @@ class UserController extends Controller {
             return response()->download($userLicensePath);
         }
         return response('', 500);
+    }
+
+    /**
+     * Handles when user logs in from the application.  Returns their access token.
+     * @param Request $request
+     */
+    public function getUserToken(Request $request) {
+        $user = \Auth::user();
+
+        // Creating a token without scopes...
+        return $user->createToken('Token Name')->accessToken;
+    }
+
+    /**
+     * Handles when user request to revoke their personal token.  This should be used to sign out of the appliation.
+     * This could probably be rolled into deactivation requests in the future.
+     * @param Request $request
+     */
+    public function revokeUserToken(Request $request) {
+
+        $user = \Auth::user();
+        $token = $user->token();
+        $token->revoke();
+        return response('', 200);
     }
 
 }

@@ -15,6 +15,7 @@ use Zizaco\Entrust\Traits\EntrustUserTrait;
 use App\AppUserActivation;
 use Illuminate\Http\Request;
 use Validator;
+use Laravel\Passport\HasApiTokens;
 
 class UserActivationAttemptResult {
 
@@ -31,6 +32,7 @@ class User extends Authenticatable {
 
     use Notifiable;
     use EntrustUserTrait;
+    use HasApiTokens;
 
     public $timestamps = true;
 
