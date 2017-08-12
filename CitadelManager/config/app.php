@@ -179,6 +179,8 @@ return [
         App\Providers\RouteServiceProvider::class,
 	    RachidLaasri\LaravelInstaller\Providers\LaravelInstallerServiceProvider::class,
         Zizaco\Entrust\EntrustServiceProvider::class,
+
+        Mnabialek\LaravelSqlLogger\Providers\ServiceProvider::class,
     ],
 
     /*
