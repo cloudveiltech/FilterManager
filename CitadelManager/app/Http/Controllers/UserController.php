@@ -52,12 +52,12 @@ class UserController extends Controller {
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|same:password_verify',
-            'role_id' => 'required|exists:roles,id'
+            'role_id' => 'required|exists:roles,id',
+            'group_id' => 'required|exists:groups,id'
         ]);
 
-        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id']);
+        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id','activations_allowed','isactive']);
         $input['password'] = Hash::make($input['password']);
-        $input['api_token'] = str_random(60);
 
         $user = User::create($input);   
 
