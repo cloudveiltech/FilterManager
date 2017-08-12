@@ -10,6 +10,7 @@
         "guzzlehttp/guzzle": "^6.2",
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
+        "mnabialek/laravel-sql-logger": "^1.1",
         "rachidlaasri/laravel-installer": "1.5",
         "yadakhov/insert-on-duplicate-key": "^1.1",
         "zizaco/entrust": "1.9.0-beta1"

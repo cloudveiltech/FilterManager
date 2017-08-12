@@ -41,11 +41,6 @@ class Kernel extends HttpKernel
             //'bindings',
             'web'
         ],
-
-        'token' => [
-            'throttle:60,1',
-            'bindings',
-        ]
     ];
 
     /**
