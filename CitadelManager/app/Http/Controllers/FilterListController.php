@@ -284,6 +284,17 @@ class FilterListController extends Controller {
         $tmpArchiveLoc = $storageDir . DIRECTORY_SEPARATOR . basename($file->getPathname()) . '.' . $file->getClientOriginalExtension();
         move_uploaded_file($file->getPathname(), $tmpArchiveLoc);
         
+        // Sometimes, a category can have more than one file that is treated
+        // the same. domains and urls files will both get pushed into a list
+        // of type Filters. If we run the delete op in our foreach here,
+        // we will end up purging our lists more than once when overwrite is
+        // set to true. So, we keep a map of all list ID's that we've already
+        // purged so we only do this once.
+        //
+        // This is not necessary for other types of filter data, such as NLP
+        // models, because there can only be 1 per category.
+        $purgedCategories = array();
+        
         $pharIterator = new \RecursiveIteratorIterator(new \PharData($tmpArchiveLoc), \RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($pharIterator as $pharFileInfo) {
             if (!$pharFileInfo->isDir()) {
@@ -293,6 +304,14 @@ class FilterListController extends Controller {
                 {
                     // This is an improperly formatted zip.
                     // This is a file inside the root directory.
+                    continue;
+                }
+                
+                if(strcasecmp($categoryName, basename($tmpArchiveLoc)) == 0)
+                {
+                    // This is an improperly formatted zip. This means that we have
+                    // filter/trigger/nlp model stuff in the root of the zip structure
+                    // and this cannot be allowed.
                     continue;
                 }
                 
@@ -346,10 +365,13 @@ class FilterListController extends Controller {
                 
                 // Delete existing if overwrite is true.
                 if ($overwrite) {
-                    $existingList = FilterList::where(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType])->first();
-                    if (!is_null($existingList)) {
-                        TextFilteringRule::where('filter_list_id', $existingList->id)->delete();
+                    
+                    $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
+                    if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
+                        TextFilteringRule::where('filter_list_id', '=', $existingList->id)->forceDelete();
 
+                        array_push($purgedCategories, $existingList->id);
+                        
                         // DON'T DELETE THIS ACTUAL FILTER LIST ENTRY!!
                         // If we do that, then we have to manually rebuild
                         // filter list assignments. Leave it the same. Only
@@ -357,8 +379,17 @@ class FilterListController extends Controller {
                     }
                 }
 
+                
                 $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
 
+                // We have to do this for the event where the user selects overwrite on the upload,
+                // yet one or more of the lists didn't exist already. Otherwise, same problem will
+                // arise as described in the comments above purgedCategories var creation above.
+                if($overwrite && $newFilterListEntry->wasRecentlyCreated)
+                {
+                    array_push($purgedCategories, $newFilterListEntry->id);
+                }
+                
                 // In case this is existing, pull group assignment of this filter.                
                 $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
 
@@ -370,8 +401,30 @@ class FilterListController extends Controller {
                 // This means that the list is a raw list of domains/urls.
                 // We will also convert these to triggers.
                 if ($convertToAbp == true) {
+                    
                     $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => 'Triggers']);
 
+                    // We have to do this for the event where the user selects overwrite on the upload,
+                    // yet one or more of the lists didn't exist already. Otherwise, same problem will
+                    // arise as described in the comments above purgedCategories var creation above.
+                    if($overwrite && $newFilterListEntry->wasRecentlyCreated)
+                    {
+                        array_push($purgedCategories, $newFilterListEntry->id);
+                    }
+                    
+                    if ($overwrite) {
+                        if (!is_null($newFilterListEntry) && !in_array($newFilterListEntry->id, $purgedCategories)) {
+                            
+                            TextFilteringRule::where('filter_list_id', '=', $newFilterListEntry->id)->forceDelete();
+                            
+                            array_push($purgedCategories, $newFilterListEntry->id);
+                            // DON'T DELETE THIS ACTUAL FILTER LIST ENTRY!!
+                            // If we do that, then we have to manually rebuild
+                            // filter list assignments. Leave it the same. Only
+                            // delete actual text lines for it.
+                        }
+                    }
+                    
                     // In case this is existing, pull group assignment of this filter.                
                     $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
 

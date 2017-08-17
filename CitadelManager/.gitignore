@@ -15,3 +15,6 @@ npm-debug.log
 
 # Ignore user data
 /storage/group_data
+
+# Ignore uploaded tmp files
+/storage/*.zip

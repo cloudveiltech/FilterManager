@@ -79,7 +79,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['api','auth:api']], function() 
     });
 });
 
-Route::middleware(['auth.basic.once','role:admin|user'])->get('/v2/user/gettoken', 'UserController@getUserToken'); 
+Route::middleware(['auth.basic.once','role:admin|user'])->post('/v2/user/gettoken', 'UserController@getUserToken'); 
 
 /**
  * Management section of the API.  This is used for working with users from external sources and relies upon basic auth.

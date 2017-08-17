@@ -13,6 +13,8 @@ use Validator;
 use App\User;
 use App\Group;
 use App\Role;
+use Illuminate\Support\Facades\Auth;
+use App\UserActivationAttemptResult;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\DeactivationRequest;
@@ -177,7 +179,7 @@ class UserController extends Controller {
 
         $userGroup = $thisUser->group()->first();
         if (!is_null($userGroup)) {
-            if (!is_null($userGroup->data_sha1)) {
+            if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
                 return $userGroup->data_sha1;
             }
         }
@@ -265,8 +267,45 @@ class UserController extends Controller {
     public function getUserToken(Request $request) {
         $user = \Auth::user();
 
-        // Creating a token without scopes...
-        return $user->createToken('Token Name')->accessToken;
+        $userActivateResult = $user->tryActivateUser($request);
+
+        switch ($userActivateResult) {
+            case UserActivationAttemptResult::Success: {
+                    // Creating a token without scopes...
+                    return $user->createToken('Token Name')->accessToken;
+                }
+                break;
+
+            case UserActivationAttemptResult::ActivationLimitExceeded: {
+                    Auth::logout();
+                    return response('Your account has been activated on more devices than permitted.', 401);
+                }
+                break;
+
+            case UserActivationAttemptResult::AccountDisabled: {
+                    Auth::logout();
+                    return response('Your account has been disabled.', 401);
+                }
+                break;
+
+            case UserActivationAttemptResult::GroupDisabled: {
+                    Auth::logout();
+                    return response('The group that your account belongs to has been disabled.', 401);
+                }
+                break;
+
+            case UserActivationAttemptResult::IndentifyingInformationMissing: {
+                    Auth::logout();
+                    return response('User device identifier and or name not supplied.', 401);
+                }
+                break;
+
+            case UserActivationAttemptResult::UnknownError: {
+                    Auth::logout();
+                    return response('An unknown error occurred while trying to activate or verify your account activation.', 401);
+                }
+                break;
+        }
     }
 
     /**
