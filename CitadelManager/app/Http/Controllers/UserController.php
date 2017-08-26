@@ -152,6 +152,21 @@ class UserController extends Controller {
             }
         }
 
+        /* 
+         * If we are deactivating the user then we revoke all their personal access tokens at the same time.
+         * This will force them to redo all installations.
+         */
+
+        if ($request->has('isactive')) {
+            if ($request->input('isactive') == '0') {
+                $updateUser = User::where('id', $id)->first();
+                $userTokens = $updateUser->tokens;
+                foreach($userTokens as $token) {
+                    $token->revoke();   
+                }  
+            }
+        }
+
         return response('', 204);
     }
 
@@ -165,6 +180,12 @@ class UserController extends Controller {
 
         $user = User::where('id', $id)->first();
         if (!is_null($user)) {
+
+            // Revoke all tokens.
+            $userTokens = $user->tokens;
+            foreach($userTokens as $token) {
+                $token->revoke();   
+            }  
 
             $user->detachRoles();
 
