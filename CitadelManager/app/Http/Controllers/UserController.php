@@ -26,11 +26,17 @@ class UserController extends Controller {
 
     /**
      * Display a listing of the resource.
+     * Accepts email as a parameter to search for users.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index() {
-        return User::with(['group', 'roles'])->get();
+    public function index(Request $request) {
+        $email = $request->input('email');
+        return User::with(['group', 'roles'])
+            ->when($email, function($query) use ($email) {
+                return $query->where('email', $email);
+            })
+            ->get();
     }
 
     /**
@@ -60,7 +66,7 @@ class UserController extends Controller {
 
         $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id','activations_allowed','isactive']);
         $input['password'] = Hash::make($input['password']);
-
+        
         $user = User::create($input);   
 
         $suppliedRoleId = $request->input('role_id');

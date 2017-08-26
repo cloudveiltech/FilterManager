@@ -88,6 +88,8 @@ Route::middleware(['auth.basic.once','role:admin|user'])->post('/v2/user/gettoke
 
 Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:admin']], function() {
     Route::get('/users', 'UserController@index');
+
+    Route::post('/user', 'UserController@store');
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
