@@ -266,7 +266,11 @@ class UserController extends Controller {
                 return response('', 204);
             } else {
               // If this is a deactivate request that has not been granted then we fire an event.
-                event(new DeactivationRequestReceived($deactivateRequest));
+                try {
+                    event(new DeactivationRequestReceived($deactivateRequest));
+                } catch(\Exception $e){
+                    Log::error($e);
+                }
             }
         }
 

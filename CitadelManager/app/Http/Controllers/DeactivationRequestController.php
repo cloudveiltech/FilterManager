@@ -93,7 +93,11 @@ class DeactivationRequestController extends Controller
         Log::info("Logging an object: " . print_r($input, true));
         // If this is a deactivate request that we are granting then we fire an event.
         if ($input['granted'] == 1) {
-          event(new DeactivationRequestGranted($deactivateRequest));
+            try {
+                event(new DeactivationRequestGranted($deactivateRequest));
+            } catch(\Exception $e){
+                Log::error($e);
+            }
         }
     }
 
