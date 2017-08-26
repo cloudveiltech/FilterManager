@@ -46,11 +46,11 @@ Route::get('/update/win{platform}/update.xml', function ($platform) {
                 'platform' => $platform,
                 'app_name' => 'CloudVeil',
                 'file_name' => 'CloudVeil',
-                'version_name' => '0.7.0 Beta',
-                'version_number' => '0.7.0',
+                'version_name' => '0.8.21 Beta',
+                'version_number' => '0.8.21',
                 'changes' =>
                     [
-                        'Many fixes, fixed issue with some web pages requring a refresh to load. Beta 3',
+                        'Many fixes. Beta 4',
                     ],
                 'date' => 'Tues, 18 Jul 2017 10:46:00 MST'
 
@@ -60,7 +60,7 @@ Route::get('/update/win{platform}/update.xml', function ($platform) {
 });
 
 Route::get('/download/latest/64', function() {
-  return redirect('/releases/CloudVeil-0.7.0-x64.msi');
+  return redirect('/releases/CloudVeil-0.8.21-x64.msi');
 });
 
 Route::get('/download/latest/32', function() {
