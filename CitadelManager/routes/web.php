@@ -46,13 +46,13 @@ Route::get('/update/win{platform}/update.xml', function ($platform) {
                 'platform' => $platform,
                 'app_name' => 'CloudVeil',
                 'file_name' => 'CloudVeil',
-                'version_name' => '0.8.21 Beta',
-                'version_number' => '0.8.21',
+                'version_name' => '1.0.5 Release',
+                'version_number' => '1.0.5',
                 'changes' =>
                     [
-                        'Many fixes. Beta 4',
+                        'App and app library versions now bumped above default value of 1.0.0.0 to enforce installation of updated binaries',
                     ],
-                'date' => 'Tues, 18 Jul 2017 10:46:00 MST'
+                'date' => 'Sat, 9 Sep 2017 20:33:00 MST'
 
             ]
         )
@@ -60,10 +60,10 @@ Route::get('/update/win{platform}/update.xml', function ($platform) {
 });
 
 Route::get('/download/latest/64', function() {
-  return redirect('/releases/CloudVeil-0.8.21-x64.msi');
+  return redirect('/releases/CloudVeil-1.0.3-x64.msi');
 });
 
 Route::get('/download/latest/32', function() {
-  return redirect('/releases/CloudVeil-0.7.0-x86.msi');
+  return redirect('/releases/CloudVeil-1.0.3-x86.msi');
 });
 
