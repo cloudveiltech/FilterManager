@@ -79,13 +79,20 @@ Route::group(['prefix' => 'v2', 'middleware' => ['api','auth:api']], function() 
     });
 });
 
+/* Administration side of v2 API. This version relies upon basic authentication to retrieve a token and then 
+ * token authentication via headers for other requests.
+ */
+Route::group(['prefix' => 'v2/admin', 'middleware' => ['api','auth:api','role:admin']], function() {
+    // For handling mass upload of filter lists.
+    Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
+});
+
 Route::middleware(['auth.basic.once','role:admin|user'])->post('/v2/user/gettoken', 'UserController@getUserToken'); 
 
 /**
  * Management section of the API.  This is used for working with users from external sources and relies upon basic auth.
  * At some point this will be revoked and rolled into v2 of the api.
  */
-
 Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:admin']], function() {
     Route::get('/users', 'UserController@index');
 
@@ -93,4 +100,8 @@ Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:adm
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+});
+
+Route::group(['middleware' => []], function() {
+    Route::post('upload/log', 'UserController@uploadLog');
 });

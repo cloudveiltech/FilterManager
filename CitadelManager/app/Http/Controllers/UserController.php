@@ -352,4 +352,18 @@ class UserController extends Controller {
         return response('', 200);
     }
 
+    /**
+     * Used by our debugging tool to provide a central place to store logs received from users.
+     * @param Request $request
+     */
+    public function uploadLog(Request $request) {
+        $this->validate($request, [
+            'user_email' => 'required|email',
+            'log' => 'required',
+            'source' => 'required',
+        ]);
+        $path = $request->file('log')->store('user_logs/' . $request->input('user_email'));
+        return "OK";
+    }
+
 }
