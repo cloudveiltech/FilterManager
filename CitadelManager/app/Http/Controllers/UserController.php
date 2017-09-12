@@ -21,6 +21,8 @@ use App\DeactivationRequest;
 use App\AppUserActivation;
 use App\Events\DeactivationRequestReceived;
 use Laravel\Passport\Passport;
+use Log;
+use Carbon\Carbon;
 
 class UserController extends Controller {
 
@@ -203,7 +205,15 @@ class UserController extends Controller {
      */
     public function checkUserData(Request $request) {
         $thisUser = \Auth::user();
-
+        $token = $thisUser->token();
+        // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
+        if ($request->has('identifier')) {
+            $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
+            if($activation) {
+                $activation->updated_at = Carbon::now();
+                $activation->save(); 
+            }
+        }
         $userGroup = $thisUser->group()->first();
         if (!is_null($userGroup)) {
             if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
