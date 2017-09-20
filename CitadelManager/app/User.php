@@ -16,6 +16,8 @@ use App\AppUserActivation;
 use Illuminate\Http\Request;
 use Validator;
 use Laravel\Passport\HasApiTokens;
+use Log;
+use Carbon\Carbon;
 
 class UserActivationAttemptResult {
 
@@ -64,7 +66,10 @@ class User extends Authenticatable {
      * @return type
      */
     public function activationsCountRelation() {
-        return $this->hasOne('App\AppUserActivation')->selectRaw('user_id, count(*) as count')->groupBy('user_id');
+        return $this->hasOne('App\AppUserActivation')
+            ->selectRaw('user_id, count(*) as count')
+            ->where('updated_at','>=', Carbon::now()->subDays(config('app.license_expiration'))->format('Y-m-d H:i:s'))
+            ->groupBy('user_id');
     }
 
     /**
@@ -74,7 +79,7 @@ class User extends Authenticatable {
     public function getActivationsUsedAttribute(): int {
 
         $activationRelation = $this->activationsCountRelation()->first();
-
+        Log::debug($activationRelation);
         if (!is_null($activationRelation)) {
             return $activationRelation->count;
         }
@@ -116,6 +121,8 @@ class User extends Authenticatable {
         try
         {
             $activation = AppUserActivation::firstOrCreate($userInfo);
+            Log::debug('Created New Activation');
+            Log::debug($activation);
             $numActivations = $this->getActivationsUsedAttribute();
             
             // Only deny this user if their activation is brand new
@@ -131,7 +138,7 @@ class User extends Authenticatable {
             $activation->touch();
             
         } catch (Exception $ex) {
-            error_log(print_r($ex, true));
+            Log::error(print_r($ex, true));
             return UserActivationAttemptResult::UnknownError;  
         }
         
