@@ -42,6 +42,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['web','role:admin']], functi
     Route::resource('deactivationreq', 'DeactivationRequestController');
     Route::resource('filterlists', 'FilterListController');
     Route::resource('blockreview', 'BlockActionReviewRequestController');
+    Route::get('activations', 'AppUserActivationController@index');
     
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');

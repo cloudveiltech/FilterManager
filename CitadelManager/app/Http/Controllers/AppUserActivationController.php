@@ -23,6 +23,10 @@ use Carbon\Carbon;
 
 class AppUserActivationController extends Controller {
 
+    public function __construct() {
+    
+    }
+
     /**
      * Returns the list of activations.
      *
@@ -30,7 +34,6 @@ class AppUserActivationController extends Controller {
      */
     public function index(Request $request) {
       //$thisUser = \Auth::user();
-      $activations = '';
       if ($request->has('email')) {
         $user = User::where('email', $request->input('email'))->first();
         if ($user->activations()) {
@@ -41,14 +44,10 @@ class AppUserActivationController extends Controller {
         $user = User::find($request->input('user_id'));
         if ($user->activations()) {
           return $user->activations()->get();
-        }
-        
+        } 
       } else {
         return AppUserActivation::get();
       }
-
-      return $activations;
-
     }
 
 }
