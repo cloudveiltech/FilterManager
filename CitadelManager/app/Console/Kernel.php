@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
                 ->where('created_at', '<', Carbon::now()->subDays(config('app.deactivation_request_expiration'))->format('Y-m-d H:i:s') )
                 ->where('updated_at', '<', Carbon::now()->subDays(config('app.deactivation_request_expiration'))->format('Y-m-d H:i:s') )
                 ->delete();
-        })->everyMinute();//->daily();
+        })->daily();
     } 
 
     /**
