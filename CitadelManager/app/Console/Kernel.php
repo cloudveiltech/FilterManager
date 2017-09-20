@@ -4,6 +4,8 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class Kernel extends ConsoleKernel
 {
@@ -24,9 +26,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
-    }
+        $schedule->call(function () {
+            /* Delete deactivation requests which are haven't been touched for more than X days. */
+            DB::table('deactivation_requests')
+                ->where('created_at', '<', Carbon::now()->subDays(config('app.deactivation_request_expiration'))->format('Y-m-d H:i:s') )
+                ->where('updated_at', '<', Carbon::now()->subDays(config('app.deactivation_request_expiration'))->format('Y-m-d H:i:s') )
+                ->delete();
+        })->everyMinute();//->daily();
+    } 
 
     /**
      * Register the Closure based commands for the application.

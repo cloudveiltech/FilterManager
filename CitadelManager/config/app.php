@@ -3,6 +3,12 @@
 return [
 
     'company_name' => env('APP_COMPANY_NAME', 'Citadel'),
+    /* How long (in days) do we let deactivation requests sit around? */
+    'deactivation_request_expiration' => env('APP_DEACTIVATION_REQUEST_EXPIRATION', '7'),
+
+    /* How long (in days) does a license remain in use after the last use? */
+    'license_expiration' => env('APP_LICENSE_EXPIRATION', '90'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name
