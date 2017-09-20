@@ -97,9 +97,12 @@ Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:adm
     Route::get('/users', 'UserController@index');
 
     Route::post('/user', 'UserController@store');
+
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    Route::get('/activations', 'AppUserActivationController@index');
 });
 
 Route::group(['middleware' => []], function() {
