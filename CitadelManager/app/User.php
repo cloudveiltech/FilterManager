@@ -18,6 +18,7 @@ use Validator;
 use Laravel\Passport\HasApiTokens;
 use Log;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserActivationAttemptResult {
 
@@ -44,6 +45,20 @@ class User extends Authenticatable {
      * @var array
      */
     protected $appends = ['activations_used'];
+
+    /**
+     * Set the default orderBy
+     */
+    protected static function boot()
+    {
+        parent::boot();
+     
+        // Order by name ASC
+        static::addGlobalScope('order', function (Builder $builder) {
+            $builder->orderBy('name', 'asc');
+        });
+    }
+     
 
     public function group() {
         return $this->belongsTo('App\Group');
