@@ -102,6 +102,7 @@
                             </div>
                             
                             <div class="row cells3">
+                                
                                 <div class="cell" id="div_ea30_6">
                                     <label for="editor_cfg_trigger_max_size_input">Text Trigger Scan Window Size (-1 for unlimited)</label>
                                     <br>
@@ -110,6 +111,20 @@
                                         <input type="number" id="editor_cfg_trigger_max_size_input" name="editor_cfg_trigger_max_size_input" min="-1" value="-1">                                    
                                     </label>
                                 </div>
+                                
+                                <div class="cell" id="div_ea30_6">
+                                    <label for="editor_cfg_update_channel_input">Update Channel</label>
+                                    <br>
+                                    <br>
+                                    <div class="input-control select" data-role="input">
+                                        <select name="editor_cfg_update_channel_input" id="editor_cfg_update_channel_input" >
+                                            <option value="Stable">Stable</option>
+                                            <option value="Alpha">Alpha</option>
+                                            <option value="Beta">Beta</option>
+                                        </select>                        
+                                    </div>
+                                </div>
+                                
                             </div>
                         </div>
                     </form>

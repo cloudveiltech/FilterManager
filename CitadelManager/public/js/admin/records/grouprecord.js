@@ -73,6 +73,7 @@ var Citadel;
             this.m_antiTamperBypassDurationInput = document.querySelector('#editor_cfg_bypass_duration_input');
             this.m_groupNlpThresholdInput = document.querySelector('#editor_cfg_nlp_threshold_input');
             this.m_textTriggerMaxSizeInput = document.querySelector('#editor_cfg_trigger_max_size_input');
+            this.m_updateChannelSelectInput = document.querySelector('#editor_cfg_update_channel_input');
             this.m_groupNlpThresholdInput.onkeyup = function (e) {
                 var inputBox = e.target;
                 var value = inputBox.valueAsNumber;
@@ -241,6 +242,7 @@ var Citadel;
                 'BypassDuration': this.m_antiTamperBypassDurationInput.valueAsNumber,
                 'NlpThreshold': this.m_groupNlpThresholdInput.valueAsNumber,
                 'MaxTextTriggerScanningSize': this.m_textTriggerMaxSizeInput.valueAsNumber,
+                'UpdateChannel': this.m_updateChannelSelectInput.options[this.m_updateChannelSelectInput.selectedIndex].value,
             };
             appConfig[filterAppsKey] = allFilteredAppLines;
             this.m_appConfig = appConfig;
@@ -280,6 +282,7 @@ var Citadel;
             this.m_antiTamperBypassDurationInput.valueAsNumber = 0;
             this.m_groupNlpThresholdInput.valueAsNumber = 0;
             this.m_textTriggerMaxSizeInput.valueAsNumber = -1;
+            this.m_updateChannelSelectInput.selectedIndex = 0;
             this.m_groupUpdateCheckFrequencyInput.valueAsNumber = 5;
             this.m_groupPrimaryDnsInput.value = '';
             this.m_groupSecondaryDnsInput.value = '';
@@ -372,6 +375,19 @@ var Citadel;
                         this.m_antiTamperBypassDurationInput.valueAsNumber = parseInt(this.m_appConfig['BypassDuration']);
                         this.m_groupNlpThresholdInput.valueAsNumber = parseFloat(this.m_appConfig['NlpThreshold']);
                         this.m_textTriggerMaxSizeInput.valueAsNumber = parseInt(this.m_appConfig['MaxTextTriggerScanningSize']);
+                        try {
+                            for (var i = 0; i < this.m_updateChannelSelectInput.options.length; ++i) {
+                                if (this.m_updateChannelSelectInput.options[i].value.toLowerCase() == this.m_appConfig['UpdateChannel'].toLowerCase()) {
+                                    this.m_updateChannelSelectInput.selectedIndex = this.m_updateChannelSelectInput.options[i].index;
+                                    break;
+                                }
+                            }
+                        }
+                        catch (ex) {
+                            console.warn(ex);
+                            console.warn("Either the update channel is null or it's an invalid value. Defaulting...");
+                            this.m_updateChannelSelectInput.selectedIndex = 0;
+                        }
                         this.m_groupUpdateCheckFrequencyInput.valueAsNumber = parseInt(this.m_appConfig['UpdateFrequency']);
                         this.m_groupPrimaryDnsInput.value = this.m_appConfig['PrimaryDns'];
                         this.m_groupSecondaryDnsInput.value = this.m_appConfig['SecondaryDns'];
