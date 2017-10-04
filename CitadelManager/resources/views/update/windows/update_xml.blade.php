@@ -16,7 +16,9 @@
                 ]]>
             </description>
             <pubDate>{{ $date }}</pubDate>
-            <enclosure url="{{ url('/') }}/releases/{{ $file_name }}-{{ $version_number }}-{{ $platform }}.msi" length="0" sparkle:os="windows" sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $version_number }}" type="application/octet-stream"/>
+            @foreach ($channels AS $channel)
+            <enclosure channel="{{ $channel['release'] }}" url="{{ url('/') }}/releases/{{ $file_name }}-{{ $channel['version_number'] }}-{{ $platform }}.msi" length="0" sparkle:os="windows" sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $channel['version_number'] }}" type="application/octet-stream"/>
+            @endforeach
         </item>
     </channel>
 </rss>
