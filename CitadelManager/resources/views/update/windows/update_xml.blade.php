@@ -3,8 +3,9 @@
         <title>{{ $app_name }} Update</title>
         <description>New version available.</description>
         <language>en</language>
+        @foreach ($channels AS $channel)
         <item>
-            <title>Version {{ $version_name }}</title>
+            <title>{{ $channel['release'] }} {{ $channel['version_number'] }}</title>
             <description>
                 <![CDATA[
                     <ul>
@@ -16,9 +17,8 @@
                 ]]>
             </description>
             <pubDate>{{ $date }}</pubDate>
-            @foreach ($channels AS $channel)
-            <enclosure channel="{{ $channel['release'] }}" url="{{ url('/') }}/releases/{{ $file_name }}-{{ $channel['version_number'] }}-{{ $platform }}.msi" length="0" sparkle:os="windows" sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $channel['version_number'] }}" type="application/octet-stream"/>
-            @endforeach
+            <enclosure channel="{{ $channel['release'] }}" url="{{ url('/') }}/releases/{{ $file_name }}-{{ $channel['version_number'] }}-{{ $platform }}.msi" length="0" sparkle:os="windows" sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $channel['version_number'] }}" type="application/octet-stream"/>    
         </item>
+        @endforeach
     </channel>
 </rss>

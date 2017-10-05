@@ -35,7 +35,7 @@ class UpdateController extends Controller {
             'platform' => $platform,
             'app_name' => 'CloudVeil',
             'file_name' => 'CloudVeil',
-            'version_name' => '1.3.1 Release',
+            //'version_name' => '1.3.1 Release',
             'version_number' => '1.3.1',
             'changes' =>
               [
