@@ -212,12 +212,12 @@ class UserController extends Controller {
         if ($request->has('identifier')) {
             $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
             if($activation) {
-                $activation->updated_at = Carbon::now();
+                $activation->updated_at = Carbon::now()->timestamp;
                 $activation->save(); 
                 Log::debug('Activation Exists.  Saved');
             } else {
                 $activation = new AppUserActivation;
-                $activation->updated_at = Carbon::now();
+                $activation->updated_at = Carbon::now()->timestamp;
                 $activation->user_id = $thisUser->id;
                 $activation->device_id = $request->input('device_id');
                 $activation->identifier = $request->input('identifier');
