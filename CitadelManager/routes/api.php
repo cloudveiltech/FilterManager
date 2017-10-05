@@ -72,6 +72,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['api','auth:api']], function() 
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');    
     Route::post('/me/data/check', 'UserController@checkUserData');
     Route::post('/me/data/get', 'UserController@getUserData');
+    Route::post('/me/data/getconfigonly', 'UserController@getUserDataConfigOnly');
     Route::post('/me/terms', 'UserController@getUserTerms');
     Route::post('/me/revoketoken', 'UserController@revokeUserToken');
     
@@ -86,6 +87,19 @@ Route::group(['prefix' => 'v2', 'middleware' => ['api','auth:api']], function() 
 Route::group(['prefix' => 'v2/admin', 'middleware' => ['api','auth:api','role:admin']], function() {
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
+
+    /* Manage Users */
+    Route::put('/users/{id}', 'UserController@update');
+    Route::get('/users', 'UserController@index');
+    Route::post('/user', 'UserController@store');
+
+    /* Return Current User */
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    
+    /* Manage Activations */
+    Route::get('/activations', 'AppUserActivationController@index');
 });
 
 Route::middleware(['auth.basic.once','role:admin|user'])->post('/v2/user/gettoken', 'UserController@getUserToken'); 
@@ -95,15 +109,23 @@ Route::middleware(['auth.basic.once','role:admin|user'])->post('/v2/user/gettoke
  * At some point this will be revoked and rolled into v2 of the api.
  */
 Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:admin']], function() {
-    Route::get('/users', 'UserController@index');
+    // For handling mass upload of filter lists.
+    Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
 
+    /* Manage Users */
+    Route::post('/users/{id}', 'UserController@update');
+    Route::get('/users', 'UserController@index');
     Route::post('/user', 'UserController@store');
 
+    /* Return Current User */
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
+     /* Manage Activations */
     Route::get('/activations', 'AppUserActivationController@index');
+
+    
 });
 
 Route::group(['middleware' => []], function() {
