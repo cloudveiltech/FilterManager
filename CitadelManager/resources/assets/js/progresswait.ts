@@ -69,8 +69,8 @@ namespace Citadel
         {
             this.m_title.innerText = title;
             console.log('msg');
-            console.log(message);
-            console.log(this.m_message);
+            //console.log(message);
+            //console.log(this.m_message);
             this.m_message.innerHTML = '<div>' + message + '</div>';
             //this.m_message.innerText = message;
             $(this.m_overlay).fadeIn(fadeInTimeMsec);
