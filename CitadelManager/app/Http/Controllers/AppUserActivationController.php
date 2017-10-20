@@ -36,14 +36,18 @@ class AppUserActivationController extends Controller {
       //$thisUser = \Auth::user();
       if ($request->has('email')) {
         $user = User::where('email', $request->input('email'))->first();
-        if ($user->activations()) {
+        if ($user && $user->activations()) {
           return $user->activations()->get();
-        }       
+        } else {
+		return response()->json([]);
+	}
         //$activations = AppUserActivation::where
       } else if ($request->has('user_id')) {
         $user = User::find($request->input('user_id'));
-        if ($user->activations()) {
+        if ($user && $user->activations()) {
           return $user->activations()->get();
+	} else {
+		return response()->json([]);
         } 
       } else {
         return AppUserActivation::get();
