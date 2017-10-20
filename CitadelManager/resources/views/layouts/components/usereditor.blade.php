@@ -121,6 +121,7 @@
                 </div>
             </form>
         </div>
+        <hr class="thin">
         <div class="grid" id="userdetail_board">
             <div class="row cells2">
                 <div class="cell">

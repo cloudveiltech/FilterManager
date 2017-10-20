@@ -242,7 +242,7 @@ div.login-form div,div.login-form input,div.login-form span,div.login-form butto
     text-align: left;
 }
 
-#userdetail_board .grid .row.cells2 > .cell {
+#userdetail_board .cell {
     width: 50%;
 }
 
