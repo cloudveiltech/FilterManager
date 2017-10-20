@@ -8,7 +8,7 @@ class AppUserActivation extends Model
 {
     
     protected $fillable = [
-        'identifier', 'device_id', 'id','ip_address'
+        'identifier', 'device_id', 'user_id','ip_address'
     ];
     
     public function user()
