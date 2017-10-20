@@ -242,3 +242,36 @@ div.login-form div,div.login-form input,div.login-form span,div.login-form butto
     text-align: left;
 }
 
+#userdetail_board .grid .row.cells2 > .cell {
+    width: 50%;
+}
+
+#userdetail_board .cells2 div:first-child {
+    padding-right: 10px;
+}
+
+#userdetail_board .cells2 div:last-child {
+    padding-left: 10px;
+    margin-left: 0;
+}
+
+#userdetail_board ul {
+    list-style-type: none;
+    padding: 0;
+    margin-left: 0;
+}
+
+#userdetail_board ul li {
+    line-height: 2.5;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+#userdetail_board ul li label:first-child {
+    display: inline-block;
+}
+
+#userdetail_board ul li label:last-child {
+    float: right;
+    display: inline-block;
+    color: #52677a;
+}
