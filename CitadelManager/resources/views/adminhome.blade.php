@@ -17,6 +17,7 @@
         <li id="btn_tab_groups"><a href="#tab_groups">Groups</a></li>
         <li id="btn_filter_lists"><a href="#tab_filter_lists">Filter Lists</a></li>
         <li id="btn_user_deactivation_requests"><a href="#tab_user_deactivation_requests">Deactivation Requests</a></li>
+        <li id="btn_user_global_white_black_list"><a href="#tab_user_global_white_black_list">Global white/blacklist</a></li>
     </ul>
 
     <!-- Primary menu contents container. -->
@@ -119,6 +120,53 @@
                 <div class="tab-group-caption">Reply</div>
             </div>
         </div>
+
+         <!-- Global White/Blacklist tab. -->
+        <div class="tab-panel" id="tab_user_global_white_black_list" style="display: none;">
+            <div class="tab-panel-group">
+                <div class="tab-group-content">
+                    <div class="tab-content-segment">
+                        <!-- Default state of all delete buttons should be disabled. -->
+                         <label class="input-control radio">
+                            <input id="global_radio_blacklist" type="radio" name="global_n1" checked>
+                            <span class="check"></span>
+                            <span class="caption">Blacklist</span>
+                        </label>
+                        <br>
+                        <label class="input-control radio">
+                            <input id="global_radio_whitelist" type="radio" name="global_n1">
+                            <span class="check"></span>
+                            <span class="caption">Whitelist</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-panel-group">
+                <div class="tab-group-content">
+                    <button id="btn_application_add" class="fluent-big-button">
+                        <span class="icon mif-stack"></span> Add
+                        <br>Application
+                    </button>
+                    <div class="tab-content-segment">
+                        <!-- Default state of all delete buttons should be disabled. -->
+                        <button id="btn_application_remove" class="fluent-big-button" disabled>
+                            <span class="mif-cancel"></span>
+                            <span class="label">Remove<br>Application</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="tab-group-caption">Add / Remove</div>
+            </div>
+            <div class="tab-panel-group">
+                <div class="tab-group-content">
+                    <button id="btn_apply_group" class="fluent-big-button">
+                        <span class="icon mif-checkmark" style="color:green"></span> Apply
+                        <br>To Group
+                    </button>
+                </div>
+                <div class="tab-group-caption">Apply</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -153,6 +201,17 @@
         </table>
     </div>
 
+    <!-- Black/Whitelist editing view. -->
+    <div id="view_whitelist_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
+        <table id="whitelist_table" class="table striped hovered border" style="width:100%">
+
+        </table>
+    </div>
+    <div id="view_blacklist_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
+        <table id="blacklist_table" class="table striped hovered border" style="width:100%">
+
+        </table>
+    </div>
 </div>
 
 <!-- Include progress-wait script/UI. -->
@@ -172,6 +231,13 @@
 
 <!-- Require filter list upload overlay. -->
 @include('layouts.components.listuploader')
+
+<!-- Require whitelist editing overlay. -->
+@include('layouts.components.whitelisteditor')
+<!-- Require blacklist editing overlay. -->
+@include('layouts.components.blacklisteditor')
+<!-- Require Apply to group overlay. -->
+@include('layouts.components.applyapplication')
 
 <!-- Include dashboard JS to drive UI. -->
 <script src="{{ asset('js/admin/dashboard.js') }}">
