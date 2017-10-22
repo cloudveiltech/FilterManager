@@ -103,7 +103,7 @@ trait AuthenticatesLicensedUsers {
         $request->session()->flush();
 
         $request->session()->regenerate();
-
+        
         return redirect(config('app.url'));
     }
     
@@ -134,7 +134,7 @@ trait AuthenticatesLicensedUsers {
         } else {
             if ($user->hasRole('user')) {
                 $this->logout($request);
-                return response('Regular users are not permitted to authenticate via the web portal.', 401);
+                return $this->sendPermissionErrorResponse($request);                
             }
         }
     }
@@ -149,6 +149,7 @@ trait AuthenticatesLicensedUsers {
                     // redirected anywhere. A simple 204 no content response will indicate
                     // success.
                     return response('', 204);
+                    //return response('Regular users are not permitted to authenticate via the web portal.', 401);
                 }
                 break;
 
@@ -182,6 +183,13 @@ trait AuthenticatesLicensedUsers {
                 }
                 break;
         }
+    }
+
+    private function sendPermissionErrorResponse(Request $request) {
+        $errors = ['permission' => 'Regular users are not permitted to authenticate via the web portal.'];
+
+        return redirect()->back()
+            ->withErrors($errors);
     }
 
 }
