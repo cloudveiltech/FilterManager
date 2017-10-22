@@ -75,6 +75,12 @@ var Citadel;
             this.m_isActiveInput = document.querySelector('#editor_user_input_isactive');
             this.m_submitBtn = document.querySelector('#user_editor_submit');
             this.m_cancelBtn = document.querySelector('#user_editor_cancel');
+            this.m_user_id = document.querySelector('#user_id');
+            this.m_identifier = document.querySelector('#identifier');
+            this.m_device_id = document.querySelector('#device_id');
+            this.m_created_at = document.querySelector('#created_at');
+            this.m_updated_at = document.querySelector('#updated_at');
+            this.m_ip_address = document.querySelector('#ip_address');
             this.InitButtonHandlers();
         };
         UserRecord.prototype.InitButtonHandlers = function () {
@@ -93,6 +99,12 @@ var Citadel;
             this.m_numActivations = data['activations_allowed'];
             this.m_isActive = data['isactive'];
             this.m_dateRegistered = data['dt'];
+            this.m_user_id.innerHTML = data['activations'][0]['user_id'];
+            this.m_identifier.innerHTML = data['activations'][0]['identifier'];
+            this.m_device_id.innerHTML = data['activations'][0]['device_id'];
+            this.m_created_at.innerHTML = data['activations'][0]['created_at'];
+            this.m_updated_at.innerHTML = data['activations'][0]['updated_at'];
+            this.m_ip_address.innerHTML = data['activations'][0]['ip_address'];
         };
         UserRecord.prototype.LoadFromForm = function () {
             this.m_userFullName = this.m_fullNameInput.value;
