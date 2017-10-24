@@ -1162,6 +1162,7 @@ namespace Citadel
             this.InitButtonHandlers();
         }
 
+        
         /**
          * Initializes click handlers for our UI buttons. Grabs the events with
          * a fat arrow so that our this context is preserved, meaning that this

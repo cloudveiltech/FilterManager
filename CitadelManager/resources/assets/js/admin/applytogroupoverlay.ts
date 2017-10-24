@@ -50,6 +50,7 @@ namespace Citadel
          * @memberOf ApplyToGroupOverlay
          */
         private m_closeButton: HTMLButtonElement;
+        private m_applyButton: HTMLButtonElement;
         private m_btnMoveRightAll: HTMLButtonElement;
         private m_btnMoveRight: HTMLButtonElement;
         private m_btnMoveLeft:HTMLButtonElement;
@@ -87,7 +88,14 @@ namespace Citadel
             this.m_arrLeftGroupData = [];
             this.m_arrRightGroupData = [];
             this.m_textList = document.querySelector('#apply_togroup_white_blacklist') as HTMLTextAreaElement;
+            this.m_applyButton = document.querySelector("#apply_togroup_appy") as HTMLButtonElement;
             this.m_closeButton = document.querySelector('#apply_togroup_close') as HTMLButtonElement;           
+            
+            this.m_applyButton.onclick = ((e:MouseEvent) =>
+            {
+                this.onApplyButtonClicked(e);
+            });
+
             this.m_closeButton.onclick = ((e:MouseEvent) =>
             {
                 this.Hide();
@@ -295,17 +303,19 @@ namespace Citadel
             let sel_opt = this.m_leftSelect.selectedOptions[0];
             let sel_id = sel_opt.value * 1;
             let idx = -1;
+            let sel_seq_idx = 0;
             this.m_arrLeftGroupData.forEach((item: any): void =>
             {
                 idx ++;
                 if(item.id == sel_id * 1) {
                     this.m_arrRightGroupData.push(item);
+                    sel_seq_idx = idx;
                     return;                    
                 }
             });
-
-            if(idx > -1) {
-                this.m_arrLeftGroupData.splice(idx,1);
+            console.log("sel_id", sel_seq_idx);
+            if(sel_seq_idx > -1) {
+                this.m_arrLeftGroupData.splice(sel_seq_idx,1);
             }
             
             this.drawLeftGroups();
@@ -363,6 +373,74 @@ namespace Citadel
             e.stopImmediatePropagation();
             e.stopPropagation();
             this.getRetrieveData(false);
+        }
+
+        public onApplyButtonClicked(e: MouseEvent): void
+        {
+            console.log("Apply Button clicked");
+            if(this.m_arrRightGroupData.length > 0) {
+                let url = "api/admin/applytogroup"
+                let dataObject = {
+                    type: "",
+                    id_list: []
+                };
+                if (this.m_btnWhitelist.checked) {
+                    dataObject.type = "whitelist";
+                } else 
+                {
+                    dataObject.type = "blacklist";
+                }
+                let arr_id = [];
+                // Get id list from right list
+                this.m_arrRightGroupData.forEach((item: any): void =>
+                {
+                    arr_id.push(item.id);
+                });
+                dataObject.id_list = arr_id;
+
+                let ajaxSettings: JQueryAjaxSettings =
+                {
+                    method: "POST",
+                    timeout: 60000,
+                    url: url,
+                    data: dataObject,
+                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
+                    {
+                         alert("Changed Black/White list for selected groups.");
+                         Citadel.Dashboard.ForceTableRedraw(Citadel.Dashboard.m_tableGroups);
+                        console.log(data);
+                        console.log(textStatus);
+                         return false;
+                    },
+                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                    {
+    
+                        console.log(jqXHR.responseText);
+                        console.log(errorThrown);
+                        console.log(textStatus);
+    
+                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                        setTimeout(() => 
+                            {
+                                this.m_progressWait.Hide();
+                            }, 5000);
+    
+                        if (jqXHR.status > 399 && jqXHR.status < 500)
+                        {
+                            // Almost certainly auth related error. Redirect to login
+                            // by signalling for logout.
+                            //window.location.href = 'login.php?logout';
+                        }
+                        else
+                        {
+                            
+                        }
+                    }
+                }
+                $.post(ajaxSettings);
+            } else {
+                alert("Please select groups to apply with black/white list.");
+            }
         }
         /**
          * Shows the HTML UI. Takes the datatables data from the lists table and tries

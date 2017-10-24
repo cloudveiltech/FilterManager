@@ -19,7 +19,11 @@ var Citadel;
             this.m_arrLeftGroupData = [];
             this.m_arrRightGroupData = [];
             this.m_textList = document.querySelector('#apply_togroup_white_blacklist');
+            this.m_applyButton = document.querySelector("#apply_togroup_appy");
             this.m_closeButton = document.querySelector('#apply_togroup_close');
+            this.m_applyButton.onclick = (function (e) {
+                _this.onApplyButtonClicked(e);
+            });
             this.m_closeButton.onclick = (function (e) {
                 _this.Hide();
             });
@@ -163,15 +167,18 @@ var Citadel;
             var sel_opt = this.m_leftSelect.selectedOptions[0];
             var sel_id = sel_opt.value * 1;
             var idx = -1;
+            var sel_seq_idx = 0;
             this.m_arrLeftGroupData.forEach(function (item) {
                 idx++;
                 if (item.id == sel_id * 1) {
                     _this.m_arrRightGroupData.push(item);
+                    sel_seq_idx = idx;
                     return;
                 }
             });
-            if (idx > -1) {
-                this.m_arrLeftGroupData.splice(idx, 1);
+            console.log("sel_id", sel_seq_idx);
+            if (sel_seq_idx > -1) {
+                this.m_arrLeftGroupData.splice(sel_seq_idx, 1);
             }
             this.drawLeftGroups();
             this.drawRightGroups();
@@ -208,6 +215,58 @@ var Citadel;
             e.stopImmediatePropagation();
             e.stopPropagation();
             this.getRetrieveData(false);
+        };
+        ApplyToGroupOverlay.prototype.onApplyButtonClicked = function (e) {
+            var _this = this;
+            console.log("Apply Button clicked");
+            if (this.m_arrRightGroupData.length > 0) {
+                var url = "api/admin/applytogroup";
+                var dataObject = {
+                    type: "",
+                    id_list: []
+                };
+                if (this.m_btnWhitelist.checked) {
+                    dataObject.type = "whitelist";
+                }
+                else {
+                    dataObject.type = "blacklist";
+                }
+                var arr_id_1 = [];
+                this.m_arrRightGroupData.forEach(function (item) {
+                    arr_id_1.push(item.id);
+                });
+                dataObject.id_list = arr_id_1;
+                var ajaxSettings = {
+                    method: "POST",
+                    timeout: 60000,
+                    url: url,
+                    data: dataObject,
+                    success: function (data, textStatus, jqXHR) {
+                        alert("Changed Black/White list for selected groups.");
+                        Citadel.Dashboard.ForceTableRedraw(Citadel.Dashboard.m_tableGroups);
+                        console.log(data);
+                        console.log(textStatus);
+                        return false;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR.responseText);
+                        console.log(errorThrown);
+                        console.log(textStatus);
+                        _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                        setTimeout(function () {
+                            _this.m_progressWait.Hide();
+                        }, 5000);
+                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                        }
+                        else {
+                        }
+                    }
+                };
+                $.post(ajaxSettings);
+            }
+            else {
+                alert("Please select groups to apply with black/white list.");
+            }
         };
         ApplyToGroupOverlay.prototype.Show = function (fadeInTimeMsec) {
             if (fadeInTimeMsec === void 0) { fadeInTimeMsec = 200; }
