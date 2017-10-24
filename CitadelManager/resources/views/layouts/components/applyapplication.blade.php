@@ -15,17 +15,17 @@
 
                 <div class="cell colspan4" id="apply_togroup_div_c1">
                     <label class="input-control radio">
-                        <input id="global_radio_blacklist" type="radio" name="global_n1" checked>
+                        <input id="apply_togroup_radio_blacklist" type="radio" name="apply_togroup_n1" checked>
                         <span class="check"></span>
                         <span class="caption">Blacklist</span>
                     </label>
                     <label class="input-control radio">
-                        <input id="global_radio_whitelist" type="radio" name="global_n1">
+                        <input id="apply_togroup_radio_whitelist" type="radio" name="apply_togroup_n1">
                         <span class="check"></span>
                         <span class="caption">Whitelist</span>
                     </label>
                     <hr class = "thin" />
-                    <textarea id="apply_togroup_white_blacklist"></textarea>
+                    <textarea readonly id="apply_togroup_white_blacklist"></textarea>
                 </div>
                 <div class="cell colspan3">
                 <select id="apply_togroup_source_list" multiple>
@@ -33,10 +33,10 @@
                 </div>
                 <div class="cell colspan1" id="apply_togroup_actions">
                     <br /><br /><br />
-                    <button class="button primary"> &gt;&gt; </button> <br />
-                    <button class="button primary"> &gt; </button><br />
-                    <button class="button primary"> &lt; </button><br />
-                    <button class="button primary"> &lt;&lt;  </button><br />
+                    <button class="button primary" id="apply_togroup_right_all_btn"> &gt;&gt; </button> <br />
+                    <button class="button primary" id="apply_togroup_right_btn"> &gt; </button><br />
+                    <button class="button primary" id="apply_togroup_left_btn"> &lt; </button><br />
+                    <button class="button primary" id="apply_togroup_left_all_btn"> &lt;&lt;  </button><br />
                     
                 </div>
                 
