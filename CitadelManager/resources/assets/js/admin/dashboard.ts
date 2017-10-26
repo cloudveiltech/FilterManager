@@ -274,6 +274,23 @@ namespace Citadel
         private m_tableUsers: DataTables.DataTable;
 
         /**
+         * Additional UserDetail DataTable.
+         * 
+         * @private
+         * @type {DataTables.DataTable}
+         * @memberOf Dashboard
+         */
+        private m_activations: DataTables.DataTable;
+
+        /**
+         * 
+         * @private
+         * @type {boolean}
+         * @memberOf Dashboard
+         */
+        private m_isInsertedUserdetail: boolean;
+
+        /**
          * Group DataTable.
          * 
          * @private
@@ -361,6 +378,7 @@ namespace Citadel
                 this.ForceTableRedraw(this.m_tableGroups);
                 this.m_filterListUploadController.Hide();
             });
+            this.m_isInsertedUserdetail = false;
         }
 
         private ConstructManagementViews(): void
@@ -559,12 +577,18 @@ namespace Citadel
                         rowCallback: ((row: Node, data: any[] | Object): void =>
                         {
                             this.OnTableRowCreated(row, data);
+                            console.log(data);
                         })
                     };
 
                     usersTableSettings['resonsive'] = true;
                 this.m_tableUsers = $('#user_table').DataTable(usersTableSettings);
-            });
+                this.m_activations = $('#detail-table').DataTable({
+                    ordering: false,
+                    paging: false,
+                    searching: false,
+                    info: false });
+                });  /// end of userTableConstruction
 
             let groupTableConstruction = (() =>
             {
@@ -658,7 +682,7 @@ namespace Citadel
                     };
 
                 this.m_tableGroups = $('#group_table').DataTable(groupTableSettings);
-            });
+            });  /// end of groupTableConstruction
 
             let filterTableConstruction = (() =>
             {
@@ -742,7 +766,7 @@ namespace Citadel
 
                 this.m_tableFilterLists = $('#filter_table').DataTable(filterTableSettings);
 
-            });
+            });  /// end of filterTableConstruction
 
             let deactivationRequestConstruction = (() =>
             {
@@ -837,7 +861,7 @@ namespace Citadel
                     };
 
                 this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
-            });
+            }); /// end of deactivationRequestConstruction
 
             userTableConstruction();
             groupTableConstruction();
@@ -1022,6 +1046,7 @@ namespace Citadel
          */
         private OnTableRowClicked(e: MouseEvent, data: any[] | Object): void
         {
+            console.log(data);
             // Here we have to stop the propagation of the event, otherwise it will end up
             // triggering on the table cells. We only want rows selectable.
             e.stopImmediatePropagation();
@@ -1048,6 +1073,7 @@ namespace Citadel
                 case 'user_table':
                     {
                         this.m_btnDeleteUser.disabled = !itemIsActuallySelected;
+                        this.ViewActivations(data);
                     }
                     break;
 
@@ -1090,7 +1116,6 @@ namespace Citadel
             e.stopImmediatePropagation();
             e.stopPropagation();
 
-            console.log(data);
 
             // Get a typed instanced of the selected row.
             let selectedRow = e.currentTarget as HTMLTableRowElement;
@@ -1267,7 +1292,6 @@ namespace Citadel
          */
         private OnCreateUserClicked(e: MouseEvent): any
         {
-            console.log('OnCreateUserClicked');
             let newUser = new UserRecord();
 
             // We supply everything in the groups table so that the user's group
@@ -1594,6 +1618,40 @@ namespace Citadel
         private get ViewState(): DashboardViewStates
         {
             return this.m_currentViewState;
+        }
+
+        /**
+         * View the app-user-activations.
+         * 
+         * @private
+         * @private
+         * @param {*} data
+         * @returns {*}
+         * @memberOf Dashboard
+         */
+        private ViewActivations(data: any): any {
+            let temp = this.m_activations;
+            if(this.m_isInsertedUserdetail == false) {
+                temp.row.add( [
+                    data.activations[0].user_id,
+                    data.activations[0].identifier,
+                    data.activations[0].device_id,
+                    data.activations[0].created_at,
+                    data.activations[0].updated_at,
+                    data.activations[0].ip_address                                                    
+                ]).draw();
+                this.m_isInsertedUserdetail = true;
+            }
+            if (data.activations.length == 0)
+                this.m_activations.row(temp.row(0)).data(["","","","","",""]).draw();
+            this.m_activations.row(temp.row(0)).data([
+                data.activations[0].user_id,
+                data.activations[0].identifier,
+                data.activations[0].device_id,
+                data.activations[0].created_at,
+                data.activations[0].updated_at,
+                data.activations[0].ip_address                                                    
+            ]).draw();
         }
     }
 

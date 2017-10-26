@@ -23,7 +23,7 @@
     <div class="tabs-content">
 
         <!-- Users tab. -->
-        <div class="tab-panel" id="tab_users" style="display: block;">
+        <div class="tab-panel" id="tab_users" style="display: flex;">
             <div class="tab-panel-group">
                 <div class="tab-group-content">
                     <button id="btn_user_add" class="fluent-big-button">
@@ -39,7 +39,21 @@
                     </div>
                 </div>
                 <div class="tab-group-caption">Creation / Deletion</div>
-            </div>                   
+            </div>      
+            <div class="extra-userdetail">
+                <table calss="table table-striped" id="detail-table">
+                    <thead>
+                        <tr>
+                            <th>UserId</th>
+                            <th>Identifier</th>
+                            <th>DeviceId</th>
+                            <th>Date Created</th>
+                            <th>Date Updated</th>
+                            <th>IPaddress</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
 
         <!-- Groups tab. -->
@@ -128,7 +142,7 @@
     <!-- User editing view. -->
     <div id="view_user_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
         <table id="user_table" class="table striped hovered border" style="width:100%">
-
+            
         </table>
     </div>        
 

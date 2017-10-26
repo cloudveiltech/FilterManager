@@ -3,7 +3,13 @@
 @section('content')
 
 <div class="login-screen-bg">
+
     <div class="login-form padding20 block-shadow">
+        @if ($errors->has('permission'))
+            <span class="help-block">
+                <strong>{{ $errors->first('permission') }}</strong>
+            </span>
+        @endif
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
                 <div class="panel panel-default">

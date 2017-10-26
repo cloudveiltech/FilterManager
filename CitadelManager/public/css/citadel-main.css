@@ -51,7 +51,7 @@ Main admin page.
 #div_337a_3{width: 0;}
 #nav_337a_0{display: none;}
 #div_337a_4{left: 0; right: 0; top: 0; margin: 80px 80px 0 80px;}
-#tab_users{display: block;}
+#tab_users{flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; align-content: stretch;}
 #tab_groups{display: block;}
 #tab_filter_lists{display: none;}
 #div_337a_5{word-wrap: break-word; min-width: 200px; max-width: 500px; padding: 10px; float: right; margin-top: -10px;}
@@ -140,6 +140,7 @@ Group editor.
 #hr_ea30_4{width: 100%}
 #hr_ea30_5{width: 100%}
 #div_ea30_25{margin-top: 30px;}
+#detail-table{white-space: nowrap;height: 75px;}
 
 /*
 List uploader.
@@ -176,7 +177,7 @@ Progress-wait.
 .login-form {
     color: white;
     width: 25rem;
-    height: 20.75rem;
+    /* height: 20.75rem; */
     position: fixed;
     top: 50%;
     margin-top: -9.375rem;
@@ -207,4 +208,70 @@ div.login-form div,div.login-form input,div.login-form span,div.login-form butto
     background: -ms-radial-gradient(center, ellipse cover, rgba(68,55,125,1) 0%, rgba(38,30,69,1) 100%); /* ie10+ */
     background:radial-gradient(ellipse at center, rgba(68,55,125,1) 0%, rgba(38,30,69,1) 100%); /* w3c */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#44377D', endColorstr='#261E45',GradientType=0 ); /* ie6-9 */
+}
+
+.extra-userdetail {
+    margin-right: 15px;
+}
+
+.extra-userdetail table {
+    width: 100%;
+    max-width: 100%;
+    border: 1px solid #999999;
+}
+
+.extra-userdetail table > thead > tr > th {
+    border-bottom: 1px solid #ddd;
+    line-height: 1.42857;
+    padding: 8px;
+    vertical-align: top;
+    color: #52677a;
+    text-align: left;
+}
+
+.extra-userdetail table > tbody > tr {
+    background-color: #eee;
+}
+
+.extra-userdetail table > tbody >tr > td {
+    border-top: 1px solid #e7eaec;
+    line-height: 1.42857;
+    padding: 8px;
+    vertical-align: top;
+    font-size: 14px;
+    text-align: left;
+}
+
+#userdetail_board .cell {
+    width: 50%;
+}
+
+#userdetail_board .cells2 div:first-child {
+    padding-right: 10px;
+}
+
+#userdetail_board .cells2 div:last-child {
+    padding-left: 10px;
+    margin-left: 0;
+}
+
+#userdetail_board ul {
+    list-style-type: none;
+    padding: 0;
+    margin-left: 0;
+}
+
+#userdetail_board ul li {
+    line-height: 2.5;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+#userdetail_board ul li label:first-child {
+    display: inline-block;
+}
+
+#userdetail_board ul li label:last-child {
+    float: right;
+    display: inline-block;
+    color: #52677a;
 }

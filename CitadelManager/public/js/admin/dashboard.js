@@ -23,6 +23,7 @@ var Citadel;
                 _this.ForceTableRedraw(_this.m_tableGroups);
                 _this.m_filterListUploadController.Hide();
             });
+            this.m_isInsertedUserdetail = false;
         }
         Dashboard.prototype.ConstructManagementViews = function () {
             this.m_viewUserManagement = document.getElementById('view_user_management');
@@ -156,10 +157,17 @@ var Citadel;
                     ajax: userTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
                         _this.OnTableRowCreated(row, data);
+                        console.log(data);
                     })
                 };
                 usersTableSettings['resonsive'] = true;
                 _this.m_tableUsers = $('#user_table').DataTable(usersTableSettings);
+                _this.m_activations = $('#detail-table').DataTable({
+                    ordering: false,
+                    paging: false,
+                    searching: false,
+                    info: false
+                });
             });
             var groupTableConstruction = (function () {
                 var groupTableColumns = [
@@ -444,6 +452,7 @@ var Citadel;
             });
         };
         Dashboard.prototype.OnTableRowClicked = function (e, data) {
+            console.log(data);
             e.stopImmediatePropagation();
             e.stopPropagation();
             if (!$(e.currentTarget).hasClass('dataTables_empty')) {
@@ -455,6 +464,7 @@ var Citadel;
                 case 'user_table':
                     {
                         this.m_btnDeleteUser.disabled = !itemIsActuallySelected;
+                        this.ViewActivations(data);
                     }
                     break;
                 case 'group_table':
@@ -480,7 +490,6 @@ var Citadel;
             var _this = this;
             e.stopImmediatePropagation();
             e.stopPropagation();
-            console.log(data);
             var selectedRow = e.currentTarget;
             var parentTable = $(selectedRow).closest('table')[0];
             switch (parentTable.id) {
@@ -545,7 +554,6 @@ var Citadel;
         };
         Dashboard.prototype.OnCreateUserClicked = function (e) {
             var _this = this;
-            console.log('OnCreateUserClicked');
             var newUser = new Citadel.UserRecord();
             newUser.StartEditing(this.m_tableGroups.data(), this.m_tableUsers.data()['all_user_roles']);
             newUser.ActionCompleteCallback = (function (action) {
@@ -704,6 +712,30 @@ var Citadel;
             enumerable: true,
             configurable: true
         });
+        Dashboard.prototype.ViewActivations = function (data) {
+            var temp = this.m_activations;
+            if (this.m_isInsertedUserdetail == false) {
+                temp.row.add([
+                    data.activations[0].user_id,
+                    data.activations[0].identifier,
+                    data.activations[0].device_id,
+                    data.activations[0].created_at,
+                    data.activations[0].updated_at,
+                    data.activations[0].ip_address
+                ]).draw();
+                this.m_isInsertedUserdetail = true;
+            }
+            if (data.activations.length == 0)
+                this.m_activations.row(temp.row(0)).data(["", "", "", "", "", ""]).draw();
+            this.m_activations.row(temp.row(0)).data([
+                data.activations[0].user_id,
+                data.activations[0].identifier,
+                data.activations[0].device_id,
+                data.activations[0].created_at,
+                data.activations[0].updated_at,
+                data.activations[0].ip_address
+            ]).draw();
+        };
         return Dashboard;
     }());
     var citadelDashboard;

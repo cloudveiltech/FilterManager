@@ -79,6 +79,25 @@ namespace Citadel
         private m_cancelBtn: HTMLButtonElement;
 
         /**
+         * The Div of the user activations. This houses all of the app_user_activations
+         * 
+         * @private
+         * @type {HTMLDivElement}
+         * @memberOf User User Activations
+         */
+        private m_user_id:      HTMLLabelElement;
+
+        private m_identifier:   HTMLLabelElement;
+
+        private m_device_id:    HTMLLabelElement;
+
+        private m_created_at:   HTMLLabelElement;
+
+        private m_updated_at:   HTMLLabelElement;
+
+        private m_ip_address:   HTMLLabelElement;
+
+        /**
          * Gets the base API route from this record type.
          * 
          * @readonly
@@ -164,6 +183,13 @@ namespace Citadel
             this.m_submitBtn = document.querySelector('#user_editor_submit') as HTMLButtonElement;
             this.m_cancelBtn = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
 
+            this.m_user_id      = document.querySelector('#user_id') as HTMLLabelElement;
+            this.m_identifier   = document.querySelector('#identifier') as HTMLLabelElement;
+            this.m_device_id    = document.querySelector('#device_id') as HTMLLabelElement;
+            this.m_created_at   = document.querySelector('#created_at') as HTMLLabelElement;
+            this.m_updated_at   = document.querySelector('#updated_at') as HTMLLabelElement;
+            this.m_ip_address   = document.querySelector('#ip_address') as HTMLLabelElement;
+
             this.InitButtonHandlers();
         }
 
@@ -186,6 +212,13 @@ namespace Citadel
             this.m_numActivations = data['activations_allowed'];
             this.m_isActive = data['isactive'];
             this.m_dateRegistered = data['dt'] as string;
+
+            this.m_user_id.innerHTML      = data['activations'] [0]['user_id'] as string;
+            this.m_identifier.innerHTML   = data['activations'] [0]['identifier'] as string;
+            this.m_device_id.innerHTML    = data['activations'] [0]['device_id'] as string;
+            this.m_created_at.innerHTML   = data['activations'] [0]['created_at'] as string;
+            this.m_updated_at.innerHTML   = data['activations'] [0]['updated_at'] as string;
+            this.m_ip_address.innerHTML   = data['activations'] [0]['ip_address'] as string;
         }
 
         protected LoadFromForm(): void
