@@ -159,7 +159,15 @@ namespace Citadel
          * @memberOf DashboardMenu
          */
         private m_btnDeleteGroup: HTMLButtonElement;
-
+        /**
+         * Button to initiate the process of creating a new group.
+         * 
+         * @private
+         * @type {HTMLButtonElement}
+         * @memberOf DashboardMenu
+         */
+        private m_btnCloneGroup: HTMLButtonElement;
+        
         /// Filter list/data management tab elements.
 
         /**
@@ -1130,10 +1138,11 @@ namespace Citadel
             // Init group management button references.
             this.m_btnCreateGroup = document.getElementById('btn_group_add') as HTMLButtonElement;
             this.m_btnDeleteGroup = document.getElementById('btn_group_delete') as HTMLButtonElement;
-
-            // Delete button cannot be enabled until a group is selected.
+            this.m_btnCloneGroup = document.getElementById('btn_group_clone') as HTMLButtonElement;
+            // Delete button & Clone button cannot be enabled until a group is selected.
             this.m_btnDeleteGroup.disabled = true;
-
+            this.m_btnCloneGroup.disabled = true;
+            
             // Init Filter List/Data management button references.          
             this.m_btnUploadFilterLists = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;  
             this.m_btnDeleteFilterList = document.getElementById('btn_delete_filter_list') as HTMLButtonElement;
@@ -1201,6 +1210,10 @@ namespace Citadel
                 this.OnDeleteGroupClicked(e);
             });
 
+            this.m_btnCloneGroup.onclick = ((e: MouseEvent) =>
+            {
+               this.OnCloneGroupClicked(e); 
+            });
             this.m_btnUploadFilterLists.onclick = ((e: MouseEvent) =>
             {
                 this.m_filterListUploadController.Show(this.m_tableFilterLists.data());
@@ -1361,6 +1374,7 @@ namespace Citadel
                 case 'group_table':
                     {
                         this.m_btnDeleteGroup.disabled = !itemIsActuallySelected;
+                        this.m_btnCloneGroup.disabled = !itemIsActuallySelected;
                     }
                     break;
 
@@ -1765,6 +1779,34 @@ namespace Citadel
                 {
                     console.log('Failed to load group record from table selection.');
                 }
+            }
+        }
+
+        /**
+         * Called whenever the user clicks the group deletion button. Internally
+         * we'll validate that the current state is correct for this action, and
+         * then initiate the process of POSTing this action as a command to the
+         * server.
+         * 
+         * @private
+         * @param {MouseEvent} e
+         * @returns {*}
+         * 
+         * @memberOf Dashboard
+         */
+        private OnCloneGroupClicked(e: MouseEvent): any
+        {
+            let selectedItem = this.m_tableGroups.row('.selected').data();
+            if (selectedItem != null)
+            {
+                let groupRecord = new GroupRecord();
+                groupRecord.StartEditing(this.m_tableFilterLists.data(), null, selectedItem);
+                groupRecord.ActionCompleteCallback = ((action: string): void =>
+                {
+                    groupRecord.StopEditing();
+                    this.ForceTableRedraw(this.m_tableGroups);
+                    this.ForceTableRedraw(this.m_tableUsers);
+                });
             }
         }
 

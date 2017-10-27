@@ -61,6 +61,15 @@
                 </div>
                 <div class="tab-group-caption">Creation / Deletion</div>
             </div>
+            <div class="tab-panel-group">
+                <div class="tab-group-content">
+                    <button id="btn_group_clone" class="fluent-big-button">
+                        <span class="icon mif-users"></span> Clone
+                        <br>Group
+                    </button>
+                </div>
+                <div class="tab-group-caption">Clone Groups</div>
+            </div>
         </div>
 
         <!-- Filter lists tab. -->

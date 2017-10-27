@@ -503,7 +503,9 @@ var Citadel;
             this.m_btnDeleteUser.disabled = true;
             this.m_btnCreateGroup = document.getElementById('btn_group_add');
             this.m_btnDeleteGroup = document.getElementById('btn_group_delete');
+            this.m_btnCloneGroup = document.getElementById('btn_group_clone');
             this.m_btnDeleteGroup.disabled = true;
+            this.m_btnCloneGroup.disabled = true;
             this.m_btnUploadFilterLists = document.getElementById('btn_add_filter_lists');
             this.m_btnDeleteFilterList = document.getElementById('btn_delete_filter_list');
             this.m_btnDeleteFilterListInNamespace = document.getElementById('btn_delete_filter_list_namespace');
@@ -538,6 +540,9 @@ var Citadel;
             });
             this.m_btnDeleteGroup.onclick = (function (e) {
                 _this.OnDeleteGroupClicked(e);
+            });
+            this.m_btnCloneGroup.onclick = (function (e) {
+                _this.OnCloneGroupClicked(e);
             });
             this.m_btnUploadFilterLists.onclick = (function (e) {
                 _this.m_filterListUploadController.Show(_this.m_tableFilterLists.data());
@@ -624,6 +629,7 @@ var Citadel;
                 case 'group_table':
                     {
                         this.m_btnDeleteGroup.disabled = !itemIsActuallySelected;
+                        this.m_btnCloneGroup.disabled = !itemIsActuallySelected;
                     }
                     break;
                 case 'filter_table':
@@ -795,6 +801,19 @@ var Citadel;
                 catch (e) {
                     console.log('Failed to load group record from table selection.');
                 }
+            }
+        };
+        Dashboard.prototype.OnCloneGroupClicked = function (e) {
+            var _this = this;
+            var selectedItem = this.m_tableGroups.row('.selected').data();
+            if (selectedItem != null) {
+                var groupRecord_2 = new Citadel.GroupRecord();
+                groupRecord_2.StartEditing(this.m_tableFilterLists.data(), null, selectedItem);
+                groupRecord_2.ActionCompleteCallback = (function (action) {
+                    groupRecord_2.StopEditing();
+                    _this.ForceTableRedraw(_this.m_tableGroups);
+                    _this.ForceTableRedraw(_this.m_tableUsers);
+                });
             }
         };
         Dashboard.prototype.OnDeleteFilterListClicked = function (e) {
