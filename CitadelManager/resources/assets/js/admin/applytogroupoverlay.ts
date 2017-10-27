@@ -377,7 +377,6 @@ namespace Citadel
 
         public onApplyButtonClicked(e: MouseEvent): void
         {
-            console.log("Apply Button clicked");
             if(this.m_arrRightGroupData.length > 0) {
                 let url = "api/admin/applytogroup"
                 let dataObject = {

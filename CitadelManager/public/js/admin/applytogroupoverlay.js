@@ -218,7 +218,6 @@ var Citadel;
         };
         ApplyToGroupOverlay.prototype.onApplyButtonClicked = function (e) {
             var _this = this;
-            console.log("Apply Button clicked");
             if (this.m_arrRightGroupData.length > 0) {
                 var url = "api/admin/applytogroup";
                 var dataObject = {

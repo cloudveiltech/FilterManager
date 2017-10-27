@@ -49,6 +49,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['web','role:admin']], functi
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
     Route::post('/applytogroup', 'ApplyToGroupController@applyToGroup');
+    Route::get('/user_activations/{id}', 'UserController@activation_data');
     
     // For handling deletion of all records in a namespace.
     Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');
