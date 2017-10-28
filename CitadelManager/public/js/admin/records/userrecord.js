@@ -77,6 +77,65 @@ var Citadel;
             this.m_cancelBtn = document.querySelector('#user_editor_cancel');
             this.InitButtonHandlers();
         };
+        UserRecord.prototype.InitUserActivationTables = function () {
+            var id = 0;
+            if (this.m_userId === undefined) {
+                id = 0;
+            }
+            else {
+                id = this.m_userId;
+            }
+            var activationTableColumns = [
+                {
+                    title: 'Action Id',
+                    data: 'id',
+                    visible: false
+                },
+                {
+                    title: 'Identifier',
+                    data: 'identifier',
+                    visible: true
+                },
+                {
+                    title: 'Device Id',
+                    data: 'device_id',
+                    visible: true
+                },
+                {
+                    title: 'IP Address',
+                    data: 'ip_address',
+                    visible: true
+                },
+                {
+                    title: 'Date Registered',
+                    data: 'created_at',
+                    visible: true
+                }
+            ];
+            var activationTablesLoadFromAjaxSettings = {
+                url: "api/admin/user_activations/" + id,
+                dataSrc: "",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                method: "GET",
+                error: (function (jqXHR, textStatus, errorThrown) {
+                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                    }
+                })
+            };
+            var activationTableSettings = {
+                autoWidth: true,
+                stateSave: true,
+                columns: activationTableColumns,
+                ajax: activationTablesLoadFromAjaxSettings,
+                rowCallback: (function (row, data) {
+                })
+            };
+            activationTableSettings['resonsive'] = true;
+            activationTableSettings['retrieve'] = true;
+            this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
+        };
         UserRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
             this.m_cancelBtn.onclick = (function (e) {
@@ -193,6 +252,17 @@ var Citadel;
                 }
                 return false;
             });
+            this.m_userId = userData.id;
+            if ($.fn.dataTable.isDataTable('#user_activation_table')) {
+                this.m_ActivationTables = $('#user_activation_table').DataTable();
+                this.m_ActivationTables.clear();
+                this.m_ActivationTables.draw();
+                this.m_ActivationTables.ajax.url("api/admin/user_activations/" + userData.id);
+                this.m_ActivationTables.ajax.reload();
+            }
+            else {
+                this.InitUserActivationTables();
+            }
             $(this.m_editorOverlay).fadeIn(250);
         };
         UserRecord.prototype.StopEditing = function () {

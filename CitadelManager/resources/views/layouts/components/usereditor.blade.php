@@ -9,7 +9,6 @@
         <div class="flex-grid">
             
             <h1  id="user_editing_title">Create New User</h1>
-            <br/>
             <hr class="thin">
             <br/>
             <form method="post" action="javascript:void(0)" id="editor_user_form" data-on-submit="submit">
@@ -110,6 +109,14 @@
                     </div>
                 </div>
             </form>
+        </div>
+
+        <div class="flex-grid" id="activation_list">
+            <h1 align=center  id="user_activation_title">User Activations</h1>
+            <hr class="thin">
+            <table id="user_activation_table" class="table striped hovered border" style="width:100%">
+
+            </table>
         </div>
     </div>
 </div>

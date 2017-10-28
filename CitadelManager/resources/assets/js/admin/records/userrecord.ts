@@ -79,6 +79,14 @@ namespace Citadel
         private m_cancelBtn: HTMLButtonElement;
 
         /**
+         * User Activation DataTable.
+         * 
+         * @private
+         * @type {DataTables.DataTable}
+         * @memberOf Dashboard
+         */
+        private m_ActivationTables: DataTables.DataTable;
+        /**
          * Gets the base API route from this record type.
          * 
          * @readonly
@@ -163,8 +171,90 @@ namespace Citadel
 
             this.m_submitBtn = document.querySelector('#user_editor_submit') as HTMLButtonElement;
             this.m_cancelBtn = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
-
+            
+            
             this.InitButtonHandlers();
+        }
+
+        private InitUserActivationTables() {
+            let id = 0;
+            if (this.m_userId === undefined) {
+                id = 0;
+            } else {
+                id = this.m_userId;
+            }
+            let activationTableColumns: DataTables.ColumnSettings[] =
+                [                   
+                    {
+                        title: 'Action Id',
+                        data: 'id',                          
+                        visible: false
+                    },
+                    {
+                        title: 'Identifier',
+                        data: 'identifier',
+                        visible: true
+                    },
+                    {
+                        title: 'Device Id',
+                        data: 'device_id',
+                        visible: true
+                    },
+                    {
+                        title: 'IP Address',
+                        data: 'ip_address',
+                        visible: true
+                    },
+                    {
+                        title: 'Date Registered',
+                        data: 'created_at',
+                        visible: true
+                    }
+                ];
+
+            // Set our table's loading AJAX settings to call the admin
+            // control API with the appropriate arguments.
+            let activationTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+                {
+                    url: "api/admin/user_activations/" + id,
+                    dataSrc: "",                        
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                    {
+                        if(jqXHR.status > 399 && jqXHR.status < 500)
+                        {
+                            // Almost certainly auth related error. Redirect to login
+                            // by signalling for logout.
+                            ////window.location.href = 'login.php?logout';
+                        }
+                    })
+                };
+
+            // Define user table settings, ENSURE TO INCLUDE AJAX SETTINGS!
+            let activationTableSettings: DataTables.Settings =
+                {
+                    autoWidth: true,
+                    stateSave: true,
+                    columns: activationTableColumns,
+                    ajax: activationTablesLoadFromAjaxSettings,
+                    
+                    // We grab the row callback with a fat arrow to keep the
+                    // class context. Otherwise, we'll lose it in the
+                    // callback, and "this" will be the datatable or a child
+                    // of it.
+                    rowCallback: ((row: Node, data: any[] | Object): void =>
+                    {
+                        //this.OnTableRowCreated(row, data);
+                    })
+                };
+
+                activationTableSettings['resonsive'] = true;
+                activationTableSettings['retrieve'] = true;
+            this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
+            
         }
 
         private InitButtonHandlers(): void
@@ -174,7 +264,7 @@ namespace Citadel
                 this.StopEditing();
             });
         }
-
+         
         protected LoadFromObject(data: Object): void
         {
             this.m_userId = data['id'] as number;
@@ -347,7 +437,17 @@ namespace Citadel
 
                 return false;
             });
-
+            this.m_userId = userData.id;
+            if ( $.fn.dataTable.isDataTable( '#user_activation_table' ) ) {
+                this.m_ActivationTables = $('#user_activation_table').DataTable();
+                this.m_ActivationTables.clear();
+                this.m_ActivationTables.draw();
+                this.m_ActivationTables.ajax.url( "api/admin/user_activations/" + userData.id);
+                this.m_ActivationTables.ajax.reload();
+            }
+            else {
+                this.InitUserActivationTables();
+            }
             // Show the editor.
             $(this.m_editorOverlay).fadeIn(250);
         }

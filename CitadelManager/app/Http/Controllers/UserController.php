@@ -389,4 +389,7 @@ class UserController extends Controller {
         return "OK";
     }
 
+    public function activation_data(Request $request, $id) {
+        return AppUserActivation::where('user_id', $id)->get();;
+    }
 }
