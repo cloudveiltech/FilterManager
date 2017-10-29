@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 use App\GlobalBlacklist;
 use Illuminate\Http\Request;
-
+use Log;
 class GlobalBlacklistController extends Controller
 {
     public function __construct() {
@@ -61,7 +61,7 @@ class GlobalBlacklistController extends Controller
     
         $input = $request->only(['name', 'isactive']);
         GlobalBlacklist::where('id', $id)->update($input);
-
+     
         return response('', 204);
     }
 }

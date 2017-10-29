@@ -107,8 +107,8 @@ var Citadel;
                     visible: true
                 },
                 {
-                    title: 'Date Registered',
-                    data: 'created_at',
+                    title: 'Date updated',
+                    data: 'updated_at',
                     visible: true
                 }
             ];

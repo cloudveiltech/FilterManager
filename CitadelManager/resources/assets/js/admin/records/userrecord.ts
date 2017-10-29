@@ -206,8 +206,8 @@ namespace Citadel
                         visible: true
                     },
                     {
-                        title: 'Date Registered',
-                        data: 'created_at',
+                        title: 'Updated date',
+                        data: 'updated_at',
                         visible: true
                     }
                 ];
