@@ -73,9 +73,69 @@ var Citadel;
             this.m_groupIdInput = document.querySelector('#editor_user_input_group_id');
             this.m_roleInput = document.querySelector('#editor_user_input_role_id');
             this.m_isActiveInput = document.querySelector('#editor_user_input_isactive');
+            this.m_customerIdInput = document.querySelector('#editor_user_input_customer_id');
             this.m_submitBtn = document.querySelector('#user_editor_submit');
             this.m_cancelBtn = document.querySelector('#user_editor_cancel');
             this.InitButtonHandlers();
+        };
+        UserRecord.prototype.InitUserActivationTables = function () {
+            var id = 0;
+            if (this.m_userId === undefined) {
+                id = 0;
+            }
+            else {
+                id = this.m_userId;
+            }
+            var activationTableColumns = [
+                {
+                    title: 'Action Id',
+                    data: 'id',
+                    visible: false
+                },
+                {
+                    title: 'Identifier',
+                    data: 'identifier',
+                    visible: true
+                },
+                {
+                    title: 'Device Id',
+                    data: 'device_id',
+                    visible: true
+                },
+                {
+                    title: 'IP Address',
+                    data: 'ip_address',
+                    visible: true
+                },
+                {
+                    title: 'Updated date',
+                    data: 'updated_at',
+                    visible: true
+                }
+            ];
+            var activationTablesLoadFromAjaxSettings = {
+                url: "api/admin/user_activations/" + id,
+                dataSrc: "",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                method: "GET",
+                error: (function (jqXHR, textStatus, errorThrown) {
+                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                    }
+                })
+            };
+            var activationTableSettings = {
+                autoWidth: true,
+                stateSave: true,
+                columns: activationTableColumns,
+                ajax: activationTablesLoadFromAjaxSettings,
+                rowCallback: (function (row, data) {
+                })
+            };
+            activationTableSettings['resonsive'] = true;
+            activationTableSettings['retrieve'] = true;
+            this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
         };
         UserRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
@@ -89,6 +149,7 @@ var Citadel;
             this.m_userEmail = data['email'];
             this.m_userPassword = data['password'];
             this.m_groupId = data['group_id'];
+            this.m_customerId = data['customer_id'];
             this.m_roleId = data['roles'][0]['id'];
             this.m_numActivations = data['activations_allowed'];
             this.m_isActive = data['isactive'];
@@ -107,6 +168,12 @@ var Citadel;
             if (this.m_roleInput.selectedIndex != -1) {
                 var selectedRoleOption = this.m_roleInput.options[this.m_roleInput.selectedIndex];
                 this.m_roleId = parseInt(selectedRoleOption.value);
+            }
+            if (this.m_customerIdInput.value == "") {
+                this.m_customerId = null;
+            }
+            else {
+                this.m_customerId = this.m_customerIdInput.valueAsNumber;
             }
             this.m_numActivations = this.m_numActivationsInput.valueAsNumber;
             this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
@@ -150,6 +217,12 @@ var Citadel;
                         this.m_submitBtn.innerText = "Save";
                         this.m_fullNameInput.value = this.m_userFullName;
                         this.m_emailInput.value = this.m_userEmail;
+                        if (this.m_customerId == null) {
+                            this.m_customerIdInput.value = "";
+                        }
+                        else {
+                            this.m_customerIdInput.value = this.m_customerId.toString();
+                        }
                         this.m_passwordInput.value = new Array(30).join("x");
                         this.m_passwordConfirmInput.value = new Array(30).join("x");
                         this.m_numActivationsInput.value = this.m_numActivations.toString();
@@ -193,6 +266,29 @@ var Citadel;
                 }
                 return false;
             });
+            if (userData != null) {
+                this.m_userId = userData.id;
+                if ($.fn.dataTable.isDataTable('#user_activation_table')) {
+                    this.m_ActivationTables = $('#user_activation_table').DataTable();
+                    this.m_ActivationTables.clear();
+                    this.m_ActivationTables.draw();
+                    this.m_ActivationTables.ajax.url("api/admin/user_activations/" + userData.id);
+                    this.m_ActivationTables.ajax.reload();
+                }
+                else {
+                    this.InitUserActivationTables();
+                }
+            }
+            else {
+                if ($.fn.dataTable.isDataTable('#user_activation_table')) {
+                    this.m_ActivationTables = $('#user_activation_table').DataTable();
+                    this.m_ActivationTables.clear();
+                    this.m_ActivationTables.draw();
+                }
+                else {
+                    this.InitUserActivationTables();
+                }
+            }
             $(this.m_editorOverlay).fadeIn(250);
         };
         UserRecord.prototype.StopEditing = function () {
@@ -205,10 +301,12 @@ var Citadel;
                 'email': this.m_userEmail,
                 'group_id': this.m_groupId,
                 'role_id': this.m_roleId,
+                'customer_id': this.m_customerId,
                 'activations_allowed': this.m_numActivations,
                 'isactive': this.m_isActive,
                 'dt': this.m_dateRegistered
             };
+            console.log("ddd", this.m_customerId);
             if (this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x"))) {
                 obj['password'] = this.m_userPassword;
                 obj['password_verify'] = this.m_passwordConfirmInput.value;
