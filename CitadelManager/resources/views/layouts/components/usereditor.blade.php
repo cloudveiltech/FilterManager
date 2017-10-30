@@ -30,15 +30,14 @@
                             <button class="button helper-button clear" tabindex="-1" type="button"><span class="mif-cross"></span></button>
                         </div>
                     </div>
-
+                    
                     <div class="cell cell-auto-size">
                         <div class="input-control text" data-role="input">
-                            <label for="editor_user_input_num_activations">Activations Permitted:</label>
-                            <input type="number" name="editor_user_input_num_activations" id="editor_user_input_num_activations"  >
-                            <button class="button helper-button clear" type="button"><span class="mif-cross"></span></button>
+                            <label for="editor_user_input_customer_id">Customer Id:</label>
+                            <input type="number"    name="editor_user_input_customer_id" id="editor_user_input_customer_id" >
+                            <button class="button helper-button reveal" tabindex="-1" type="button"><span class="mif-looks"></span></button>                        
                         </div>
                     </div>
-
                 </div>
 
                 <br/>
@@ -61,7 +60,29 @@
                             <button class="button helper-button reveal" tabindex="-1" type="button"><span class="mif-looks"></span></button>
                         </div>
                     </div>
+
+                    <div class="cell cell-auto-size">
+                        <div class="input-control text" data-role="input">
+                            <label for="editor_user_input_num_activations">Activations Permitted:</label>
+                            <input type="number" name="editor_user_input_num_activations" id="editor_user_input_num_activations"  >
+                            <button class="button helper-button clear" type="button"><span class="mif-cross"></span></button>
+                        </div>
+                    </div>
+
                     
+                </div>
+                
+                <br/>
+                <br/>
+                
+                <div class="row cell-auto-size">
+                    <div class="cell cell-auto-size">
+                        <div class="input-control select" data-role="input">
+                            <label for="editor_user_input_group_id">Group:</label>
+                            <select name="editor_user_input_group_id" id="editor_user_input_group_id" >
+                            </select>                        
+                        </div>
+                    </div>
                     <div class="cell cell-auto-size">
                         <div class="input-control select" data-role="input">
                             <label for="editor_user_input_role_id">Role:</label>
@@ -72,22 +93,6 @@
                             </select>                        
                         </div>
                     </div>
-                    
-                </div>
-                
-                <br/>
-                <br/>
-                
-                <div class="row cell-auto-size">
-                    
-                    <div class="cell cell-auto-size">
-                        <div class="input-control select" data-role="input">
-                            <label for="editor_user_input_group_id">Group:</label>
-                            <select name="editor_user_input_group_id" id="editor_user_input_group_id" >
-                            </select>                        
-                        </div>
-                    </div>
-                    
                     <div class="cell size4" id="div_08c2_1">
                         <label for="editor_user_input_isactive">Enabled:</label>                        
                         <label class="switch-original" id="label_08c2_0">

@@ -32,6 +32,7 @@ namespace Citadel
 
         private m_numActivations: number;
 
+        private m_customerId: number;
         private m_isActive: number;
 
         private m_dateRegistered: string;
@@ -68,7 +69,7 @@ namespace Citadel
 
         private m_groupIdInput: HTMLSelectElement;
 
-
+        private m_customerIdInput: HTMLInputElement;
 
         private m_roleInput: HTMLSelectElement;
 
@@ -168,7 +169,8 @@ namespace Citadel
             this.m_groupIdInput = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
             this.m_roleInput = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
             this.m_isActiveInput = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
-
+            this.m_customerIdInput = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
+            
             this.m_submitBtn = document.querySelector('#user_editor_submit') as HTMLButtonElement;
             this.m_cancelBtn = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
             
@@ -272,6 +274,7 @@ namespace Citadel
             this.m_userEmail = data['email'] as string;
             this.m_userPassword = data['password'] as string;
             this.m_groupId = data['group_id'] as number;
+            this.m_customerId = data['customer_id'] as number;
             this.m_roleId = data['roles'][0]['id'];
             this.m_numActivations = data['activations_allowed'];
             this.m_isActive = data['isactive'];
@@ -299,7 +302,11 @@ namespace Citadel
                 let selectedRoleOption = this.m_roleInput.options[this.m_roleInput.selectedIndex] as HTMLOptionElement;
                 this.m_roleId = parseInt(selectedRoleOption.value);
             }
-
+            if(this.m_customerIdInput.value == "" ) {
+                this.m_customerId = null;
+            } else {
+                this.m_customerId = this.m_customerIdInput.valueAsNumber;
+            }
             this.m_numActivations = this.m_numActivationsInput.valueAsNumber;
             this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
         }
@@ -365,7 +372,11 @@ namespace Citadel
 
                         this.m_fullNameInput.value = this.m_userFullName;
                         this.m_emailInput.value = this.m_userEmail;
-
+                        if(this.m_customerId == null) {
+                            this.m_customerIdInput.value = "";
+                        } else {
+                            this.m_customerIdInput.value = this.m_customerId.toString();
+                        }
                         // When editing a user, we don't allow password editing. That needs to be done through
                         // the password reset system. The server will ignore the password field on updates
                         // made here, so we just fill them with nonsense to pass form validation.
@@ -437,16 +448,28 @@ namespace Citadel
 
                 return false;
             });
-            this.m_userId = userData.id;
-            if ( $.fn.dataTable.isDataTable( '#user_activation_table' ) ) {
-                this.m_ActivationTables = $('#user_activation_table').DataTable();
-                this.m_ActivationTables.clear();
-                this.m_ActivationTables.draw();
-                this.m_ActivationTables.ajax.url( "api/admin/user_activations/" + userData.id);
-                this.m_ActivationTables.ajax.reload();
-            }
-            else {
-                this.InitUserActivationTables();
+
+            if(userData != null) {
+                this.m_userId = userData.id;
+                if ( $.fn.dataTable.isDataTable( '#user_activation_table' ) ) {
+                    this.m_ActivationTables = $('#user_activation_table').DataTable();
+                    this.m_ActivationTables.clear();
+                    this.m_ActivationTables.draw();
+                    this.m_ActivationTables.ajax.url( "api/admin/user_activations/" + userData.id);
+                    this.m_ActivationTables.ajax.reload();
+                }
+                else {
+                    this.InitUserActivationTables();
+                }
+            } else {
+                if ( $.fn.dataTable.isDataTable( '#user_activation_table' ) ) {
+                    this.m_ActivationTables = $('#user_activation_table').DataTable();
+                    this.m_ActivationTables.clear();
+                    this.m_ActivationTables.draw();
+                }
+                else {
+                    this.InitUserActivationTables();
+                }
             }
             // Show the editor.
             $(this.m_editorOverlay).fadeIn(250);
@@ -466,11 +489,12 @@ namespace Citadel
                     'email': this.m_userEmail,
                     'group_id': this.m_groupId,
                     'role_id': this.m_roleId,
+                    'customer_id': this.m_customerId,
                     'activations_allowed': this.m_numActivations,
                     'isactive': this.m_isActive,
                     'dt': this.m_dateRegistered
                 };
-
+            console.log("ddd", this.m_customerId);
             // Only add these params when the passwords are not
             // equal to our dummy insert text.
             if (this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x")))
