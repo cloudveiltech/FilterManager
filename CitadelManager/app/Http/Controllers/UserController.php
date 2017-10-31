@@ -354,7 +354,9 @@ class UserController extends Controller {
         switch ($userActivateResult) {
             case UserActivationAttemptResult::Success: {
                     // Creating a token without scopes...
-                    return $user->createToken('Token Name')->accessToken;
+                    $token = $user->createToken('Token Name')->accessToken; 
+                    $this->checkUserData($request); 
+                    return $token; 
                 }
                 break;
 

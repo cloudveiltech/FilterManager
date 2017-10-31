@@ -55,4 +55,44 @@ class AppUserActivationController extends Controller {
       }
     }
 
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id) {
+        
+        $activation = AppUserActivation::where('id', $id)->first();
+        if (!is_null($activation)) {
+            $activation->delete();
+        }
+
+        return response('', 204);
+    }
+
+    /**
+     * Block the specified resource from storage.
+     *
+     * @param  int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function block($id) {
+        
+        $user = \Auth::user();
+        $userTokens = $user->tokens;
+        //Log::debug(count($userTokens));
+        if (count($userTokens) > 0) {
+            foreach($userTokens as $token) {
+                $token->revoke();   
+            // Log::debug($token);
+            }  
+        }
+        $activation = AppUserActivation::where('id', $id)->first();
+        if (!is_null($activation)) {
+            $activation->delete();
+        }
+        
+        return response('', 204);
+    }
 }

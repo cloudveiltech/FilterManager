@@ -50,7 +50,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['web','role:admin']], functi
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
     Route::post('/applytogroup', 'ApplyToGroupController@applyToGroup');
     Route::get('/user_activations/{id}', 'UserController@activation_data');
-    
+    Route::post('/user_activations/delete/{id}', 'AppUserActivationController@destroy');
+    Route::post('/user_activations/block/{id}', 'AppUserActivationController@block');
     // For handling deletion of all records in a namespace.
     Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');
 });

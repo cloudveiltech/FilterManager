@@ -179,6 +179,7 @@ namespace Citadel
         }
 
         private InitUserActivationTables() {
+            let that = this;
             let id = 0;
             if (this.m_userId === undefined) {
                 id = 0;
@@ -211,6 +212,11 @@ namespace Citadel
                         title: 'Updated date',
                         data: 'updated_at',
                         visible: true
+                    },
+                    {
+                        "mRender": function ( data, type, row ) {
+                            return "<button id='delete_"+row.id+"' class='btn-delete'>Delete</button> <button id='block_"+row.id+"' class='btn-block'>Block</button>";
+                        }
                     }
                 ];
 
@@ -253,9 +259,109 @@ namespace Citadel
                     })
                 };
 
-                activationTableSettings['resonsive'] = true;
-                activationTableSettings['retrieve'] = true;
+                activationTableSettings['responsive'] = true;
             this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
+            this.m_ActivationTables.on('click', 'button.btn-delete', function(e){
+                e.preventDefault();
+                if (confirm("Are you want to delete this token?"))
+                {
+                    let dataObject = {};
+                    let id_str = e.target.id;
+                    let id = id_str.split("_")[1];
+                    let ajaxSettings: JQueryAjaxSettings =
+                    {
+                        method: "POST",
+                        timeout: 60000,
+                        url:'api/admin/user_activations/delete/' +id,
+                        data: dataObject,
+                        // Callback if the call was a success.
+                        success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
+                        {                            
+                            that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
+                            that.m_ActivationTables.ajax.reload()
+                            return false;
+                        },
+    
+                        // Callback if the call was a failure.
+                        error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                        {
+                            console.log(jqXHR.responseText);
+                            console.log(errorThrown);
+                            console.log(textStatus);
+                            this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                            setTimeout(() => 
+                                {
+                                    this.m_progressWait.Hide();
+                                }, 5000);
+    
+                            if (jqXHR.status > 399 && jqXHR.status < 500)
+                            {
+                                // Almost certainly auth related error. Redirect to login
+                                // by signalling for logout.
+                                //window.location.href = 'login.php?logout';
+                            }
+                            else
+                            {
+                                
+                            }
+                        }
+                    }
+    
+                    // POST the auth request.
+                    $.post(ajaxSettings);
+                }
+            });
+            this.m_ActivationTables.on('click', 'button.btn-block', function(e){
+                e.preventDefault();
+                console.log("block-action");
+                if (confirm("Are you want to block this token?"))
+                {
+                    let dataObject = {};
+                    let id_str = e.target.id;
+                    let id = id_str.split("_")[1];
+                    let ajaxSettings: JQueryAjaxSettings =
+                    {
+                        method: "POST",
+                        timeout: 60000,
+                        url:'api/admin/user_activations/block/' +id,
+                        data: dataObject,
+                        // Callback if the call was a success.
+                        success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
+                        {                            
+                            that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
+                            that.m_ActivationTables.ajax.reload()
+                            return false;
+                        },
+    
+                        // Callback if the call was a failure.
+                        error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                        {
+                            console.log(jqXHR.responseText);
+                            console.log(errorThrown);
+                            console.log(textStatus);
+                            this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                            setTimeout(() => 
+                                {
+                                    this.m_progressWait.Hide();
+                                }, 5000);
+    
+                            if (jqXHR.status > 399 && jqXHR.status < 500)
+                            {
+                                // Almost certainly auth related error. Redirect to login
+                                // by signalling for logout.
+                                //window.location.href = 'login.php?logout';
+                            }
+                            else
+                            {
+                                
+                            }
+                        }
+                    }
+    
+                    // POST the auth request.
+                    $.post(ajaxSettings);
+                }
+            });
             
         }
 
