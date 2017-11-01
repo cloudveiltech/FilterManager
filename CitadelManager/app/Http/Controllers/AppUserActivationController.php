@@ -13,6 +13,8 @@ use Validator;
 use App\User;
 use App\Group;
 use App\Role;
+use App\Events\ActivationBypassDenied;
+use App\Events\ActivationBypassGranted;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -94,5 +96,87 @@ class AppUserActivationController extends Controller {
         }
         
         return response('', 204);
+    }
+
+    /**
+     * Block the specified resource from storage.
+     *
+     * @param  int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function status($identify) {
+        // Get Specific Activation with $identify
+        $activations = AppUserActivation::where('identifier', $identify)->get();
+        if (count($activations) == 0) {
+            $arr = array(
+                "allowed" => false,
+                "message" => "Request denied. Unknown identify is used." 
+            );
+            return response()->json($arr);    
+        }
+        $activation = $activations->first();
+
+
+        $bypass_permitted = 0;
+        if(is_null($activation->bypass_quantity)) {
+            $user_id = $activation->user_id;
+            $user = User::where('id', $user_id)->first();
+
+            if($user->group_id == -1) {
+                // group is not assigned to user.
+                $arr_output = array(
+                    "allowed" => false,
+                    "message" => "Request denied. User should be set his own group." 
+                );
+                return response()->json($arr_output);    
+            } else {
+                // group is assigned
+                $group = $user->group()->first();
+                $app_cfg_str = $group->app_cfg;
+                $app_cfg = json_decode($app_cfg_str);
+    
+                if (is_null($app_cfg->BypassesPermitted)) {
+                    $bypass_permitted = 0;
+                } else {
+                    $bypass_permitted = $app_cfg->BypassesPermitted;
+                }
+            }
+
+        } else {
+            $bypass_permitted = $activation->bypass_quantity;
+        }
+
+        // Check current status
+        $bypass_used = $activation->bypass_used;
+        if ( $bypass_permitted > $bypass_used) {
+            // status : granted
+            $arr_output = array(
+                "allowed" => true,
+                "message" => "Request granted. Used ". $bypass_used ." out of ". $bypass_permitted ."." 
+            );
+
+            // Trigger of bypass_granted
+            try {
+                event(new ActivationBypassGranted($activation));
+            } catch(\Exception $e){
+                Log::error($e);
+            }
+            
+            return response()->json($arr_output);
+        } else {
+            // status: denied
+            $arr_output = array(
+                "allowed" => false,
+                "message" => "Request denied. You have already used  ". $bypass_used ." out of ". $bypass_permitted ."." 
+            );
+            // Trigger of bypass_denied
+            try {
+                event(new ActivationBypassDenied($activation));
+            } catch(\Exception $e){
+                Log::error($e);
+            }
+            
+            return response()->json($arr_output);
+        }
     }
 }

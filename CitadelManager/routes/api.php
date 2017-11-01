@@ -129,7 +129,7 @@ Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:adm
 
      /* Manage Activations */
     Route::get('/activations', 'AppUserActivationController@index');
-
+    Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
     
 });
 
