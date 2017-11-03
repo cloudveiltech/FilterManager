@@ -114,7 +114,7 @@ Route::middleware(['auth.basic.once','role:admin|user'])->post('/v2/user/gettoke
  * Management section of the API.  This is used for working with users from external sources and relies upon basic auth.
  * At some point this will be revoked and rolled into v2 of the api.
  */
-Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:admin']], function() {
+Route::group(['prefix' => 'manage', 'middleware' => ['db.live','auth.basic.once','role:admin']], function() {
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
 

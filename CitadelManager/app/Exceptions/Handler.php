@@ -52,10 +52,10 @@ class Handler extends ExceptionHandler
         // XXX TODO - We don't want the ugly laravel exception pages.
         // In the parent, I think it's just the $exception->getResponse() that
         // we want to override.
-/*
+
         if ($exception instanceof PDOException) {
-            //Log::debug($exception);
-        } */
+            return response('Internal Error', 501);
+        } 
         return parent::render($request, $exception);
     }
 
