@@ -53,7 +53,7 @@ class AppUserActivationController extends Controller {
               return response()->json([]);
           } 
       } else {
-          return AppUserActivation::get();
+          return AppUserActivation::with('user')->get();
       }
     }
 
@@ -80,7 +80,7 @@ class AppUserActivationController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function block($id) {
-        
+        Log::debug($id);
         $user = \Auth::user();
         $userTokens = $user->tokens;
         //Log::debug(count($userTokens));
@@ -91,10 +91,23 @@ class AppUserActivationController extends Controller {
             }  
         }
         $activation = AppUserActivation::where('id', $id)->first();
+        Log::debug($activation);
         if (!is_null($activation)) {
             $activation->delete();
         }
         
+        return response('', 204);
+    }
+
+    public function update(Request $request, $id) {
+        
+        // The javascript side/admin UI will not send
+        // password or password_verify unless they are
+        // intentionally trying to change a user's password.
+    
+        $input = $request->only(['bypass_quantity', 'bypass_period']);
+        AppUserActivation::where('id', $id)->update($input);
+
         return response('', 204);
     }
 

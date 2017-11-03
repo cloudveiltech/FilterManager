@@ -8,6 +8,7 @@ var Citadel;
         DashboardViewStates[DashboardViewStates["DeactivationRequestListView"] = 3] = "DeactivationRequestListView";
         DashboardViewStates[DashboardViewStates["WhiteListView"] = 4] = "WhiteListView";
         DashboardViewStates[DashboardViewStates["BlackListView"] = 5] = "BlackListView";
+        DashboardViewStates[DashboardViewStates["AppUserActivationView"] = 6] = "AppUserActivationView";
     })(DashboardViewStates || (DashboardViewStates = {}));
     var Dashboard = (function () {
         function Dashboard() {
@@ -33,6 +34,7 @@ var Citadel;
             this.m_viewUserDeactivationRequestManagement = document.getElementById('view_user_deactivation_request_management');
             this.m_viewWhiteListManagement = document.getElementById('view_whitelist_management');
             this.m_viewBlackListManagement = document.getElementById('view_blacklist_management');
+            this.m_viewAppUserActivationManagement = document.getElementById('view_app_user_activations_management');
             this.ConstructTables();
             this.ConstructDragula();
             this.ViewState = DashboardViewStates.UserListView;
@@ -484,12 +486,84 @@ var Citadel;
                 };
                 _this.m_tableBlackLists = $('#blacklist_table').DataTable(blackListTableSettings);
             });
+            var appUserActivationTableConstruction = (function () {
+                var appUserActivationTableColumns = [
+                    {
+                        title: 'Activation Id',
+                        data: 'id',
+                        visible: false
+                    },
+                    {
+                        title: 'User',
+                        data: 'user.name',
+                        visible: true
+                    },
+                    {
+                        title: 'Identifier',
+                        data: 'identifier',
+                        visible: true
+                    },
+                    {
+                        title: 'Device Id',
+                        data: 'device_id',
+                        visible: true
+                    },
+                    {
+                        title: 'IP Address',
+                        data: 'ip_address',
+                        visible: true
+                    },
+                    {
+                        title: 'Bypass Quantity',
+                        data: 'bypass_quantity',
+                        visible: true
+                    },
+                    {
+                        title: 'Bypass Period',
+                        data: 'bypass_period',
+                        visible: true
+                    },
+                    {
+                        title: 'Bypass Used',
+                        data: 'bypass_used',
+                        visible: true
+                    },
+                    {
+                        title: 'Updated date',
+                        data: 'updated_at',
+                        visible: true
+                    }
+                ];
+                var appUserActivationTablesLoadFromAjaxSettings = {
+                    url: "api/admin/activations",
+                    dataSrc: "",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: (function (jqXHR, textStatus, errorThrown) {
+                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                        }
+                    })
+                };
+                var appUserActivationTableSettings = {
+                    autoWidth: true,
+                    stateSave: true,
+                    columns: appUserActivationTableColumns,
+                    ajax: appUserActivationTablesLoadFromAjaxSettings,
+                    rowCallback: (function (row, data) {
+                        _this.OnTableRowCreated(row, data);
+                    })
+                };
+                _this.m_tableAppUserActivationTable = $('#app_user_activations_table').DataTable(appUserActivationTableSettings);
+            });
             userTableConstruction();
             groupTableConstruction();
             filterTableConstruction();
             deactivationRequestConstruction();
             whiteListTableConstruction();
             blackListTableConstruction();
+            appUserActivationTableConstruction();
         };
         Dashboard.prototype.ConstructNavigation = function () {
             this.m_btnSignOut = document.getElementById('btn_sign_out');
@@ -498,6 +572,7 @@ var Citadel;
             this.m_tabBtnFilterLists = document.querySelector('a[href="#tab_filter_lists"]');
             this.m_tabBtnUserRequest = document.querySelector('a[href="#tab_user_deactivation_requests"]');
             this.m_tabBtnWhiteBlackLists = document.querySelector('a[href="#tab_user_global_white_black_list"]');
+            this.m_tabBtnAppUserActivation = document.querySelector('a[href="#tab_app_user_activations"]');
             this.m_btnCreateUser = document.getElementById('btn_user_add');
             this.m_btnDeleteUser = document.getElementById('btn_user_delete');
             this.m_btnDeleteUser.disabled = true;
@@ -522,6 +597,10 @@ var Citadel;
             this.m_btnRemoveItem = document.getElementById('btn_application_remove');
             this.m_btnRemoveItem.disabled = true;
             this.m_btnApplyToGroup = document.getElementById('btn_apply_group');
+            this.m_btnDeleteAppUserActivation = document.getElementById('btn_delete_activation');
+            this.m_btnBlockAppUserActivation = document.getElementById('btn_block_activations');
+            this.m_btnDeleteAppUserActivation.disabled = true;
+            this.m_btnBlockAppUserActivation.disabled = true;
             this.InitButtonHandlers();
         };
         Dashboard.prototype.InitButtonHandlers = function () {
@@ -587,6 +666,9 @@ var Citadel;
                 var itemIsActuallySelected = $("#whitelist_table").children().next().find(".selected").length > 0 ? true : false;
                 _this.m_btnRemoveItem.disabled = itemIsActuallySelected;
             });
+            this.m_tabBtnAppUserActivation.onclick = (function (e) {
+                _this.ViewState = DashboardViewStates.AppUserActivationView;
+            });
             this.m_btnBlacklist.onclick = (function (e) {
                 _this.ViewState = DashboardViewStates.BlackListView;
                 var itemIsActuallySelected = $("#blacklist_table").children().next().find(".selected").length > 0 ? true : false;
@@ -600,6 +682,12 @@ var Citadel;
             });
             this.m_btnApplyToGroup.onclick = (function (e) {
                 _this.onApplyToGroupClicked(e);
+            });
+            this.m_btnDeleteAppUserActivation.onclick = (function (e) {
+                _this.onDeleteAppUserActivationClicked(e);
+            });
+            this.m_btnBlockAppUserActivation.onclick = (function (e) {
+                _this.onBlockAppUserActivationClicked(e);
             });
         };
         Dashboard.prototype.OnTableRowCreated = function (row, data) {
@@ -652,6 +740,12 @@ var Citadel;
                 case 'blacklist_table':
                     {
                         this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
+                    }
+                    break;
+                case 'app_user_activations_table':
+                    {
+                        this.m_btnDeleteAppUserActivation.disabled = !itemIsActuallySelected;
+                        this.m_btnBlockAppUserActivation.disabled = !itemIsActuallySelected;
                     }
                     break;
             }
@@ -719,11 +813,21 @@ var Citadel;
                         blacklistRecord_1.StartEditing(data);
                     }
                     break;
+                case 'app_user_activations_table':
+                    {
+                        var appUserActivationRecord_1 = new Citadel.AppUserActivationRecord();
+                        appUserActivationRecord_1.ActionCompleteCallback = (function (action) {
+                            appUserActivationRecord_1.StopEditing();
+                            console.log("Redraw");
+                            _this.ForceTableRedraw(_this.m_tableAppUserActivationTable);
+                        });
+                        appUserActivationRecord_1.StartEditing(data);
+                    }
+                    break;
             }
         };
         Dashboard.prototype.GetSelectedRowForTable = function (table) {
             var selectedRow = $(table).find('tr .selected').first();
-            console.log(selectedRow);
             if (selectedRow == null) {
                 return null;
             }
@@ -943,35 +1047,72 @@ var Citadel;
             var apply_overlay = new Citadel.ApplyToGroupOverlay();
             apply_overlay.Show();
         };
+        Dashboard.prototype.onDeleteAppUserActivationClicked = function (e) {
+            var _this = this;
+            var selectedItem = this.m_tableAppUserActivationTable.row('.selected').data();
+            if (selectedItem != null) {
+                var appUserActivationObject;
+                try {
+                    appUserActivationObject = Citadel.BaseRecord.CreateFromObject(Citadel.AppUserActivationRecord, selectedItem);
+                    appUserActivationObject.ActionCompleteCallback = (function (action) {
+                        _this.ForceTableRedraw(_this.m_tableAppUserActivationTable);
+                    });
+                    if (confirm("Really delete app user activation? THIS CANNOT BE UNDONE!!!")) {
+                        appUserActivationObject.Delete();
+                    }
+                }
+                catch (e) {
+                    console.log('Failed to load filter list record from table selection.');
+                }
+            }
+        };
+        Dashboard.prototype.onBlockAppUserActivationClicked = function (e) {
+            var _this = this;
+            var selectedItem = this.m_tableAppUserActivationTable.row('.selected').data();
+            if (selectedItem != null) {
+                var appUserActivationObject;
+                try {
+                    appUserActivationObject = Citadel.BaseRecord.CreateFromObject(Citadel.AppUserActivationRecord, selectedItem);
+                    appUserActivationObject.ActionCompleteCallback = (function (action) {
+                        _this.ForceTableRedraw(_this.m_tableAppUserActivationTable);
+                    });
+                    if (confirm("Really delete app user activation? THIS CANNOT BE UNDONE!!!")) {
+                        appUserActivationObject.Block();
+                    }
+                }
+                catch (e) {
+                    console.log('Failed to load filter list record from table selection.');
+                }
+            }
+        };
         Object.defineProperty(Dashboard.prototype, "ViewState", {
             get: function () {
                 return this.m_currentViewState;
             },
             set: function (value) {
-                this.ForceTableRedraw(this.m_tableUsers);
-                this.ForceTableRedraw(this.m_tableGroups);
-                this.ForceTableRedraw(this.m_tableFilterLists);
-                this.ForceTableRedraw(this.m_tableWhiteLists);
-                this.ForceTableRedraw(this.m_tableBlackLists);
                 this.m_viewUserManagement.style.visibility = "hidden";
                 this.m_viewGroupManagement.style.visibility = "hidden";
                 this.m_viewFilterManagement.style.visibility = "hidden";
                 this.m_viewUserDeactivationRequestManagement.style.visibility = "hidden";
                 this.m_viewWhiteListManagement.style.visibility = "hidden";
                 this.m_viewBlackListManagement.style.visibility = "hidden";
+                this.m_viewAppUserActivationManagement.style.visibility = "hidden";
                 switch (value) {
                     case DashboardViewStates.UserListView:
                         {
+                            this.ForceTableRedraw(this.m_tableUsers);
                             this.m_viewUserManagement.style.visibility = "visible";
                         }
                         break;
                     case DashboardViewStates.GroupListView:
                         {
+                            this.ForceTableRedraw(this.m_tableGroups);
                             this.m_viewGroupManagement.style.visibility = "visible";
                         }
                         break;
                     case DashboardViewStates.FilterListView:
                         {
+                            this.ForceTableRedraw(this.m_tableFilterLists);
                             this.m_viewFilterManagement.style.visibility = "visible";
                         }
                         break;
@@ -982,12 +1123,20 @@ var Citadel;
                         break;
                     case DashboardViewStates.WhiteListView:
                         {
+                            this.ForceTableRedraw(this.m_tableWhiteLists);
                             this.m_viewWhiteListManagement.style.visibility = "visible";
                         }
                         break;
                     case DashboardViewStates.BlackListView:
                         {
+                            this.ForceTableRedraw(this.m_tableBlackLists);
                             this.m_viewBlackListManagement.style.visibility = "visible";
+                        }
+                        break;
+                    case DashboardViewStates.AppUserActivationView:
+                        {
+                            this.ForceTableRedraw(this.m_tableAppUserActivationTable);
+                            this.m_viewAppUserActivationManagement.style.visibility = "visible";
                         }
                         break;
                 }

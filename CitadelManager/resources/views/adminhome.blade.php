@@ -18,6 +18,7 @@
         <li id="btn_filter_lists"><a href="#tab_filter_lists">Filter Lists</a></li>
         <li id="btn_user_deactivation_requests"><a href="#tab_user_deactivation_requests">Deactivation Requests</a></li>
         <li id="btn_user_global_white_black_list"><a href="#tab_user_global_white_black_list">Global white/blacklist</a></li>
+        <li id="btn_app_user_activations"><a href="#tab_app_user_activations">App User Activations</a></li>
     </ul>
 
     <!-- Primary menu contents container. -->
@@ -176,6 +177,29 @@
                 <div class="tab-group-caption">Apply</div>
             </div>
         </div>
+
+
+        <!-- App User Activations tab. -->
+        <div class="tab-panel" id="tab_app_user_activations" style="display: none;">
+            <div class="tab-panel-group">
+                <div class="tab-group-content">
+                    <div class="tab-content-segment">
+                        <!-- Default state of all delete buttons should be disabled. -->
+                        <button id="btn_delete_activation" class="fluent-big-button" disabled>
+                            <span class="mif-cancel"></span>
+                            <span class="label">Delete<br/>Activations</span>
+                        </button>
+                        <div class="tab-content-segment">                                
+                            <button id="btn_block_activations" class="fluent-big-button">
+                                <span class="mif-blocked"></span>
+                                <span class="label">Block<br/>Activations</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-group-caption">Delete/Block Activations</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -221,6 +245,13 @@
 
         </table>
     </div>
+
+    <!-- App User Activations view. -->
+    <div id="view_app_user_activations_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
+        <table id="app_user_activations_table" class="table striped hovered border">
+
+        </table>
+    </div>
 </div>
 
 <!-- Include progress-wait script/UI. -->
@@ -247,7 +278,8 @@
 @include('layouts.components.blacklisteditor')
 <!-- Require Apply to group overlay. -->
 @include('layouts.components.applyapplication')
-
+<!-- Require Apply to group overlay. -->
+@include('layouts.components.appuseractivationeditor')
 <!-- Include dashboard JS to drive UI. -->
 <script src="{{ asset('js/admin/dashboard.js') }}">
 </script>
