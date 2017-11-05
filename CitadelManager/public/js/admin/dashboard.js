@@ -6,6 +6,8 @@ var Citadel;
         DashboardViewStates[DashboardViewStates["GroupListView"] = 1] = "GroupListView";
         DashboardViewStates[DashboardViewStates["FilterListView"] = 2] = "FilterListView";
         DashboardViewStates[DashboardViewStates["DeactivationRequestListView"] = 3] = "DeactivationRequestListView";
+        DashboardViewStates[DashboardViewStates["WhiteListView"] = 4] = "WhiteListView";
+        DashboardViewStates[DashboardViewStates["BlackListView"] = 5] = "BlackListView";
     })(DashboardViewStates || (DashboardViewStates = {}));
     var Dashboard = (function () {
         function Dashboard() {
@@ -29,6 +31,8 @@ var Citadel;
             this.m_viewGroupManagement = document.getElementById('view_group_management');
             this.m_viewFilterManagement = document.getElementById('view_filter_management');
             this.m_viewUserDeactivationRequestManagement = document.getElementById('view_user_deactivation_request_management');
+            this.m_viewWhiteListManagement = document.getElementById('view_whitelist_management');
+            this.m_viewBlackListManagement = document.getElementById('view_blacklist_management');
             this.ConstructTables();
             this.ConstructDragula();
             this.ViewState = DashboardViewStates.UserListView;
@@ -356,10 +360,136 @@ var Citadel;
                 };
                 _this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
             });
+            var whiteListTableConstruction = (function () {
+                var whiteListTableColumns = [
+                    {
+                        title: 'Whitelist Id',
+                        data: 'id',
+                        visible: false
+                    },
+                    {
+                        title: 'Whitelist Application Name',
+                        data: 'name',
+                        visible: true
+                    },
+                    {
+                        title: 'Active',
+                        data: 'isactive',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data == null) {
+                                return "";
+                            }
+                            if (data == 1) {
+                                return "True";
+                            }
+                            else {
+                                return "False";
+                            }
+                        })
+                    },
+                    {
+                        title: 'Date Registered',
+                        data: 'created_at',
+                        visible: true
+                    },
+                    {
+                        title: 'Date Modified',
+                        data: 'updated_at',
+                        visible: true
+                    }
+                ];
+                var whiteListTablesLoadFromAjaxSettings = {
+                    url: "api/admin/whitelists",
+                    dataSrc: "",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: (function (jqXHR, textStatus, errorThrown) {
+                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                        }
+                    })
+                };
+                var whiteListTableSettings = {
+                    autoWidth: true,
+                    stateSave: true,
+                    columns: whiteListTableColumns,
+                    ajax: whiteListTablesLoadFromAjaxSettings,
+                    rowCallback: (function (row, data) {
+                        _this.OnTableRowCreated(row, data);
+                    })
+                };
+                _this.m_tableWhiteLists = $('#whitelist_table').DataTable(whiteListTableSettings);
+            });
+            var blackListTableConstruction = (function () {
+                var blackListTableColumns = [
+                    {
+                        title: 'Blacklist Id',
+                        data: 'id',
+                        visible: false
+                    },
+                    {
+                        title: 'Blacklist Application Name',
+                        data: 'name',
+                        visible: true
+                    },
+                    {
+                        title: 'Active',
+                        data: 'isactive',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data == null) {
+                                return "";
+                            }
+                            if (data == 1) {
+                                return "True";
+                            }
+                            else {
+                                return "False";
+                            }
+                        })
+                    },
+                    {
+                        title: 'Date Registered',
+                        data: 'created_at',
+                        visible: true
+                    },
+                    {
+                        title: 'Date Modified',
+                        data: 'updated_at',
+                        visible: true
+                    }
+                ];
+                var blackListTablesLoadFromAjaxSettings = {
+                    url: "api/admin/blacklists",
+                    dataSrc: "",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: (function (jqXHR, textStatus, errorThrown) {
+                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                        }
+                    })
+                };
+                var blackListTableSettings = {
+                    autoWidth: true,
+                    stateSave: true,
+                    columns: blackListTableColumns,
+                    ajax: blackListTablesLoadFromAjaxSettings,
+                    rowCallback: (function (row, data) {
+                        _this.OnTableRowCreated(row, data);
+                    })
+                };
+                _this.m_tableBlackLists = $('#blacklist_table').DataTable(blackListTableSettings);
+            });
             userTableConstruction();
             groupTableConstruction();
             filterTableConstruction();
             deactivationRequestConstruction();
+            whiteListTableConstruction();
+            blackListTableConstruction();
         };
         Dashboard.prototype.ConstructNavigation = function () {
             this.m_btnSignOut = document.getElementById('btn_sign_out');
@@ -367,12 +497,15 @@ var Citadel;
             this.m_tabBtnGroups = document.querySelector('a[href="#tab_groups"]');
             this.m_tabBtnFilterLists = document.querySelector('a[href="#tab_filter_lists"]');
             this.m_tabBtnUserRequest = document.querySelector('a[href="#tab_user_deactivation_requests"]');
+            this.m_tabBtnWhiteBlackLists = document.querySelector('a[href="#tab_user_global_white_black_list"]');
             this.m_btnCreateUser = document.getElementById('btn_user_add');
             this.m_btnDeleteUser = document.getElementById('btn_user_delete');
             this.m_btnDeleteUser.disabled = true;
             this.m_btnCreateGroup = document.getElementById('btn_group_add');
             this.m_btnDeleteGroup = document.getElementById('btn_group_delete');
+            this.m_btnCloneGroup = document.getElementById('btn_group_clone');
             this.m_btnDeleteGroup.disabled = true;
+            this.m_btnCloneGroup.disabled = true;
             this.m_btnUploadFilterLists = document.getElementById('btn_add_filter_lists');
             this.m_btnDeleteFilterList = document.getElementById('btn_delete_filter_list');
             this.m_btnDeleteFilterListInNamespace = document.getElementById('btn_delete_filter_list_namespace');
@@ -383,6 +516,12 @@ var Citadel;
             this.m_btnDeleteUserDeactivationRequest = document.getElementById('btn_delete_user_deactivation_request');
             this.m_btnDeleteUserDeactivationRequest.disabled = true;
             this.m_btnRefreshUserDeactivationRequests = document.getElementById('btn_refresh_user_deactivation_request_list');
+            this.m_btnBlacklist = document.getElementById('global_radio_blacklist');
+            this.m_btnWhitelist = document.getElementById('global_radio_whitelist');
+            this.m_btnAddItem = document.getElementById('btn_application_add');
+            this.m_btnRemoveItem = document.getElementById('btn_application_remove');
+            this.m_btnRemoveItem.disabled = true;
+            this.m_btnApplyToGroup = document.getElementById('btn_apply_group');
             this.InitButtonHandlers();
         };
         Dashboard.prototype.InitButtonHandlers = function () {
@@ -401,6 +540,9 @@ var Citadel;
             });
             this.m_btnDeleteGroup.onclick = (function (e) {
                 _this.OnDeleteGroupClicked(e);
+            });
+            this.m_btnCloneGroup.onclick = (function (e) {
+                _this.OnCloneGroupClicked(e);
             });
             this.m_btnUploadFilterLists.onclick = (function (e) {
                 _this.m_filterListUploadController.Show(_this.m_tableFilterLists.data());
@@ -432,6 +574,33 @@ var Citadel;
             this.m_tabBtnUserRequest.onclick = (function (e) {
                 _this.ViewState = DashboardViewStates.DeactivationRequestListView;
             });
+            this.m_tabBtnWhiteBlackLists.onclick = (function (e) {
+                if (_this.m_btnWhitelist.checked) {
+                    _this.ViewState = DashboardViewStates.WhiteListView;
+                }
+                else {
+                    _this.ViewState = DashboardViewStates.BlackListView;
+                }
+            });
+            this.m_btnWhitelist.onclick = (function (e) {
+                _this.ViewState = DashboardViewStates.WhiteListView;
+                var itemIsActuallySelected = $("#whitelist_table").children().next().find(".selected").length > 0 ? true : false;
+                _this.m_btnRemoveItem.disabled = itemIsActuallySelected;
+            });
+            this.m_btnBlacklist.onclick = (function (e) {
+                _this.ViewState = DashboardViewStates.BlackListView;
+                var itemIsActuallySelected = $("#blacklist_table").children().next().find(".selected").length > 0 ? true : false;
+                _this.m_btnRemoveItem.disabled = itemIsActuallySelected;
+            });
+            this.m_btnAddItem.onclick = (function (e) {
+                _this.OnAddApplicationClicked(e);
+            });
+            this.m_btnRemoveItem.onclick = (function (e) {
+                _this.onRemoveApplicationClicked(e);
+            });
+            this.m_btnApplyToGroup.onclick = (function (e) {
+                _this.onApplyToGroupClicked(e);
+            });
         };
         Dashboard.prototype.OnTableRowCreated = function (row, data) {
             var _this = this;
@@ -460,6 +629,7 @@ var Citadel;
                 case 'group_table':
                     {
                         this.m_btnDeleteGroup.disabled = !itemIsActuallySelected;
+                        this.m_btnCloneGroup.disabled = !itemIsActuallySelected;
                     }
                     break;
                 case 'filter_table':
@@ -472,6 +642,16 @@ var Citadel;
                 case 'user_deactivation_request_table':
                     {
                         this.m_btnDeleteUserDeactivationRequest.disabled = !itemIsActuallySelected;
+                    }
+                    break;
+                case 'whitelist_table':
+                    {
+                        this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
+                    }
+                    break;
+                case 'blacklist_table':
+                    {
+                        this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
                     }
                     break;
             }
@@ -517,6 +697,26 @@ var Citadel;
                             deactivationRequestRecord_1.StopEditing();
                             _this.ForceTableRedraw(_this.m_tableUserDeactivationRequests);
                         });
+                    }
+                    break;
+                case 'whitelist_table':
+                    {
+                        var whitelistRecord_1 = new Citadel.WhitelistRecord();
+                        whitelistRecord_1.ActionCompleteCallback = (function (action) {
+                            whitelistRecord_1.StopEditing();
+                            _this.ForceTableRedraw(_this.m_tableWhiteLists);
+                        });
+                        whitelistRecord_1.StartEditing(data);
+                    }
+                    break;
+                case 'blacklist_table':
+                    {
+                        var blacklistRecord_1 = new Citadel.BlacklistRecord();
+                        blacklistRecord_1.ActionCompleteCallback = (function (action) {
+                            blacklistRecord_1.StopEditing();
+                            _this.ForceTableRedraw(_this.m_tableBlackLists);
+                        });
+                        blacklistRecord_1.StartEditing(data);
                     }
                     break;
             }
@@ -603,6 +803,19 @@ var Citadel;
                 }
             }
         };
+        Dashboard.prototype.OnCloneGroupClicked = function (e) {
+            var _this = this;
+            var selectedItem = this.m_tableGroups.row('.selected').data();
+            if (selectedItem != null) {
+                var groupRecord_2 = new Citadel.GroupRecord();
+                groupRecord_2.StartEditing(this.m_tableFilterLists.data(), null, selectedItem);
+                groupRecord_2.ActionCompleteCallback = (function (action) {
+                    groupRecord_2.StopEditing();
+                    _this.ForceTableRedraw(_this.m_tableGroups);
+                    _this.ForceTableRedraw(_this.m_tableUsers);
+                });
+            }
+        };
         Dashboard.prototype.OnDeleteFilterListClicked = function (e) {
             var _this = this;
             var selectedItem = this.m_tableFilterLists.row('.selected').data();
@@ -665,6 +878,71 @@ var Citadel;
                 }
             }
         };
+        Dashboard.prototype.OnAddApplicationClicked = function (e) {
+            var _this = this;
+            if (this.m_btnWhitelist.checked) {
+                var newWhitelist_1 = new Citadel.WhitelistRecord();
+                newWhitelist_1.StartEditing();
+                newWhitelist_1.ActionCompleteCallback = (function (action) {
+                    newWhitelist_1.StopEditing();
+                    _this.ForceTableRedraw(_this.m_tableWhiteLists);
+                });
+            }
+            else {
+                var newBlacklist_1 = new Citadel.BlacklistRecord();
+                newBlacklist_1.StartEditing();
+                newBlacklist_1.ActionCompleteCallback = (function (action) {
+                    newBlacklist_1.StopEditing();
+                    _this.ForceTableRedraw(_this.m_tableBlackLists);
+                });
+            }
+        };
+        Dashboard.prototype.onRemoveApplicationClicked = function (e) {
+            var _this = this;
+            this.m_btnRemoveItem.disabled = true;
+            if (this.m_btnWhitelist.checked) {
+                var selectedItem = this.m_tableWhiteLists.row('.selected').data();
+                if (selectedItem != null) {
+                    var whiteListObj;
+                    try {
+                        whiteListObj = Citadel.BaseRecord.CreateFromObject(Citadel.WhitelistRecord, selectedItem);
+                        whiteListObj.ActionCompleteCallback = (function (action) {
+                            _this.ForceTableRedraw(_this.m_tableWhiteLists);
+                        });
+                        if (confirm("Really delete Whitelist Application? THIS CANNOT BE UNDONE!!!")) {
+                            whiteListObj.Delete();
+                        }
+                    }
+                    catch (e) {
+                        this.m_btnRemoveItem.disabled = false;
+                        console.log('Failed to load whitelist record from table selection.');
+                    }
+                }
+            }
+            else {
+                var selectedItem = this.m_tableBlackLists.row('.selected').data();
+                if (selectedItem != null) {
+                    var blackListObj;
+                    try {
+                        blackListObj = Citadel.BaseRecord.CreateFromObject(Citadel.BlacklistRecord, selectedItem);
+                        blackListObj.ActionCompleteCallback = (function (action) {
+                            _this.ForceTableRedraw(_this.m_tableBlackLists);
+                        });
+                        if (confirm("Really delete Blacklist Application? THIS CANNOT BE UNDONE!!!")) {
+                            blackListObj.Delete();
+                        }
+                    }
+                    catch (e) {
+                        this.m_btnRemoveItem.disabled = false;
+                        console.log('Failed to load blacklist record from table selection.');
+                    }
+                }
+            }
+        };
+        Dashboard.prototype.onApplyToGroupClicked = function (e) {
+            var apply_overlay = new Citadel.ApplyToGroupOverlay();
+            apply_overlay.Show();
+        };
         Object.defineProperty(Dashboard.prototype, "ViewState", {
             get: function () {
                 return this.m_currentViewState;
@@ -673,10 +951,14 @@ var Citadel;
                 this.ForceTableRedraw(this.m_tableUsers);
                 this.ForceTableRedraw(this.m_tableGroups);
                 this.ForceTableRedraw(this.m_tableFilterLists);
+                this.ForceTableRedraw(this.m_tableWhiteLists);
+                this.ForceTableRedraw(this.m_tableBlackLists);
                 this.m_viewUserManagement.style.visibility = "hidden";
                 this.m_viewGroupManagement.style.visibility = "hidden";
                 this.m_viewFilterManagement.style.visibility = "hidden";
                 this.m_viewUserDeactivationRequestManagement.style.visibility = "hidden";
+                this.m_viewWhiteListManagement.style.visibility = "hidden";
+                this.m_viewBlackListManagement.style.visibility = "hidden";
                 switch (value) {
                     case DashboardViewStates.UserListView:
                         {
@@ -696,6 +978,16 @@ var Citadel;
                     case DashboardViewStates.DeactivationRequestListView:
                         {
                             this.m_viewUserDeactivationRequestManagement.style.visibility = "visible";
+                        }
+                        break;
+                    case DashboardViewStates.WhiteListView:
+                        {
+                            this.m_viewWhiteListManagement.style.visibility = "visible";
+                        }
+                        break;
+                    case DashboardViewStates.BlackListView:
+                        {
+                            this.m_viewBlackListManagement.style.visibility = "visible";
                         }
                         break;
                 }

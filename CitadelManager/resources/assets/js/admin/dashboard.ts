@@ -6,10 +6,13 @@
  */
 
 ///<reference path="../progresswait.ts"/>
+///<reference path="applytogroupoverlay.ts"/>
 ///<reference path="listuploadoverlay.ts"/>
 ///<reference path="records/userrecord.ts"/>
 ///<reference path="records/grouprecord.ts"/>
 ///<reference path="records/filterlistrecord.ts"/>
+///<reference path="records/whitelistrecord.ts"/>
+///<reference path="records/blacklistrecord.ts"/>
 
 namespace Citadel
 {
@@ -41,6 +44,12 @@ namespace Citadel
          * deactivation requests.
          */
         DeactivationRequestListView,
+        /**
+         * A view with a dataTables instance that lists all existing global
+         * whitelist & blacklist.
+         */
+        WhiteListView,
+        BlackListView,
     }
 
     /**
@@ -102,6 +111,16 @@ namespace Citadel
         private m_tabBtnUserRequest: HTMLLinkElement;
 
         /**
+         * Clickable main menu tab that hosts all menu action buttons for global
+         * whitelist & blacklist management.
+         * 
+         * @private
+         * @type {HTMLDivElement}
+         * @memberOf Dashboard
+         */
+        private m_tabBtnWhiteBlackLists: HTMLLinkElement;
+
+        /**
          * Button to initiate the process of creating a new user.
          * 
          * @private
@@ -140,7 +159,15 @@ namespace Citadel
          * @memberOf DashboardMenu
          */
         private m_btnDeleteGroup: HTMLButtonElement;
-
+        /**
+         * Button to initiate the process of creating a new group.
+         * 
+         * @private
+         * @type {HTMLButtonElement}
+         * @memberOf DashboardMenu
+         */
+        private m_btnCloneGroup: HTMLButtonElement;
+        
         /// Filter list/data management tab elements.
 
         /**
@@ -199,8 +226,53 @@ namespace Citadel
          */
         private m_btnRefreshUserDeactivationRequests: HTMLButtonElement;
 
-        
+        /// Global Whitelist & Blacklist tab elements.
 
+        /**
+         * Button to initiate the process of Add a new item to list.
+         * 
+         * @private
+         * @type {HTMLButtonElement}
+         * @memberOf DashboardMenu
+         */
+        private m_btnAddItem: HTMLButtonElement;
+
+        /**
+         * Button to initiate the process of removing item an existing, selected
+         * item.
+         * 
+         * @private
+         * @type {HTMLButtonElement}
+         * @memberOf DashboardMenu
+         */
+        private m_btnRemoveItem: HTMLButtonElement;
+        /**
+         * Button to initiate the process of removing item an existing, selected
+         * item.
+         * 
+         * @private
+         * @type {HTMLButtonElement}
+         * @memberOf DashboardMenu
+         */
+        private m_btnApplyToGroup: HTMLButtonElement;
+        /**
+         * RadioButton to indicate whitelist
+         * 
+         * @private
+         * @type {HTMLInputElement}
+         * @memberOf DashboardMenu
+         */
+        private m_btnWhitelist: HTMLInputElement;
+        
+        /**
+         * RadioButton to indicate blacklist
+         * 
+         * @private
+         * @type {HTMLInputElement}
+         * @memberOf DashboardMenu
+         */
+        private m_btnBlacklist: HTMLInputElement;
+        
         //
         // ──────────────────────────────────────────────────────────────────────────────────────── II ──────────
         //   :::::: T O P   M E N U   B A R   U I   E L E M E N T S : :  :   :    :     :        :          :
@@ -258,6 +330,16 @@ namespace Citadel
          */
         private m_viewUserDeactivationRequestManagement: HTMLDivElement;
 
+        /**
+         * Host container where blacklist/whitelist related data is displayed.
+         * 
+         * @private
+         * @type {HTMLDivElement}
+         * @memberOf Dashboard
+         */
+        private m_viewWhiteListManagement: HTMLDivElement;
+        private m_viewBlackListManagement: HTMLDivElement;
+
         //
         // ────────────────────────────────────────────────────────────── IV ──────────
         //   :::::: D A T A   T A B L E S : :  :   :    :     :        :          :
@@ -300,6 +382,15 @@ namespace Citadel
          */
         private m_tableUserDeactivationRequests: DataTables.DataTable;
 
+        /**
+         *  BlackWhite DataTable.
+         * 
+         * @private
+         * @type {DataTables.DataTable}
+         * @memberOf Dashboard
+         */
+        private m_tableWhiteLists: DataTables.DataTable;
+        private m_tableBlackLists: DataTables.DataTable;
         /**
          * Represents the current view state of the application. This must not
          * be accessed directly, but rather the getters and setters should be
@@ -370,7 +461,8 @@ namespace Citadel
             this.m_viewGroupManagement = document.getElementById('view_group_management') as HTMLDivElement;
             this.m_viewFilterManagement = document.getElementById('view_filter_management') as HTMLDivElement;
             this.m_viewUserDeactivationRequestManagement = document.getElementById('view_user_deactivation_request_management') as HTMLDivElement;
-
+            this.m_viewWhiteListManagement = document.getElementById('view_whitelist_management') as HTMLDivElement;
+            this.m_viewBlackListManagement = document.getElementById('view_blacklist_management') as HTMLDivElement;
             // Build the tables.
             this.ConstructTables();
 
@@ -839,10 +931,189 @@ namespace Citadel
                 this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
             });
 
+            let whiteListTableConstruction = (() =>
+            {
+                let whiteListTableColumns: DataTables.ColumnSettings[] =
+                    [
+                        {
+                            title: 'Whitelist Id',
+                            data: 'id',
+                            visible: false
+                        },
+                        {
+                            title: 'Whitelist Application Name',
+                            data: 'name',
+                            visible: true
+                        },
+                        {
+                            title: 'Active',
+                            data: 'isactive',
+                            visible: true,
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {
+                                if(data == null)
+                                {
+                                    return "";
+                                }
+                                
+                                if(data == 1)
+                                {
+                                    return "True";
+                                }
+                                else
+                                {
+                                    return "False";
+                                }
+                            })
+                        },
+                        {
+                            title: 'Date Registered',
+                            data: 'created_at',
+                            visible: true
+                        },
+                        {
+                            title: 'Date Modified',
+                            data: 'updated_at',
+                            visible: true
+                        }
+                    ];
+
+                // Set our table's loading AJAX settings to call the admin
+                // control API with the appropriate arguments.
+                let whiteListTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+                    {
+                        url: "api/admin/whitelists",
+                        dataSrc: "",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        method: "GET",
+                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                        {
+                            if(jqXHR.status > 399 && jqXHR.status < 500)
+                            {
+                                // Almost certainly auth related error. Redirect to login
+                                // by signalling for logout.
+                                //////window.location.href = 'login.php?logout';
+                            }
+                        })
+                    };
+
+                // Define whiteList table settings, ENSURE TO INCLUDE AJAX SETTINGS!
+                let whiteListTableSettings: DataTables.Settings =
+                    {
+                        autoWidth: true,
+                        stateSave: true,
+                        columns: whiteListTableColumns,
+                        ajax: whiteListTablesLoadFromAjaxSettings,
+
+                        // We grab the row callback with a fat arrow to keep the
+                        // class context. Otherwise, we'll lose it in the
+                        // callback, and "this" will be the datatable or a child
+                        // of it.
+                        rowCallback: ((row: Node, data: any[] | Object): void =>
+                        {
+                            this.OnTableRowCreated(row, data);
+                        })
+                    };
+
+                this.m_tableWhiteLists = $('#whitelist_table').DataTable(whiteListTableSettings);
+            });
+            let blackListTableConstruction = (() =>
+            {
+                let blackListTableColumns: DataTables.ColumnSettings[] =
+                    [
+                        {
+                            title: 'Blacklist Id',
+                            data: 'id',
+                            visible: false
+                        },
+                        {
+                            title: 'Blacklist Application Name',
+                            data: 'name',
+                            visible: true
+                        },
+                        {
+                            title: 'Active',
+                            data: 'isactive',
+                            visible: true,
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {
+                                if(data == null)
+                                {
+                                    return "";
+                                }
+                                
+                                if(data == 1)
+                                {
+                                    return "True";
+                                }
+                                else
+                                {
+                                    return "False";
+                                }
+                            })
+                        },
+                        {
+                            title: 'Date Registered',
+                            data: 'created_at',
+                            visible: true
+                        },
+                        {
+                            title: 'Date Modified',
+                            data: 'updated_at',
+                            visible: true
+                        }
+                    ];
+
+                // Set our table's loading AJAX settings to call the admin
+                // control API with the appropriate arguments.
+                let blackListTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+                    {
+                        url: "api/admin/blacklists",
+                        dataSrc: "",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        method: "GET",
+                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                        {
+                            if(jqXHR.status > 399 && jqXHR.status < 500)
+                            {
+                                // Almost certainly auth related error. Redirect to login
+                                // by signalling for logout.
+                                //////window.location.href = 'login.php?logout';
+                            }
+                        })
+                    };
+
+                // Define whiteList table settings, ENSURE TO INCLUDE AJAX SETTINGS!
+                let blackListTableSettings: DataTables.Settings =
+                    {
+                        autoWidth: true,
+                        stateSave: true,
+                        columns: blackListTableColumns,
+                        ajax: blackListTablesLoadFromAjaxSettings,
+
+                        // We grab the row callback with a fat arrow to keep the
+                        // class context. Otherwise, we'll lose it in the
+                        // callback, and "this" will be the datatable or a child
+                        // of it.
+                        rowCallback: ((row: Node, data: any[] | Object): void =>
+                        {
+                            this.OnTableRowCreated(row, data);
+                        })
+                    };
+
+                this.m_tableBlackLists = $('#blacklist_table').DataTable(blackListTableSettings);
+            });
+
             userTableConstruction();
             groupTableConstruction();
             filterTableConstruction();
             deactivationRequestConstruction();
+            whiteListTableConstruction();
+            blackListTableConstruction();
         }
 
         private ConstructNavigation(): void
@@ -855,6 +1126,7 @@ namespace Citadel
             this.m_tabBtnGroups = document.querySelector('a[href="#tab_groups"]') as HTMLLinkElement;
             this.m_tabBtnFilterLists = document.querySelector('a[href="#tab_filter_lists"]') as HTMLLinkElement;
             this.m_tabBtnUserRequest = document.querySelector('a[href="#tab_user_deactivation_requests"]') as HTMLLinkElement;
+            this.m_tabBtnWhiteBlackLists = document.querySelector('a[href="#tab_user_global_white_black_list"]') as HTMLLinkElement;
 
             // Init user management button references.
             this.m_btnCreateUser = document.getElementById('btn_user_add') as HTMLButtonElement;
@@ -866,10 +1138,11 @@ namespace Citadel
             // Init group management button references.
             this.m_btnCreateGroup = document.getElementById('btn_group_add') as HTMLButtonElement;
             this.m_btnDeleteGroup = document.getElementById('btn_group_delete') as HTMLButtonElement;
-
-            // Delete button cannot be enabled until a group is selected.
+            this.m_btnCloneGroup = document.getElementById('btn_group_clone') as HTMLButtonElement;
+            // Delete button & Clone button cannot be enabled until a group is selected.
             this.m_btnDeleteGroup.disabled = true;
-
+            this.m_btnCloneGroup.disabled = true;
+            
             // Init Filter List/Data management button references.          
             this.m_btnUploadFilterLists = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;  
             this.m_btnDeleteFilterList = document.getElementById('btn_delete_filter_list') as HTMLButtonElement;
@@ -887,10 +1160,18 @@ namespace Citadel
 
             this.m_btnRefreshUserDeactivationRequests = document.getElementById('btn_refresh_user_deactivation_request_list') as HTMLButtonElement;
 
+            // Init Global White/Black List buttons
+            this.m_btnBlacklist = document.getElementById('global_radio_blacklist') as HTMLInputElement;
+            this.m_btnWhitelist = document.getElementById('global_radio_whitelist') as HTMLInputElement;
+            this.m_btnAddItem = document.getElementById('btn_application_add') as HTMLButtonElement;
+            this.m_btnRemoveItem = document.getElementById('btn_application_remove') as HTMLButtonElement;
+            this.m_btnRemoveItem.disabled = true;
+            this.m_btnApplyToGroup = document.getElementById('btn_apply_group') as HTMLButtonElement;
             // Get handlers setup for all input.
             this.InitButtonHandlers();
         }
 
+        
         /**
          * Initializes click handlers for our UI buttons. Grabs the events with
          * a fat arrow so that our this context is preserved, meaning that this
@@ -929,6 +1210,10 @@ namespace Citadel
                 this.OnDeleteGroupClicked(e);
             });
 
+            this.m_btnCloneGroup.onclick = ((e: MouseEvent) =>
+            {
+               this.OnCloneGroupClicked(e); 
+            });
             this.m_btnUploadFilterLists.onclick = ((e: MouseEvent) =>
             {
                 this.m_filterListUploadController.Show(this.m_tableFilterLists.data());
@@ -981,7 +1266,42 @@ namespace Citadel
             {
                 this.ViewState = DashboardViewStates.DeactivationRequestListView;
             });
-        }
+            this.m_tabBtnWhiteBlackLists.onclick = ((e: MouseEvent) =>
+            {
+                if(this.m_btnWhitelist.checked) {
+                    this.ViewState = DashboardViewStates.WhiteListView;
+                } else {
+                    this.ViewState = DashboardViewStates.BlackListView;
+                }
+            });
+            this.m_btnWhitelist.onclick = ((e: MouseEvent) =>
+            {
+                this.ViewState = DashboardViewStates.WhiteListView;
+                let itemIsActuallySelected = $("#whitelist_table").children().next().find(".selected").length > 0?true:false;
+                
+                this.m_btnRemoveItem.disabled  = itemIsActuallySelected;
+            });
+            this.m_btnBlacklist.onclick = ((e: MouseEvent) =>
+            {
+                this.ViewState = DashboardViewStates.BlackListView;
+
+                let itemIsActuallySelected = $("#blacklist_table").children().next().find(".selected").length > 0?true:false;
+                
+                this.m_btnRemoveItem.disabled  = itemIsActuallySelected;
+            });
+            this.m_btnAddItem.onclick = ((e: MouseEvent) => 
+            {
+                this.OnAddApplicationClicked(e);
+            });
+            this.m_btnRemoveItem.onclick = ((e: MouseEvent) =>
+            {
+               this.onRemoveApplicationClicked(e); 
+            });
+            this.m_btnApplyToGroup.onclick = ((e: MouseEvent) =>
+            {
+                this.onApplyToGroupClicked(e);        
+            })
+        }   
 
         /**
          * Called whenever a table row is created in any table. All we want to
@@ -1054,6 +1374,7 @@ namespace Citadel
                 case 'group_table':
                     {
                         this.m_btnDeleteGroup.disabled = !itemIsActuallySelected;
+                        this.m_btnCloneGroup.disabled = !itemIsActuallySelected;
                     }
                     break;
 
@@ -1065,12 +1386,25 @@ namespace Citadel
                     }
                     break;
 
-                case 'user_deactivation_request_table':
+                    case 'user_deactivation_request_table':
                     {
                         this.m_btnDeleteUserDeactivationRequest.disabled = !itemIsActuallySelected;
                     }
                     break;
-            }
+
+                case 'whitelist_table':
+                    {
+                        this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
+                    }
+                    break;
+
+                case 'blacklist_table':
+                    {
+                        this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
+                    }
+                    break;                
+                
+            }   
         }
 
         /**
@@ -1175,6 +1509,47 @@ namespace Citadel
                         });
                     }
                     break;
+                case 'whitelist_table':
+                    {
+                        let whitelistRecord = new WhitelistRecord();
+                        
+                        whitelistRecord.ActionCompleteCallback = ((action: string): void =>
+                        {
+
+                            whitelistRecord.StopEditing();
+
+                            // Whenever we do any action on a user record
+                            // successfully, we want to simply redraw the user
+                            // table to get the updated data showing.
+                            this.ForceTableRedraw(this.m_tableWhiteLists);
+                        });
+
+                        // We supply everything in the groups table so that the user's group
+                        // can be changed to any available group.
+                        whitelistRecord.StartEditing(data);
+                    }
+                    break;
+
+                case 'blacklist_table':
+                    {
+                        let blacklistRecord = new BlacklistRecord();
+                        
+                        blacklistRecord.ActionCompleteCallback = ((action: string): void =>
+                        {
+
+                            blacklistRecord.StopEditing();
+
+                            // Whenever we do any action on a user record
+                            // successfully, we want to simply redraw the user
+                            // table to get the updated data showing.
+                            this.ForceTableRedraw(this.m_tableBlackLists);
+                        });
+
+                        // We supply everything in the groups table so that the user's group
+                        // can be changed to any available group.
+                        blacklistRecord.StartEditing(data);
+                    }
+                    break;      
             }
         }
 
@@ -1408,6 +1783,34 @@ namespace Citadel
         }
 
         /**
+         * Called whenever the user clicks the group deletion button. Internally
+         * we'll validate that the current state is correct for this action, and
+         * then initiate the process of POSTing this action as a command to the
+         * server.
+         * 
+         * @private
+         * @param {MouseEvent} e
+         * @returns {*}
+         * 
+         * @memberOf Dashboard
+         */
+        private OnCloneGroupClicked(e: MouseEvent): any
+        {
+            let selectedItem = this.m_tableGroups.row('.selected').data();
+            if (selectedItem != null)
+            {
+                let groupRecord = new GroupRecord();
+                groupRecord.StartEditing(this.m_tableFilterLists.data(), null, selectedItem);
+                groupRecord.ActionCompleteCallback = ((action: string): void =>
+                {
+                    groupRecord.StopEditing();
+                    this.ForceTableRedraw(this.m_tableGroups);
+                    this.ForceTableRedraw(this.m_tableUsers);
+                });
+            }
+        }
+
+        /**
          * Called whenever the user clicks the delete filter list button.
          * Internally we'll validate that the current state is correct for this
          * action, and then initiate the process of POSTing this action as a
@@ -1527,6 +1930,145 @@ namespace Citadel
             }
         }
 
+
+        /**
+         * Called whenever the user clicks the Add Application button. Internally
+         * we'll validate that the current state is correct for this action.
+         * Then, we'll present the appropriate input view which itself will
+         * handle input validation, as well as POSTing appropriate commands to
+         * the server.
+         * 
+         * @private
+         * @param {MouseEvent} e
+         * @returns {*}
+         * 
+         * @memberOf Dashboard
+         */
+        private OnAddApplicationClicked(e: MouseEvent): any
+        {
+            if(this.m_btnWhitelist.checked) {
+                let newWhitelist = new WhitelistRecord();
+
+                // We supply everything in the groups table so that the user's group
+                // can be changed to any available group.            
+                newWhitelist.StartEditing( );
+                newWhitelist.ActionCompleteCallback = ((action: string): void =>
+                {
+
+                    newWhitelist.StopEditing();
+
+                    // Whenever we do any action on a user record
+                    // successfully, we want to simply redraw the user
+                    // table to get the updated data showing.
+                    this.ForceTableRedraw(this.m_tableWhiteLists);
+                });
+            } else {
+                let newBlacklist = new BlacklistRecord();
+                // We supply everything in the groups table so that the user's group
+                // can be changed to any available group.            
+                newBlacklist.StartEditing( );
+                newBlacklist.ActionCompleteCallback = ((action: string): void =>
+                {
+
+                    newBlacklist.StopEditing();
+
+                    // Whenever we do any action on a user record
+                    // successfully, we want to simply redraw the user
+                    // table to get the updated data showing.
+                    this.ForceTableRedraw(this.m_tableBlackLists);
+                });
+            }
+        }
+        /**
+         * Called whenever the user clicks the Remove Application button. Internally
+         * we'll validate that the current state is correct for this action.
+         * Then, we'll present the appropriate input view which itself will
+         * handle input validation, as well as POSTing appropriate commands to
+         * the server.
+         * 
+         * @private
+         * @param {MouseEvent} e
+         * @returns {*}
+         * 
+         * @memberOf Dashboard
+         */
+        private onRemoveApplicationClicked(e: MouseEvent): any
+        {
+            this.m_btnRemoveItem.disabled = true;
+            if(this.m_btnWhitelist.checked) {
+                let selectedItem = this.m_tableWhiteLists.row('.selected').data();
+                if (selectedItem != null)
+                {
+                    var whiteListObj: WhitelistRecord;
+    
+                    try 
+                    {
+                        whiteListObj = BaseRecord.CreateFromObject(WhitelistRecord, selectedItem);
+    
+                        // We want to update both users and groups after delete.
+                        whiteListObj.ActionCompleteCallback = ((action: string): void =>
+                        {
+                            this.ForceTableRedraw(this.m_tableWhiteLists);
+                        });
+    
+                        if (confirm("Really delete Whitelist Application? THIS CANNOT BE UNDONE!!!"))
+                        {
+                            whiteListObj.Delete();
+                        }
+                    }
+                    catch (e)
+                    {
+                        this.m_btnRemoveItem.disabled = false;
+                        console.log('Failed to load whitelist record from table selection.');
+                    }
+                }
+            } else {
+                let selectedItem = this.m_tableBlackLists.row('.selected').data();
+                if (selectedItem != null)
+                {
+                    var blackListObj: BlacklistRecord;
+    
+                    try 
+                    {
+                        blackListObj = BaseRecord.CreateFromObject(BlacklistRecord, selectedItem);
+    
+                        // We want to update both users and groups after delete.
+                        blackListObj.ActionCompleteCallback = ((action: string): void =>
+                        {
+                            this.ForceTableRedraw(this.m_tableBlackLists);
+                        });
+    
+                        if (confirm("Really delete Blacklist Application? THIS CANNOT BE UNDONE!!!"))
+                        {
+                            blackListObj.Delete();
+                        }
+                    }
+                    catch (e)
+                    {
+                        this.m_btnRemoveItem.disabled = false;
+                        console.log('Failed to load blacklist record from table selection.');
+                    }
+                }
+            }
+        }
+        /**
+         * Called whenever the user clicks the Apply to Groupbutton. Internally
+         * we'll validate that the current state is correct for this action.
+         * Then, we'll present the appropriate input view which itself will
+         * handle input validation, as well as POSTing appropriate commands to
+         * the server.
+         * 
+         * @private
+         * @param {MouseEvent} e
+         * @returns {*}
+         * 
+         * @memberOf Dashboard
+         */
+        private onApplyToGroupClicked(e: MouseEvent): any
+        {
+            let apply_overlay = new ApplyToGroupOverlay();
+            apply_overlay.Show();
+        }
         /**
          * Sets the current view state. This will enforce that visual elements
          * and data are synchronized as they should be for the specified view
@@ -1547,11 +2089,15 @@ namespace Citadel
             this.ForceTableRedraw(this.m_tableUsers);
             this.ForceTableRedraw(this.m_tableGroups);
             this.ForceTableRedraw(this.m_tableFilterLists);
+            this.ForceTableRedraw(this.m_tableWhiteLists);
+            this.ForceTableRedraw(this.m_tableBlackLists);
 
             this.m_viewUserManagement.style.visibility = "hidden";
             this.m_viewGroupManagement.style.visibility = "hidden";
             this.m_viewFilterManagement.style.visibility = "hidden";
             this.m_viewUserDeactivationRequestManagement.style.visibility = "hidden";
+            this.m_viewWhiteListManagement.style.visibility = "hidden";
+            this.m_viewBlackListManagement.style.visibility = "hidden";
 
 
             switch (value)
@@ -1577,6 +2123,18 @@ namespace Citadel
                 case DashboardViewStates.DeactivationRequestListView:
                     {
                         this.m_viewUserDeactivationRequestManagement.style.visibility = "visible";
+                    }
+                    break;
+
+                case DashboardViewStates.WhiteListView:
+                    {
+                        this.m_viewWhiteListManagement.style.visibility = "visible";
+                    }
+                    break;
+
+                case DashboardViewStates.BlackListView:
+                    {
+                        this.m_viewBlackListManagement.style.visibility = "visible";
                     }
                     break;
             }
