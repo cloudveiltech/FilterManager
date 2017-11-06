@@ -45,12 +45,14 @@ Route::group(['prefix' => 'admin', 'middleware' => ['web','role:admin']], functi
     Route::get('activations', 'AppUserActivationController@index');
     Route::resource('whitelists', 'GlobalWhitelistController');
     Route::resource('blacklists', 'GlobalBlacklistController');
+    Route::resource('user_activations', 'AppUserActivationController');
 
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
     Route::post('/applytogroup', 'ApplyToGroupController@applyToGroup');
     Route::get('/user_activations/{id}', 'UserController@activation_data');
-    
+    Route::post('/user_activations/delete/{id}', 'AppUserActivationController@destroy');
+    Route::post('/user_activations/block/{id}', 'AppUserActivationController@block');
     // For handling deletion of all records in a namespace.
     Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');
 });
@@ -112,7 +114,7 @@ Route::middleware(['auth.basic.once','role:admin|user'])->post('/v2/user/gettoke
  * Management section of the API.  This is used for working with users from external sources and relies upon basic auth.
  * At some point this will be revoked and rolled into v2 of the api.
  */
-Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:admin']], function() {
+Route::group(['prefix' => 'manage', 'middleware' => ['db.live','auth.basic.once','role:admin']], function() {
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
 
@@ -128,7 +130,7 @@ Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:adm
 
      /* Manage Activations */
     Route::get('/activations', 'AppUserActivationController@index');
-
+    Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
     
 });
 

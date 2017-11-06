@@ -6,7 +6,7 @@ use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-
+use Log;
 class Handler extends ExceptionHandler
 {
     /**
@@ -49,12 +49,17 @@ class Handler extends ExceptionHandler
         if ($exception instanceof HttpException && $exception->getStatusCode() == 403) {
             return redirect('/login');
         }
-        
         // XXX TODO - We don't want the ugly laravel exception pages.
         // In the parent, I think it's just the $exception->getResponse() that
         // we want to override.
+
+        if ($exception instanceof PDOException) {
+            return response('Internal Error', 501);
+        } 
         return parent::render($request, $exception);
     }
+
+
 
     /**
      * Convert an authentication exception into an unauthenticated response.
@@ -66,7 +71,11 @@ class Handler extends ExceptionHandler
     protected function unauthenticated($request, AuthenticationException $exception)
     {
         if ($request->expectsJson()) {
-            return response()->json(['error' => 'Unauthenticated.'], 401);
+            //if($exception instanceof \Illuminate\Database\QueryException) {
+            //    return response()->json(['error' => 'Interal Error.'], 500);
+            //} else {
+                return response()->json(['error' => 'Unauthenticated.'], 401);
+            //}
         }
 
         return redirect()->guest(route('login'));

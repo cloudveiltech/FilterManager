@@ -79,6 +79,7 @@ var Citadel;
             this.InitButtonHandlers();
         };
         UserRecord.prototype.InitUserActivationTables = function () {
+            var that = this;
             var id = 0;
             if (this.m_userId === undefined) {
                 id = 0;
@@ -111,6 +112,11 @@ var Citadel;
                     title: 'Updated date',
                     data: 'updated_at',
                     visible: true
+                },
+                {
+                    "mRender": function (data, type, row) {
+                        return "<button id='delete_" + row.id + "' class='btn-delete'>Delete</button> <button id='block_" + row.id + "' class='btn-block'>Block</button>";
+                    }
                 }
             ];
             var activationTablesLoadFromAjaxSettings = {
@@ -133,9 +139,77 @@ var Citadel;
                 rowCallback: (function (row, data) {
                 })
             };
-            activationTableSettings['resonsive'] = true;
-            activationTableSettings['retrieve'] = true;
+            activationTableSettings['responsive'] = true;
             this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
+            this.m_ActivationTables.on('click', 'button.btn-delete', function (e) {
+                var _this = this;
+                e.preventDefault();
+                if (confirm("Are you want to delete this token?")) {
+                    var dataObject = {};
+                    var id_str = e.target.id;
+                    var id_1 = id_str.split("_")[1];
+                    var ajaxSettings = {
+                        method: "POST",
+                        timeout: 60000,
+                        url: 'api/admin/user_activations/delete/' + id_1,
+                        data: dataObject,
+                        success: function (data, textStatus, jqXHR) {
+                            that.m_ActivationTables.ajax.url("api/admin/user_activations/" + that.m_userId);
+                            that.m_ActivationTables.ajax.reload();
+                            return false;
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR.responseText);
+                            console.log(errorThrown);
+                            console.log(textStatus);
+                            _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                            setTimeout(function () {
+                                _this.m_progressWait.Hide();
+                            }, 5000);
+                            if (jqXHR.status > 399 && jqXHR.status < 500) {
+                            }
+                            else {
+                            }
+                        }
+                    };
+                    $.post(ajaxSettings);
+                }
+            });
+            this.m_ActivationTables.on('click', 'button.btn-block', function (e) {
+                var _this = this;
+                e.preventDefault();
+                console.log("block-action");
+                if (confirm("Are you want to block this token?")) {
+                    var dataObject = {};
+                    var id_str = e.target.id;
+                    var id_2 = id_str.split("_")[1];
+                    var ajaxSettings = {
+                        method: "POST",
+                        timeout: 60000,
+                        url: 'api/admin/user_activations/block/' + id_2,
+                        data: dataObject,
+                        success: function (data, textStatus, jqXHR) {
+                            that.m_ActivationTables.ajax.url("api/admin/user_activations/" + that.m_userId);
+                            that.m_ActivationTables.ajax.reload();
+                            return false;
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR.responseText);
+                            console.log(errorThrown);
+                            console.log(textStatus);
+                            _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                            setTimeout(function () {
+                                _this.m_progressWait.Hide();
+                            }, 5000);
+                            if (jqXHR.status > 399 && jqXHR.status < 500) {
+                            }
+                            else {
+                            }
+                        }
+                    };
+                    $.post(ajaxSettings);
+                }
+            });
         };
         UserRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
