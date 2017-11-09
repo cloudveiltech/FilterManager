@@ -66,7 +66,7 @@ class UserController extends Controller {
             'group_id' => 'required|exists:groups,id'
         ]);
 
-        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id','activations_allowed','isactive']);
+        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id','customer_id','activations_allowed','isactive']);
         $input['password'] = Hash::make($input['password']);
         
         $user = User::create($input);   
@@ -111,6 +111,34 @@ class UserController extends Controller {
         // The javascript side/admin UI will not send
         // password or password_verify unless they are
         // intentionally trying to change a user's password.
+
+        //Checking customer_id 
+        $input_chk_customer_id = $request->only(['customer_id', 'email', 'name']);
+        $customer_id = $input_chk_customer_id['customer_id'];
+        
+        if($customer_id != null) {
+            $customer_list = User::where('id', '!=', $id)->where('customer_id', $customer_id)->get();
+            $customer_count = count($customer_list);
+            if($customer_count > 0) {
+                return response('customer_id is duplicated. please choose another customer_id', 403);
+            }
+        }
+
+        // Checking email address
+        $email = $input_chk_customer_id['email'];
+        $email_list = User::where('id', '!=', $id)->where('email', $email)->get();
+        $email_count = count($email_list);
+        if($email_count > 0) {
+            return response('email address exists, please choose another email_address', 403);
+        }
+
+        // Checking user id
+        $name = $input_chk_customer_id['name'];
+        $email_list = User::where('id', '!=', $id)->where('name', $name)->get();
+        $email_count = count($email_list);
+        if($email_count > 0) {
+            return response('user_id already exists, please choose another user_id', 403);
+        }
 
         $inclPassword = false;
 
@@ -326,7 +354,9 @@ class UserController extends Controller {
         switch ($userActivateResult) {
             case UserActivationAttemptResult::Success: {
                     // Creating a token without scopes...
-                    return $user->createToken('Token Name')->accessToken;
+                    $token = $user->createToken('Token Name')->accessToken; 
+                    $this->checkUserData($request); 
+                    return $token; 
                 }
                 break;
 
@@ -389,4 +419,7 @@ class UserController extends Controller {
         return "OK";
     }
 
+    public function activation_data(Request $request, $id) {
+        return AppUserActivation::where('user_id', $id)->get();;
+    }
 }

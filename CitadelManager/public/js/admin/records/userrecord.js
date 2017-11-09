@@ -73,9 +73,143 @@ var Citadel;
             this.m_groupIdInput = document.querySelector('#editor_user_input_group_id');
             this.m_roleInput = document.querySelector('#editor_user_input_role_id');
             this.m_isActiveInput = document.querySelector('#editor_user_input_isactive');
+            this.m_customerIdInput = document.querySelector('#editor_user_input_customer_id');
             this.m_submitBtn = document.querySelector('#user_editor_submit');
             this.m_cancelBtn = document.querySelector('#user_editor_cancel');
             this.InitButtonHandlers();
+        };
+        UserRecord.prototype.InitUserActivationTables = function () {
+            var that = this;
+            var id = 0;
+            if (this.m_userId === undefined) {
+                id = 0;
+            }
+            else {
+                id = this.m_userId;
+            }
+            var activationTableColumns = [
+                {
+                    title: 'Action Id',
+                    data: 'id',
+                    visible: false
+                },
+                {
+                    title: 'Identifier',
+                    data: 'identifier',
+                    visible: true
+                },
+                {
+                    title: 'Device Id',
+                    data: 'device_id',
+                    visible: true
+                },
+                {
+                    title: 'IP Address',
+                    data: 'ip_address',
+                    visible: true
+                },
+                {
+                    title: 'Updated date',
+                    data: 'updated_at',
+                    visible: true
+                },
+                {
+                    "mRender": function (data, type, row) {
+                        return "<button id='delete_" + row.id + "' class='btn-delete'>Delete</button> <button id='block_" + row.id + "' class='btn-block'>Block</button>";
+                    }
+                }
+            ];
+            var activationTablesLoadFromAjaxSettings = {
+                url: "api/admin/user_activations/" + id,
+                dataSrc: "",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                method: "GET",
+                error: (function (jqXHR, textStatus, errorThrown) {
+                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                    }
+                })
+            };
+            var activationTableSettings = {
+                autoWidth: true,
+                stateSave: true,
+                columns: activationTableColumns,
+                ajax: activationTablesLoadFromAjaxSettings,
+                rowCallback: (function (row, data) {
+                })
+            };
+            activationTableSettings['responsive'] = true;
+            this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
+            this.m_ActivationTables.on('click', 'button.btn-delete', function (e) {
+                var _this = this;
+                e.preventDefault();
+                if (confirm("Are you want to delete this token?")) {
+                    var dataObject = {};
+                    var id_str = e.target.id;
+                    var id_1 = id_str.split("_")[1];
+                    var ajaxSettings = {
+                        method: "POST",
+                        timeout: 60000,
+                        url: 'api/admin/user_activations/delete/' + id_1,
+                        data: dataObject,
+                        success: function (data, textStatus, jqXHR) {
+                            that.m_ActivationTables.ajax.url("api/admin/user_activations/" + that.m_userId);
+                            that.m_ActivationTables.ajax.reload();
+                            return false;
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR.responseText);
+                            console.log(errorThrown);
+                            console.log(textStatus);
+                            _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                            setTimeout(function () {
+                                _this.m_progressWait.Hide();
+                            }, 5000);
+                            if (jqXHR.status > 399 && jqXHR.status < 500) {
+                            }
+                            else {
+                            }
+                        }
+                    };
+                    $.post(ajaxSettings);
+                }
+            });
+            this.m_ActivationTables.on('click', 'button.btn-block', function (e) {
+                var _this = this;
+                e.preventDefault();
+                console.log("block-action");
+                if (confirm("Are you want to block this token?")) {
+                    var dataObject = {};
+                    var id_str = e.target.id;
+                    var id_2 = id_str.split("_")[1];
+                    var ajaxSettings = {
+                        method: "POST",
+                        timeout: 60000,
+                        url: 'api/admin/user_activations/block/' + id_2,
+                        data: dataObject,
+                        success: function (data, textStatus, jqXHR) {
+                            that.m_ActivationTables.ajax.url("api/admin/user_activations/" + that.m_userId);
+                            that.m_ActivationTables.ajax.reload();
+                            return false;
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR.responseText);
+                            console.log(errorThrown);
+                            console.log(textStatus);
+                            _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                            setTimeout(function () {
+                                _this.m_progressWait.Hide();
+                            }, 5000);
+                            if (jqXHR.status > 399 && jqXHR.status < 500) {
+                            }
+                            else {
+                            }
+                        }
+                    };
+                    $.post(ajaxSettings);
+                }
+            });
         };
         UserRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
@@ -89,6 +223,7 @@ var Citadel;
             this.m_userEmail = data['email'];
             this.m_userPassword = data['password'];
             this.m_groupId = data['group_id'];
+            this.m_customerId = data['customer_id'];
             this.m_roleId = data['roles'][0]['id'];
             this.m_numActivations = data['activations_allowed'];
             this.m_isActive = data['isactive'];
@@ -107,6 +242,12 @@ var Citadel;
             if (this.m_roleInput.selectedIndex != -1) {
                 var selectedRoleOption = this.m_roleInput.options[this.m_roleInput.selectedIndex];
                 this.m_roleId = parseInt(selectedRoleOption.value);
+            }
+            if (this.m_customerIdInput.value == "") {
+                this.m_customerId = null;
+            }
+            else {
+                this.m_customerId = this.m_customerIdInput.valueAsNumber;
             }
             this.m_numActivations = this.m_numActivationsInput.valueAsNumber;
             this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
@@ -150,6 +291,12 @@ var Citadel;
                         this.m_submitBtn.innerText = "Save";
                         this.m_fullNameInput.value = this.m_userFullName;
                         this.m_emailInput.value = this.m_userEmail;
+                        if (this.m_customerId == null) {
+                            this.m_customerIdInput.value = "";
+                        }
+                        else {
+                            this.m_customerIdInput.value = this.m_customerId.toString();
+                        }
                         this.m_passwordInput.value = new Array(30).join("x");
                         this.m_passwordConfirmInput.value = new Array(30).join("x");
                         this.m_numActivationsInput.value = this.m_numActivations.toString();
@@ -193,6 +340,29 @@ var Citadel;
                 }
                 return false;
             });
+            if (userData != null) {
+                this.m_userId = userData.id;
+                if ($.fn.dataTable.isDataTable('#user_activation_table')) {
+                    this.m_ActivationTables = $('#user_activation_table').DataTable();
+                    this.m_ActivationTables.clear();
+                    this.m_ActivationTables.draw();
+                    this.m_ActivationTables.ajax.url("api/admin/user_activations/" + userData.id);
+                    this.m_ActivationTables.ajax.reload();
+                }
+                else {
+                    this.InitUserActivationTables();
+                }
+            }
+            else {
+                if ($.fn.dataTable.isDataTable('#user_activation_table')) {
+                    this.m_ActivationTables = $('#user_activation_table').DataTable();
+                    this.m_ActivationTables.clear();
+                    this.m_ActivationTables.draw();
+                }
+                else {
+                    this.InitUserActivationTables();
+                }
+            }
             $(this.m_editorOverlay).fadeIn(250);
         };
         UserRecord.prototype.StopEditing = function () {
@@ -205,10 +375,12 @@ var Citadel;
                 'email': this.m_userEmail,
                 'group_id': this.m_groupId,
                 'role_id': this.m_roleId,
+                'customer_id': this.m_customerId,
                 'activations_allowed': this.m_numActivations,
                 'isactive': this.m_isActive,
                 'dt': this.m_dateRegistered
             };
+            console.log("ddd", this.m_customerId);
             if (this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x"))) {
                 obj['password'] = this.m_userPassword;
                 obj['password_verify'] = this.m_passwordConfirmInput.value;

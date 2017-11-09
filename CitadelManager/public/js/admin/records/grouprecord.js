@@ -254,10 +254,10 @@ var Citadel;
                 elm.parentNode.removeChild(elm);
             }
         };
-        GroupRecord.prototype.StartEditing = function (allFilters, data) {
+        GroupRecord.prototype.StartEditing = function (allFilters, data, cloneData) {
             var _this = this;
             if (data === void 0) { data = null; }
-            console.log(data);
+            if (cloneData === void 0) { cloneData = null; }
             var clearListContainer = (function (container) {
                 var assignedChildren = container.querySelectorAll('div[citadel-filter-list-id]');
                 for (var i = 0; i < assignedChildren.length; ++i) {
@@ -422,6 +422,69 @@ var Citadel;
                         }
                     }
                     break;
+            }
+            if (cloneData != null) {
+                this.m_editorTitle.innerText = "Clone Group";
+                this.m_submitBtn.innerText = "Clone Group";
+                this.LoadFromObject(cloneData);
+                this.m_groupId = undefined;
+                this.m_groupNameInput.value = this.m_groupName + "-cloned";
+                this.m_isActiveInput.checked = this.m_isActive != 0;
+                this.m_antiTamperNoTerminateInput.checked = this.m_appConfig['CannotTerminate'];
+                this.m_antiTamperDisableInternetInput.checked = this.m_appConfig['BlockInternet'];
+                this.m_antiTamperUseThresholdInput.checked = this.m_appConfig['UseThreshold'];
+                this.m_antiTamperThresholdCountInput.valueAsNumber = parseInt(this.m_appConfig['ThresholdLimit']);
+                this.m_antiTamperThresholdTriggerPeriodInput.valueAsNumber = parseInt(this.m_appConfig['ThresholdTriggerPeriod']);
+                this.m_antiTamperThresholdTimeoutInput.valueAsNumber = parseInt(this.m_appConfig['ThresholdTimeoutPeriod']);
+                this.m_antiTamperBypassesPerDayInput.valueAsNumber = parseInt(this.m_appConfig['BypassesPermitted']);
+                this.m_antiTamperBypassDurationInput.valueAsNumber = parseInt(this.m_appConfig['BypassDuration']);
+                this.m_groupNlpThresholdInput.valueAsNumber = parseFloat(this.m_appConfig['NlpThreshold']);
+                this.m_textTriggerMaxSizeInput.valueAsNumber = parseInt(this.m_appConfig['MaxTextTriggerScanningSize']);
+                try {
+                    for (var i = 0; i < this.m_updateChannelSelectInput.options.length; ++i) {
+                        if (this.m_updateChannelSelectInput.options[i].value.toLowerCase() == this.m_appConfig['UpdateChannel'].toLowerCase()) {
+                            this.m_updateChannelSelectInput.selectedIndex = this.m_updateChannelSelectInput.options[i].index;
+                            break;
+                        }
+                    }
+                }
+                catch (ex) {
+                    console.warn(ex);
+                    console.warn("Either the update channel is null or it's an invalid value. Defaulting...");
+                    this.m_updateChannelSelectInput.selectedIndex = 0;
+                }
+                this.m_groupUpdateCheckFrequencyInput.valueAsNumber = parseInt(this.m_appConfig['UpdateFrequency']);
+                this.m_groupPrimaryDnsInput.value = this.m_appConfig['PrimaryDns'];
+                this.m_groupSecondaryDnsInput.value = this.m_appConfig['SecondaryDns'];
+                if (this.m_groupPrimaryDnsInput.value == 'undefined') {
+                    this.m_groupPrimaryDnsInput.value = '';
+                }
+                if (this.m_groupSecondaryDnsInput.value == 'undefined') {
+                    this.m_groupSecondaryDnsInput.value = '';
+                }
+                var savedFilteredAppsList = void 0;
+                if ('BlacklistedApplications' in this.m_appConfig) {
+                    this.m_filteredApplicationsAsBlacklistInput.checked = true;
+                    this.m_filteredApplicationsAsWhitelistInput.checked = false;
+                    savedFilteredAppsList = this.m_appConfig['BlacklistedApplications'];
+                }
+                else if ('WhitelistedApplications' in this.m_appConfig) {
+                    this.m_filteredApplicationsAsBlacklistInput.checked = false;
+                    this.m_filteredApplicationsAsWhitelistInput.checked = true;
+                    savedFilteredAppsList = this.m_appConfig['WhitelistedApplications'];
+                }
+                else {
+                    this.m_filteredApplicationsAsBlacklistInput.checked = true;
+                    this.m_filteredApplicationsAsWhitelistInput.checked = false;
+                }
+                if (savedFilteredAppsList != null) {
+                    savedFilteredAppsList.forEach(function (line) {
+                        line = line.trim();
+                        if (line.length > 0) {
+                            _this.m_filteredApplicationsList.value += line + "\n";
+                        }
+                    });
+                }
             }
             this.m_mainForm.onsubmit = (function (e) {
                 var validateOpts = _this.ValidationOptions;

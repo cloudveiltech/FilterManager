@@ -32,6 +32,7 @@ namespace Citadel
 
         private m_numActivations: number;
 
+        private m_customerId: number;
         private m_isActive: number;
 
         private m_dateRegistered: string;
@@ -68,7 +69,7 @@ namespace Citadel
 
         private m_groupIdInput: HTMLSelectElement;
 
-
+        private m_customerIdInput: HTMLInputElement;
 
         private m_roleInput: HTMLSelectElement;
 
@@ -78,6 +79,14 @@ namespace Citadel
 
         private m_cancelBtn: HTMLButtonElement;
 
+        /**
+         * User Activation DataTable.
+         * 
+         * @private
+         * @type {DataTables.DataTable}
+         * @memberOf Dashboard
+         */
+        private m_ActivationTables: DataTables.DataTable;
         /**
          * Gets the base API route from this record type.
          * 
@@ -160,11 +169,200 @@ namespace Citadel
             this.m_groupIdInput = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
             this.m_roleInput = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
             this.m_isActiveInput = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
-
+            this.m_customerIdInput = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
+            
             this.m_submitBtn = document.querySelector('#user_editor_submit') as HTMLButtonElement;
             this.m_cancelBtn = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
-
+            
+            
             this.InitButtonHandlers();
+        }
+
+        private InitUserActivationTables() {
+            let that = this;
+            let id = 0;
+            if (this.m_userId === undefined) {
+                id = 0;
+            } else {
+                id = this.m_userId;
+            }
+            let activationTableColumns: DataTables.ColumnSettings[] =
+                [                   
+                    {
+                        title: 'Action Id',
+                        data: 'id',                          
+                        visible: false
+                    },
+                    {
+                        title: 'Identifier',
+                        data: 'identifier',
+                        visible: true
+                    },
+                    {
+                        title: 'Device Id',
+                        data: 'device_id',
+                        visible: true
+                    },
+                    {
+                        title: 'IP Address',
+                        data: 'ip_address',
+                        visible: true
+                    },
+                    {
+                        title: 'Updated date',
+                        data: 'updated_at',
+                        visible: true
+                    },
+                    {
+                        "mRender": function ( data, type, row ) {
+                            return "<button id='delete_"+row.id+"' class='btn-delete'>Delete</button> <button id='block_"+row.id+"' class='btn-block'>Block</button>";
+                        }
+                    }
+                ];
+
+            // Set our table's loading AJAX settings to call the admin
+            // control API with the appropriate arguments.
+            let activationTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+                {
+                    url: "api/admin/user_activations/" + id,
+                    dataSrc: "",                        
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                    {
+                        if(jqXHR.status > 399 && jqXHR.status < 500)
+                        {
+                            // Almost certainly auth related error. Redirect to login
+                            // by signalling for logout.
+                            ////window.location.href = 'login.php?logout';
+                        }
+                    })
+                };
+
+            // Define user table settings, ENSURE TO INCLUDE AJAX SETTINGS!
+            let activationTableSettings: DataTables.Settings =
+                {
+                    autoWidth: true,
+                    stateSave: true,
+                    columns: activationTableColumns,
+                    ajax: activationTablesLoadFromAjaxSettings,
+                    
+                    // We grab the row callback with a fat arrow to keep the
+                    // class context. Otherwise, we'll lose it in the
+                    // callback, and "this" will be the datatable or a child
+                    // of it.
+                    rowCallback: ((row: Node, data: any[] | Object): void =>
+                    {
+                        //this.OnTableRowCreated(row, data);
+                    })
+                };
+
+                activationTableSettings['responsive'] = true;
+            this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
+            this.m_ActivationTables.on('click', 'button.btn-delete', function(e){
+                e.preventDefault();
+                if (confirm("Are you want to delete this token?"))
+                {
+                    let dataObject = {};
+                    let id_str = e.target.id;
+                    let id = id_str.split("_")[1];
+                    let ajaxSettings: JQueryAjaxSettings =
+                    {
+                        method: "POST",
+                        timeout: 60000,
+                        url:'api/admin/user_activations/delete/' +id,
+                        data: dataObject,
+                        // Callback if the call was a success.
+                        success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
+                        {                            
+                            that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
+                            that.m_ActivationTables.ajax.reload()
+                            return false;
+                        },
+    
+                        // Callback if the call was a failure.
+                        error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                        {
+                            console.log(jqXHR.responseText);
+                            console.log(errorThrown);
+                            console.log(textStatus);
+                            this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                            setTimeout(() => 
+                                {
+                                    this.m_progressWait.Hide();
+                                }, 5000);
+    
+                            if (jqXHR.status > 399 && jqXHR.status < 500)
+                            {
+                                // Almost certainly auth related error. Redirect to login
+                                // by signalling for logout.
+                                //window.location.href = 'login.php?logout';
+                            }
+                            else
+                            {
+                                
+                            }
+                        }
+                    }
+    
+                    // POST the auth request.
+                    $.post(ajaxSettings);
+                }
+            });
+            this.m_ActivationTables.on('click', 'button.btn-block', function(e){
+                e.preventDefault();
+                console.log("block-action");
+                if (confirm("Are you want to block this token?"))
+                {
+                    let dataObject = {};
+                    let id_str = e.target.id;
+                    let id = id_str.split("_")[1];
+                    let ajaxSettings: JQueryAjaxSettings =
+                    {
+                        method: "POST",
+                        timeout: 60000,
+                        url:'api/admin/user_activations/block/' +id,
+                        data: dataObject,
+                        // Callback if the call was a success.
+                        success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
+                        {                            
+                            that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
+                            that.m_ActivationTables.ajax.reload()
+                            return false;
+                        },
+    
+                        // Callback if the call was a failure.
+                        error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                        {
+                            console.log(jqXHR.responseText);
+                            console.log(errorThrown);
+                            console.log(textStatus);
+                            this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                            setTimeout(() => 
+                                {
+                                    this.m_progressWait.Hide();
+                                }, 5000);
+    
+                            if (jqXHR.status > 399 && jqXHR.status < 500)
+                            {
+                                // Almost certainly auth related error. Redirect to login
+                                // by signalling for logout.
+                                //window.location.href = 'login.php?logout';
+                            }
+                            else
+                            {
+                                
+                            }
+                        }
+                    }
+    
+                    // POST the auth request.
+                    $.post(ajaxSettings);
+                }
+            });
+            
         }
 
         private InitButtonHandlers(): void
@@ -174,7 +372,7 @@ namespace Citadel
                 this.StopEditing();
             });
         }
-
+         
         protected LoadFromObject(data: Object): void
         {
             this.m_userId = data['id'] as number;
@@ -182,6 +380,7 @@ namespace Citadel
             this.m_userEmail = data['email'] as string;
             this.m_userPassword = data['password'] as string;
             this.m_groupId = data['group_id'] as number;
+            this.m_customerId = data['customer_id'] as number;
             this.m_roleId = data['roles'][0]['id'];
             this.m_numActivations = data['activations_allowed'];
             this.m_isActive = data['isactive'];
@@ -209,7 +408,11 @@ namespace Citadel
                 let selectedRoleOption = this.m_roleInput.options[this.m_roleInput.selectedIndex] as HTMLOptionElement;
                 this.m_roleId = parseInt(selectedRoleOption.value);
             }
-
+            if(this.m_customerIdInput.value == "" ) {
+                this.m_customerId = null;
+            } else {
+                this.m_customerId = this.m_customerIdInput.valueAsNumber;
+            }
             this.m_numActivations = this.m_numActivationsInput.valueAsNumber;
             this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
         }
@@ -275,7 +478,11 @@ namespace Citadel
 
                         this.m_fullNameInput.value = this.m_userFullName;
                         this.m_emailInput.value = this.m_userEmail;
-
+                        if(this.m_customerId == null) {
+                            this.m_customerIdInput.value = "";
+                        } else {
+                            this.m_customerIdInput.value = this.m_customerId.toString();
+                        }
                         // When editing a user, we don't allow password editing. That needs to be done through
                         // the password reset system. The server will ignore the password field on updates
                         // made here, so we just fill them with nonsense to pass form validation.
@@ -348,6 +555,28 @@ namespace Citadel
                 return false;
             });
 
+            if(userData != null) {
+                this.m_userId = userData.id;
+                if ( $.fn.dataTable.isDataTable( '#user_activation_table' ) ) {
+                    this.m_ActivationTables = $('#user_activation_table').DataTable();
+                    this.m_ActivationTables.clear();
+                    this.m_ActivationTables.draw();
+                    this.m_ActivationTables.ajax.url( "api/admin/user_activations/" + userData.id);
+                    this.m_ActivationTables.ajax.reload();
+                }
+                else {
+                    this.InitUserActivationTables();
+                }
+            } else {
+                if ( $.fn.dataTable.isDataTable( '#user_activation_table' ) ) {
+                    this.m_ActivationTables = $('#user_activation_table').DataTable();
+                    this.m_ActivationTables.clear();
+                    this.m_ActivationTables.draw();
+                }
+                else {
+                    this.InitUserActivationTables();
+                }
+            }
             // Show the editor.
             $(this.m_editorOverlay).fadeIn(250);
         }
@@ -366,11 +595,12 @@ namespace Citadel
                     'email': this.m_userEmail,
                     'group_id': this.m_groupId,
                     'role_id': this.m_roleId,
+                    'customer_id': this.m_customerId,
                     'activations_allowed': this.m_numActivations,
                     'isactive': this.m_isActive,
                     'dt': this.m_dateRegistered
                 };
-
+            console.log("ddd", this.m_customerId);
             // Only add these params when the passwords are not
             // equal to our dummy insert text.
             if (this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x")))
