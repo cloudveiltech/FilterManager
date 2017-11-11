@@ -42,17 +42,22 @@ Route::group(['prefix' => 'admin', 'middleware' => ['web','role:admin']], functi
     Route::resource('deactivationreq', 'DeactivationRequestController');
     Route::resource('filterlists', 'FilterListController');
     Route::resource('blockreview', 'BlockActionReviewRequestController');
+
+    //Route::get('activations/{id}', 'UserController@activation_data');
+    Route::post('activations/delete/{id}', 'AppUserActivationController@destroy');
+    Route::post('activations/block/{id}', 'AppUserActivationController@block');
     Route::get('activations', 'AppUserActivationController@index');
+
     Route::resource('whitelists', 'GlobalWhitelistController');
     Route::resource('blacklists', 'GlobalBlacklistController');
     Route::resource('user_activations', 'AppUserActivationController');
 
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
+
+    // Apply app blacklist or whitelist to group.
     Route::post('/applytogroup', 'ApplyToGroupController@applyToGroup');
-    Route::get('/user_activations/{id}', 'UserController@activation_data');
-    Route::post('/user_activations/delete/{id}', 'AppUserActivationController@destroy');
-    Route::post('/user_activations/block/{id}', 'AppUserActivationController@block');
+
     // For handling deletion of all records in a namespace.
     Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');
 });
