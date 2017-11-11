@@ -23,11 +23,11 @@ class checkDBLive
                 return $next($request);
             } else {
                 Log::debug("Connection Failed1!");
-                return response('DB is down.', 500);    
+                return response('System Failure.', 500);    
             }
         } catch (\Exception $e) {
             Log::debug("Connection Failed!");
-            return response('DB is down.', 500);
+            return response('System Failure.', 500);
         }   
     }
 }
