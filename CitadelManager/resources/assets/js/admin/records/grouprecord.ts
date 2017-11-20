@@ -795,8 +795,13 @@ namespace Citadel
             {
                 allAssignedFilters = data['assigned_filter_ids'] as Object[];
                 console.log(allAssignedFilters);
+            } else 
+            {
+                if (cloneData != null && cloneData.hasOwnProperty('assigned_filter_ids'))
+                {
+                    allAssignedFilters = cloneData['assigned_filter_ids'] as Object[];
+                }
             }
-
             // Iterate over all available filter lists and put them in the
             // correct column for editing/assignment.
             allFilters.each((elm: any): void =>
