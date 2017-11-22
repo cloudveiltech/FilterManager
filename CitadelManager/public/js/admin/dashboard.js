@@ -909,8 +909,6 @@ var Citadel;
         Dashboard.prototype.OnCloneGroupClicked = function (e) {
             var _this = this;
             var selectedItem = this.m_tableGroups.row('.selected').data();
-            console.log(selectedItem);
-            console.log(this.m_tableFilterLists.data());
             if (selectedItem != null) {
                 var groupRecord_2 = new Citadel.GroupRecord();
                 groupRecord_2.StartEditing(this.m_tableFilterLists.data(), null, selectedItem);
