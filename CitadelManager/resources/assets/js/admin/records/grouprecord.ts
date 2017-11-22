@@ -848,6 +848,7 @@ namespace Citadel
                 draggableFilterOption.innerHTML = '<span style="float:left; margin-top: 4px; margin-left: 10px;" class="' + imageClassName + '"></span><div><span style="font-size: 14px;">' + elm['namespace'] + ' - ' + elm['category'] + '</span></div>';
 
                 // Lastly, find out which column this needs to be added to.
+                console.log('assignedFilters', allAssignedFilters);
                 let alreadyHasThisFilterList = false;
                 let existingItem: Object = null;
                 for (let j = 0; j < allAssignedFilters.length; ++j)
