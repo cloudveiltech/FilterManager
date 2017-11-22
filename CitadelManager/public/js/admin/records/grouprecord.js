@@ -295,6 +295,11 @@ var Citadel;
                 allAssignedFilters = data['assigned_filter_ids'];
                 console.log(allAssignedFilters);
             }
+            else {
+                if (cloneData != null && cloneData.hasOwnProperty('assigned_filter_ids')) {
+                    allAssignedFilters = cloneData['assigned_filter_ids'];
+                }
+            }
             allFilters.each(function (elm) {
                 var imageClassName = "";
                 var draggableFilterOption = document.createElement('div');

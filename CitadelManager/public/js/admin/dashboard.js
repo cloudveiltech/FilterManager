@@ -818,7 +818,6 @@ var Citadel;
                         var appUserActivationRecord_1 = new Citadel.AppUserActivationRecord();
                         appUserActivationRecord_1.ActionCompleteCallback = (function (action) {
                             appUserActivationRecord_1.StopEditing();
-                            console.log("Redraw");
                             _this.ForceTableRedraw(_this.m_tableAppUserActivationTable);
                         });
                         appUserActivationRecord_1.StartEditing(data);
@@ -910,6 +909,8 @@ var Citadel;
         Dashboard.prototype.OnCloneGroupClicked = function (e) {
             var _this = this;
             var selectedItem = this.m_tableGroups.row('.selected').data();
+            console.log(selectedItem);
+            console.log(this.m_tableFilterLists.data());
             if (selectedItem != null) {
                 var groupRecord_2 = new Citadel.GroupRecord();
                 groupRecord_2.StartEditing(this.m_tableFilterLists.data(), null, selectedItem);
