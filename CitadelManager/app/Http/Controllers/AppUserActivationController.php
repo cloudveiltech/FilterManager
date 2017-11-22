@@ -110,7 +110,10 @@ class AppUserActivationController extends Controller {
 
         return response('', 204);
     }
-
+    public function show($id)
+    {
+        return AppUserActivation::where('id', $id)->get();
+    }
     /**
      * Block the specified resource from storage.
      *
