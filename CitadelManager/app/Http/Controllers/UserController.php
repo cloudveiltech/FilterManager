@@ -35,7 +35,7 @@ class UserController extends Controller {
     public function index(Request $request) {
         $email = $request->input('email');
         $customer_id = $request->input('customer_id');
-        return User::with(['group', 'roles'])
+        return User::with(['group', 'roles','activations'])
             ->when($email, function($query) use ($email) {
                 return $query->where('email', $email);
             })
