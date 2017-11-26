@@ -80,7 +80,13 @@ class AppUserActivationController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function block($id) {
-        Log::debug($id);
+        $activation = AppUserActivation::where('id', $id)->first();
+        if (!is_null($activation)) {
+            $activation->delete();
+        }
+
+        //TODO NO, NO, NO, NO, NO.  We need to look up the token used by that activation and remove it.
+        /*Log::debug($id);
         $user = \Auth::user();
         $userTokens = $user->tokens;
         //Log::debug(count($userTokens));
@@ -94,7 +100,7 @@ class AppUserActivationController extends Controller {
         Log::debug($activation);
         if (!is_null($activation)) {
             $activation->delete();
-        }
+        }*/
         
         return response('', 204);
     }
@@ -114,24 +120,22 @@ class AppUserActivationController extends Controller {
     {
         return AppUserActivation::where('id', $id)->get();
     }
+
     /**
-     * Block the specified resource from storage.
+     * Get Activation Bypass Information.
      *
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function status($identify) {
-        // Get Specific Activation with $identify
-        $activations = AppUserActivation::where('identifier', $identify)->get();
-        if (count($activations) == 0) {
-            $arr = array(
-                "allowed" => false,
-                "message" => "Request denied. Unknown identify is used." 
-            );
-            return response()->json($arr);    
+    public function bypass(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'identifier' => 'required'
+        ]);
+        // Get Specific Activation with $identifier
+        $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
+        if (!$activation) {
+            return response('', 401);
         }
-        $activation = $activations->first();
-
 
         $bypass_permitted = 0;
         if(is_null($activation->bypass_quantity)) {
@@ -142,7 +146,7 @@ class AppUserActivationController extends Controller {
                 // group is not assigned to user.
                 $arr_output = array(
                     "allowed" => false,
-                    "message" => "Request denied. User should be set his own group." 
+                    "message" => "Request denied." 
                 );
                 return response()->json($arr_output);    
             } else {

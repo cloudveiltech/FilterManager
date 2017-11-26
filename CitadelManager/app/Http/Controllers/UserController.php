@@ -35,7 +35,7 @@ class UserController extends Controller {
     public function index(Request $request) {
         $email = $request->input('email');
         $customer_id = $request->input('customer_id');
-        return User::with(['group', 'roles'])
+        return User::with(['group', 'roles','activations'])
             ->when($email, function($query) use ($email) {
                 return $query->where('email', $email);
             })
@@ -246,6 +246,7 @@ class UserController extends Controller {
             if($activation) {
                 $activation->updated_at = Carbon::now()->timestamp;
                 $activation->ip_address = $request->ip();
+                $activation->token_id = $token->id;
                 $activation->save(); 
                 Log::debug('Activation Exists.  Saved');
             } else {
@@ -255,6 +256,7 @@ class UserController extends Controller {
                 $activation->device_id = $request->input('device_id');
                 $activation->identifier = $request->input('identifier');
                 $activation->ip_address = $request->ip();
+                $activation->token_id = $token->id;
                 $activation->save(); 
                 Log::debug('Created new activation.');
             }
