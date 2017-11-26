@@ -44,12 +44,14 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::resource('blockreview', 'BlockActionReviewRequestController');
 
     //Route::get('activations/{id}', 'UserController@activation_data');
-    Route::post('activations/delete/{id}', 'AppUserActivationController@destroy');
-    Route::post('activations/block/{id}', 'AppUserActivationController@block');
+    //Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
+    Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
     Route::get('activations', 'AppUserActivationController@index');
 
     Route::resource('whitelists', 'GlobalWhitelistController');
     Route::resource('blacklists', 'GlobalBlacklistController');
+
+    Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
     Route::resource('user_activations', 'AppUserActivationController');
 
     // For handling mass upload of filter lists.

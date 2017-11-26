@@ -34,8 +34,7 @@ class AppUserActivationController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request) {
-      //$thisUser = \Auth::user();
+    public function index(Request $request, $user_id = null) {
       if ($request->has('email')) {
           $user = User::where('email', $request->input('email'))->first();
           if ($user && $user->activations()) {
@@ -43,10 +42,9 @@ class AppUserActivationController extends Controller {
           } else {
               return response()->json([]);
           }
-
-          //$activations = AppUserActivation::where
-      } else if ($request->has('user_id')) {
-          $user = User::find($request->input('user_id'));
+      } else if ($request->has('user_id') || $user_id != null) {
+          $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
+          $user = User::find($user_id);
           if ($user && $user->activations()) {
               return $user->activations()->get();
           } else {
