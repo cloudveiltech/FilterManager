@@ -187,7 +187,7 @@
                         <!-- Default state of all delete buttons should be disabled. -->
                         <button id="btn_delete_activation" class="fluent-big-button" disabled>
                             <span class="mif-cancel"></span>
-                            <span class="label">Delete<br/>Activations</span>
+                            <span class="label">Retire<br/>Activations</span>
                         </button>
                         <div class="tab-content-segment">                                
                             <button id="btn_block_activations" class="fluent-big-button">

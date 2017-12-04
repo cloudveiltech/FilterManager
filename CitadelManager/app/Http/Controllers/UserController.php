@@ -238,17 +238,29 @@ class UserController extends Controller {
     public function checkUserData(Request $request) {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
+        $activation_failed = false;
         Log::debug($request);
         // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
         // If the identifier doesn't exist in the system we create a new activation.
         if ($request->has('identifier')) {
             $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
             if($activation) {
-                $activation->updated_at = Carbon::now()->timestamp;
-                $activation->ip_address = $request->ip();
-                $activation->token_id = $token->id;
-                $activation->save(); 
-                Log::debug('Activation Exists.  Saved');
+                
+                if ($thisUser->activations_used >= $activation->activations_allowd) {
+                    $activation_failed = true;
+                    Log::debug('Activation Failed.');
+                } else {
+                    $activation->updated_at = Carbon::now()->timestamp;
+                    $activation->ip_address = $request->ip();
+                    $activation->token_id = $token->id;
+                    $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';
+                    $activation->save();
+                    $thisUser->activations_used ++;
+                    $thisUser->updated_at = Carbon::now()->timestamp;
+                    $thisUser->save();
+                    Log::debug('Activation Exists.  Saved');
+                }
+                
             } else {
                 $activation = new AppUserActivation;
                 $activation->updated_at = Carbon::now()->timestamp;
@@ -257,18 +269,26 @@ class UserController extends Controller {
                 $activation->identifier = $request->input('identifier');
                 $activation->ip_address = $request->ip();
                 $activation->token_id = $token->id;
-                $activation->save(); 
+                $activation->bypass_used = 0;
+                $activation->save();
+                $thisUser->activations_used ++;
+                $thisUser->updated_at = Carbon::now()->timestamp;
+                $thisUser->save();
                 Log::debug('Created new activation.');
             }
         }
-        $userGroup = $thisUser->group()->first();
-        if (!is_null($userGroup)) {
-            if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
-                return $userGroup->data_sha1;
+        if (!$activation_failed) {
+            $userGroup = $thisUser->group()->first();
+            if (!is_null($userGroup)) {
+                if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
+                    return $userGroup->data_sha1;
+                }
             }
-        }
-
-        return response('', 204);
+    
+            return response('', 204);
+        } else {
+            return response('User activation failed, because user have already limited to allowed count', 401);
+        }        
     }
 
     /**
