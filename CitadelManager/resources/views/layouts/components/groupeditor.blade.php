@@ -9,16 +9,15 @@
 
         <h1  id="group_editing_title">Create New Group</h1>
         <br/>
-        <br/>
 
         <!-- Tabs for the various settings. -->
         <div class="tabcontrol" data-role="tabcontrol">
 
             <!-- Tab definitions. -->
             <ul class="tabs">
-                <li><a href="#settings_tab" id="a_ea30_0">Settings</a></li>
-                <li><a href="#rule_selection_tab" id="a_ea30_1">Rule Selection</a></li>
-                <li><a href="#app_filtering_tab" id="a_ea30_2">Application Filtering</a></li>
+                <li><a href="#settings_tab" >Settings</a></li>
+                <li><a href="#rule_selection_tab" >Rule Selection</a></li>
+                <li><a href="#app_filtering_tab" >Application Filtering</a></li>
             </ul>
 
             <!-- Tab containers. -->
@@ -26,97 +25,74 @@
 
                 <!-- Settings tab. -->
                 <div class="frame"  id="settings_tab">
-
-                    <br>
                     <form method="post" action="javascript:void(0)" id="editor_group_form" data-on-submit="submit">
 
                         <div class="grid">
-
-                            <br>
                             <h2><small>General</small></h2>
                             <hr class="thin" id="hr_ea30_0">
                             <br>
 
                             <div class="row cells3">
 
-                                <div class="cell" id="div_ea30_1">
+                                <div class="cell">
                                     <div class="input-control text" data-role="input">
                                         <label for="editor_group_input_groupname">Group Name</label>
-                                        <br>
-                                        <br>
                                         <input type="text" name="editor_group_input_groupname" id="editor_group_input_groupname">
                                         <button class="button helper-button clear" tabindex="-1" type="button"><span class="mif-cross"></span></button>
                                     </div>
                                 </div>
 
-                                <div class="cell" id="div_ea30_2">
-                                    <label for="editor_cfg_update_frequency_input">Client Update Frequency (Minutes)</label>
-                                    <br>
-                                    <br>
-                                    <label class="input-control" id="label_ea30_0">
-                                        <input type="number" id="editor_cfg_update_frequency_input" name="editor_cfg_update_frequency_input">                                    
-                                    </label>
+                                <div class="cell">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_cfg_update_frequency_input" title="Client Update Frequency (Minutes)">Client Update Frequency</label>
+                                        <input type="number" id="editor_cfg_update_frequency_input" name="editor_cfg_update_frequency_input">
+                                    </div>
                                 </div>
 
-                                <div class="cell" id="div_ea30_3">
-                                    <label for="editor_group_input_isactive">Enabled:</label>
-                                    <br>
-                                    <br>
-                                    <label class="switch-original" id="label_ea30_1">
+                                <div class="cell check-label" >
+                                    <label for="editor_group_input_isactive">Enabled:</label><br/><br/>
+                                    <label class="switch-original">
                                         <input type="checkbox" id="editor_group_input_isactive" name="editor_group_input_isactive">
                                         <span class="check"></span>
                                     </label>
                                 </div>
-
                             </div>
 
                             <div class="row cells3">
-                                <div class="cell" id="div_ea30_4">
+                                <div class="cell">
                                     <div class="input-control text" data-role="input">
-                                            <label for="editor_cfg_primary_dns_input">Primary DNS</label>
-                                            <br>
-                                            <br>
-                                            <input type="text" name="editor_cfg_primary_dns_input" id="editor_cfg_primary_dns_input">
-                                            <button class="button helper-button clear" tabindex="-1" type="button"><span class="mif-cross"></span></button>
-                                        </div>
+                                        <label for="editor_cfg_primary_dns_input">Primary DNS</label>
+                                        <input type="text" name="editor_cfg_primary_dns_input" id="editor_cfg_primary_dns_input">
+                                        <button class="button helper-button clear" tabindex="-1" type="button"><span class="mif-cross"></span></button>
+                                    </div>
                                 </div>
-                                <div class="cell" id="div_ea30_5">
+                                <div class="cell">
                                     <div class="input-control text" data-role="input">
-                                            <label for="editor_cfg_secondary_dns_input">Secondary DNS</label>
-                                            <br>
-                                            <br>
-                                            <input type="text" name="editor_cfg_secondary_dns_input" id="editor_cfg_secondary_dns_input">
-                                            <button class="button helper-button clear" tabindex="-1" type="button"><span class="mif-cross"></span></button>
-                                        </div>
+                                        <label for="editor_cfg_secondary_dns_input">Secondary DNS</label>
+                                        <input type="text" name="editor_cfg_secondary_dns_input" id="editor_cfg_secondary_dns_input">
+                                        <button class="button helper-button clear" tabindex="-1" type="button"><span class="mif-cross"></span></button>
+                                    </div>
                                 </div>
 
-                                <div class="cell" id="div_ea30_6">
-                                    <label for="editor_cfg_nlp_threshold_input">NLP Threshold (Percent, 0.0 to 1.0)</label>
-                                    <br>
-                                    <br>
-                                    <label class="input-control" id="label_ea30_2">
+                                <div class="cell">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_cfg_nlp_threshold_input" title = "NLP Threshold (Percent, 0.0 to 1.0)">NLP Threshold (Percent...</label>
                                         <input type="number" id="editor_cfg_nlp_threshold_input" name="editor_cfg_nlp_threshold_input" min="0" max="1" value="0">                                    
-                                    </label>
+                                    </div>
                                 </div>
-                            
                             </div>
                             
                             <div class="row cells3">
-                                
-                                <div class="cell" id="div_ea30_6">
-                                    <label for="editor_cfg_trigger_max_size_input">Text Trigger Scan Window Size (-1 for unlimited)</label>
-                                    <br>
-                                    <br>
-                                    <label class="input-control" id="label_ea30_2">
+                                <div class="cell">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_cfg_trigger_max_size_input" title="Text Trigger Scan Window Size (-1 for unlimited)">Text Trigger Scan Win...</label>
                                         <input type="number" id="editor_cfg_trigger_max_size_input" name="editor_cfg_trigger_max_size_input" min="-1" value="-1">                                    
-                                    </label>
+                                    </div>
                                 </div>
                                 
-                                <div class="cell" id="div_ea30_6">
-                                    <label for="editor_cfg_update_channel_input">Update Channel</label>
-                                    <br>
-                                    <br>
-                                    <div class="input-control select" data-role="input">
+                                <div class="cell">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_cfg_update_channel_input">Update Channel</label>                                    
                                         <select name="editor_cfg_update_channel_input" id="editor_cfg_update_channel_input" >
                                             <option value="Stable">Stable</option>
                                             <option value="Alpha">Alpha</option>
@@ -124,12 +100,10 @@
                                         </select>                        
                                     </div>
                                 </div>
-                                
                             </div>
                         </div>
                     </form>
 
-                    <br>
                     <h2><small>Anti-Tamper</small></h2>
                     <hr class="thin" id="hr_ea30_1">
                     <br>
@@ -137,92 +111,71 @@
                     <div class="grid">
                         <div class="row cells3">
 
-                            <div class="cell" id="div_ea30_7">
-                                <label for="editor_cfg_no_terminate_input">Cannot Terminate</label>
-                                <br>
-                                <br>
-                                <label class="switch-original" id="label_ea30_3">
+                            <div class="cell check-label">
+                                <label for="editor_cfg_no_terminate_input">Cannot Terminate</label><br /><br/>
+                                <label class="switch-original">
                                     <input type="checkbox" id="editor_cfg_no_terminate_input" name="editor_cfg_no_terminate_input">
                                     <span class="check"></span>
                                 </label>
+                                <br />
                             </div>
 
-                            <div class="cell" id="div_ea30_8">
-                                <label for="editor_cfg_disable_internet_input">Disable Internet</label>
-                                <br>
-                                <br>
-                                <label class="switch-original" id="label_ea30_4">
+                            <div class="cell check-label">
+                                <label for="editor_cfg_disable_internet_input">Disable Internet</label><br /><br/>
+                                <label class="switch-original">
                                     <input type="checkbox" id="editor_cfg_disable_internet_input" name="editor_cfg_disable_internet_input">
                                     <span class="check"></span>
                                 </label>
+                                <br />
                             </div>
 
-                            <div class="cell" id="div_ea30_9">
-                                <label for="editor_cfg_use_threshold_input">Use Threshold</label>
-                                <br>
-                                <br>
-                                <label class="switch-original" id="label_ea30_5">
+                            <div class="cell check-label">
+                                <label for="editor_cfg_use_threshold_input">Use Threshold</label><br /><br/>
+                                <label class="switch-original">
                                     <input type="checkbox" id="editor_cfg_use_threshold_input" name="editor_cfg_use_threshold_input">
                                     <span class="check"></span>
                                 </label>
+                                <br />
                             </div>
-
                         </div>                    
 
                         <div class="row cells3">
-
-                            <div class="cell" id="div_ea30_10">
-                                <label for="editor_cfg_threshold_count_input">Threshold Trigger Count</label>
-                                <br>
-                                <br>
-                                <label class="input-control" id="label_ea30_6">
-                                    <input type="number" id="editor_cfg_threshold_count_input" name="editor_cfg_threshold_count_input">                                    
-                                </label>
+                            <div class="cell">
+                                <div class="input-control text" data-role="input">
+                                    <label for="editor_cfg_threshold_count_input">Threshold Trigger Count</label>
+                                    <input type="number" id="editor_cfg_threshold_count_input" name="editor_cfg_threshold_count_input">
+                                </div>
                             </div>
-                            
-                            <div class="cell" id="div_ea30_11">
-                                <label for="editor_cfg_threshold_period_input">Threshold Trigger Period (Minutes)</label>
-                                <br>
-                                <br>
-                                <label class="input-control" id="label_ea30_7">
-                                    <input type="number" id="editor_cfg_threshold_period_input" name="editor_cfg_threshold_period_input">                                    
-                                </label>
+                            <div class="cell">
+                                <div class="input-control text" data-role="input">
+                                    <label for="editor_cfg_threshold_period_input" title="Threshold Trigger Period (Minutes)">Threshold Trigger Period</label>
+                                    <input type="number" id="editor_cfg_threshold_period_input" name="editor_cfg_threshold_period_input">
+                                </div>
                             </div>
-                            
-                            <div class="cell" id="div_ea30_12">
-                                <label for="editor_cfg_threshold_timeout_input">Threshold Timeout Period (Minutes)</label>
-                                <br>
-                                <br>
-                                <label class="input-control" id="label_ea30_8">
+                            <div class="cell">
+                                <div class="input-control text" data-role="input">
+                                    <label for="editor_cfg_threshold_timeout_input" title="Threshold Timeout Period (Minutes)">Threshold Timeout Period</label>
                                     <input type="number" id="editor_cfg_threshold_timeout_input" name="editor_cfg_threshold_timeout_input">                                    
-                                </label>
+                                </div>
                             </div>
-                            
                         </div>
                         
                         <div class="row cells3">
-                            <div class="cell" id="div_ea30_13">
-                                <label for="editor_cfg_bypasses_allowed_input">Bypasses Allowed Per Day</label>
-                                <br>
-                                <br>
-                                <label class="input-control" id="label_ea30_9">
+                            <div class="cell">
+                                <div class="input-control text" data-role="input">
+                                    <label for="editor_cfg_bypasses_allowed_input">Bypasses Allowed Per Day</label>
                                     <input type="number" id="editor_cfg_bypasses_allowed_input" name="editor_cfg_threshold_count_input">                                    
-                                </label>
+                                </div>
                             </div>
                             
-                            <div class="cell" id="div_ea30_14">
-                                <label for="editor_cfg_bypass_duration_input">Bypass Period (Minutes)</label>
-                                <br>
-                                <br>
-                                <label class="input-control" id="label_ea30_10">
+                            <div class="cell">
+                                <div class="input-control text" data-role="input">
+                                    <label for="editor_cfg_bypass_duration_input" title="Bypass Period (Minutes)">Bypass Period</label>
                                     <input type="number" id="editor_cfg_bypass_duration_input" name="editor_cfg_threshold_count_input">                                    
-                                </label>
+                                </div>
                             </div>
-
-                        </div>                        
-                        
+                        </div>
                     </div>
-
                 </div>
 
                 <!-- Filter rules selection tab. -->
