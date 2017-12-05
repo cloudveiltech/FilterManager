@@ -187,8 +187,6 @@ var Citadel;
             this.m_isActive = data['isactive'];
             this.m_assignedFilterIds = data['assigned_filter_ids'];
             this.m_appConfig = JSON.parse(data['app_cfg']);
-            console.log('json');
-            console.log(JSON.parse(data['app_cfg']));
         };
         GroupRecord.prototype.LoadFromForm = function () {
             this.m_groupName = this.m_groupNameInput.value;
@@ -293,7 +291,6 @@ var Citadel;
             var allAssignedFilters = new Array();
             if (data != null && data.hasOwnProperty('assigned_filter_ids')) {
                 allAssignedFilters = data['assigned_filter_ids'];
-                console.log(allAssignedFilters);
             }
             else {
                 if (cloneData != null && cloneData.hasOwnProperty('assigned_filter_ids')) {

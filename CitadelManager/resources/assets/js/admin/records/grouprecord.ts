@@ -630,8 +630,6 @@ namespace Citadel
             this.m_isActive = data['isactive'];
             this.m_assignedFilterIds = data['assigned_filter_ids'] as Object[];
             this.m_appConfig = JSON.parse(data['app_cfg']);
-            console.log('json');
-            console.log(JSON.parse(data['app_cfg']));
         }
 
         protected LoadFromForm(): void
@@ -794,7 +792,6 @@ namespace Citadel
             if (data != null && data.hasOwnProperty('assigned_filter_ids'))
             {
                 allAssignedFilters = data['assigned_filter_ids'] as Object[];
-                console.log(allAssignedFilters);
             } else 
             {
                 if (cloneData != null && cloneData.hasOwnProperty('assigned_filter_ids'))
@@ -848,7 +845,6 @@ namespace Citadel
                 draggableFilterOption.innerHTML = '<span style="float:left; margin-top: 4px; margin-left: 10px;" class="' + imageClassName + '"></span><div><span style="font-size: 14px;">' + elm['namespace'] + ' - ' + elm['category'] + '</span></div>';
 
                 // Lastly, find out which column this needs to be added to.
-                console.log('assignedFilters', allAssignedFilters);
                 let alreadyHasThisFilterList = false;
                 let existingItem: Object = null;
                 for (let j = 0; j < allAssignedFilters.length; ++j)

@@ -12,9 +12,7 @@
             <hr class="thin">
             <br/>
             <form method="post" action="javascript:void(0)" id="editor_user_form" data-on-submit="submit">
-
                 <div class="row cell-auto-size">
-
                     <div class="cell cell-auto-size">
                         <div class="input-control text" data-role="input">
                             <label for="editor_user_input_user_full_name">User Full Name:</label>
@@ -68,8 +66,6 @@
                             <button class="button helper-button clear" type="button"><span class="mif-cross"></span></button>
                         </div>
                     </div>
-
-                    
                 </div>
                 
                 <br/>
