@@ -211,7 +211,7 @@ class UserController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function destroy($id) {
-
+        
         $user = User::where('id', $id)->first();
         if (!is_null($user)) {
 
