@@ -9,6 +9,10 @@ return [
     /* How long (in days) does a license remain in use after the last use? */
     'license_expiration' => env('APP_LICENSE_EXPIRATION', '90'),
 
+    /* This is used to give users grace with licenses.  If you're using this you'll want to periodically
+     * audit your license usage to make sure it's not being abused. */
+    'license_overage_allowed' => env('APP_LICENSE_OVERAGE_ALLOWED', '1'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name

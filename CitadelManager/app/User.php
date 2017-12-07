@@ -143,7 +143,7 @@ class User extends Authenticatable {
             // Only deny this user if their activation is brand new
             // and it pushed the number of activations over the allowed
             // maximum.
-            if($numActivations > $this->activations_allowed && $activation->wasRecentlyCreated){
+            if($numActivations > $this->activations_allowed + config('app.license_overage_allowed') && $activation->wasRecentlyCreated){
                 $activation->delete();
                 return UserActivationAttemptResult::ActivationLimitExceeded;
             }
