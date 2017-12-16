@@ -96,7 +96,11 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live','api','auth:api']], f
 });
 
 /* Administration side of v2 API. This version relies upon basic authentication to retrieve a token and then 
- * token authentication via headers for other requests.
+ * token authentication via headers for other requests.  
+ * 
+ * retrievetoken is used for installs where the client side has lost the token due to uninstalls but the user 
+ * or activation hasn't been removed from the web service.  In that case we accept the system "identifier" and 
+ * generate a new token.  We return that token and email address so the app can login again.
  */
 Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live','api','auth:api','role:admin']], function() {
     // For handling mass upload of filter lists.
@@ -115,7 +119,10 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live','api','auth:api
     Route::get('/activations', 'AppUserActivationController@index');
 });
 
+/* Token Management */
 Route::middleware(['auth.basic.once','role:admin|user'])->post('/v2/user/gettoken', 'UserController@getUserToken'); 
+Route::post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
+
 
 /**
  * Management section of the API.  This is used for working with users from external sources and relies upon basic auth.

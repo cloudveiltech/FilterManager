@@ -356,6 +356,43 @@ class UserController extends Controller {
     }
 
     /**
+     * Handles when the application has lost it's credentials.  If the activation exists
+     * it returns a token and the users email address.
+     * @param Request $request
+     */
+    public function retrieveUserToken(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'identifier' => 'required',
+            'device_id' => 'required'
+        ]);
+
+        if (!$validator->fails()) {
+            $activation = AppUserActivation::where('identifier', $request->input('identifier'))
+                ->where('device_id', $request->input('device_id'))
+                ->first();
+            if ($activation) {
+                // Lookup the user this activation belongs to.
+                $user = User::where('id', $activation->user_id)->first();
+                if ($user->isactive) {
+                    // Creating a token without scopes...
+                    $token = $user->createToken('Token Name')->accessToken; 
+                    return response([
+                        'authToken' => $token,
+                        'userEmail' => $user->email
+                    ], 200);
+                } else {
+                    // User is not active.
+                    return response('User is not active', 401);
+                }
+            } else {
+                return response('Activation does not exist.', 401);
+            }
+        }        
+        return response($validator->errors(), 401);
+
+    }
+
+    /**
      * Handles when user logs in from the application.  Returns their access token.
      * @param Request $request
      */
@@ -433,6 +470,6 @@ class UserController extends Controller {
     }
 
     public function activation_data(Request $request, $id) {
-        return AppUserActivation::where('user_id', $id)->get();;
+        return AppUserActivation::where('user_id', $id)->get();
     }
 }
