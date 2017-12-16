@@ -47,7 +47,7 @@ class SendDeactivationRequestNotification
             'form_params' => [
                 'email' => $user->email,
                 'message' => $contents->render(),
-                'subject' => 'Citadel Deactivation Request Received',
+                'subject' => 'CloudVeil For Windows Deactivation Request Received',
                 'alert' => ''
             ]
         ]);
