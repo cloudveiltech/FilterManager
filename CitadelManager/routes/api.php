@@ -35,18 +35,31 @@ use Illuminate\Http\Request;
 // For example, there should be group admins, where a user is given
 // access/responsibility to manage their group. This would need to
 // be factored into some design changes here.
-Route::group(['prefix' => 'admin', 'middleware' => ['web','role:admin']], function() {
+Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin']], function() {
 
     Route::resource('users', 'UserController');
     Route::resource('groups', 'GroupController');
     Route::resource('deactivationreq', 'DeactivationRequestController');
     Route::resource('filterlists', 'FilterListController');
     Route::resource('blockreview', 'BlockActionReviewRequestController');
+
+    //Route::get('activations/{id}', 'UserController@activation_data');
+    //Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
+    Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
     Route::get('activations', 'AppUserActivationController@index');
-    
+
+    Route::resource('whitelists', 'GlobalWhitelistController');
+    Route::resource('blacklists', 'GlobalBlacklistController');
+
+    Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
+    Route::resource('user_activations', 'AppUserActivationController');
+
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
-    
+
+    // Apply app blacklist or whitelist to group.
+    Route::post('/applytogroup', 'ApplyToGroupController@applyToGroup');
+
     // For handling deletion of all records in a namespace.
     Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');
 });
@@ -54,7 +67,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['web','role:admin']], functi
 // Users should only be able to pull list updates. The routes available to them
 // are routes to get the sum of the current user data server side, and to request
 // a download of their user data.
-Route::group(['prefix' => 'user', 'middleware' => ['web','role:admin|user']], function() {
+Route::group(['prefix' => 'user', 'middleware' => ['db.live','web','role:admin|user']], function() {
 
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');    
     Route::post('/me/data/check', 'UserController@checkUserData');
@@ -67,7 +80,7 @@ Route::group(['prefix' => 'user', 'middleware' => ['web','role:admin|user']], fu
  * Version 2 of the API.  This version relies upon basic authentication to retrieve a token and then 
  * token authentication via headers for other requests.
  */
-Route::group(['prefix' => 'v2', 'middleware' => ['api','auth:api']], function() {
+Route::group(['prefix' => 'v2', 'middleware' => ['db.live','api','auth:api']], function() {
     
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');    
     Route::post('/me/data/check', 'UserController@checkUserData');
@@ -75,6 +88,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['api','auth:api']], function() 
     Route::post('/me/data/getconfigonly', 'UserController@getUserDataConfigOnly');
     Route::post('/me/terms', 'UserController@getUserTerms');
     Route::post('/me/revoketoken', 'UserController@revokeUserToken');
+    Route::post('/me/bypass', 'AppUserActivationController@bypass');
     
     Route::get('/me/user', function (Request $request) {
         return $request->user();
@@ -82,9 +96,13 @@ Route::group(['prefix' => 'v2', 'middleware' => ['api','auth:api']], function() 
 });
 
 /* Administration side of v2 API. This version relies upon basic authentication to retrieve a token and then 
- * token authentication via headers for other requests.
+ * token authentication via headers for other requests.  
+ * 
+ * retrievetoken is used for installs where the client side has lost the token due to uninstalls but the user 
+ * or activation hasn't been removed from the web service.  In that case we accept the system "identifier" and 
+ * generate a new token.  We return that token and email address so the app can login again.
  */
-Route::group(['prefix' => 'v2/admin', 'middleware' => ['api','auth:api','role:admin']], function() {
+Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live','api','auth:api','role:admin']], function() {
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
 
@@ -98,17 +116,19 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['api','auth:api','role:ad
         return $request->user();
     });
     
-    /* Manage Activations */
     Route::get('/activations', 'AppUserActivationController@index');
 });
 
+/* Token Management */
 Route::middleware(['auth.basic.once','role:admin|user'])->post('/v2/user/gettoken', 'UserController@getUserToken'); 
+Route::post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
+
 
 /**
  * Management section of the API.  This is used for working with users from external sources and relies upon basic auth.
  * At some point this will be revoked and rolled into v2 of the api.
  */
-Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:admin']], function() {
+Route::group(['prefix' => 'manage', 'middleware' => ['db.live','auth.basic.once','role:admin']], function() {
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
 
@@ -121,10 +141,6 @@ Route::group(['prefix' => 'manage', 'middleware' => ['auth.basic.once','role:adm
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-
-     /* Manage Activations */
-    Route::get('/activations', 'AppUserActivationController@index');
-
     
 });
 

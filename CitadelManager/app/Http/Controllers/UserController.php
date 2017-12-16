@@ -34,9 +34,13 @@ class UserController extends Controller {
      */
     public function index(Request $request) {
         $email = $request->input('email');
-        return User::with(['group', 'roles'])
+        $customer_id = $request->input('customer_id');
+        return User::with(['group', 'roles','activations'])
             ->when($email, function($query) use ($email) {
                 return $query->where('email', $email);
+            })
+            ->when($customer_id, function($query) use ($customer_id) {
+                return $query->where('customer_id', $customer_id);
             })
             ->get();
     }
@@ -66,7 +70,7 @@ class UserController extends Controller {
             'group_id' => 'required|exists:groups,id'
         ]);
 
-        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id','activations_allowed','isactive']);
+        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id','customer_id','activations_allowed','isactive']);
         $input['password'] = Hash::make($input['password']);
         
         $user = User::create($input);   
@@ -111,6 +115,34 @@ class UserController extends Controller {
         // The javascript side/admin UI will not send
         // password or password_verify unless they are
         // intentionally trying to change a user's password.
+
+        //Checking customer_id 
+        $input_chk_customer_id = $request->only(['customer_id', 'email', 'name']);
+        $customer_id = $input_chk_customer_id['customer_id'];
+        
+        if($customer_id != null) {
+            $customer_list = User::where('id', '!=', $id)->where('customer_id', $customer_id)->get();
+            $customer_count = count($customer_list);
+            if($customer_count > 0) {
+                return response('customer_id is duplicated. please choose another customer_id', 403);
+            }
+        }
+
+        // Checking email address
+        $email = $input_chk_customer_id['email'];
+        $email_list = User::where('id', '!=', $id)->where('email', $email)->get();
+        $email_count = count($email_list);
+        if($email_count > 0) {
+            return response('email address exists, please choose another email_address', 403);
+        }
+
+        // Checking user id
+        $name = $input_chk_customer_id['name'];
+        $email_list = User::where('id', '!=', $id)->where('name', $name)->get();
+        $email_count = count($email_list);
+        if($email_count > 0) {
+            return response('user_id already exists, please choose another user_id', 403);
+        }
 
         $inclPassword = false;
 
@@ -179,7 +211,7 @@ class UserController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function destroy($id) {
-
+        
         $user = User::where('id', $id)->first();
         if (!is_null($user)) {
 
@@ -206,6 +238,7 @@ class UserController extends Controller {
     public function checkUserData(Request $request) {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
+        Log::debug($thisUser->token());
         Log::debug($request);
         // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
         // If the identifier doesn't exist in the system we create a new activation.
@@ -213,17 +246,26 @@ class UserController extends Controller {
             $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
             if($activation) {
                 $activation->updated_at = Carbon::now()->timestamp;
+                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';
                 $activation->ip_address = $request->ip();
-                $activation->save(); 
-                Log::debug('Activation Exists.  Saved');
+                if ($token) {
+                    $activation->token_id = $token->id;
+                }
+                $activation->save();
+                Log::debug('Activation Exists.  Saved'); 
             } else {
                 $activation = new AppUserActivation;
                 $activation->updated_at = Carbon::now()->timestamp;
+                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';                
                 $activation->user_id = $thisUser->id;
                 $activation->device_id = $request->input('device_id');
                 $activation->identifier = $request->input('identifier');
                 $activation->ip_address = $request->ip();
-                $activation->save(); 
+                if ($token) {
+                    $activation->token_id = $token->id;
+                }
+                $activation->bypass_used = 0;
+                $activation->save();
                 Log::debug('Created new activation.');
             }
         }
@@ -233,7 +275,6 @@ class UserController extends Controller {
                 return $userGroup->data_sha1;
             }
         }
-
         return response('', 204);
     }
 
@@ -315,6 +356,43 @@ class UserController extends Controller {
     }
 
     /**
+     * Handles when the application has lost it's credentials.  If the activation exists
+     * it returns a token and the users email address.
+     * @param Request $request
+     */
+    public function retrieveUserToken(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'identifier' => 'required',
+            'device_id' => 'required'
+        ]);
+
+        if (!$validator->fails()) {
+            $activation = AppUserActivation::where('identifier', $request->input('identifier'))
+                ->where('device_id', $request->input('device_id'))
+                ->first();
+            if ($activation) {
+                // Lookup the user this activation belongs to.
+                $user = User::where('id', $activation->user_id)->first();
+                if ($user->isactive) {
+                    // Creating a token without scopes...
+                    $token = $user->createToken('Token Name')->accessToken; 
+                    return response([
+                        'authToken' => $token,
+                        'userEmail' => $user->email
+                    ], 200);
+                } else {
+                    // User is not active.
+                    return response('User is not active', 401);
+                }
+            } else {
+                return response('Activation does not exist.', 401);
+            }
+        }        
+        return response($validator->errors(), 401);
+
+    }
+
+    /**
      * Handles when user logs in from the application.  Returns their access token.
      * @param Request $request
      */
@@ -326,7 +404,9 @@ class UserController extends Controller {
         switch ($userActivateResult) {
             case UserActivationAttemptResult::Success: {
                     // Creating a token without scopes...
-                    return $user->createToken('Token Name')->accessToken;
+                    $token = $user->createToken('Token Name')->accessToken; 
+                    $this->checkUserData($request); 
+                    return $token; 
                 }
                 break;
 
@@ -389,4 +469,7 @@ class UserController extends Controller {
         return "OK";
     }
 
+    public function activation_data(Request $request, $id) {
+        return AppUserActivation::where('user_id', $id)->get();
+    }
 }

@@ -1,0 +1,15 @@
+{
+
+  "/js/progresswait.js": "/js/progresswait.js",
+  "/js/admin/records/whitelistrecord.js": "/js/admin/records/whitelistrecord.js",
+  "/js/admin/records/userrecord.js": "/js/admin/records/userrecord.js",
+  "/js/admin/records/grouprecord.js": "/js/admin/records/grouprecord.js",
+  "/js/admin/records/filterlistrecord.js": "/js/admin/records/filterlistrecord.js",
+  "/js/admin/records/deactivationrequestrecord.js": "/js/admin/records/deactivationrequestrecord.js",
+  "/js/admin/records/blacklistrecord.js": "/js/admin/records/blacklistrecord.js",
+  "/js/admin/records/baserecord.js": "/js/admin/records/baserecord.js",
+  "/js/admin/records/appuseractivationrecord.js": "/js/admin/records/appuseractivationrecord.js",
+  "/js/admin/listuploadoverlay.js": "/js/admin/listuploadoverlay.js",
+  "/js/admin/dashboard.js": "/js/admin/dashboard.js",
+  "/js/admin/applytogroupoverlay.js": "/js/admin/applytogroupoverlay.js"
+}

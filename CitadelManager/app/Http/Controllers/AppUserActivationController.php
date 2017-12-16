@@ -13,6 +13,8 @@ use Validator;
 use App\User;
 use App\Group;
 use App\Role;
+use App\Events\ActivationBypassDenied;
+use App\Events\ActivationBypassGranted;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -32,26 +34,158 @@ class AppUserActivationController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request) {
-      //$thisUser = \Auth::user();
+    public function index(Request $request, $user_id = null) {
       if ($request->has('email')) {
-        $user = User::where('email', $request->input('email'))->first();
-        if ($user && $user->activations()) {
-          return $user->activations()->get();
-        } else {
-		return response()->json([]);
-	}
-        //$activations = AppUserActivation::where
-      } else if ($request->has('user_id')) {
-        $user = User::find($request->input('user_id'));
-        if ($user && $user->activations()) {
-          return $user->activations()->get();
-	} else {
-		return response()->json([]);
-        } 
+          $user = User::where('email', $request->input('email'))->first();
+          if ($user && $user->activations()) {
+              return $user->activations()->get();
+          } else {
+              return response()->json([]);
+          }
+      } else if ($request->has('user_id') || $user_id != null) {
+          $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
+          $user = User::find($user_id);
+          if ($user && $user->activations()) {
+              return $user->activations()->get();
+          } else {
+              return response()->json([]);
+          } 
       } else {
-        return AppUserActivation::get();
+          return AppUserActivation::with('user')->get();
       }
     }
 
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id) {
+        
+        $activation = AppUserActivation::where('id', $id)->first();
+        if (!is_null($activation)) {
+            $activation->delete();
+        }
+
+        return response('', 204);
+    }
+
+    /**
+     * Block the specified resource from storage.
+     *
+     * @param  int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function block($id) {
+        $activation = AppUserActivation::where('id', $id)->first();
+        if (!is_null($activation)) {
+            // If we're blocking the activation we go in and revoke the token for that installation.
+            if (!is_null($activation->token_id)) {
+                $token = \App\OauthAccessToken::where('id', $activation->token_id)->first();
+                if (!is_null($token)) {
+                    $token->revoked = 1;
+                    $token->save();
+                }
+            }
+            $activation->delete();
+        }
+        
+        return response('', 204);
+    }
+
+    public function update(Request $request, $id) {
+        
+        // The javascript side/admin UI will not send
+        // password or password_verify unless they are
+        // intentionally trying to change a user's password.
+    
+        $input = $request->only(['bypass_quantity', 'bypass_period']);
+        AppUserActivation::where('id', $id)->update($input);
+
+        return response('', 204);
+    }
+    public function show($id)
+    {
+        return AppUserActivation::where('id', $id)->get();
+    }
+
+    /**
+     * Get Activation Bypass Information.
+     *
+     * @param  int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function bypass(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'identifier' => 'required'
+        ]);
+        // Get Specific Activation with $identifier
+        $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
+        if (!$activation) {
+            return response('', 401);
+        }
+
+        $bypass_permitted = 0;
+        if(is_null($activation->bypass_quantity)) {
+            $user_id = $activation->user_id;
+            $user = User::where('id', $user_id)->first();
+
+            if($user->group_id == -1) {
+                // group is not assigned to user.
+                $arr_output = array(
+                    "allowed" => false,
+                    "message" => "Request denied." 
+                );
+                return response()->json($arr_output);    
+            } else {
+                // group is assigned
+                $group = $user->group()->first();
+                $app_cfg_str = $group->app_cfg;
+                $app_cfg = json_decode($app_cfg_str);
+    
+                if (is_null($app_cfg->BypassesPermitted)) {
+                    $bypass_permitted = 0;
+                } else {
+                    $bypass_permitted = $app_cfg->BypassesPermitted;
+                }
+            }
+
+        } else {
+            $bypass_permitted = $activation->bypass_quantity;
+        }
+
+        // Check current status
+        $bypass_used = $activation->bypass_used;
+        if ( $bypass_permitted > $bypass_used) {
+            // status : granted
+            $arr_output = array(
+                "allowed" => true,
+                "message" => "Request granted. Used ". $bypass_used ." out of ". $bypass_permitted ."." 
+            );
+
+            // Trigger of bypass_granted
+            try {
+                event(new ActivationBypassGranted($activation));
+            } catch(\Exception $e){
+                Log::error($e);
+            }
+            
+            return response()->json($arr_output);
+        } else {
+            // status: denied
+            $arr_output = array(
+                "allowed" => false,
+                "message" => "Request denied. You have already used  ". $bypass_used ." out of ". $bypass_permitted ."." 
+            );
+            // Trigger of bypass_denied
+            try {
+                event(new ActivationBypassDenied($activation));
+            } catch(\Exception $e){
+                Log::error($e);
+            }
+            
+            return response()->json($arr_output);
+        }
+    }
 }
