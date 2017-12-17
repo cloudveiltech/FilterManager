@@ -141,6 +141,10 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live','auth.basic.once'
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    /* Manage Activations */
+    Route::get('/activations', 'AppUserActivationController@index');
+    Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
     
 });
 
