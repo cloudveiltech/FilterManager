@@ -211,7 +211,7 @@ class UserController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function destroy($id) {
-
+        
         $user = User::where('id', $id)->first();
         if (!is_null($user)) {
 
@@ -238,57 +238,44 @@ class UserController extends Controller {
     public function checkUserData(Request $request) {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
-        $activation_failed = false;
+        Log::debug($thisUser->token());
         Log::debug($request);
         // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
         // If the identifier doesn't exist in the system we create a new activation.
         if ($request->has('identifier')) {
             $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
             if($activation) {
-                
-                if ($thisUser->activations_used >= $activation->activations_allowd) {
-                    $activation_failed = true;
-                    Log::debug('Activation Failed.');
-                } else {
-                    $activation->updated_at = Carbon::now()->timestamp;
-                    $activation->ip_address = $request->ip();
+                $activation->updated_at = Carbon::now()->timestamp;
+                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';
+                $activation->ip_address = $request->ip();
+                if ($token) {
                     $activation->token_id = $token->id;
-                    $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';
-                    $activation->save();
-                    $thisUser->activations_used ++;
-                    $thisUser->updated_at = Carbon::now()->timestamp;
-                    $thisUser->save();
-                    Log::debug('Activation Exists.  Saved');
                 }
-                
+                $activation->save();
+                Log::debug('Activation Exists.  Saved'); 
             } else {
                 $activation = new AppUserActivation;
                 $activation->updated_at = Carbon::now()->timestamp;
+                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';                
                 $activation->user_id = $thisUser->id;
                 $activation->device_id = $request->input('device_id');
                 $activation->identifier = $request->input('identifier');
                 $activation->ip_address = $request->ip();
-                $activation->token_id = $token->id;
+                if ($token) {
+                    $activation->token_id = $token->id;
+                }
                 $activation->bypass_used = 0;
                 $activation->save();
-                $thisUser->activations_used ++;
-                $thisUser->updated_at = Carbon::now()->timestamp;
-                $thisUser->save();
                 Log::debug('Created new activation.');
             }
         }
-        if (!$activation_failed) {
-            $userGroup = $thisUser->group()->first();
-            if (!is_null($userGroup)) {
-                if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
-                    return $userGroup->data_sha1;
-                }
+        $userGroup = $thisUser->group()->first();
+        if (!is_null($userGroup)) {
+            if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
+                return $userGroup->data_sha1;
             }
-    
-            return response('', 204);
-        } else {
-            return response('User activation failed, because user have already limited to allowed count', 401);
-        }        
+        }
+        return response('', 204);
     }
 
     /**
@@ -369,6 +356,43 @@ class UserController extends Controller {
     }
 
     /**
+     * Handles when the application has lost it's credentials.  If the activation exists
+     * it returns a token and the users email address.
+     * @param Request $request
+     */
+    public function retrieveUserToken(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'identifier' => 'required',
+            'device_id' => 'required'
+        ]);
+
+        if (!$validator->fails()) {
+            $activation = AppUserActivation::where('identifier', $request->input('identifier'))
+                ->where('device_id', $request->input('device_id'))
+                ->first();
+            if ($activation) {
+                // Lookup the user this activation belongs to.
+                $user = User::where('id', $activation->user_id)->first();
+                if ($user->isactive) {
+                    // Creating a token without scopes...
+                    $token = $user->createToken('Token Name')->accessToken; 
+                    return response([
+                        'authToken' => $token,
+                        'userEmail' => $user->email
+                    ], 200);
+                } else {
+                    // User is not active.
+                    return response('User is not active', 401);
+                }
+            } else {
+                return response('Activation does not exist.', 401);
+            }
+        }        
+        return response($validator->errors(), 401);
+
+    }
+
+    /**
      * Handles when user logs in from the application.  Returns their access token.
      * @param Request $request
      */
@@ -446,6 +470,6 @@ class UserController extends Controller {
     }
 
     public function activation_data(Request $request, $id) {
-        return AppUserActivation::where('user_id', $id)->get();;
+        return AppUserActivation::where('user_id', $id)->get();
     }
 }

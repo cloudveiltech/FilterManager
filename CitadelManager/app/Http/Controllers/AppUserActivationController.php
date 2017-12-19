@@ -80,25 +80,16 @@ class AppUserActivationController extends Controller {
     public function block($id) {
         $activation = AppUserActivation::where('id', $id)->first();
         if (!is_null($activation)) {
+            // If we're blocking the activation we go in and revoke the token for that installation.
+            if (!is_null($activation->token_id)) {
+                $token = \App\OauthAccessToken::where('id', $activation->token_id)->first();
+                if (!is_null($token)) {
+                    $token->revoked = 1;
+                    $token->save();
+                }
+            }
             $activation->delete();
         }
-
-        //TODO NO, NO, NO, NO, NO.  We need to look up the token used by that activation and remove it.
-        /*Log::debug($id);
-        $user = \Auth::user();
-        $userTokens = $user->tokens;
-        //Log::debug(count($userTokens));
-        if (count($userTokens) > 0) {
-            foreach($userTokens as $token) {
-                $token->revoke();   
-            // Log::debug($token);
-            }  
-        }
-        $activation = AppUserActivation::where('id', $id)->first();
-        Log::debug($activation);
-        if (!is_null($activation)) {
-            $activation->delete();
-        }*/
         
         return response('', 204);
     }
