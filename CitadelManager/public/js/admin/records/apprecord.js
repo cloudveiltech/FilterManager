@@ -10,21 +10,21 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Citadel;
 (function (Citadel) {
-    var WhitelistRecord = (function (_super) {
-        __extends(WhitelistRecord, _super);
-        function WhitelistRecord() {
+    var AppRecord = (function (_super) {
+        __extends(AppRecord, _super);
+        function AppRecord() {
             var _this = _super.call(this) || this;
             _this.ConstructFormReferences();
             return _this;
         }
-        Object.defineProperty(WhitelistRecord.prototype, "RecordRoute", {
+        Object.defineProperty(AppRecord.prototype, "RecordRoute", {
             get: function () {
-                return 'api/admin/whitelists';
+                return 'api/admin/app';
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(WhitelistRecord.prototype, "ValidationOptions", {
+        Object.defineProperty(AppRecord.prototype, "ValidationOptions", {
             get: function () {
                 var validationRules = {};
                 validationRules[this.m_applicationNameInput.id] = {
@@ -35,8 +35,8 @@ var Citadel;
                 var validationOptions = {
                     rules: validationRules,
                     errorPlacement: (function (error, element) {
-                        error.appendTo('#whitelist_form_errors');
-                        $('#whitelist_form_errors').append('<br/>');
+                        error.appendTo('#app_form_errors');
+                        $('#app_form_errors').append('<br/>');
                     }),
                     messages: validationErrorMessages
                 };
@@ -45,39 +45,36 @@ var Citadel;
             enumerable: true,
             configurable: true
         });
-        WhitelistRecord.prototype.ConstructFormReferences = function () {
-            this.m_mainForm = document.querySelector('#editor_whitelist_form');
-            this.m_editorTitle = document.querySelector('#whitelist_editing_title');
-            this.m_editorOverlay = document.querySelector('#overlay_whitelist_editor');
-            this.m_applicationNameInput = document.querySelector('#editor_whitelist_name');
-            this.m_isActiveInput = document.querySelector('#editor_whitelist_input_isactive');
-            this.m_submitBtn = document.querySelector('#whitelist_editor_submit');
-            this.m_cancelBtn = document.querySelector('#whitelist_editor_cancel');
+        AppRecord.prototype.ConstructFormReferences = function () {
+            this.m_mainForm = document.querySelector('#editor_application_form');
+            this.m_editorTitle = document.querySelector('#application_editing_title');
+            this.m_editorOverlay = document.querySelector('#overlay_application_editor');
+            this.m_applicationNameInput = document.querySelector('#editor_application_name');
+            this.m_submitBtn = document.querySelector('#application_editor_submit');
+            this.m_cancelBtn = document.querySelector('#application_editor_cancel');
             this.InitButtonHandlers();
         };
-        WhitelistRecord.prototype.InitButtonHandlers = function () {
+        AppRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
             this.m_cancelBtn.onclick = (function (e) {
                 _this.StopEditing();
             });
         };
-        WhitelistRecord.prototype.LoadFromObject = function (data) {
-            this.m_whitelistId = data['id'];
-            this.m_applicationName = data['name'];
-            this.m_isActive = data['isactive'];
+        AppRecord.prototype.LoadFromObject = function (data) {
+            this.m_appId = data['id'];
+            this.m_appName = data['name'];
             this.m_dateRegistered = data['dt'];
         };
-        WhitelistRecord.prototype.LoadFromForm = function () {
-            this.m_applicationName = this.m_applicationNameInput.value;
-            this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
+        AppRecord.prototype.LoadFromForm = function () {
+            this.m_appName = this.m_applicationNameInput.value;
         };
-        WhitelistRecord.prototype.StartEditing = function (userData) {
+        AppRecord.prototype.StartEditing = function (userData) {
             var _this = this;
             if (userData === void 0) { userData = null; }
             switch (userData == null) {
                 case true:
                     {
-                        this.m_editorTitle.innerText = "Add Whitelist Application";
+                        this.m_editorTitle.innerText = "Add Application";
                         this.m_submitBtn.innerText = "Add";
                         this.m_mainForm.reset();
                     }
@@ -85,10 +82,10 @@ var Citadel;
                 case false:
                     {
                         this.LoadFromObject(userData);
-                        this.m_editorTitle.innerText = "Edit Whitelist Application";
+                        this.m_editorTitle.innerText = "Edit Application";
                         this.m_submitBtn.innerText = "Save";
-                        this.m_applicationNameInput.value = this.m_applicationName;
-                        this.m_isActiveInput.checked = this.m_isActive != 0;
+                        this.m_applicationNameInput.value = this.m_appName;
+                        ;
                     }
                     break;
             }
@@ -102,20 +99,19 @@ var Citadel;
             });
             $(this.m_editorOverlay).fadeIn(250);
         };
-        WhitelistRecord.prototype.StopEditing = function () {
+        AppRecord.prototype.StopEditing = function () {
             $(this.m_editorOverlay).fadeOut(200);
         };
-        WhitelistRecord.prototype.ToObject = function () {
+        AppRecord.prototype.ToObject = function () {
             var obj = {
-                'id': this.m_whitelistId,
-                'name': this.m_applicationName,
-                'isactive': this.m_isActive,
+                'id': this.m_appId,
+                'name': this.m_appName,
                 'dt': this.m_dateRegistered
             };
             return obj;
         };
-        return WhitelistRecord;
+        return AppRecord;
     }(Citadel.BaseRecord));
-    Citadel.WhitelistRecord = WhitelistRecord;
+    Citadel.AppRecord = AppRecord;
 })(Citadel || (Citadel = {}));
-//# sourceMappingURL=whitelistrecord.js.map
+//# sourceMappingURL=apprecord.js.map

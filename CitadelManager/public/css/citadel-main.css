@@ -189,12 +189,19 @@ User editor.
 /*
 Whitelist editor.
 */
-#overlay_whitelist_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
-#div_whitelist_0{width: 700px; height: 500px; left:50%; top:50%; margin-left: -350px; margin-top: -250px; position:absolute; color: white;}
-#whitelist_editing_title{text-align: center;}
+#overlay_application_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#div_application_0{width: 700px; height: 500px; left:50%; top:50%; margin-left: -350px; margin-top: -250px; position:absolute; color: white;}
+#application_editing_title{text-align: center;}
 #div_09c2_1{padding: 20px;}
-#label_whitelist_enabled_0{margin-left: 10px;}
-#div_whitelist_2{margin-top: 30px;}
+#label_application_enabled_0{margin-left: 10px;}
+#div_application_2{margin-top: 30px;}
+#editor_application_name {margin-left:20px; width: 230px !important;}
+.app_editor_control{
+    width: 100% !important;
+}
+.app_editor_close_button{
+    position: relative !important;
+}
 
 /*
 Blacklist editor.
@@ -213,6 +220,12 @@ Blacklist editor.
 #activation_editing_title{text-align: center;}
 #overlay_activation_editor input:disabled{ background:darkgray ;}
 
+/*
+Application & Application Group
+*/
+#btn_application_add {
+    width: 70px !important;
+}
 /*
 Apply to group Overlay.
 */

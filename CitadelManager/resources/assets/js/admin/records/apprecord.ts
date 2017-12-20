@@ -10,7 +10,7 @@
 namespace Citadel
 {
 
-    export class WhitelistRecord extends BaseRecord
+    export class AppRecord extends BaseRecord
     {
         //
         // ────────────────────────────────────────────────────────────────────────── I ──────────
@@ -18,12 +18,8 @@ namespace Citadel
         // ────────────────────────────────────────────────────────────────────────────────────
         //        
 
-        private m_whitelistId: number;
-
-        private m_applicationName: string;
-        
-        private m_isActive: number;
-
+        private m_appId: number;
+        private m_appName: string;
         private m_dateRegistered: string;
 
         //
@@ -40,12 +36,11 @@ namespace Citadel
          * 
          * @private
          * @type {HTMLDivElement}
-         * @memberOf WhitelistRecord
+         * @memberOf AppRecord
          */
         private m_editorOverlay: HTMLDivElement;
         private m_editorTitle: HTMLHeadingElement;
         private m_applicationNameInput: HTMLInputElement;
-        private m_isActiveInput: HTMLInputElement;
         private m_submitBtn: HTMLButtonElement;
         private m_cancelBtn: HTMLButtonElement;
 
@@ -54,11 +49,11 @@ namespace Citadel
          * 
          * @readonly
          * @type {string}
-         * @memberOf WhitelistRecord
+         * @memberOf AppRecord
          */
         public get RecordRoute(): string
         {
-            return 'api/admin/whitelists';
+            return 'api/admin/app';
         }
 
         protected get ValidationOptions(): JQueryValidation.ValidationOptions
@@ -77,8 +72,8 @@ namespace Citadel
                     rules: validationRules,
                     errorPlacement: ((error: JQuery, element: JQuery): void =>
                     {
-                        error.appendTo('#whitelist_form_errors');
-                        $('#whitelist_form_errors').append('<br/>');
+                        error.appendTo('#app_form_errors');
+                        $('#app_form_errors').append('<br/>');
                     }),
                     messages: validationErrorMessages
                 };
@@ -87,10 +82,10 @@ namespace Citadel
         }
 
         /**
-         * Creates an instance of WhitelistRecord.
+         * Creates an instance of AppRecord.
          * 
          * 
-         * @memberOf WhitelistRecord
+         * @memberOf AppRecord
          */
         constructor() 
         {
@@ -100,16 +95,14 @@ namespace Citadel
 
         private ConstructFormReferences(): void
         {
-            this.m_mainForm = document.querySelector('#editor_whitelist_form') as HTMLFormElement;
-            this.m_editorTitle = document.querySelector('#whitelist_editing_title') as HTMLHeadingElement;
-            this.m_editorOverlay = document.querySelector('#overlay_whitelist_editor') as HTMLDivElement;
+            this.m_mainForm = document.querySelector('#editor_application_form') as HTMLFormElement;
+            this.m_editorTitle = document.querySelector('#application_editing_title') as HTMLHeadingElement;
+            this.m_editorOverlay = document.querySelector('#overlay_application_editor') as HTMLDivElement;
         
-            this.m_applicationNameInput = document.querySelector('#editor_whitelist_name') as HTMLInputElement;
-            this.m_isActiveInput = document.querySelector('#editor_whitelist_input_isactive') as HTMLInputElement;
+            this.m_applicationNameInput = document.querySelector('#editor_application_name') as HTMLInputElement;
 
-            this.m_submitBtn = document.querySelector('#whitelist_editor_submit') as HTMLButtonElement;
-            this.m_cancelBtn = document.querySelector('#whitelist_editor_cancel') as HTMLButtonElement;
-
+            this.m_submitBtn = document.querySelector('#application_editor_submit') as HTMLButtonElement;
+            this.m_cancelBtn = document.querySelector('#application_editor_cancel') as HTMLButtonElement;
             this.InitButtonHandlers();
         }
 
@@ -124,16 +117,14 @@ namespace Citadel
         protected LoadFromObject(data: Object): void
         {
 
-            this.m_whitelistId = data['id'] as number;
-            this.m_applicationName = data['name'] as string;
-            this.m_isActive = data['isactive'];
+            this.m_appId = data['id'] as number;
+            this.m_appName = data['name'] as string;
             this.m_dateRegistered = data['dt'] as string;
         }
 
         protected LoadFromForm(): void
         {
-            this.m_applicationName = this.m_applicationNameInput.value;
-            this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
+            this.m_appName = this.m_applicationNameInput.value;            
         }
 
         public StartEditing(userData: Object = null): void
@@ -145,9 +136,8 @@ namespace Citadel
                     {
                         // Creating a new object here.
 
-                        this.m_editorTitle.innerText = "Add Whitelist Application";
+                        this.m_editorTitle.innerText = "Add Application";
                         this.m_submitBtn.innerText = "Add";
-
                         this.m_mainForm.reset();
                     }
                     break;
@@ -157,10 +147,9 @@ namespace Citadel
                         // Editing an existing object here.
                         this.LoadFromObject(userData);
 
-                        this.m_editorTitle.innerText = "Edit Whitelist Application";
+                        this.m_editorTitle.innerText = "Edit Application";
                         this.m_submitBtn.innerText = "Save";
-                        this.m_applicationNameInput.value = this.m_applicationName;
-                        this.m_isActiveInput.checked = this.m_isActive != 0;
+                        this.m_applicationNameInput.value = this.m_appName;;
                     }
                     break;
             }
@@ -192,14 +181,11 @@ namespace Citadel
         {
             let obj =
                 {
-                    'id': this.m_whitelistId,
-                    'name': this.m_applicationName,
-                    'isactive': this.m_isActive,
+                    'id': this.m_appId,
+                    'name': this.m_appName,
                     'dt': this.m_dateRegistered
                 };
-
             return obj;
         }
     }
-
 }

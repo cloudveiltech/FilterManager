@@ -10,21 +10,21 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Citadel;
 (function (Citadel) {
-    var BlacklistRecord = (function (_super) {
-        __extends(BlacklistRecord, _super);
-        function BlacklistRecord() {
+    var AppGroupRecord = (function (_super) {
+        __extends(AppGroupRecord, _super);
+        function AppGroupRecord() {
             var _this = _super.call(this) || this;
             _this.ConstructFormReferences();
             return _this;
         }
-        Object.defineProperty(BlacklistRecord.prototype, "RecordRoute", {
+        Object.defineProperty(AppGroupRecord.prototype, "RecordRoute", {
             get: function () {
                 return 'api/admin/blacklists';
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(BlacklistRecord.prototype, "ValidationOptions", {
+        Object.defineProperty(AppGroupRecord.prototype, "ValidationOptions", {
             get: function () {
                 var validationRules = {};
                 validationRules[this.m_applicationNameInput.id] = {
@@ -45,7 +45,7 @@ var Citadel;
             enumerable: true,
             configurable: true
         });
-        BlacklistRecord.prototype.ConstructFormReferences = function () {
+        AppGroupRecord.prototype.ConstructFormReferences = function () {
             this.m_mainForm = document.querySelector('#editor_blacklist_form');
             this.m_editorTitle = document.querySelector('#blacklist_editing_title');
             this.m_editorOverlay = document.querySelector('#overlay_blacklist_editor');
@@ -55,23 +55,23 @@ var Citadel;
             this.m_cancelBtn = document.querySelector('#blacklist_editor_cancel');
             this.InitButtonHandlers();
         };
-        BlacklistRecord.prototype.InitButtonHandlers = function () {
+        AppGroupRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
             this.m_cancelBtn.onclick = (function (e) {
                 _this.StopEditing();
             });
         };
-        BlacklistRecord.prototype.LoadFromObject = function (data) {
+        AppGroupRecord.prototype.LoadFromObject = function (data) {
             this.m_blacklistId = data['id'];
             this.m_applicationName = data['name'];
             this.m_isActive = data['isactive'];
             this.m_dateRegistered = data['dt'];
         };
-        BlacklistRecord.prototype.LoadFromForm = function () {
+        AppGroupRecord.prototype.LoadFromForm = function () {
             this.m_applicationName = this.m_applicationNameInput.value;
             this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
         };
-        BlacklistRecord.prototype.StartEditing = function (userData) {
+        AppGroupRecord.prototype.StartEditing = function (userData) {
             var _this = this;
             if (userData === void 0) { userData = null; }
             switch (userData == null) {
@@ -102,10 +102,10 @@ var Citadel;
             });
             $(this.m_editorOverlay).fadeIn(250);
         };
-        BlacklistRecord.prototype.StopEditing = function () {
+        AppGroupRecord.prototype.StopEditing = function () {
             $(this.m_editorOverlay).fadeOut(200);
         };
-        BlacklistRecord.prototype.ToObject = function () {
+        AppGroupRecord.prototype.ToObject = function () {
             var obj = {
                 'id': this.m_blacklistId,
                 'name': this.m_applicationName,
@@ -114,8 +114,8 @@ var Citadel;
             };
             return obj;
         };
-        return BlacklistRecord;
+        return AppGroupRecord;
     }(Citadel.BaseRecord));
-    Citadel.BlacklistRecord = BlacklistRecord;
+    Citadel.AppGroupRecord = AppGroupRecord;
 })(Citadel || (Citadel = {}));
-//# sourceMappingURL=blacklistrecord.js.map
+//# sourceMappingURL=appgrouprecord.js.map

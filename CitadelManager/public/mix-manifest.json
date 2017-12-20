@@ -1,7 +1,7 @@
 {
 
   "/js/progresswait.js": "/js/progresswait.js",
-  "/js/admin/records/whitelistrecord.js": "/js/admin/records/whitelistrecord.js",
+  "/js/admin/records/apprecord.js": "/js/admin/records/apprecord.js",
   "/js/admin/records/userrecord.js": "/js/admin/records/userrecord.js",
   "/js/admin/records/grouprecord.js": "/js/admin/records/grouprecord.js",
   "/js/admin/records/filterlistrecord.js": "/js/admin/records/filterlistrecord.js",

@@ -10,7 +10,7 @@
 namespace Citadel
 {
 
-    export class BlacklistRecord extends BaseRecord
+    export class AppGroupRecord extends BaseRecord
     {
         //
         // ────────────────────────────────────────────────────────────────────────── I ──────────

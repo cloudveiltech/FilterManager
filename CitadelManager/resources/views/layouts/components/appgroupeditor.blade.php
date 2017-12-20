@@ -1,5 +1,5 @@
 <!-- Include Blacklist Record Record Type JS. -->
-<script src="{{ asset('js/admin/records/blacklistrecord.js') }}">
+<script src="{{ asset('js/admin/records/appgrouprecord.js') }}">
 </script>
 
 

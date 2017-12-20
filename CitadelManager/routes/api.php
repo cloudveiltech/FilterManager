@@ -50,6 +50,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
 
     Route::resource('whitelists', 'GlobalWhitelistController');
     Route::resource('blacklists', 'GlobalBlacklistController');
+    Route::resource('app', 'ApplicationController');
+    Route::resource('app_group', 'ApplicationGroupController');
 
     Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
     Route::resource('user_activations', 'AppUserActivationController');
