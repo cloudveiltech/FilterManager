@@ -136,14 +136,6 @@ class UserController extends Controller {
             return response('email address exists, please choose another email_address', 403);
         }
 
-        // Checking user id
-        $name = $input_chk_customer_id['name'];
-        $email_list = User::where('id', '!=', $id)->where('name', $name)->get();
-        $email_count = count($email_list);
-        if($email_count > 0) {
-            return response('user_id already exists, please choose another user_id', 403);
-        }
-
         $inclPassword = false;
 
         if ($request->has('password_verify') && $request->has('password')) {
