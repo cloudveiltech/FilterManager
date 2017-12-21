@@ -999,6 +999,12 @@ namespace Citadel
                             visible: true
                         },
                         {
+                            title: 'Notes',
+                            data: 'notes',
+                            visible: true,
+                            width: 200
+                        },
+                        {
                             title: 'Date Modified',
                             data: 'updated_at',
                             visible: true,
@@ -1556,7 +1562,7 @@ namespace Citadel
             // Stop the event so it doesn't go anywhere else. We're handling it here.
             e.stopImmediatePropagation();
             e.stopPropagation();
-
+            console.log(data);
             // Get a typed instanced of the selected row.
             let selectedRow = e.currentTarget as HTMLTableRowElement;
 

@@ -381,6 +381,12 @@ var Citadel;
                         visible: true
                     },
                     {
+                        title: 'Notes',
+                        data: 'notes',
+                        visible: true,
+                        width: 200
+                    },
+                    {
                         title: 'Date Modified',
                         data: 'updated_at',
                         visible: true,
@@ -732,6 +738,7 @@ var Citadel;
             var _this = this;
             e.stopImmediatePropagation();
             e.stopPropagation();
+            console.log(data);
             var selectedRow = e.currentTarget;
             var parentTable = $(selectedRow).closest('table')[0];
             switch (parentTable.id) {

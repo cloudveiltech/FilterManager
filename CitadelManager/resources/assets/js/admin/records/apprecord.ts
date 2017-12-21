@@ -20,6 +20,7 @@ namespace Citadel
 
         private m_appId: number;
         private m_appName: string;
+        private m_appNotes: string;
         private m_dateRegistered: string;
 
         //
@@ -41,6 +42,7 @@ namespace Citadel
         private m_editorOverlay: HTMLDivElement;
         private m_editorTitle: HTMLHeadingElement;
         private m_applicationNameInput: HTMLInputElement;
+        private m_applicationNotesInput: HTMLInputElement;
         private m_submitBtn: HTMLButtonElement;
         private m_cancelBtn: HTMLButtonElement;
 
@@ -100,7 +102,8 @@ namespace Citadel
             this.m_editorOverlay = document.querySelector('#overlay_application_editor') as HTMLDivElement;
         
             this.m_applicationNameInput = document.querySelector('#editor_application_name') as HTMLInputElement;
-
+            this.m_applicationNotesInput = document.querySelector('#editor_application_notes') as HTMLInputElement;
+            
             this.m_submitBtn = document.querySelector('#application_editor_submit') as HTMLButtonElement;
             this.m_cancelBtn = document.querySelector('#application_editor_cancel') as HTMLButtonElement;
             this.InitButtonHandlers();
@@ -119,12 +122,14 @@ namespace Citadel
 
             this.m_appId = data['id'] as number;
             this.m_appName = data['name'] as string;
+            this.m_appNotes = data['notes'] as string;
             this.m_dateRegistered = data['dt'] as string;
         }
 
         protected LoadFromForm(): void
         {
-            this.m_appName = this.m_applicationNameInput.value;            
+            this.m_appName = this.m_applicationNameInput.value;
+            this.m_appNotes = this.m_applicationNotesInput.value;
         }
 
         public StartEditing(userData: Object = null): void
@@ -149,7 +154,9 @@ namespace Citadel
 
                         this.m_editorTitle.innerText = "Edit Application";
                         this.m_submitBtn.innerText = "Save";
-                        this.m_applicationNameInput.value = this.m_appName;;
+                        this.m_applicationNameInput.value = this.m_appName;
+                        this.m_applicationNotesInput.value = this.m_appNotes;
+
                     }
                     break;
             }
@@ -183,6 +190,7 @@ namespace Citadel
                 {
                     'id': this.m_appId,
                     'name': this.m_appName,
+                    'notes': this.m_appNotes,
                     'dt': this.m_dateRegistered
                 };
             return obj;

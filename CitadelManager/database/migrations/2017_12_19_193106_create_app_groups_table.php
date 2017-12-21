@@ -22,6 +22,7 @@ class CreateAppGroupsTable extends Migration
         Schema::create('apps', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
+            $table->string('notes', 255);
             $table->timestamps();
         });
         Schema::create('app_group_to_apps', function (Blueprint $table) {

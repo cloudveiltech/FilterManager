@@ -22,10 +22,18 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="row cell-auto-size">
+                    <div class="cell cell-auto-size">
+                        <div class="input-control text app_editor_control" data-role="input">
+                            <span for="editor_application_notes">Application Notes:</span>
+                            <textarea type="text"  name="editor_application_notes" id="editor_application_notes" ></textarea>
+                            <button class="button helper-button clear app_editor_close_button" tabindex="-1" type="button"><span class="mif-cross"></span></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row cell-auto-size marginTop80">
                     <div class="form-actions">
-                        <button id="application_editor_submit" type="submit" class="button primary">Add User</button>
+                        <button id="application_editor_submit" type="submit" class="button primary">Add Application</button>
                         <button id="application_editor_cancel" type="button" class="button link">Cancel</button>
                     </div>
                 </div>

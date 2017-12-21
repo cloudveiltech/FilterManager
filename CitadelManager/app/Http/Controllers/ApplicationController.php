@@ -52,7 +52,7 @@ class ApplicationController extends Controller
             'name' => 'required'
         ]);
 
-        $input = $request->only(['name']);
+        $input = $request->only(['name', 'notes']);
         App::create($input); 
         return response('', 204);
     }
@@ -80,7 +80,7 @@ class ApplicationController extends Controller
         // password or password_verify unless they are
         // intentionally trying to change a user's password.
     
-        $input = $request->only(['name']);
+        $input = $request->only(['name', 'notes']);
         App::where('id', $id)->update($input);
      
         return response('', 204);

@@ -50,6 +50,7 @@ var Citadel;
             this.m_editorTitle = document.querySelector('#application_editing_title');
             this.m_editorOverlay = document.querySelector('#overlay_application_editor');
             this.m_applicationNameInput = document.querySelector('#editor_application_name');
+            this.m_applicationNotesInput = document.querySelector('#editor_application_notes');
             this.m_submitBtn = document.querySelector('#application_editor_submit');
             this.m_cancelBtn = document.querySelector('#application_editor_cancel');
             this.InitButtonHandlers();
@@ -63,10 +64,12 @@ var Citadel;
         AppRecord.prototype.LoadFromObject = function (data) {
             this.m_appId = data['id'];
             this.m_appName = data['name'];
+            this.m_appNotes = data['notes'];
             this.m_dateRegistered = data['dt'];
         };
         AppRecord.prototype.LoadFromForm = function () {
             this.m_appName = this.m_applicationNameInput.value;
+            this.m_appNotes = this.m_applicationNotesInput.value;
         };
         AppRecord.prototype.StartEditing = function (userData) {
             var _this = this;
@@ -85,7 +88,7 @@ var Citadel;
                         this.m_editorTitle.innerText = "Edit Application";
                         this.m_submitBtn.innerText = "Save";
                         this.m_applicationNameInput.value = this.m_appName;
-                        ;
+                        this.m_applicationNotesInput.value = this.m_appNotes;
                     }
                     break;
             }
@@ -106,6 +109,7 @@ var Citadel;
             var obj = {
                 'id': this.m_appId,
                 'name': this.m_appName,
+                'notes': this.m_appNotes,
                 'dt': this.m_dateRegistered
             };
             return obj;
