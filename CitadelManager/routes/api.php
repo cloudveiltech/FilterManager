@@ -64,6 +64,9 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
 
     // For handling deletion of all records in a namespace.
     Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');
+
+    // Get application for app_group_editing.
+    Route::get('/applications', 'ApplicationController@get_application');
 });
 
 // Users should only be able to pull list updates. The routes available to them

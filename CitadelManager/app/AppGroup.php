@@ -17,6 +17,9 @@ class AppGroup extends Model
         'group_name'
     ];
 
+    public function group_app(){
+        return $this->hasMany('App\AppGroupToApp');
+    }
     public function user_group() {
         return $this->hasMany('App\UserGroupToAppGroup');
     }

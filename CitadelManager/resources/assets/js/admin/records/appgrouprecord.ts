@@ -18,14 +18,10 @@ namespace Citadel
         // ────────────────────────────────────────────────────────────────────────────────────
         //        
 
-        private m_blacklistId: number;
-
-        private m_applicationName: string;
-        
-        private m_isActive: number;
-
+        private m_appgroupId: number;
+        private m_appGroupName: string;
+        private m_selectedApps: string;
         private m_dateRegistered: string;
-
         //
         // ──────────────────────────────────────────────────────────────────────────────── II ──────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S : :  :   :    :     :        :          :
@@ -40,45 +36,55 @@ namespace Citadel
          * 
          * @private
          * @type {HTMLDivElement}
-         * @memberOf BlacklistRecord
+         * @memberOf appgroupRecord
          */
         private m_editorOverlay: HTMLDivElement;
         private m_editorTitle: HTMLHeadingElement;
-        private m_applicationNameInput: HTMLInputElement;
-        private m_isActiveInput: HTMLInputElement;
+        private m_groupNameInput: HTMLInputElement;
+        private m_sourceAppList: HTMLSelectElement;
+        private m_targetAppList: HTMLSelectElement;
+        
+        private m_appsSourceToTargetBtn: HTMLButtonElement;
+        private m_appSourceToTargetBtn: HTMLButtonElement;
+        private m_appTargetToSourceBtn: HTMLButtonElement;
+        private m_appsTargetToSourceBtn: HTMLButtonElement;
+
         private m_submitBtn: HTMLButtonElement;
         private m_cancelBtn: HTMLButtonElement;
 
+        private m_arrLeftApplications: any[];
+        private m_arrRightApplications: any[];
+        private m_groupApp: any;
         /**
          * Gets the base API route from this record type.
          * 
          * @readonly
          * @type {string}
-         * @memberOf BlacklistRecord
+         * @memberOf appgroupRecord
          */
         public get RecordRoute(): string
         {
-            return 'api/admin/blacklists';
+            return 'api/admin/app_group';
         }
 
         protected get ValidationOptions(): JQueryValidation.ValidationOptions
         {
             let validationRules: JQueryValidation.RulesDictionary = {};
 
-            validationRules[this.m_applicationNameInput.id] = {
+            validationRules[this.m_groupNameInput.id] = {
                 required: true
             };
 
             let validationErrorMessages = {};
-            validationErrorMessages[this.m_applicationNameInput.id] = 'Application name is required.';
+            validationErrorMessages[this.m_groupNameInput.id] = 'App group name is required.';
             
             let validationOptions: JQueryValidation.ValidationOptions =
                 {
                     rules: validationRules,
                     errorPlacement: ((error: JQuery, element: JQuery): void =>
                     {
-                        error.appendTo('#blacklist_form_errors');
-                        $('#blacklist_form_errors').append('<br/>');
+                        error.appendTo('#appgroup_form_errors');
+                        $('#appgroup_form_errors').append('<br/>');
                     }),
                     messages: validationErrorMessages
                 };
@@ -87,10 +93,10 @@ namespace Citadel
         }
 
         /**
-         * Creates an instance of BlacklistRecord.
+         * Creates an instance of appgroupRecord.
          * 
          * 
-         * @memberOf BlacklistRecord
+         * @memberOf appgroupRecord
          */
         constructor() 
         {
@@ -100,40 +106,224 @@ namespace Citadel
 
         private ConstructFormReferences(): void
         {
-            this.m_mainForm = document.querySelector('#editor_blacklist_form') as HTMLFormElement;
-            this.m_editorTitle = document.querySelector('#blacklist_editing_title') as HTMLHeadingElement;
-            this.m_editorOverlay = document.querySelector('#overlay_blacklist_editor') as HTMLDivElement;
-        
-            this.m_applicationNameInput = document.querySelector('#editor_blacklist_name') as HTMLInputElement;
-            this.m_isActiveInput = document.querySelector('#editor_blacklist_input_isactive') as HTMLInputElement;
+            this.m_mainForm = document.querySelector('#editor_appgroup_form') as HTMLFormElement;
+            this.m_editorTitle = document.querySelector('#appgroup_editing_title') as HTMLHeadingElement;
+            this.m_editorOverlay = document.querySelector('#overlay_appgroup_editor') as HTMLDivElement;
 
-            this.m_submitBtn = document.querySelector('#blacklist_editor_submit') as HTMLButtonElement;
-            this.m_cancelBtn = document.querySelector('#blacklist_editor_cancel') as HTMLButtonElement;
+            this.m_groupNameInput = document.querySelector('#editor_appgroup_name') as HTMLInputElement;
+            this.m_sourceAppList = document.querySelector('#app_source_list') as HTMLSelectElement;
+            this.m_targetAppList = document.querySelector('#app_target_list') as HTMLSelectElement;
+            
+            this.m_appsSourceToTargetBtn = document.querySelector('#apps_source_to_target') as HTMLButtonElement;
+            this.m_appSourceToTargetBtn = document.querySelector('#app_source_to_target') as HTMLButtonElement;
+            this.m_appTargetToSourceBtn = document.querySelector('#app_target_to_source') as HTMLButtonElement;
+            this.m_appsTargetToSourceBtn = document.querySelector('#apps_target_to_source') as HTMLButtonElement;
 
-            this.InitButtonHandlers();
+            this.m_submitBtn = document.querySelector('#appgroup_editor_submit') as HTMLButtonElement;
+            this.m_cancelBtn = document.querySelector('#appgroup_editor_cancel') as HTMLButtonElement;
+            this.m_submitBtn.disabled = true;
+            this.m_arrLeftApplications = [];
+            this.m_arrRightApplications = [];
+            this.m_groupApp = {};
+            $(this.m_sourceAppList).empty();
+            $(this.m_targetAppList).empty();
+            
+            $('#spiner_1').hide();
+            this.InitButtonHandlers();            
+            this.getRetrieveApplications();
+        }
+        private getRetrieveApplications() {
+            $('#spiner_1').show();
+            let ajaxSettings: JQueryAjaxSettings =
+            {
+                method: "GET",
+                timeout: 60000,
+                url: "api/admin/applications",
+                data: {},
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
+                {
+                    $('#spiner_1').hide();
+                    this.m_arrLeftApplications = data;
+                    if (this.m_appgroupId > 0) {
+                        console.log(this.m_groupApp);
+                        this.m_groupApp.forEach((app: any): void =>
+                        {
+                            let idx = -1;
+                            let sel_seq_idx = 0;                            
+                            this.m_arrLeftApplications.forEach((item: any) => {
+                                idx ++;
+                                if(item.id == app.app_id) {
+                                    sel_seq_idx = idx;
+                                    this.m_arrRightApplications.push(item);
+                                }
+                            });
+                            if(sel_seq_idx >= 0) {
+                                this.m_arrLeftApplications.splice(sel_seq_idx, 1);
+                            }
+                        });
+                        this.drawRightApplications();
+                    }
+                    this.drawLeftApplications();
+
+                    this.m_progressWait.Hide();
+                    this.m_submitBtn.disabled = false;
+                    return false;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                {
+                    $('#spiner_1').hide();
+                    console.log(jqXHR.responseText);
+                    console.log(errorThrown);
+                    console.log(textStatus);
+
+                    this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                    setTimeout(() => 
+                        {
+                            this.m_progressWait.Hide();
+                        }, 5000);
+
+                    if (jqXHR.status > 399 && jqXHR.status < 500)
+                    {
+                        // Almost certainly auth related error. Redirect to login
+                        // by signalling for logout.
+                        //window.location.href = 'login.php?logout';
+                    }
+                    else
+                    {
+                        
+                    }
+                }
+            }
+            $.get(ajaxSettings);
+        }
+    
+        private drawLeftApplications() {
+            $(this.m_sourceAppList).empty();
+            this.m_arrLeftApplications.forEach((item: any): void =>
+            {
+                var newOption = document.createElement("option");
+                newOption.text = item.name;
+                newOption.value = item.id;
+                this.m_sourceAppList.add(newOption);
+            });
         }
 
+        private drawRightApplications() {
+            $(this.m_targetAppList).empty();
+            this.m_arrRightApplications.forEach((item: any): void =>
+            {
+                var newOption = document.createElement("option");
+                newOption.text = item.name;
+                newOption.value = item.id;
+                this.m_targetAppList.add(newOption);
+            });
+        }
+
+        public onMoveRightAllClicked(e: MouseEvent): void {
+            this.m_arrLeftApplications.forEach((item: any): void =>
+            {
+                this.m_arrRightApplications.push(item);
+            });
+            this.m_arrLeftApplications = [];
+            this.drawLeftApplications();
+            this.drawRightApplications();
+        }
+
+        public onMoveLeftAllClicked(e: MouseEvent): void {
+            this.m_arrRightApplications.forEach((item: any): void =>
+            {
+                this.m_arrLeftApplications.push(item);
+            });
+            this.m_arrRightApplications = [];
+            this.drawLeftApplications();
+            this.drawRightApplications();
+        }
+
+        public onMoveRightClicked(e: MouseEvent): void {
+            if(this.m_sourceAppList.selectedIndex == -1) return;
+            let sel_opt = this.m_sourceAppList.selectedOptions[0];
+            let sel_id = sel_opt.value * 1;
+            let idx = -1;
+            let sel_seq_idx = 0;
+            this.m_arrLeftApplications.forEach((item: any): void =>
+            {
+                idx ++;
+                if(item.id == sel_id) {
+                    this.m_arrRightApplications.push(item);
+                    sel_seq_idx = idx;
+                    return;                    
+                }
+            });
+            if(sel_seq_idx > -1) {
+                this.m_arrLeftApplications.splice(sel_seq_idx,1);
+            }
+            
+            this.drawLeftApplications();
+            this.drawRightApplications();
+            
+        }
+
+        public onMoveLeftClicked(e: MouseEvent): void {
+            if(this.m_targetAppList.selectedIndex == -1) return;
+            let sel_opt = this.m_targetAppList.selectedOptions[0];
+            let sel_id = sel_opt.value * 1;
+            let idx = -1;
+            let find_id_to_remove = -1;
+            this.m_arrRightApplications.forEach((item: any): void =>
+            {
+                idx ++;
+                if(item.id == sel_id) {
+                    find_id_to_remove = idx;
+                    this.m_arrLeftApplications.push(item);
+                    return;                    
+                }
+            });
+
+            if(find_id_to_remove > -1) {
+                this.m_arrRightApplications.splice(find_id_to_remove,1);
+            }
+            
+            this.drawLeftApplications();
+            this.drawRightApplications();
+        }
         private InitButtonHandlers(): void
         {
             this.m_cancelBtn.onclick = ((e: MouseEvent): any =>
             {
                 this.StopEditing();
             });
+            this.m_appsSourceToTargetBtn.onclick = ((e: MouseEvent) =>
+            {
+                this.onMoveRightAllClicked(e);        
+            });
+
+            this.m_appSourceToTargetBtn.onclick = ((e: MouseEvent) =>
+            {
+                this.onMoveRightClicked(e);        
+            });
+
+            this.m_appTargetToSourceBtn.onclick = ((e: MouseEvent) =>
+            {
+                this.onMoveLeftClicked(e);        
+            });
+
+            this.m_appsTargetToSourceBtn.onclick = ((e: MouseEvent) =>
+            {
+                this.onMoveLeftAllClicked(e);        
+            });
         }
 
         protected LoadFromObject(data: Object): void
         {
-
-            this.m_blacklistId = data['id'] as number;
-            this.m_applicationName = data['name'] as string;
-            this.m_isActive = data['isactive'];
+            this.m_appgroupId = data['id'] as number;
+            this.m_appGroupName = data['group_name'] as string;
+            this.m_groupApp = data['group_app'] as object;
             this.m_dateRegistered = data['dt'] as string;
         }
 
         protected LoadFromForm(): void
         {
-            this.m_applicationName = this.m_applicationNameInput.value;
-            this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
+            this.m_appGroupName = this.m_groupNameInput.value;
         }
 
         public StartEditing(userData: Object = null): void
@@ -145,7 +335,7 @@ namespace Citadel
                     {
                         // Creating a new object here.
 
-                        this.m_editorTitle.innerText = "Add Blacklist Application";
+                        this.m_editorTitle.innerText = "Add Application Group";
                         this.m_submitBtn.innerText = "Add";
 
                         this.m_mainForm.reset();
@@ -157,10 +347,9 @@ namespace Citadel
                         // Editing an existing object here.
                         this.LoadFromObject(userData);
 
-                        this.m_editorTitle.innerText = "Edit Blacklist Application";
+                        this.m_editorTitle.innerText = "Edit Application Group";
                         this.m_submitBtn.innerText = "Save";
-                        this.m_applicationNameInput.value = this.m_applicationName;
-                        this.m_isActiveInput.checked = this.m_isActive != 0;
+                        this.m_groupNameInput.value = this.m_appGroupName;                        
                     }
                     break;
             }
@@ -187,18 +376,30 @@ namespace Citadel
         {
             $(this.m_editorOverlay).fadeOut(200);
         }
-
         public ToObject(): Object
         {
             let obj =
                 {
-                    'id': this.m_blacklistId,
-                    'name': this.m_applicationName,
-                    'isactive': this.m_isActive,
+                    'id': this.m_appgroupId,
+                    'group_name': this.m_appGroupName,
+                    'apps': this.getSelectedAppIds(),
                     'dt': this.m_dateRegistered
                 };
 
             return obj;
+        }
+
+        private getSelectedAppIds(): string {
+            var str = '';
+            this.m_arrRightApplications.forEach((item: any): void =>
+            {
+                if( str.length == 0) {
+                    str = item.id;
+                } else {
+                    str += "," + item.id;
+                }
+            });
+            return str;
         }
     }
 

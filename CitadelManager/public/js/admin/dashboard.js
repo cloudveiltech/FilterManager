@@ -376,15 +376,15 @@ var Citadel;
                         width: 200
                     },
                     {
-                        title: 'Linked Group',
-                        data: 'group_name',
-                        visible: true
-                    },
-                    {
                         title: 'Notes',
                         data: 'notes',
                         visible: true,
                         width: 200
+                    },
+                    {
+                        title: 'Linked Group',
+                        data: 'group_name',
+                        visible: true
                     },
                     {
                         title: 'Date Modified',
@@ -424,14 +424,14 @@ var Citadel;
                         visible: false
                     },
                     {
-                        title: 'Application Group Name',
+                        title: 'App Group Name',
                         data: 'group_name',
                         visible: true,
                         width: 200
                     },
                     {
-                        title: 'Linked User Group',
-                        data: 'user_group_name',
+                        title: 'Linked Apps',
+                        data: 'app_names',
                         visible: true
                     },
                     {
@@ -789,12 +789,12 @@ var Citadel;
                     break;
                 case 'app_group_table':
                     {
-                        var blacklistRecord_1 = new BlacklistRecord();
-                        blacklistRecord_1.ActionCompleteCallback = (function (action) {
-                            blacklistRecord_1.StopEditing();
-                            _this.ForceTableRedraw(_this.m_tableBlackLists);
+                        var appGroupRecord_1 = new Citadel.AppGroupRecord();
+                        appGroupRecord_1.ActionCompleteCallback = (function (action) {
+                            appGroupRecord_1.StopEditing();
+                            _this.ForceTableRedraw(_this.m_tableAppGroupLists);
                         });
-                        blacklistRecord_1.StartEditing(data);
+                        appGroupRecord_1.StartEditing(data);
                     }
                     break;
                 case 'app_user_activations_table':
@@ -967,7 +967,6 @@ var Citadel;
         };
         Dashboard.prototype.OnAddApplicationClicked = function (e) {
             var _this = this;
-            console.log(this.m_btnApp);
             if (this.m_btnApp.checked) {
                 var newApp_1 = new Citadel.AppRecord();
                 newApp_1.StartEditing();
@@ -977,7 +976,7 @@ var Citadel;
                 });
             }
             else {
-                var newAppGroup_1 = new AppGroup();
+                var newAppGroup_1 = new Citadel.AppGroupRecord();
                 newAppGroup_1.StartEditing();
                 newAppGroup_1.ActionCompleteCallback = (function (action) {
                     newAppGroup_1.StopEditing();

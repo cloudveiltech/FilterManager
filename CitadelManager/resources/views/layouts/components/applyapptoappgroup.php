@@ -33,10 +33,10 @@
                 </div>
                 <div class="cell colspan1" id="apply_togroup_actions">
                     <br /><br /><br />
-                    <button class="button primary" id="apply_togroup_right_all_btn"> &gt;&gt; </button> <br />
-                    <button class="button primary" id="apply_togroup_right_btn"> &gt; </button><br />
-                    <button class="button primary" id="apply_togroup_left_btn"> &lt; </button><br />
-                    <button class="button primary" id="apply_togroup_left_all_btn"> &lt;&lt;  </button><br />
+                    <button class="button primary" type="button" id="apply_togroup_right_all_btn"> &gt;&gt; </button> <br />
+                    <button class="button primary" type="button" id="apply_togroup_right_btn"> &gt; </button><br />
+                    <button class="button primary" type="button" id="apply_togroup_left_btn"> &lt; </button><br />
+                    <button class="button primary" type="button" id="apply_togroup_left_all_btn"> &lt;&lt;  </button><br />
                     
                 </div>
                 

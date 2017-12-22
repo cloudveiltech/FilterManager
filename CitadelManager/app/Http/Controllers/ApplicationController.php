@@ -41,6 +41,9 @@ class ApplicationController extends Controller
         return response()->json($applications);
     }
 
+    public function get_application() {
+        return App::get();
+    }
     /**
      * Store a newly created resource in storage.
      *

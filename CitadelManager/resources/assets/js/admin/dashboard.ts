@@ -12,7 +12,7 @@
 ///<reference path="records/grouprecord.ts"/>
 ///<reference path="records/filterlistrecord.ts"/>
 ///<reference path="records/apprecord.ts"/>
-///<reference path="records/blacklistrecord.ts"/>
+///<reference path="records/appgrouprecord.ts"/>
 ///<reference path="records/appuseractivationrecord.ts"/>
 
 namespace Citadel
@@ -994,15 +994,15 @@ namespace Citadel
                             width: 200
                         },
                         {
-                            title: 'Linked Group',
-                            data: 'group_name',
-                            visible: true
-                        },
-                        {
                             title: 'Notes',
                             data: 'notes',
                             visible: true,
                             width: 200
+                        },
+                        {
+                            title: 'Linked Group',
+                            data: 'group_name',
+                            visible: true
                         },
                         {
                             title: 'Date Modified',
@@ -1063,14 +1063,14 @@ namespace Citadel
                             visible: false
                         },
                         {
-                            title: 'Application Group Name',
+                            title: 'App Group Name',
                             data: 'group_name',
                             visible: true,
                             width: 200
                         },
                         {
-                            title: 'Linked User Group',
-                            data: 'user_group_name',
+                            title: 'Linked Apps',
+                            data: 'app_names',
                             visible: true
                         },
                         {
@@ -1669,22 +1669,22 @@ namespace Citadel
 
                 case 'app_group_table':
                     {
-                        let blacklistRecord = new BlacklistRecord();
+                        let appGroupRecord = new AppGroupRecord();
                         
-                        blacklistRecord.ActionCompleteCallback = ((action: string): void =>
+                        appGroupRecord.ActionCompleteCallback = ((action: string): void =>
                         {
 
-                            blacklistRecord.StopEditing();
+                            appGroupRecord.StopEditing();
 
                             // Whenever we do any action on a user record
                             // successfully, we want to simply redraw the user
                             // table to get the updated data showing.
-                            this.ForceTableRedraw(this.m_tableBlackLists);
+                            this.ForceTableRedraw(this.m_tableAppGroupLists);
                         });
 
                         // We supply everything in the groups table so that the user's group
                         // can be changed to any available group.
-                        blacklistRecord.StartEditing(data);
+                        appGroupRecord.StartEditing(data);
                     }
                     break;      
                 case 'app_user_activations_table':
@@ -2102,7 +2102,6 @@ namespace Citadel
          */
         private OnAddApplicationClicked(e: MouseEvent): any
         {
-            console.log(this.m_btnApp);
             if(this.m_btnApp.checked) {
                 let newApp = new AppRecord();
 
@@ -2120,7 +2119,7 @@ namespace Citadel
                     this.ForceTableRedraw(this.m_tableAppLists);
                 });
             } else {
-                let newAppGroup = new AppGroup();
+                let newAppGroup = new AppGroupRecord();
                 // We supply everything in the groups table so that the user's group
                 // can be changed to any available group.            
                 newAppGroup.StartEditing( );

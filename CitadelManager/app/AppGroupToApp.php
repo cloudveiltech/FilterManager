@@ -24,7 +24,7 @@ class AppGroupToApp extends Model
 {
 	
 	public $incrementing = false;
-	public $timestamps = true;
+	public $timestamps = false;
 
 	protected $casts = [
 		'app_group_id' => 'int',
