@@ -53,7 +53,6 @@ var Citadel;
                 }),
                 error: (function (file, message, xhr) {
                     file.accepted = false;
-                    console.log(message);
                     _this.m_progressWait.Show("Upload Failed", xhr.responseText);
                     setTimeout(function () {
                         _this.m_progressWait.Hide();

@@ -1562,7 +1562,6 @@ namespace Citadel
             // Stop the event so it doesn't go anywhere else. We're handling it here.
             e.stopImmediatePropagation();
             e.stopPropagation();
-            console.log(data);
             // Get a typed instanced of the selected row.
             let selectedRow = e.currentTarget as HTMLTableRowElement;
 
@@ -1798,7 +1797,6 @@ namespace Citadel
          */
         private OnCreateUserClicked(e: MouseEvent): any
         {
-            console.log('OnCreateUserClicked');
             let newUser = new UserRecord();
 
             // We supply everything in the groups table so that the user's group
@@ -1875,8 +1873,6 @@ namespace Citadel
          */
         private OnCreateGroupClicked(e: MouseEvent): any
         {
-            console.log('OnCreateGroupClicked');
-
             let groupRecord = new GroupRecord();
 
             groupRecord.ActionCompleteCallback = ((action: string): void =>
@@ -2222,8 +2218,10 @@ namespace Citadel
          */
         private onApplyToGroupClicked(e: MouseEvent): any
         {
-            let apply_overlay = new ApplyToGroupOverlay();
-            apply_overlay.Show();
+            if (this.m_btnApp.checked) {
+                let apply_app_to_app_group_overlay = new ApplyAppToAppGroup();
+                apply_app_to_app_group_overlay.Show();
+            }
         }
 
         private onDeleteAppUserActivationClicked(e: MouseEvent): any

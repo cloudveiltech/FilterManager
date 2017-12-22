@@ -79,7 +79,7 @@ class ApplicationGroupController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id) {
-        
+        AppGroupToApp::where('app_group_id', $id)->delete();
         $applicationGroup = AppGroup::where('id', $id)->first();
         if (!is_null($applicationGroup)) {
             $applicationGroup->delete();

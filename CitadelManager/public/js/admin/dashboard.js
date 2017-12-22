@@ -738,7 +738,6 @@ var Citadel;
             var _this = this;
             e.stopImmediatePropagation();
             e.stopPropagation();
-            console.log(data);
             var selectedRow = e.currentTarget;
             var parentTable = $(selectedRow).closest('table')[0];
             switch (parentTable.id) {
@@ -832,7 +831,6 @@ var Citadel;
         };
         Dashboard.prototype.OnCreateUserClicked = function (e) {
             var _this = this;
-            console.log('OnCreateUserClicked');
             var newUser = new Citadel.UserRecord();
             newUser.StartEditing(this.m_tableGroups.data(), this.m_tableUsers.data()['all_user_roles']);
             newUser.ActionCompleteCallback = (function (action) {
@@ -862,7 +860,6 @@ var Citadel;
         };
         Dashboard.prototype.OnCreateGroupClicked = function (e) {
             var _this = this;
-            console.log('OnCreateGroupClicked');
             var groupRecord = new Citadel.GroupRecord();
             groupRecord.ActionCompleteCallback = (function (action) {
                 groupRecord.StopEditing();
@@ -1027,8 +1024,10 @@ var Citadel;
             }
         };
         Dashboard.prototype.onApplyToGroupClicked = function (e) {
-            var apply_overlay = new Citadel.ApplyToGroupOverlay();
-            apply_overlay.Show();
+            if (this.m_btnApp.checked) {
+                var apply_app_to_app_group_overlay = new Citadel.ApplyAppToAppGroup();
+                apply_app_to_app_group_overlay.Show();
+            }
         };
         Dashboard.prototype.onDeleteAppUserActivationClicked = function (e) {
             var _this = this;

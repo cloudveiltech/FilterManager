@@ -13,6 +13,7 @@ const { mix } = require('laravel-mix');
 
 mix.js('resources/assets/js/progresswait.js', 'public/js/progresswait.js')
     .js('resources/assets/js/admin/applytogroupoverlay.js', 'public/js/admin/applytogroupoverlay.js')
+    .js('resources/assets/js/admin/applyapptoappgroup.js', 'public/js/admin/applyapptoappgroup.js')
     .js('resources/assets/js/admin/dashboard.js', 'public/js/admin/dashboard.js')
     .js('resources/assets/js/admin/listuploadoverlay.js', 'public/js/admin/listuploadoverlay.js')
     .js('resources/assets/js/admin/records/appuseractivationrecord.js', 'public/js/admin/records/appuseractivationrecord.js')

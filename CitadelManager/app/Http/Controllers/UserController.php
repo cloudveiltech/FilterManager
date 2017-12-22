@@ -263,8 +263,7 @@ class UserController extends Controller {
                     $activation->token_id = $token->id;
                 }
                 $activation->bypass_used = 0;
-                $activation->save();
-                Log::debug('Created new activation.');
+                $activation->save();                
             }
         }
         $userGroup = $thisUser->group()->first();
