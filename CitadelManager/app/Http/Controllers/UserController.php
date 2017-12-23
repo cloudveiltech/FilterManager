@@ -238,8 +238,6 @@ class UserController extends Controller {
     public function checkUserData(Request $request) {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
-        Log::debug($thisUser->token());
-        Log::debug($request);
         // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
         // If the identifier doesn't exist in the system we create a new activation.
         if ($request->has('identifier')) {
@@ -265,8 +263,7 @@ class UserController extends Controller {
                     $activation->token_id = $token->id;
                 }
                 $activation->bypass_used = 0;
-                $activation->save();
-                Log::debug('Created new activation.');
+                $activation->save();                
             }
         }
         $userGroup = $thisUser->group()->first();

@@ -17,7 +17,7 @@
         <li id="btn_tab_groups"><a href="#tab_groups">Groups</a></li>
         <li id="btn_filter_lists"><a href="#tab_filter_lists">Filter Lists</a></li>
         <li id="btn_user_deactivation_requests"><a href="#tab_user_deactivation_requests">Deactivation Requests</a></li>
-        <li id="btn_user_global_white_black_list"><a href="#tab_user_global_white_black_list">Global white/blacklist</a></li>
+        <li id="btn_tab_app_groups"><a href="#tab_app_groups">Application Groups</a></li>
         <li id="btn_app_user_activations"><a href="#tab_app_user_activations">App User Activations</a></li>
     </ul>
 
@@ -131,22 +131,22 @@
             </div>
         </div>
 
-         <!-- Global White/Blacklist tab. -->
-        <div class="tab-panel" id="tab_user_global_white_black_list" style="display: none;">
+         <!-- App groups tab. -->
+        <div class="tab-panel" id="tab_app_groups" style="display: none;">
             <div class="tab-panel-group">
                 <div class="tab-group-content">
                     <div class="tab-content-segment">
                         <!-- Default state of all delete buttons should be disabled. -->
                          <label class="input-control radio">
-                            <input id="global_radio_blacklist" type="radio" name="global_n1" checked>
+                            <input id="global_radio_app" type="radio" name="global_app_n1" checked>
                             <span class="check"></span>
-                            <span class="caption">Blacklist</span>
+                            <span class="caption">Application</span>
                         </label>
                         <br>
                         <label class="input-control radio">
-                            <input id="global_radio_whitelist" type="radio" name="global_n1">
+                            <input id="global_radio_app_group" type="radio" name="global_app_n1">
                             <span class="check"></span>
-                            <span class="caption">Whitelist</span>
+                            <span class="caption">Application Groups</span>
                         </label>
                     </div>
                 </div>
@@ -234,14 +234,14 @@
         </table>
     </div>
 
-    <!-- Black/Whitelist editing view. -->
-    <div id="view_whitelist_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
-        <table id="whitelist_table" class="table striped hovered border" style="width:100%">
+    <!-- AppList/AppGroupList editing view. -->
+    <div id="view_app_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
+        <table id="app_table" class="table striped hovered border" style="width:100%">
 
         </table>
     </div>
-    <div id="view_blacklist_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
-        <table id="blacklist_table" class="table striped hovered border" style="width:100%">
+    <div id="view_app_group_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
+        <table id="app_group_table" class="table striped hovered border" style="width:100%">
 
         </table>
     </div>
@@ -272,12 +272,14 @@
 <!-- Require filter list upload overlay. -->
 @include('layouts.components.listuploader')
 
-<!-- Require whitelist editing overlay. -->
-@include('layouts.components.whitelisteditor')
-<!-- Require blacklist editing overlay. -->
-@include('layouts.components.blacklisteditor')
+<!-- Require applist editing overlay. -->
+@include('layouts.components.appeditor')
+<!-- Require appgroup list editing overlay. -->
+@include('layouts.components.appgroupeditor')
 <!-- Require Apply to group overlay. -->
 @include('layouts.components.applyapplication')
+<!-- Require Apply Application to App group overlay. -->
+@include('layouts.components.applyapptoappgroup')
 <!-- Require Apply to group overlay. -->
 @include('layouts.components.appuseractivationeditor')
 <!-- Include dashboard JS to drive UI. -->
