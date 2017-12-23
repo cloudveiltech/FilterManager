@@ -1025,7 +1025,7 @@ var Citadel;
         };
         Dashboard.prototype.onApplyToGroupClicked = function (e) {
             if (this.m_btnApp.checked) {
-                var apply_app_to_app_group_overlay = new Citadel.ApplyAppToAppGroup();
+                var apply_app_to_app_group_overlay = new Citadel.ApplyAppToAppGroup(this);
                 apply_app_to_app_group_overlay.Show();
             }
         };
@@ -1129,6 +1129,7 @@ var Citadel;
         });
         return Dashboard;
     }());
+    Citadel.Dashboard = Dashboard;
     var citadelDashboard;
     document.onreadystatechange = function (event) {
         if (document.readyState.toUpperCase() == "complete".toUpperCase()) {

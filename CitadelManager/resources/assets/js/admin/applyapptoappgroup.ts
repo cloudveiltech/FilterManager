@@ -25,6 +25,7 @@ namespace Citadel
          * @type {HTMLDivElement}
          * @memberOf ApplyToGroupOverlay
          */
+        private m_parentDashboard: Citadel.Dashboard;
         private m_overlay: HTMLDivElement;
         private m_appNameList: HTMLSelectElement;
         /**
@@ -65,8 +66,9 @@ namespace Citadel
         private m_appGroups: any[];
         private m_selectedGroups: any[];
         private m_unselectedGroups: any[];
-        constructor() 
+        constructor(dashboard) 
         {
+            this.m_parentDashboard = dashboard;
             // Build button/input handlers and references.
             this.ConstructUIElements();
         }
@@ -355,14 +357,15 @@ namespace Citadel
         
         public onApplyButtonClicked(e: MouseEvent): void
         {
+            $('#spiner_2').show();
             let url = "api/admin/apply_app_to_app_group"
             let sel_opt = this.m_appNameList.selectedOptions[0];
             let sel_id = sel_opt.value * 1;
+            
             let dataObject = {
                 app_id: sel_id,
                 group_ids: this.m_selectedGroups
             };
-
             let ajaxSettings: JQueryAjaxSettings =
             {
                 method: "POST",
@@ -370,8 +373,9 @@ namespace Citadel
                 url: url,
                 data: dataObject,
                 success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                {                        
-                    Citadel.Dashboard.ForceTableRedraw(Citadel.Dashboard.m_tableGroups);                        
+                {                 
+                    $('#spiner_2').hide();
+
                     return false;
                 },
                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
@@ -422,6 +426,7 @@ namespace Citadel
          */
         public Hide(fadeOutTimeMsec: number = 200): void
         {
+            this.m_parentDashboard.ForceTableRedraw(this.m_parentDashboard.m_tableAppLists);
             $(this.m_overlay).fadeOut(fadeOutTimeMsec);
         }
     }

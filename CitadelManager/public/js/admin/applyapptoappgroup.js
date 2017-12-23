@@ -1,7 +1,8 @@
 var Citadel;
 (function (Citadel) {
     var ApplyAppToAppGroup = (function () {
-        function ApplyAppToAppGroup() {
+        function ApplyAppToAppGroup(dashboard) {
+            this.m_parentDashboard = dashboard;
             this.ConstructUIElements();
         }
         ApplyAppToAppGroup.prototype.ConstructUIElements = function () {
@@ -208,6 +209,7 @@ var Citadel;
         };
         ApplyAppToAppGroup.prototype.onApplyButtonClicked = function (e) {
             var _this = this;
+            $('#spiner_2').show();
             var url = "api/admin/apply_app_to_app_group";
             var sel_opt = this.m_appNameList.selectedOptions[0];
             var sel_id = sel_opt.value * 1;
@@ -221,7 +223,7 @@ var Citadel;
                 url: url,
                 data: dataObject,
                 success: function (data, textStatus, jqXHR) {
-                    Citadel.Dashboard.ForceTableRedraw(Citadel.Dashboard.m_tableGroups);
+                    $('#spiner_2').hide();
                     return false;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
@@ -244,6 +246,7 @@ var Citadel;
         };
         ApplyAppToAppGroup.prototype.Hide = function (fadeOutTimeMsec) {
             if (fadeOutTimeMsec === void 0) { fadeOutTimeMsec = 200; }
+            this.m_parentDashboard.ForceTableRedraw(this.m_parentDashboard.m_tableAppLists);
             $(this.m_overlay).fadeOut(fadeOutTimeMsec);
         };
         return ApplyAppToAppGroup;

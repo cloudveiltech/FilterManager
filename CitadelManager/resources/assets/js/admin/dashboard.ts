@@ -68,7 +68,7 @@ namespace Citadel
      * 
      * @class Dashboard
      */
-    class Dashboard
+    export class Dashboard
     {
 
         //
@@ -426,8 +426,8 @@ namespace Citadel
          * @type {DataTables.DataTable}
          * @memberOf Dashboard
          */
-        private m_tableAppLists: DataTables.DataTable;
-        private m_tableAppGroupLists: DataTables.DataTable;
+        public m_tableAppLists: DataTables.DataTable;
+        public m_tableAppGroupLists: DataTables.DataTable;
 
         /**
          * App User Activations table.
@@ -1754,11 +1754,11 @@ namespace Citadel
          * 
          * @memberOf Dashboard
          */
-        private ForceTableRedraw(table: DataTables.DataTable, resetPagination: boolean = false): void
+        public ForceTableRedraw(table: DataTables.DataTable, resetPagination: boolean = false): void
         {
             table.ajax.reload();
         }
-
+        
         /**
          * Called whenever the user clicks the sign out button.
          * 
@@ -2219,7 +2219,7 @@ namespace Citadel
         private onApplyToGroupClicked(e: MouseEvent): any
         {
             if (this.m_btnApp.checked) {
-                let apply_app_to_app_group_overlay = new ApplyAppToAppGroup();
+                let apply_app_to_app_group_overlay = new ApplyAppToAppGroup(this);
                 apply_app_to_app_group_overlay.Show();
             }
         }

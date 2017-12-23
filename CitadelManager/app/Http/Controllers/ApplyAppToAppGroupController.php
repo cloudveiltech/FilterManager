@@ -40,19 +40,21 @@ class ApplyAppToAppGroupController extends Controller
     public function applyToGroup(Request $request) {
         // Check input params
         $this->validate($request, [
-            'app_id' => 'required',
-            'group_ids' => 'required'
+            'app_id' => 'required'
         ]);
         
         $input = $request->only(['app_id', 'group_ids']);
         $app_id = $input['app_id'];        
         $group_ids = $input['group_ids'];
+
         AppGroupToApp::where('app_id', $app_id)->delete();
-        foreach($group_ids as $group_id) {
-            AppGroupToApp::Create([
-                'app_group_id' => $group_id,
-                'app_id' => $app_id
-            ]);
+        if (is_array($group_ids)) {
+            foreach($group_ids as $group_id) {
+                AppGroupToApp::Create([
+                    'app_group_id' => $group_id,
+                    'app_id' => $app_id
+                ]);
+            }
         }
         return response('', 204);
     }
