@@ -59,13 +59,15 @@ class ApplicationGroupController extends Controller
         $input = $request->only(['group_name']);
         $group = AppGroup::create($input);
         $apps_str = $request->only(['apps']);
-        $apps = explode(",", $apps_str['apps']);
-        //$arr_group_to_apps = [];
-        foreach ($apps as $app_id) {
-            AppGroupToApp::create( array(
-                "app_group_id" => $group->id,
-                "app_id" => intval($app_id)
-            ));
+        if ($apps_str['apps'] != "") {
+            $apps = explode(",", $apps_str['apps']);
+            //$arr_group_to_apps = [];
+            foreach ($apps as $app_id) {
+                AppGroupToApp::create( array(
+                    "app_group_id" => $group->id,
+                    "app_id" => intval($app_id)
+                ));
+            }
         }
         //DB::table('app_group_to_apps')->insert($app_group_to_apps);
         return response('', 204);
