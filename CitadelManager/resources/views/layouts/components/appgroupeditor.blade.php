@@ -30,7 +30,7 @@
                         </select>
                     </div>
                     <div class="cell colspan1" id="apply_togroup_actions">
-                        <br /><br /><br /><br /><div id="spiner">&nbsp;<img id="spiner_1" src="{{asset('img/loading7_navy_blue.gif')}}" width = "40px" /></div>
+                        <br /><div id="spiner">&nbsp;<img id="spiner_1" src="{{asset('img/loading7_navy_blue.gif')}}" width = "40px" /></div>
                         <button class="button primary" type="button" id="apps_source_to_target"> &gt;&gt; </button> <br />
                         <button class="button primary" type="button" id="app_source_to_target"> &gt; </button><br />
                         <button class="button primary" type="button" id="app_target_to_source"> &lt; </button><br />
@@ -39,7 +39,7 @@
                     </div>
                     
                     <div class="cell colspan5">
-                        <h3>Assigned Application List</h3>
+                        <h3>Application List (1) </h3>
                         <select id="app_target_list" multiple>
                         </select>
                     </div>

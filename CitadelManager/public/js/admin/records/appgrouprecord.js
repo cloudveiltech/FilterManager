@@ -80,7 +80,6 @@ var Citadel;
                     $('#spiner_1').hide();
                     _this.m_arrLeftApplications = data;
                     if (_this.m_appgroupId > 0) {
-                        console.log(_this.m_groupApp);
                         _this.m_groupApp.forEach(function (app) {
                             var idx = -1;
                             var sel_seq_idx = 0;

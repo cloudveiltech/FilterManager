@@ -145,7 +145,6 @@ namespace Citadel
                     $('#spiner_1').hide();
                     this.m_arrLeftApplications = data;
                     if (this.m_appgroupId > 0) {
-                        console.log(this.m_groupApp);
                         this.m_groupApp.forEach((app: any): void =>
                         {
                             let idx = -1;
@@ -391,6 +390,7 @@ namespace Citadel
 
         private getSelectedAppIds(): string {
             var str = '';
+            
             this.m_arrRightApplications.forEach((item: any): void =>
             {
                 if( str.length == 0) {
