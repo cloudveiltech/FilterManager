@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\App;
 use App\AppGroup;
+use App\AppGroupToApp;
 use Illuminate\Http\Request;
 use App\Group;
 use Log;
@@ -69,7 +70,7 @@ class ApplicationController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id) {
-        
+        AppGroupToApp::where('app_id', $id)->delete();
         $application = App::where('id', $id)->first();
         if (!is_null($application)) {
             $application->delete();
