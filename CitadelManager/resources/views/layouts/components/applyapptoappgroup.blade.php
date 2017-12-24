@@ -33,7 +33,7 @@
                 </div>
                 
                 <div class="cell colspan5">
-                    <label>App Groups that contains this application</label>
+                    <label>Selected App Groups</label>
                     <select id="apply_app_to_app_group_target_list" multiple>
                     </select>
                 </div>

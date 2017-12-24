@@ -160,20 +160,25 @@ var Citadel;
             var _this = this;
             if (this.m_sourceAppList.selectedIndex == -1)
                 return;
-            var sel_opt = this.m_sourceAppList.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
-            var idx = -1;
-            var sel_seq_idx = 0;
-            this.m_arrLeftApplications.forEach(function (item) {
-                idx++;
-                if (item.id == sel_id) {
-                    _this.m_arrRightApplications.push(item);
-                    sel_seq_idx = idx;
-                    return;
+            var _loop_1 = function () {
+                var sel_id = parseInt(this_1.m_sourceAppList.selectedOptions[i].value);
+                var idx = -1;
+                var sel_seq_idx = 0;
+                this_1.m_arrLeftApplications.forEach(function (item) {
+                    idx++;
+                    if (item.id == sel_id) {
+                        _this.m_arrRightApplications.push(item);
+                        sel_seq_idx = idx;
+                        return;
+                    }
+                });
+                if (sel_seq_idx > -1) {
+                    this_1.m_arrLeftApplications.splice(sel_seq_idx, 1);
                 }
-            });
-            if (sel_seq_idx > -1) {
-                this.m_arrLeftApplications.splice(sel_seq_idx, 1);
+            };
+            var this_1 = this;
+            for (var i = 0; i < this.m_sourceAppList.selectedOptions.length; i++) {
+                _loop_1();
             }
             this.drawLeftApplications();
             this.drawRightApplications();
@@ -182,20 +187,26 @@ var Citadel;
             var _this = this;
             if (this.m_targetAppList.selectedIndex == -1)
                 return;
-            var sel_opt = this.m_targetAppList.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
-            var idx = -1;
-            var find_id_to_remove = -1;
-            this.m_arrRightApplications.forEach(function (item) {
-                idx++;
-                if (item.id == sel_id) {
-                    find_id_to_remove = idx;
-                    _this.m_arrLeftApplications.push(item);
-                    return;
+            var _loop_2 = function () {
+                var sel_opt = this_2.m_targetAppList.selectedOptions[i];
+                var sel_id = parseInt(sel_opt.value);
+                var idx = -1;
+                var find_id_to_remove = -1;
+                this_2.m_arrRightApplications.forEach(function (item) {
+                    idx++;
+                    if (item.id == sel_id) {
+                        find_id_to_remove = idx;
+                        _this.m_arrLeftApplications.push(item);
+                        return;
+                    }
+                });
+                if (find_id_to_remove > -1) {
+                    this_2.m_arrRightApplications.splice(find_id_to_remove, 1);
                 }
-            });
-            if (find_id_to_remove > -1) {
-                this.m_arrRightApplications.splice(find_id_to_remove, 1);
+            };
+            var this_2 = this;
+            for (var i = 0; i < this.m_targetAppList.selectedOptions.length; i++) {
+                _loop_2();
             }
             this.drawLeftApplications();
             this.drawRightApplications();

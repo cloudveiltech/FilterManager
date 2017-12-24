@@ -188,22 +188,24 @@ var Citadel;
         ApplyAppgroupToUsergroup.prototype.onMoveRightClicked = function (e) {
             if (this.m_leftSelect.selectedIndex == -1)
                 return;
-            var sel_opt = this.m_leftSelect.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
-            var sel_seq_idx = this.m_unselectedGroups.indexOf(sel_id);
-            this.m_unselectedGroups.splice(sel_seq_idx, 1);
-            this.m_selectedGroups.push(sel_id);
+            for (var i = 0; i < this.m_leftSelect.selectedOptions.length; i++) {
+                var sel_id = parseInt(this.m_leftSelect.selectedOptions[i].value);
+                var sel_seq_idx = this.m_unselectedGroups.indexOf(sel_id);
+                this.m_unselectedGroups.splice(sel_seq_idx, 1);
+                this.m_selectedGroups.push(sel_id);
+            }
             this.drawLeftGroups();
             this.drawRightGroups();
         };
         ApplyAppgroupToUsergroup.prototype.onMoveLeftClicked = function (e) {
             if (this.m_rightSelect.selectedIndex == -1)
                 return;
-            var sel_opt = this.m_rightSelect.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
-            var sel_seq_idx = this.m_selectedGroups.indexOf(sel_id);
-            this.m_selectedGroups.splice(sel_seq_idx, 1);
-            this.m_unselectedGroups.push(sel_id);
+            for (var i = 0; i < this.m_rightSelect.selectedOptions.length; i++) {
+                var sel_id = parseInt(this.m_rightSelect.selectedOptions[i].value);
+                var sel_seq_idx = this.m_selectedGroups.indexOf(sel_id);
+                this.m_selectedGroups.splice(sel_seq_idx, 1);
+                this.m_unselectedGroups.push(sel_id);
+            }
             this.drawLeftGroups();
             this.drawRightGroups();
         };
@@ -211,8 +213,7 @@ var Citadel;
             var _this = this;
             $('#spiner_3').show();
             var url = "api/admin/apply_appgroup_to_usergroup";
-            var sel_opt = this.m_appGroupNameList.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
+            var sel_id = parseInt(this.m_appGroupNameList.selectedOptions[0].value);
             var dataObject = {
                 app_group_id: sel_id,
                 user_group_ids: this.m_selectedGroups

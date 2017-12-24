@@ -26,6 +26,12 @@ namespace Citadel
         private m_assignedFilterIds: Object[];
 
         private m_appConfig: Object;
+        private m_apps: any[];              // all application list
+        private m_group_to_apps: any[];     // all application_id regarding group_id
+        private m_app_groups: any[];        // all Groups 
+        private m_left_groups: any[];       // unselected groups
+        private m_right_groups: any[];      // selected groups
+        private m_selected_apps: any[];     // selected applications
 
         //
         // ──────────────────────────────────────────────────────────────────────────────── II ──────────
@@ -172,8 +178,14 @@ namespace Citadel
          * @type {HTMLTextAreaElement}
          * @memberOf GroupRecord
          */
-        private m_filteredApplicationsList: HTMLTextAreaElement;
+        //private m_filteredApplicationsList: HTMLTextAreaElement;
 
+        private m_appGroupSourceList:HTMLSelectElement;
+        private m_appGroupTargetList:HTMLSelectElement;
+        private m_appGroupsSourceToTargetBtn: HTMLButtonElement;
+        private m_appGroupSourceToTargetBtn: HTMLButtonElement;
+        private m_appGroupTargetToSourceBtn: HTMLButtonElement;
+        private m_appGroupsTargetToSourceBtn: HTMLButtonElement;
         /**
          * Radio button for choosing what type of list the filtered apps list, if
          * anything is defined, is supposed to be. Either a whitelist where the 
@@ -390,10 +402,8 @@ namespace Citadel
         {
             super();
             this.ConstructFormReferences();
-
             this.ConstructFilterAssignmentArea();
         }
-
         private ConstructFormReferences(): void
         {
             this.m_mainForm = document.querySelector('#editor_group_form') as HTMLFormElement;
@@ -450,10 +460,17 @@ namespace Citadel
                 }
             };
 
-            this.m_filteredApplicationsList = document.querySelector('#group_filtered_applications') as HTMLTextAreaElement;
+            //this.m_filteredApplicationsList = document.querySelector('#group_filtered_applications') as HTMLTextAreaElement;
             this.m_filteredApplicationsAsBlacklistInput = document.querySelector('#group_filteredapps_radio_blacklist') as HTMLInputElement;
             this.m_filteredApplicationsAsWhitelistInput = document.querySelector('#group_filteredapps_radio_whitelist') as HTMLInputElement;
 
+            this.m_appGroupSourceList = document.querySelector('#appgroup_source_list') as HTMLSelectElement;
+            this.m_appGroupTargetList = document.querySelector('#appgroup_target_list') as HTMLSelectElement;
+            this.m_appGroupsSourceToTargetBtn = document.querySelector('#appgroups_source_to_target') as HTMLButtonElement;
+            this.m_appGroupSourceToTargetBtn = document.querySelector('#appgroup_source_to_target') as HTMLButtonElement;
+            this.m_appGroupTargetToSourceBtn = document.querySelector('#appgroup_target_to_source') as HTMLButtonElement;
+            this.m_appGroupsTargetToSourceBtn = document.querySelector('#appgroups_target_to_source') as HTMLButtonElement;
+            
             this.m_submitBtn = document.querySelector('#group_editor_submit') as HTMLButtonElement;
             this.m_cancelBtn = document.querySelector('#group_editor_cancel') as HTMLButtonElement;
 
@@ -612,6 +629,23 @@ namespace Citadel
                 this.StopEditing();
             });
 
+            this.m_appGroupsSourceToTargetBtn.onclick = ((e: MouseEvent): any =>
+            {
+                this.onMoveRightAllClicked(e);
+            });
+            this.m_appGroupSourceToTargetBtn.onclick = ((e: MouseEvent): any =>
+            {
+                this.onMoveRightClicked(e);
+            });
+            this.m_appGroupTargetToSourceBtn.onclick = ((e: MouseEvent): any =>
+            {
+                this.onMoveLeftClicked(e);
+            });
+            this.m_appGroupsTargetToSourceBtn.onclick = ((e: MouseEvent): any =>
+            {
+                this.onMoveLeftAllClicked(e);
+            });
+
             this.m_submitBtn.onclick = ((e: MouseEvent): any =>
             {
                 console.log("submitting");
@@ -664,9 +698,10 @@ namespace Citadel
             // Get all listed apps to filter, keep only unique entries, and
             // then based on the radio selected, set to either whitelist or 
             // blacklist.
-            let whitelistedApplications = new Array<String>();
-            let blacklistedApplications = new Array<String>();
+            //let whitelistedApplications = new Array<String>();
+            //let blacklistedApplications = new Array<String>();
 
+            /*
             var allFilteredAppLines = <Array<String>>this.m_filteredApplicationsList.value.trim().split('\n');
             if (allFilteredAppLines != null)
             {
@@ -684,13 +719,13 @@ namespace Citadel
 
                 allFilteredAppLines = distinctFilteredApps;
             }
-
+            
             let filterAppsKey = 'BlacklistedApplications';
             if (!this.m_filteredApplicationsAsBlacklistInput.checked)
             {
                 filterAppsKey = 'WhitelistedApplications';
             }
-
+            */
             let appConfig =
                 {
                     'UpdateFrequency' : this.m_groupUpdateCheckFrequencyInput.valueAsNumber,
@@ -709,11 +744,91 @@ namespace Citadel
                     'UpdateChannel' : this.m_updateChannelSelectInput.options[this.m_updateChannelSelectInput.selectedIndex].value,
                 };
 
-            appConfig[filterAppsKey] = allFilteredAppLines;
+            //appConfig[filterAppsKey] = allFilteredAppLines;
 
             this.m_appConfig = appConfig;
         }
 
+        private getGroupItem(group_id) {
+            var group_item = null;
+            this.m_app_groups.forEach((item: any): void =>
+            {
+                if(item.id == group_id) {
+                    group_item = item;
+                    return;
+                }
+            });
+            return group_item;
+        }
+        private draw_left_groups()
+        {
+            $(this.m_appGroupSourceList).empty(); 
+            if(this.m_left_groups.length == 0) return;
+            this.m_left_groups.forEach((group_id): void =>
+            {
+                var newOption = document.createElement("option");
+                var item = this.getGroupItem(group_id);
+                newOption.text = item.group_name;
+                newOption.value = item.id;                
+                this.m_appGroupSourceList.add(newOption);
+            });
+        }
+
+        private draw_right_groups()
+        {
+            $(this.m_appGroupTargetList).empty();
+            if(this.m_right_groups.length == 0) return;
+            this.m_right_groups.forEach((group_id): void =>
+            {
+                var newOption = document.createElement("option");
+                var item = this.getGroupItem(group_id);
+                newOption.text = item.group_name;
+                newOption.value = item.id;                
+                this.m_appGroupTargetList.add(newOption);
+            });
+        }
+
+        private get_appications_by_groupid(group_id) {
+            let arr = [];
+            this.m_group_to_apps.forEach((group_item): void =>
+            {
+                if(group_item.app_group_id == group_id) {
+                    arr.push(group_item.app_id);
+                }
+            });
+            return arr;
+        }
+        private get_application(app_id) {
+            var item = {
+                name: 'none'
+            };
+            this.m_apps.forEach((app): void => {
+                if(app.id == app_id) {
+                    item = app;
+                    return;
+                }
+            });
+            return item;
+        }
+        private draw_selected_applications()
+        {
+            var str_html = '';
+            this.m_selected_apps = [];
+            if(this.m_right_groups.length >0) {
+                this.m_right_groups.forEach((group_id): void =>
+                {
+                    var app_ids = this.get_appications_by_groupid(group_id); 
+                    for(var i = 0; i < app_ids.length; i++) {
+                        if(this.m_selected_apps.indexOf(app_ids[i]) < 0) {
+                            this.m_selected_apps.push(app_ids[i]);
+                            let app_item = this.get_application(app_ids[i]);
+                            str_html += '<div>' + app_item.name + '</div>';
+                        }
+                    }
+                });
+            }
+            $('#selected_applications').html(str_html);
+        }
         /**
          * Removes all form validation error messages from the UI.
          * 
@@ -732,6 +847,75 @@ namespace Citadel
             }
         }
 
+        private loadAppGroupDatas(flag: boolean): void {
+            this.m_apps = [];
+            this.m_app_groups = [];
+            this.m_submitBtn.disabled = true;
+            $("#spiner_4").show();
+            var url = 'api/admin/get_app_data';
+            if (flag) {
+                url += '/' + this.m_groupId; 
+            }   
+            let ajaxSettings: JQueryAjaxSettings =
+            {
+                method: "GET",
+                timeout: 60000,
+                url: url,
+                data: {},
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
+                {
+                    this.m_apps = data.apps;
+                    this.m_app_groups = data.app_groups;
+                    this.m_group_to_apps = data.group_to_apps;
+                    if(flag) {
+                        let selected_app_groups = data.selected_app_groups;
+                        this.m_left_groups = [];
+                        this.m_right_groups = [];
+                        if(selected_app_groups.length > 0) {
+                            this.m_app_groups.forEach((app_group: any): void =>
+                            {                                
+                                this.m_left_groups.push(app_group.id);
+                            });
+                            selected_app_groups.forEach((app_group: any): void =>
+                            {
+                                this.m_right_groups.push(app_group.app_group_id);
+                                let pos = this.m_left_groups.indexOf(app_group.app_group_id);
+                                this.m_left_groups.splice(pos, 1);
+                            });   
+                        } else {
+                            this.m_app_groups.forEach((app_group: any): void =>
+                            {
+                                this.m_left_groups.push(app_group.id);
+                            });    
+                        }
+                    } else {
+                        this.m_left_groups = [];
+                        this.m_right_groups = [];
+                        this.m_app_groups.forEach((app_group: any): void =>
+                        {
+                            this.m_left_groups.push(app_group.id);
+                        });
+                    }
+                    this.draw_left_groups();
+                    this.draw_right_groups();
+                    this.draw_selected_applications();
+                    $("#spiner_4").hide();
+                    this.m_submitBtn.disabled = false;
+                    return false;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                {
+                    $("#spiner_4").hide();
+                    this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                    setTimeout(() => { this.m_progressWait.Hide(); }, 5000);
+
+                    if (jqXHR.status > 399 && jqXHR.status < 500){
+                    } else {
+                    }
+                }
+            }
+            $.get(ajaxSettings);
+        }
         public StartEditing(allFilters: DataTables.DataTable, data: Object = null, cloneData: Object = null): void
         {
             let clearListContainer = ((container: HTMLDivElement): void =>
@@ -760,7 +944,7 @@ namespace Citadel
             this.m_mainForm.reset();
 
             // Clear out the filtered apps list.
-            this.m_filteredApplicationsList.value = "";
+            //this.m_filteredApplicationsList.value = "";
 
             // Reset config controls.
             this.m_antiTamperNoTerminateInput.checked = false;
@@ -884,7 +1068,7 @@ namespace Citadel
                     {
                         this.m_editorTitle.innerText = "Create New Group";
                         this.m_submitBtn.innerText = "Create Group";
-
+                        this.loadAppGroupDatas(false);
                         // Group is enabled by default.
                         this.m_isActiveInput.checked = true;
                     }
@@ -942,7 +1126,8 @@ namespace Citadel
                         {
                             this.m_groupSecondaryDnsInput.value = '';
                         }
-
+                        this.loadAppGroupDatas(true);
+                        /*
                         let savedFilteredAppsList: Array<String>;
 
                         if ('BlacklistedApplications' in this.m_appConfig)
@@ -975,7 +1160,7 @@ namespace Citadel
                                     this.m_filteredApplicationsList.value += line + "\n";
                                 }
                             });
-                        }
+                        }*/
                     }
                     break;
             }
@@ -1032,6 +1217,8 @@ namespace Citadel
                     this.m_groupSecondaryDnsInput.value = '';
                 }
 
+                this.loadAppGroupDatas(true);
+                /*
                 let savedFilteredAppsList: Array<String>;
 
                 if ('BlacklistedApplications' in this.m_appConfig)
@@ -1064,7 +1251,7 @@ namespace Citadel
                             this.m_filteredApplicationsList.value += line + "\n";
                         }
                     });
-                }
+                } */
             }
 
             this.m_mainForm.onsubmit = ((e: Event): any =>
@@ -1106,6 +1293,54 @@ namespace Citadel
                     'app_cfg': JSON.stringify(this.m_appConfig)
                 };
             return obj;
+        }
+
+        public onMoveRightAllClicked(e: MouseEvent): void {
+            this.m_left_groups.forEach((group_id): void =>
+            {
+                this.m_right_groups.push(group_id);
+            });
+            this.m_left_groups = [];
+            this.draw_left_groups();
+            this.draw_right_groups();
+            this.draw_selected_applications();
+        }
+
+        public onMoveLeftAllClicked(e: MouseEvent): void {
+            this.m_right_groups.forEach((group_id): void =>
+            {
+                this.m_left_groups.push(group_id);
+            });
+            this.m_right_groups = [];
+            this.draw_left_groups();
+            this.draw_right_groups();
+            this.draw_selected_applications();
+        }
+
+        public onMoveRightClicked(e: MouseEvent): void {
+            if(this.m_appGroupSourceList.selectedIndex == -1) return;
+            for (var i = 0; i < this.m_appGroupSourceList.selectedOptions.length; i++) {
+                let sel_id = parseInt(this.m_appGroupSourceList.selectedOptions[i].value);                
+                let sel_seq_idx = this.m_left_groups.indexOf(sel_id);
+                this.m_left_groups.splice(sel_seq_idx,1);
+                this.m_right_groups.push(sel_id);
+            }
+            this.draw_left_groups();
+            this.draw_right_groups();
+            this.draw_selected_applications();
+        }
+
+        public onMoveLeftClicked(e: MouseEvent): void {
+            if(this.m_appGroupTargetList.selectedIndex == -1) return;
+            for (var i = 0; i < this.m_appGroupTargetList.selectedOptions.length; i++) {                
+                let sel_id = parseInt(this.m_appGroupTargetList.selectedOptions[i].value);
+                let sel_seq_idx = this.m_right_groups.indexOf(sel_id);
+                this.m_right_groups.splice(sel_seq_idx,1);
+                this.m_left_groups.push(sel_id);
+            }
+            this.draw_left_groups();
+            this.draw_right_groups();
+            this.draw_selected_applications();
         }
     }
 

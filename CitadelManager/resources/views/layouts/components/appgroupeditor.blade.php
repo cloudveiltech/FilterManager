@@ -25,7 +25,7 @@
                 <br />
                 <div class="row cell-auto-size" align="center">                    
                     <div class="cell colspan5">
-                        <h3>Application List</h3>
+                        <h3>Applications</h3>
                         <select id="app_source_list" multiple>
                         </select>
                     </div>
@@ -39,7 +39,7 @@
                     </div>
                     
                     <div class="cell colspan5">
-                        <h3>Application List (1) </h3>
+                        <h3>Selected Applications </h3>
                         <select id="app_target_list" multiple>
                         </select>
                     </div>
