@@ -343,6 +343,7 @@ var Citadel;
                 success: function (data, textStatus, jqXHR) {
                     _this.m_apps = data.apps;
                     _this.m_app_groups = data.app_groups;
+                    console.log(_this.m_app_groups);
                     _this.m_group_to_apps = data.group_to_apps;
                     if (flag) {
                         var selected_app_groups = data.selected_app_groups;

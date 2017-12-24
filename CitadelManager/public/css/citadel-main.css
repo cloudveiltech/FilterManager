@@ -141,9 +141,10 @@ Group editor.
 .error-div{margin-top: 30px;}
 #group_filter_list {
     position: absolute;
-    width:200px;
+    width:250px;
     right: 20px;
     top: -1px;
+    text-align: right;
 }
 .width-70-percent{
     width: 70% !important;
