@@ -11,6 +11,10 @@ namespace App\Http\Controllers;
 
 use App\Group;
 use App\User;
+use App\App;
+use App\AppGroup;
+use App\AppGroupToApp;
+use App\UserGroupToAppGroup;
 use App\GroupFilterAssignment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -183,5 +187,28 @@ class GroupController extends Controller
         }
         
         return response('', 204);
+    }
+
+    public function get_app_data() {
+        $apps = App::get();
+        $app_groups = AppGroup::get();
+        $group_to_apps = AppGroupToApp::get();
+        return response()->json([
+            'apps'=>$apps, 
+            'app_groups'=>$app_groups,
+            'group_to_apps'=>$group_to_apps
+            ]);
+    }
+
+    public function get_app_data_with_groupid($group_id) {
+        $apps = App::get();
+        $app_groups = AppGroup::get();
+        $group_to_apps = AppGroupToApp::get();
+        $selected_app_groups = UserGroupToAppGroup::where('user_group_id', $group_id)->get();
+        return response()->json([
+            'apps'=>$apps, 
+            'app_groups'=>$app_groups,
+            'group_to_apps'=>$group_to_apps,
+            'selected_app_groups'=>$selected_app_groups]);
     }
 }

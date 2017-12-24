@@ -240,21 +240,22 @@ namespace Citadel
 
         public onMoveRightClicked(e: MouseEvent): void {
             if(this.m_sourceAppList.selectedIndex == -1) return;
-            let sel_opt = this.m_sourceAppList.selectedOptions[0];
-            let sel_id = sel_opt.value * 1;
-            let idx = -1;
-            let sel_seq_idx = 0;
-            this.m_arrLeftApplications.forEach((item: any): void =>
-            {
-                idx ++;
-                if(item.id == sel_id) {
-                    this.m_arrRightApplications.push(item);
-                    sel_seq_idx = idx;
-                    return;                    
+            for(var i = 0; i < this.m_sourceAppList.selectedOptions.length; i++) {
+                let sel_id = parseInt(this.m_sourceAppList.selectedOptions[i].value);
+                let idx = -1;
+                let sel_seq_idx = 0;
+                this.m_arrLeftApplications.forEach((item: any): void =>
+                {
+                    idx ++;
+                    if(item.id == sel_id) {
+                        this.m_arrRightApplications.push(item);
+                        sel_seq_idx = idx;
+                        return;                    
+                    }
+                });
+                if(sel_seq_idx > -1) {
+                    this.m_arrLeftApplications.splice(sel_seq_idx,1);
                 }
-            });
-            if(sel_seq_idx > -1) {
-                this.m_arrLeftApplications.splice(sel_seq_idx,1);
             }
             
             this.drawLeftApplications();
@@ -264,24 +265,26 @@ namespace Citadel
 
         public onMoveLeftClicked(e: MouseEvent): void {
             if(this.m_targetAppList.selectedIndex == -1) return;
-            let sel_opt = this.m_targetAppList.selectedOptions[0];
-            let sel_id = sel_opt.value * 1;
-            let idx = -1;
-            let find_id_to_remove = -1;
-            this.m_arrRightApplications.forEach((item: any): void =>
-            {
-                idx ++;
-                if(item.id == sel_id) {
-                    find_id_to_remove = idx;
-                    this.m_arrLeftApplications.push(item);
-                    return;                    
-                }
-            });
+            for(var i = 0; i < this.m_targetAppList.selectedOptions.length; i++) {
+                let sel_opt = this.m_targetAppList.selectedOptions[i];
+                let sel_id = parseInt(sel_opt.value);
+                let idx = -1;
+                let find_id_to_remove = -1;
+                this.m_arrRightApplications.forEach((item: any): void =>
+                {
+                    idx ++;
+                    if(item.id == sel_id) {
+                        find_id_to_remove = idx;
+                        this.m_arrLeftApplications.push(item);
+                        return;                    
+                    }
+                });
 
-            if(find_id_to_remove > -1) {
-                this.m_arrRightApplications.splice(find_id_to_remove,1);
+                if(find_id_to_remove > -1) {
+                    this.m_arrRightApplications.splice(find_id_to_remove,1);
+                }
+                
             }
-            
             this.drawLeftApplications();
             this.drawRightApplications();
         }

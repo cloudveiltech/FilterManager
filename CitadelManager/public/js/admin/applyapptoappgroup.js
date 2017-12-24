@@ -163,8 +163,7 @@ var Citadel;
             });
         };
         ApplyAppToAppGroup.prototype.onAppNameChanged = function (e) {
-            var sel_opt = this.m_appNameList.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
+            var sel_id = parseInt(this.m_appNameList.selectedOptions[0].value);
             this.loadSelectedGroups(sel_id);
         };
         ApplyAppToAppGroup.prototype.onMoveRightAllClicked = function (e) {
@@ -188,22 +187,24 @@ var Citadel;
         ApplyAppToAppGroup.prototype.onMoveRightClicked = function (e) {
             if (this.m_leftSelect.selectedIndex == -1)
                 return;
-            var sel_opt = this.m_leftSelect.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
-            var sel_seq_idx = this.m_unselectedGroups.indexOf(sel_id);
-            this.m_unselectedGroups.splice(sel_seq_idx, 1);
-            this.m_selectedGroups.push(sel_id);
+            for (var i = 0; i < this.m_leftSelect.selectedOptions.length; i++) {
+                var sel_id = parseInt(this.m_leftSelect.selectedOptions[i].value);
+                var sel_seq_idx = this.m_unselectedGroups.indexOf(sel_id);
+                this.m_unselectedGroups.splice(sel_seq_idx, 1);
+                this.m_selectedGroups.push(sel_id);
+            }
             this.drawLeftGroups();
             this.drawRightGroups();
         };
         ApplyAppToAppGroup.prototype.onMoveLeftClicked = function (e) {
             if (this.m_rightSelect.selectedIndex == -1)
                 return;
-            var sel_opt = this.m_rightSelect.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
-            var sel_seq_idx = this.m_selectedGroups.indexOf(sel_id);
-            this.m_selectedGroups.splice(sel_seq_idx, 1);
-            this.m_unselectedGroups.push(sel_id);
+            for (var i = 0; i < this.m_rightSelect.selectedOptions.length; i++) {
+                var sel_id = parseInt(this.m_rightSelect.selectedOptions[i].value);
+                var sel_seq_idx = this.m_selectedGroups.indexOf(sel_id);
+                this.m_selectedGroups.splice(sel_seq_idx, 1);
+                this.m_unselectedGroups.push(sel_id);
+            }
             this.drawLeftGroups();
             this.drawRightGroups();
         };

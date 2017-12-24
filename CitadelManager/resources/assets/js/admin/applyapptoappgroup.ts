@@ -286,9 +286,8 @@ namespace Citadel
             });
         }
 
-        public onAppNameChanged(e) {
-            let sel_opt = this.m_appNameList.selectedOptions[0];
-            let sel_id = sel_opt.value * 1;
+        public onAppNameChanged(e) {            
+            let sel_id = parseInt(this.m_appNameList.selectedOptions[0].value);
             this.loadSelectedGroups(sel_id);
         }
         /**
@@ -321,11 +320,12 @@ namespace Citadel
 
         public onMoveRightClicked(e: MouseEvent): void {
             if(this.m_leftSelect.selectedIndex == -1) return;
-            let sel_opt = this.m_leftSelect.selectedOptions[0];
-            let sel_id = sel_opt.value * 1;
-            let sel_seq_idx = this.m_unselectedGroups.indexOf(sel_id);
-            this.m_unselectedGroups.splice(sel_seq_idx,1);
-            this.m_selectedGroups.push(sel_id);
+            for (var i = 0; i < this.m_leftSelect.selectedOptions.length; i++) {
+                let sel_id = parseInt(this.m_leftSelect.selectedOptions[i].value);                
+                let sel_seq_idx = this.m_unselectedGroups.indexOf(sel_id);
+                this.m_unselectedGroups.splice(sel_seq_idx,1);
+                this.m_selectedGroups.push(sel_id);
+            }
             
             this.drawLeftGroups();
             this.drawRightGroups();
@@ -334,12 +334,12 @@ namespace Citadel
 
         public onMoveLeftClicked(e: MouseEvent): void {
             if(this.m_rightSelect.selectedIndex == -1) return;
-            let sel_opt = this.m_rightSelect.selectedOptions[0];
-            let sel_id = sel_opt.value * 1;
-            let sel_seq_idx = this.m_selectedGroups.indexOf(sel_id);
-            this.m_selectedGroups.splice(sel_seq_idx,1);
-            this.m_unselectedGroups.push(sel_id);
-            
+            for (var i = 0; i < this.m_rightSelect.selectedOptions.length; i++) {                
+                let sel_id = parseInt(this.m_rightSelect.selectedOptions[i].value);
+                let sel_seq_idx = this.m_selectedGroups.indexOf(sel_id);
+                this.m_selectedGroups.splice(sel_seq_idx,1);
+                this.m_unselectedGroups.push(sel_id);
+            }
             this.drawLeftGroups();
             this.drawRightGroups();
             

@@ -120,13 +120,13 @@ Group editor.
 #div_ea30_14{padding: 20px;}
 #label_ea30_10{margin-left: 2px;}
 #rule_selection_tab{background: transparent;}
-#div_ea30_15{font-size: 14px; margin: 10px;}
-#div_ea30_15 p { padding-left:30px; text-indent: -12px; color:darkgrey}
+.info_div{font-size: 14px; margin: 10px;}
+.info_div p { padding-left:30px; text-indent: -12px; color:darkgrey; margin: 0;}
 #hr_ea30_2{width: 100%}
 #div_ea30_16{width: 100%;}
 #div_ea30_17{margin: 4px;}
-#group_appgroup_filters_search_input{color: white;}
-#group_appgroup_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden; word-wrap: break-word;}
+#group_blacklist_filters_search_input{color: white;}
+#group_blacklist_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden; word-wrap: break-word;}
 #div_ea30_18{margin: 4px;}
 #group_whitelist_filters_search_input{color: white;}
 #group_whitelist_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden; word-wrap: break-word;}
@@ -137,16 +137,55 @@ Group editor.
 #group_unassigned_filters_search_input{color: white;}
 #group_unassigned_filters{color: white; background: transparent; height: 300px; width: auto; overflow-y: auto; overflow-x: hidden; word-wrap: break-word;}
 #app_filtering_tab{background: transparent;}
-#div_ea30_21{width: 100%;}
-#div_ea30_22{height: 100%;}
-#div_ea30_23{margin-left: 5px; margin-right: 5px; height: 100%;}
-#hr_ea30_3{width: 100%}
 #group_filtered_applications{width: 100%; height: 100%; min-height: 300px; resize: none; overflow-y: scroll;}
-#div_ea30_24{margin-left: 5px; margin-right: 5px;}
-#hr_ea30_4{width: 100%}
-#hr_ea30_5{width: 100%}
-#div_ea30_25{margin-top: 30px;}
+.error-div{margin-top: 30px;}
+#group_filter_list {
+    position: absolute;
+    width:200px;
+    right: 20px;
+    top: -1px;
+}
+.width-70-percent{
+    width: 70% !important;
+}
+.width-40-percent{
+    width: 40% !important;
+}
+.width-20-percent{
+    width: 20% !important;
+}
+.selected_applications_h3 {
+    margin-top: 16px;
+}
+#selected_applications{
+    width: 100%;
+    height: 273px;
+    overflow: auto;
+    border:1px dashed #ccc;
+}
+.width-30-percent{
+    width: 30% !important;
+    margin: 0px !important;
+}
+#appgroup_source_list {
+    width: 100%;
+    height: 100%;
+}
 
+#appgroup_target_list {
+    width: 100%;
+    height: 100%;
+}
+.padding-13 {
+    padding-left:18px;
+}
+#group_filter_list .caption {
+    font-size: 14px !important;
+}
+.list-control{
+    display:flex;
+    flex-direction: row;
+}
 /*
 List uploader.
 */
@@ -171,7 +210,7 @@ User editor.
     
 }
 .grid .row {
-    margin-bottom: 20px !important;
+    margin-bottom: 20px;
 }
 .grid h2 {
     margin: 0 !important;
@@ -179,6 +218,9 @@ User editor.
 .check-label{
     margin-top: -1rem !important;
     height: 3.725rem !important;
+}
+.no-bottom {
+    margin-bottom: 0px !important;
 }
 #overlay_user_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; overflow: auto}
 #div_08c2_0{width: 90%; height: 500px; left:5%; top:40%; margin-left: 0px; margin-top: -250px; position:absolute; color: white;}

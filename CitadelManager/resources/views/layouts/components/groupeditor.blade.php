@@ -181,7 +181,7 @@
                 <!-- Filter rules selection tab. -->
                 <div class="frame"  id="rule_selection_tab">
 
-                    <div id="div_ea30_15">
+                    <div class="info_div">
                         <p><span class="mif-filter fg-green" ></span>&nbsp;&nbsp;&nbsp;Filtering rules. These match specific request strings.</p>
                         <p><span class="mif-language"></span>&nbsp;&nbsp;&nbsp;Natural Language Processing. These categories will cause a block action when the text payload of a website is deemed to belong to selected categories.</p>
                         <p><span class="mif-warning fg-red"></span>&nbsp;&nbsp;&nbsp;Text triggers. These will cause blocking to happen if any of their content is detected in any text payload. Use these sparingly, in fact you should probably only use triggers for pornography.</p>                        
@@ -189,7 +189,6 @@
 
                     <br>
                     <hr class="thin" id="hr_ea30_2">
-                    <br>
 
                     <div class="grid" id="div_ea30_16">
                         <div class="row cells4">
@@ -248,46 +247,58 @@
 
                 <!-- Application filtering tab. -->
                 <div class="frame"  id="app_filtering_tab">
-                    <div class="grid" id="div_ea30_21">
-                        <div class="row cells5" id="div_ea30_22">
-                            <div class="cell colspan3" id="div_ea30_23">
-
-                                <h2><small>Apps To Filter</small></h2>
-                                <hr class="thin" id="hr_ea30_3">
-                                <br>
-                                <textarea id="group_filtered_applications" ></textarea>
+                    <div class="info_div">
+                        <p><span class="mif-filter fg-green" ></span>&nbsp;&nbsp;&nbsp;List executable names, including extension, in the box on the left.<br />
+                        Select whitelist if you want the listed apps to be excluded from filtering while all others are filtered. <br />
+                        Select blacklist if you want only the specified applications to be forced through the filter.
+                        Leave empty to force all traffic through the filter.
+                        </p>
+                    </div>
+                    <div class="grid">
+                        <div class="row cells5 no-bottom">
+                            <div class="cell width-70-percent">
+                                <h2><small>Apps To Filter</small>
+                                    <div id="group_filter_list">
+                                        <label class="input-control radio">
+                                            <input id="group_filteredapps_radio_blacklist" type="radio" name="n1" checked>
+                                            <span class="check"></span>
+                                            <span class="caption">Blacklist</span>
+                                        </label>
+                                        <label class="input-control radio">
+                                            <input id="group_filteredapps_radio_whitelist" type="radio" name="n1">
+                                            <span class="check"></span>
+                                            <span class="caption">Whitelist</span>
+                                        </label>
+                                    </div>
+                                </h2>
+                                <hr class="thin">
+                                <div class="list-control" align="center">                    
+                                    <div class="width-40-percent">
+                                        <h3>App Group List</h3>
+                                        <select id="appgroup_source_list" multiple>
+                                        </select>
+                                    </div>
+                                    <div class="width-20-percent" id="apply_togroup_actions">
+                                        <br /><br /><div id="spiner">&nbsp;<img id="spiner_4" src="{{asset('img/loading7_navy_blue.gif')}}" width = "40px" /></div>
+                                        <button class="button primary" type="button" id="appgroups_source_to_target"> &gt;&gt; </button> <br />
+                                        <button class="button primary" type="button" id="appgroup_source_to_target"> &gt; </button><br />
+                                        <button class="button primary" type="button" id="appgroup_target_to_source"> &lt; </button><br />
+                                        <button class="button primary" type="button" id="appgroups_target_to_source"> &lt;&lt;  </button><br />
+                                        
+                                    </div>
+                                    
+                                    <div class="width-40-percent">
+                                        <h3>Selected List </h3>
+                                        <select id="appgroup_target_list" multiple>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="cell" id="div_ea30_24">
-
-                                <h2><small>App List Function</small></h2>
-                                <hr class="thin" id="hr_ea30_4">
-                                <br>
-
-                                <label class="input-control radio">
-                                    <input id="group_filteredapps_radio_blacklist" type="radio" name="n1" checked>
-                                    <span class="check"></span>
-                                    <span class="caption">Blacklist</span>
-                                </label>
-                                <br>
-                                <label class="input-control radio">
-                                    <input id="group_filteredapps_radio_whitelist" type="radio" name="n1">
-                                    <span class="check"></span>
-                                    <span class="caption">Whitelist</span>
-                                </label>
-
-                                <br>
-                                <br>
-
-                                <div>
-                                    <small>
-                                    List executable names, including extension, in the box on the left.
-                                    <br>
-                                    Select whitelist if you want the listed apps to be excluded from filtering while all others are filtered.
-                                    <br> 
-                                    Select blacklist if you want only the specified applications to be forced through the filter.
-                                    <br>
-                                    Leave empty to force all traffic through the filter.
-                                    </small>
+                            <div class="cell width-30-percent padding-13">
+                                <h2><small>App List</small></h2>
+                                <hr class="thin">
+                                <h3 class='selected_applications_h3'>Applications </h3>
+                                <div id="selected_applications">
                                 </div>
                             </div>
                         </div>
@@ -306,7 +317,7 @@
 
         <br/>
 
-        <div class="row cell-auto-size" id="div_ea30_25">
+        <div class="row cell-auto-size error-div">
             <div id="group_form_errors">
             </div>
         </div>

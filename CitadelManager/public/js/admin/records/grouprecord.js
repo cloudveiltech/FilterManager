@@ -84,9 +84,14 @@ var Citadel;
                     inputBox.valueAsNumber = 0;
                 }
             };
-            this.m_filteredApplicationsList = document.querySelector('#group_filtered_applications');
             this.m_filteredApplicationsAsBlacklistInput = document.querySelector('#group_filteredapps_radio_blacklist');
             this.m_filteredApplicationsAsWhitelistInput = document.querySelector('#group_filteredapps_radio_whitelist');
+            this.m_appGroupSourceList = document.querySelector('#appgroup_source_list');
+            this.m_appGroupTargetList = document.querySelector('#appgroup_target_list');
+            this.m_appGroupsSourceToTargetBtn = document.querySelector('#appgroups_source_to_target');
+            this.m_appGroupSourceToTargetBtn = document.querySelector('#appgroup_source_to_target');
+            this.m_appGroupTargetToSourceBtn = document.querySelector('#appgroup_target_to_source');
+            this.m_appGroupsTargetToSourceBtn = document.querySelector('#appgroups_target_to_source');
             this.m_submitBtn = document.querySelector('#group_editor_submit');
             this.m_cancelBtn = document.querySelector('#group_editor_cancel');
             this.InitButtonHandlers();
@@ -174,6 +179,18 @@ var Citadel;
             this.m_cancelBtn.onclick = (function (e) {
                 _this.StopEditing();
             });
+            this.m_appGroupsSourceToTargetBtn.onclick = (function (e) {
+                _this.onMoveRightAllClicked(e);
+            });
+            this.m_appGroupSourceToTargetBtn.onclick = (function (e) {
+                _this.onMoveRightClicked(e);
+            });
+            this.m_appGroupTargetToSourceBtn.onclick = (function (e) {
+                _this.onMoveLeftClicked(e);
+            });
+            this.m_appGroupsTargetToSourceBtn.onclick = (function (e) {
+                _this.onMoveLeftAllClicked(e);
+            });
             this.m_submitBtn.onclick = (function (e) {
                 console.log("submitting");
                 if (_this.m_mainForm.onsubmit != null) {
@@ -208,24 +225,6 @@ var Citadel;
             collectSelected(this.m_whitelistFiltersContainer, false, true, false);
             collectSelected(this.m_bypassFiltersContainer, false, false, true);
             this.m_assignedFilterIds = allAssignedFilters;
-            var whitelistedApplications = new Array();
-            var blacklistedApplications = new Array();
-            var allFilteredAppLines = this.m_filteredApplicationsList.value.trim().split('\n');
-            if (allFilteredAppLines != null) {
-                var uniqueFilteredApps_1 = {};
-                var distinctFilteredApps_1 = [];
-                allFilteredAppLines.forEach(function (value) {
-                    if (typeof (uniqueFilteredApps_1[value]) == "undefined") {
-                        distinctFilteredApps_1.push(value);
-                    }
-                    uniqueFilteredApps_1[value] = 0;
-                });
-                allFilteredAppLines = distinctFilteredApps_1;
-            }
-            var filterAppsKey = 'BlacklistedApplications';
-            if (!this.m_filteredApplicationsAsBlacklistInput.checked) {
-                filterAppsKey = 'WhitelistedApplications';
-            }
             var appConfig = {
                 'UpdateFrequency': this.m_groupUpdateCheckFrequencyInput.valueAsNumber,
                 'PrimaryDns': this.m_groupPrimaryDnsInput.value,
@@ -242,8 +241,82 @@ var Citadel;
                 'MaxTextTriggerScanningSize': this.m_textTriggerMaxSizeInput.valueAsNumber,
                 'UpdateChannel': this.m_updateChannelSelectInput.options[this.m_updateChannelSelectInput.selectedIndex].value,
             };
-            appConfig[filterAppsKey] = allFilteredAppLines;
             this.m_appConfig = appConfig;
+        };
+        GroupRecord.prototype.getGroupItem = function (group_id) {
+            var group_item = null;
+            this.m_app_groups.forEach(function (item) {
+                if (item.id == group_id) {
+                    group_item = item;
+                    return;
+                }
+            });
+            return group_item;
+        };
+        GroupRecord.prototype.draw_left_groups = function () {
+            var _this = this;
+            $(this.m_appGroupSourceList).empty();
+            if (this.m_left_groups.length == 0)
+                return;
+            this.m_left_groups.forEach(function (group_id) {
+                var newOption = document.createElement("option");
+                var item = _this.getGroupItem(group_id);
+                newOption.text = item.group_name;
+                newOption.value = item.id;
+                _this.m_appGroupSourceList.add(newOption);
+            });
+        };
+        GroupRecord.prototype.draw_right_groups = function () {
+            var _this = this;
+            $(this.m_appGroupTargetList).empty();
+            if (this.m_right_groups.length == 0)
+                return;
+            this.m_right_groups.forEach(function (group_id) {
+                var newOption = document.createElement("option");
+                var item = _this.getGroupItem(group_id);
+                newOption.text = item.group_name;
+                newOption.value = item.id;
+                _this.m_appGroupTargetList.add(newOption);
+            });
+        };
+        GroupRecord.prototype.get_appications_by_groupid = function (group_id) {
+            var arr = [];
+            this.m_group_to_apps.forEach(function (group_item) {
+                if (group_item.app_group_id == group_id) {
+                    arr.push(group_item.app_id);
+                }
+            });
+            return arr;
+        };
+        GroupRecord.prototype.get_application = function (app_id) {
+            var item = {
+                name: 'none'
+            };
+            this.m_apps.forEach(function (app) {
+                if (app.id == app_id) {
+                    item = app;
+                    return;
+                }
+            });
+            return item;
+        };
+        GroupRecord.prototype.draw_selected_applications = function () {
+            var _this = this;
+            var str_html = '';
+            this.m_selected_apps = [];
+            if (this.m_right_groups.length > 0) {
+                this.m_right_groups.forEach(function (group_id) {
+                    var app_ids = _this.get_appications_by_groupid(group_id);
+                    for (var i = 0; i < app_ids.length; i++) {
+                        if (_this.m_selected_apps.indexOf(app_ids[i]) < 0) {
+                            _this.m_selected_apps.push(app_ids[i]);
+                            var app_item = _this.get_application(app_ids[i]);
+                            str_html += '<div>' + app_item.name + '</div>';
+                        }
+                    }
+                });
+            }
+            $('#selected_applications').html(str_html);
         };
         GroupRecord.prototype.ClearFormErrorMessages = function () {
             var errElms = document.querySelectorAll('#group_form_errors > *');
@@ -251,6 +324,71 @@ var Citadel;
                 var elm = errElms.item(i);
                 elm.parentNode.removeChild(elm);
             }
+        };
+        GroupRecord.prototype.loadAppGroupDatas = function (flag) {
+            var _this = this;
+            this.m_apps = [];
+            this.m_app_groups = [];
+            this.m_submitBtn.disabled = true;
+            $("#spiner_4").show();
+            var url = 'api/admin/get_app_data';
+            if (flag) {
+                url += '/' + this.m_groupId;
+            }
+            var ajaxSettings = {
+                method: "GET",
+                timeout: 60000,
+                url: url,
+                data: {},
+                success: function (data, textStatus, jqXHR) {
+                    _this.m_apps = data.apps;
+                    _this.m_app_groups = data.app_groups;
+                    _this.m_group_to_apps = data.group_to_apps;
+                    if (flag) {
+                        var selected_app_groups = data.selected_app_groups;
+                        _this.m_left_groups = [];
+                        _this.m_right_groups = [];
+                        if (selected_app_groups.length > 0) {
+                            _this.m_app_groups.forEach(function (app_group) {
+                                _this.m_left_groups.push(app_group.id);
+                            });
+                            selected_app_groups.forEach(function (app_group) {
+                                _this.m_right_groups.push(app_group.app_group_id);
+                                var pos = _this.m_left_groups.indexOf(app_group.app_group_id);
+                                _this.m_left_groups.splice(pos, 1);
+                            });
+                        }
+                        else {
+                            _this.m_app_groups.forEach(function (app_group) {
+                                _this.m_left_groups.push(app_group.id);
+                            });
+                        }
+                    }
+                    else {
+                        _this.m_left_groups = [];
+                        _this.m_right_groups = [];
+                        _this.m_app_groups.forEach(function (app_group) {
+                            _this.m_left_groups.push(app_group.id);
+                        });
+                    }
+                    _this.draw_left_groups();
+                    _this.draw_right_groups();
+                    _this.draw_selected_applications();
+                    $("#spiner_4").hide();
+                    _this.m_submitBtn.disabled = false;
+                    return false;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $("#spiner_4").hide();
+                    _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                    setTimeout(function () { _this.m_progressWait.Hide(); }, 5000);
+                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                    }
+                    else {
+                    }
+                }
+            };
+            $.get(ajaxSettings);
         };
         GroupRecord.prototype.StartEditing = function (allFilters, data, cloneData) {
             var _this = this;
@@ -269,7 +407,6 @@ var Citadel;
             this.ResetSearchBoxes();
             this.ClearFormErrorMessages();
             this.m_mainForm.reset();
-            this.m_filteredApplicationsList.value = "";
             this.m_antiTamperNoTerminateInput.checked = false;
             this.m_antiTamperDisableInternetInput.checked = false;
             this.m_antiTamperUseThresholdInput.checked = false;
@@ -357,6 +494,7 @@ var Citadel;
                     {
                         this.m_editorTitle.innerText = "Create New Group";
                         this.m_submitBtn.innerText = "Create Group";
+                        this.loadAppGroupDatas(false);
                         this.m_isActiveInput.checked = true;
                     }
                     break;
@@ -399,29 +537,7 @@ var Citadel;
                         if (this.m_groupSecondaryDnsInput.value == 'undefined') {
                             this.m_groupSecondaryDnsInput.value = '';
                         }
-                        var savedFilteredAppsList = void 0;
-                        if ('BlacklistedApplications' in this.m_appConfig) {
-                            this.m_filteredApplicationsAsBlacklistInput.checked = true;
-                            this.m_filteredApplicationsAsWhitelistInput.checked = false;
-                            savedFilteredAppsList = this.m_appConfig['BlacklistedApplications'];
-                        }
-                        else if ('WhitelistedApplications' in this.m_appConfig) {
-                            this.m_filteredApplicationsAsBlacklistInput.checked = false;
-                            this.m_filteredApplicationsAsWhitelistInput.checked = true;
-                            savedFilteredAppsList = this.m_appConfig['WhitelistedApplications'];
-                        }
-                        else {
-                            this.m_filteredApplicationsAsBlacklistInput.checked = true;
-                            this.m_filteredApplicationsAsWhitelistInput.checked = false;
-                        }
-                        if (savedFilteredAppsList != null) {
-                            savedFilteredAppsList.forEach(function (line) {
-                                line = line.trim();
-                                if (line.length > 0) {
-                                    _this.m_filteredApplicationsList.value += line + "\n";
-                                }
-                            });
-                        }
+                        this.loadAppGroupDatas(true);
                     }
                     break;
             }
@@ -464,29 +580,7 @@ var Citadel;
                 if (this.m_groupSecondaryDnsInput.value == 'undefined') {
                     this.m_groupSecondaryDnsInput.value = '';
                 }
-                var savedFilteredAppsList = void 0;
-                if ('BlacklistedApplications' in this.m_appConfig) {
-                    this.m_filteredApplicationsAsBlacklistInput.checked = true;
-                    this.m_filteredApplicationsAsWhitelistInput.checked = false;
-                    savedFilteredAppsList = this.m_appConfig['BlacklistedApplications'];
-                }
-                else if ('WhitelistedApplications' in this.m_appConfig) {
-                    this.m_filteredApplicationsAsBlacklistInput.checked = false;
-                    this.m_filteredApplicationsAsWhitelistInput.checked = true;
-                    savedFilteredAppsList = this.m_appConfig['WhitelistedApplications'];
-                }
-                else {
-                    this.m_filteredApplicationsAsBlacklistInput.checked = true;
-                    this.m_filteredApplicationsAsWhitelistInput.checked = false;
-                }
-                if (savedFilteredAppsList != null) {
-                    savedFilteredAppsList.forEach(function (line) {
-                        line = line.trim();
-                        if (line.length > 0) {
-                            _this.m_filteredApplicationsList.value += line + "\n";
-                        }
-                    });
-                }
+                this.loadAppGroupDatas(true);
             }
             this.m_mainForm.onsubmit = (function (e) {
                 var validateOpts = _this.ValidationOptions;
@@ -513,6 +607,52 @@ var Citadel;
                 'app_cfg': JSON.stringify(this.m_appConfig)
             };
             return obj;
+        };
+        GroupRecord.prototype.onMoveRightAllClicked = function (e) {
+            var _this = this;
+            this.m_left_groups.forEach(function (group_id) {
+                _this.m_right_groups.push(group_id);
+            });
+            this.m_left_groups = [];
+            this.draw_left_groups();
+            this.draw_right_groups();
+            this.draw_selected_applications();
+        };
+        GroupRecord.prototype.onMoveLeftAllClicked = function (e) {
+            var _this = this;
+            this.m_right_groups.forEach(function (group_id) {
+                _this.m_left_groups.push(group_id);
+            });
+            this.m_right_groups = [];
+            this.draw_left_groups();
+            this.draw_right_groups();
+            this.draw_selected_applications();
+        };
+        GroupRecord.prototype.onMoveRightClicked = function (e) {
+            if (this.m_appGroupSourceList.selectedIndex == -1)
+                return;
+            for (var i = 0; i < this.m_appGroupSourceList.selectedOptions.length; i++) {
+                var sel_id = parseInt(this.m_appGroupSourceList.selectedOptions[i].value);
+                var sel_seq_idx = this.m_left_groups.indexOf(sel_id);
+                this.m_left_groups.splice(sel_seq_idx, 1);
+                this.m_right_groups.push(sel_id);
+            }
+            this.draw_left_groups();
+            this.draw_right_groups();
+            this.draw_selected_applications();
+        };
+        GroupRecord.prototype.onMoveLeftClicked = function (e) {
+            if (this.m_appGroupTargetList.selectedIndex == -1)
+                return;
+            for (var i = 0; i < this.m_appGroupTargetList.selectedOptions.length; i++) {
+                var sel_id = parseInt(this.m_appGroupTargetList.selectedOptions[i].value);
+                var sel_seq_idx = this.m_right_groups.indexOf(sel_id);
+                this.m_right_groups.splice(sel_seq_idx, 1);
+                this.m_left_groups.push(sel_id);
+            }
+            this.draw_left_groups();
+            this.draw_right_groups();
+            this.draw_selected_applications();
         };
         return GroupRecord;
     }(Citadel.BaseRecord));
