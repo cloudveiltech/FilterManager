@@ -280,6 +280,7 @@
 @include('layouts.components.applyapplication')
 <!-- Require Apply Application to App group overlay. -->
 @include('layouts.components.applyapptoappgroup')
+@include('layouts.components.applyappgrouptousergroup')
 <!-- Require Apply to group overlay. -->
 @include('layouts.components.appuseractivationeditor')
 <!-- Include dashboard JS to drive UI. -->

@@ -52,17 +52,20 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::resource('blacklists', 'GlobalBlacklistController');
     Route::resource('app', 'ApplicationController');
     Route::resource('app_group', 'ApplicationGroupController');
-    
     Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
     Route::resource('user_activations', 'AppUserActivationController');
 
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
 
-    // Apply app blacklist or whitelist to group.
+    // Apply app  to appgroup.
     Route::post('/apply_app_to_app_group', 'ApplyAppToAppGroupController@applyToGroup');
     Route::get('/apply_app_to_appgroup/data', 'ApplyAppToAppGroupController@getRetrieveData');
     Route::get('/apply_app_to_appgroup/selected_group/{id}', 'ApplyAppToAppGroupController@getSelectedGroups');
+    // Apply app  to appgroup.
+    Route::post('/apply_appgroup_to_usergroup', 'ApplyAppgroupToUsergroupController@applyToGroup');
+    Route::get('/apply_appgroup_to_usergroup/data', 'ApplyAppgroupToUsergroupController@getRetrieveData');
+    Route::get('/apply_appgroup_to_usergroup/selected_user_group/{id}', 'ApplyAppgroupToUsergroupController@getSelectedUsergroups');
 
     
     // For handling deletion of all records in a namespace.
@@ -70,6 +73,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
 
     // Get application for app_group_editing.
     Route::get('/applications', 'ApplicationController@get_application');
+    Route::get('/get_current_applications', 'ApplicationController@getApps');
+    
 });
 
 // Users should only be able to pull list updates. The routes available to them

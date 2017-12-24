@@ -1028,6 +1028,10 @@ var Citadel;
                 var apply_app_to_app_group_overlay = new Citadel.ApplyAppToAppGroup(this);
                 apply_app_to_app_group_overlay.Show();
             }
+            else {
+                var apply_app_group_to_user_group_overlay = new Citadel.ApplyAppgroupToUsergroup(this);
+                apply_app_group_to_user_group_overlay.Show();
+            }
         };
         Dashboard.prototype.onDeleteAppUserActivationClicked = function (e) {
             var _this = this;
