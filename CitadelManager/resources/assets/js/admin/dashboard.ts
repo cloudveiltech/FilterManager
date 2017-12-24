@@ -2221,6 +2221,9 @@ namespace Citadel
             if (this.m_btnApp.checked) {
                 let apply_app_to_app_group_overlay = new ApplyAppToAppGroup(this);
                 apply_app_to_app_group_overlay.Show();
+            } else {
+                let apply_app_group_to_user_group_overlay = new ApplyAppgroupToUsergroup(this);
+                apply_app_group_to_user_group_overlay.Show();
             }
         }
 
