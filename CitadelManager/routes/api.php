@@ -52,7 +52,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::resource('blacklists', 'GlobalBlacklistController');
     Route::resource('app', 'ApplicationController');
     Route::resource('app_group', 'ApplicationGroupController');
-    
     Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
     Route::resource('user_activations', 'AppUserActivationController');
 
@@ -74,6 +73,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
 
     // Get application for app_group_editing.
     Route::get('/applications', 'ApplicationController@get_application');
+    Route::get('/get_current_applications', 'ApplicationController@getApps');
+    
 });
 
 // Users should only be able to pull list updates. The routes available to them

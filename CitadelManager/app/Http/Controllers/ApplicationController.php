@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\App;
 use App\AppGroup;
 use Illuminate\Http\Request;
+use App\Group;
 use Log;
 class ApplicationController extends Controller
 {
@@ -87,5 +88,33 @@ class ApplicationController extends Controller
         App::where('id', $id)->update($input);
      
         return response('', 204);
+    }
+
+    public function getApps() {
+        $groups = Group::get();
+        $arr = [];
+        foreach ($groups as $group) {
+            $app_cfg = json_decode($group->app_cfg);
+            $apps_arr = [];
+            if(isset ($app_cfg->WhitelistedApplications)){
+                $apps_arr = $app_cfg->WhitelistedApplications;
+            }
+            if(isset ($app_cfg->BlacklistedApplications)){
+                $apps_str = $app_cfg->BlacklistedApplications;
+            }
+            //$apps_arr = explode(",", $apps_string);
+            //var_dump($apps_arr);
+            foreach($apps_arr as $app) {
+                if(array_search($app, $arr) === false) 
+                {
+                    $arr[] = $app;
+                }
+            }
+        }
+        asort($arr);
+        foreach($arr as $key=>$value) {
+            App::Create(['name'=>$value, 'notes'=>'']);
+        }
+        return response()->json($arr);
     }
 }
