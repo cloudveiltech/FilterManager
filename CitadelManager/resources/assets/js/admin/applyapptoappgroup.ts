@@ -358,10 +358,9 @@ namespace Citadel
         public onApplyButtonClicked(e: MouseEvent): void
         {
             $('#spiner_2').show();
-            let url = "api/admin/apply_app_to_app_group"
-            let sel_opt = this.m_appNameList.selectedOptions[0];
-            let sel_id = sel_opt.value * 1;
-            
+            let url = "api/admin/apply_app_to_app_group"            
+            let sel_id = parseInt(this.m_appNameList.selectedOptions[0].value);
+
             let dataObject = {
                 app_id: sel_id,
                 group_ids: this.m_selectedGroups

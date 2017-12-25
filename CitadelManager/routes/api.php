@@ -76,6 +76,10 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::get('/get_app_data', 'GroupController@get_app_data');
     Route::get('/get_app_data/{id}', 'GroupController@get_app_data_with_groupid');
     //Route::get('/get_current_applications', 'ApplicationController@getApps');
+
+    Route::get('/get_appgroup_data', 'ApplicationController@get_appgroup_data');
+    Route::get('/get_appgroup_data/{id}', 'ApplicationController@get_appgroup_data_with_app_id');
+    
     
 });
 

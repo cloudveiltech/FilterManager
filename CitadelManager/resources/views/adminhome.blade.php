@@ -276,8 +276,6 @@
 @include('layouts.components.appeditor')
 <!-- Require appgroup list editing overlay. -->
 @include('layouts.components.appgroupeditor')
-<!-- Require Apply to group overlay. -->
-@include('layouts.components.applyapplication')
 <!-- Require Apply Application to App group overlay. -->
 @include('layouts.components.applyapptoappgroup')
 @include('layouts.components.applyappgrouptousergroup')
