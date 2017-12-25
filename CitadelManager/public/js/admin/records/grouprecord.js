@@ -225,6 +225,10 @@ var Citadel;
             collectSelected(this.m_whitelistFiltersContainer, false, true, false);
             collectSelected(this.m_bypassFiltersContainer, false, false, true);
             this.m_assignedFilterIds = allAssignedFilters;
+            var filterAppsKey = 'Blacklist';
+            if (!this.m_filteredApplicationsAsBlacklistInput.checked) {
+                filterAppsKey = 'Whitelist';
+            }
             var appConfig = {
                 'UpdateFrequency': this.m_groupUpdateCheckFrequencyInput.valueAsNumber,
                 'PrimaryDns': this.m_groupPrimaryDnsInput.value,
@@ -241,6 +245,7 @@ var Citadel;
                 'MaxTextTriggerScanningSize': this.m_textTriggerMaxSizeInput.valueAsNumber,
                 'UpdateChannel': this.m_updateChannelSelectInput.options[this.m_updateChannelSelectInput.selectedIndex].value,
             };
+            appConfig[filterAppsKey] = "checked";
             this.m_appConfig = appConfig;
         };
         GroupRecord.prototype.getGroupItem = function (group_id) {
@@ -343,7 +348,6 @@ var Citadel;
                 success: function (data, textStatus, jqXHR) {
                     _this.m_apps = data.apps;
                     _this.m_app_groups = data.app_groups;
-                    console.log(_this.m_app_groups);
                     _this.m_group_to_apps = data.group_to_apps;
                     if (flag) {
                         var selected_app_groups = data.selected_app_groups;
@@ -539,6 +543,18 @@ var Citadel;
                             this.m_groupSecondaryDnsInput.value = '';
                         }
                         this.loadAppGroupDatas(true);
+                        if ('Blacklist' in this.m_appConfig) {
+                            this.m_filteredApplicationsAsBlacklistInput.checked = true;
+                            this.m_filteredApplicationsAsWhitelistInput.checked = false;
+                        }
+                        else if ('Whitelist' in this.m_appConfig) {
+                            this.m_filteredApplicationsAsBlacklistInput.checked = false;
+                            this.m_filteredApplicationsAsWhitelistInput.checked = true;
+                        }
+                        else {
+                            this.m_filteredApplicationsAsBlacklistInput.checked = true;
+                            this.m_filteredApplicationsAsWhitelistInput.checked = false;
+                        }
                     }
                     break;
             }
@@ -582,6 +598,18 @@ var Citadel;
                     this.m_groupSecondaryDnsInput.value = '';
                 }
                 this.loadAppGroupDatas(true);
+                if ('Blacklist' in this.m_appConfig) {
+                    this.m_filteredApplicationsAsBlacklistInput.checked = true;
+                    this.m_filteredApplicationsAsWhitelistInput.checked = false;
+                }
+                else if ('Whitelist' in this.m_appConfig) {
+                    this.m_filteredApplicationsAsBlacklistInput.checked = false;
+                    this.m_filteredApplicationsAsWhitelistInput.checked = true;
+                }
+                else {
+                    this.m_filteredApplicationsAsBlacklistInput.checked = true;
+                    this.m_filteredApplicationsAsWhitelistInput.checked = false;
+                }
             }
             this.m_mainForm.onsubmit = (function (e) {
                 var validateOpts = _this.ValidationOptions;
@@ -605,7 +633,8 @@ var Citadel;
                 'name': this.m_groupName,
                 'isactive': this.m_isActive,
                 'assigned_filter_ids': this.m_assignedFilterIds,
-                'app_cfg': JSON.stringify(this.m_appConfig)
+                'app_cfg': JSON.stringify(this.m_appConfig),
+                'assigned_app_groups': this.m_right_groups
             };
             return obj;
         };

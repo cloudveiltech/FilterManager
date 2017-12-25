@@ -36,6 +36,7 @@ var Citadel;
             if (newlyCreated === void 0) { newlyCreated = false; }
             this.LoadFromForm();
             var dataObject = this.ToObject();
+            console.log(dataObject);
             this.m_progressWait.Show('Saving Record', 'Saving record to server.');
             var ajaxSettings = {
                 method: newlyCreated == true ? "POST" : "PATCH",

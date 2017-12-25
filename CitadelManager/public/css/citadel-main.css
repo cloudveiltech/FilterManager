@@ -170,12 +170,12 @@ Group editor.
 }
 #appgroup_source_list {
     width: 100%;
-    height: 100%;
+    height: 273px;
 }
 
 #appgroup_target_list {
     width: 100%;
-    height: 100%;
+    height: 273px;
 }
 .padding-13 {
     padding-left:18px;

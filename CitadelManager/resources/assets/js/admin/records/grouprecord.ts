@@ -719,13 +719,13 @@ namespace Citadel
 
                 allFilteredAppLines = distinctFilteredApps;
             }
-            
-            let filterAppsKey = 'BlacklistedApplications';
+            */
+            let filterAppsKey = 'Blacklist';
             if (!this.m_filteredApplicationsAsBlacklistInput.checked)
             {
-                filterAppsKey = 'WhitelistedApplications';
+                filterAppsKey = 'Whitelist';
             }
-            */
+            
             let appConfig =
                 {
                     'UpdateFrequency' : this.m_groupUpdateCheckFrequencyInput.valueAsNumber,
@@ -744,7 +744,7 @@ namespace Citadel
                     'UpdateChannel' : this.m_updateChannelSelectInput.options[this.m_updateChannelSelectInput.selectedIndex].value,
                 };
 
-            //appConfig[filterAppsKey] = allFilteredAppLines;
+            appConfig[filterAppsKey] = "checked";
 
             this.m_appConfig = appConfig;
         }
@@ -1127,21 +1127,19 @@ namespace Citadel
                             this.m_groupSecondaryDnsInput.value = '';
                         }
                         this.loadAppGroupDatas(true);
-                        /*
-                        let savedFilteredAppsList: Array<String>;
-
-                        if ('BlacklistedApplications' in this.m_appConfig)
+                        
+                        if ('Blacklist' in this.m_appConfig)
                         {
                             this.m_filteredApplicationsAsBlacklistInput.checked = true;
                             this.m_filteredApplicationsAsWhitelistInput.checked = false;
 
-                            savedFilteredAppsList = this.m_appConfig['BlacklistedApplications'];
+                            //savedFilteredAppsList = this.m_appConfig['BlacklistedApplications'];
                         }
-                        else if ('WhitelistedApplications' in this.m_appConfig)
+                        else if ('Whitelist' in this.m_appConfig)
                         {
                             this.m_filteredApplicationsAsBlacklistInput.checked = false;
                             this.m_filteredApplicationsAsWhitelistInput.checked = true;
-                            savedFilteredAppsList = this.m_appConfig['WhitelistedApplications'];
+                            //savedFilteredAppsList = this.m_appConfig['WhitelistedApplications'];
                         }
                         else
                         {
@@ -1149,6 +1147,8 @@ namespace Citadel
                             this.m_filteredApplicationsAsBlacklistInput.checked = true;
                             this.m_filteredApplicationsAsWhitelistInput.checked = false;
                         }
+/*
+                        let savedFilteredAppsList: Array<String>;
 
                         if (savedFilteredAppsList != null)
                         {
@@ -1218,21 +1218,16 @@ namespace Citadel
                 }
 
                 this.loadAppGroupDatas(true);
-                /*
-                let savedFilteredAppsList: Array<String>;
-
-                if ('BlacklistedApplications' in this.m_appConfig)
+                
+                if ('Blacklist' in this.m_appConfig)
                 {
                     this.m_filteredApplicationsAsBlacklistInput.checked = true;
                     this.m_filteredApplicationsAsWhitelistInput.checked = false;
-
-                    savedFilteredAppsList = this.m_appConfig['BlacklistedApplications'];
                 }
-                else if ('WhitelistedApplications' in this.m_appConfig)
+                else if ('Whitelist' in this.m_appConfig)
                 {
                     this.m_filteredApplicationsAsBlacklistInput.checked = false;
                     this.m_filteredApplicationsAsWhitelistInput.checked = true;
-                    savedFilteredAppsList = this.m_appConfig['WhitelistedApplications'];
                 }
                 else
                 {
@@ -1240,6 +1235,8 @@ namespace Citadel
                     this.m_filteredApplicationsAsBlacklistInput.checked = true;
                     this.m_filteredApplicationsAsWhitelistInput.checked = false;
                 }
+/*
+                let savedFilteredAppsList: Array<String>;
 
                 if (savedFilteredAppsList != null)
                 {
@@ -1290,7 +1287,8 @@ namespace Citadel
                     'name': this.m_groupName,
                     'isactive': this.m_isActive,
                     'assigned_filter_ids': this.m_assignedFilterIds,
-                    'app_cfg': JSON.stringify(this.m_appConfig)
+                    'app_cfg': JSON.stringify(this.m_appConfig),
+                    'assigned_app_groups': this.m_right_groups
                 };
             return obj;
         }
