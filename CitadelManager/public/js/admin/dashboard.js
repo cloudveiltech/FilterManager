@@ -1004,21 +1004,21 @@ var Citadel;
                 }
             }
             else {
-                var selectedItem = this.m_tableBlackLists.row('.selected').data();
+                var selectedItem = this.m_tableAppGroupLists.row('.selected').data();
                 if (selectedItem != null) {
-                    var blackListObj;
+                    var appGroupObj;
                     try {
-                        blackListObj = Citadel.BaseRecord.CreateFromObject(BlacklistRecord, selectedItem);
-                        blackListObj.ActionCompleteCallback = (function (action) {
-                            _this.ForceTableRedraw(_this.m_tableBlackLists);
+                        appGroupObj = Citadel.BaseRecord.CreateFromObject(Citadel.AppGroupRecord, selectedItem);
+                        appGroupObj.ActionCompleteCallback = (function (action) {
+                            _this.ForceTableRedraw(_this.m_tableAppGroupLists);
                         });
-                        if (confirm("Really delete Blacklist Application? THIS CANNOT BE UNDONE!!!")) {
-                            blackListObj.Delete();
+                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!")) {
+                            appGroupObj.Delete();
                         }
                     }
                     catch (e) {
                         this.m_btnRemoveItem.disabled = false;
-                        console.log('Failed to load blacklist record from table selection.');
+                        console.log('Failed to load application record from table selection.');
                     }
                 }
             }

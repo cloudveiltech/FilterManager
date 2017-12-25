@@ -212,8 +212,7 @@ var Citadel;
             var _this = this;
             $('#spiner_2').show();
             var url = "api/admin/apply_app_to_app_group";
-            var sel_opt = this.m_appNameList.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
+            var sel_id = parseInt(this.m_appNameList.selectedOptions[0].value);
             var dataObject = {
                 app_id: sel_id,
                 group_ids: this.m_selectedGroups

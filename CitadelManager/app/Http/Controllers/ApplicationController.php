@@ -57,8 +57,21 @@ class ApplicationController extends Controller
             'name' => 'required'
         ]);
 
-        $input = $request->only(['name', 'notes']);
-        App::create($input); 
+        $input = $request->only(['name', 'notes']);        
+        $app = App::create($input);
+        $assigned_groups = $request->only('assigned_appgroup');
+        AppGroupToApp::where('app_id', $id)->delete();
+        if(is_array($assigned_groups['assigned_appgroup'])) {
+            $arr_assigned_groups = array();
+            foreach($assigned_groups['assigned_appgroup'] as $group_id) {
+                array_push($arr_assigned_groups, array(
+                    'app_id' => $app->id,
+                    'app_group_id'=> $group_id
+                ));
+            }
+            AppGroupToApp::insert($arr_assigned_groups);
+        }
+        Log::debug($assigned_groups);
         return response('', 204);
     }
 
@@ -87,7 +100,20 @@ class ApplicationController extends Controller
     
         $input = $request->only(['name', 'notes']);
         App::where('id', $id)->update($input);
-     
+        
+        $assigned_groups = $request->only('assigned_appgroup');
+        AppGroupToApp::where('app_id', $id)->delete();
+        if(is_array($assigned_groups['assigned_appgroup'])) {
+            $arr_assigned_groups = array();
+            foreach($assigned_groups['assigned_appgroup'] as $group_id) {
+                array_push($arr_assigned_groups, array(
+                    'app_id' => $id,
+                    'app_group_id'=> $group_id
+                ));
+            }
+            Log::debug($arr_assigned_groups);
+            AppGroupToApp::insert($arr_assigned_groups);
+        }
         return response('', 204);
     }
 
@@ -117,5 +143,17 @@ class ApplicationController extends Controller
             App::Create(['name'=>$value, 'notes'=>'']);
         }
         return response()->json($arr);
+    }
+    public function get_appgroup_data()
+    {
+        $app_groups = AppGroup::get();
+        return response()->json([ 'app_groups'=>$app_groups]);
+    }
+    public function get_appgroup_data_with_app_id($id) {
+        $app_groups = AppGroup::get();
+        $selected_app_groups = AppGroupToApp::where('app_id', $id)->get();
+        return response()->json([
+            'app_groups'=>$app_groups,
+            'selected_app_groups'=>$selected_app_groups]);
     }
 }

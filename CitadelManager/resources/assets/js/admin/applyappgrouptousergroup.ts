@@ -285,9 +285,8 @@ namespace Citadel
             });
         }
 
-        public onAppNameChanged(e) {
-            let sel_opt = this.m_appGroupNameList.selectedOptions[0];
-            let sel_id = sel_opt.value * 1;
+        public onAppNameChanged(e) {            
+            let sel_id = parseInt(this.m_appGroupNameList.selectedOptions[0].value);
             this.loadSelectedUsergroups(sel_id);
         }
         /**

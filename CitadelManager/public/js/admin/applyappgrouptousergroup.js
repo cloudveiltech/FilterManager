@@ -163,8 +163,7 @@ var Citadel;
             });
         };
         ApplyAppgroupToUsergroup.prototype.onAppNameChanged = function (e) {
-            var sel_opt = this.m_appGroupNameList.selectedOptions[0];
-            var sel_id = sel_opt.value * 1;
+            var sel_id = parseInt(this.m_appGroupNameList.selectedOptions[0].value);
             this.loadSelectedUsergroups(sel_id);
         };
         ApplyAppgroupToUsergroup.prototype.onMoveRightAllClicked = function (e) {

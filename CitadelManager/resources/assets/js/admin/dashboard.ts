@@ -6,7 +6,6 @@
  */
 
 ///<reference path="../progresswait.ts"/>
-///<reference path="applytogroupoverlay.ts"/>
 ///<reference path="listuploadoverlay.ts"/>
 ///<reference path="records/userrecord.ts"/>
 ///<reference path="records/grouprecord.ts"/>
@@ -2175,30 +2174,30 @@ namespace Citadel
                     }
                 }
             } else {
-                let selectedItem = this.m_tableBlackLists.row('.selected').data();
+                let selectedItem = this.m_tableAppGroupLists.row('.selected').data();
                 if (selectedItem != null)
                 {
-                    var blackListObj: BlacklistRecord;
+                    var appGroupObj: AppGroupRecord;
     
                     try 
                     {
-                        blackListObj = BaseRecord.CreateFromObject(BlacklistRecord, selectedItem);
+                        appGroupObj = BaseRecord.CreateFromObject(AppGroupRecord, selectedItem);
     
                         // We want to update both users and groups after delete.
-                        blackListObj.ActionCompleteCallback = ((action: string): void =>
+                        appGroupObj.ActionCompleteCallback = ((action: string): void =>
                         {
-                            this.ForceTableRedraw(this.m_tableBlackLists);
+                            this.ForceTableRedraw(this.m_tableAppGroupLists);
                         });
     
-                        if (confirm("Really delete Blacklist Application? THIS CANNOT BE UNDONE!!!"))
+                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!"))
                         {
-                            blackListObj.Delete();
+                            appGroupObj.Delete();
                         }
                     }
                     catch (e)
                     {
                         this.m_btnRemoveItem.disabled = false;
-                        console.log('Failed to load blacklist record from table selection.');
+                        console.log('Failed to load application record from table selection.');
                     }
                 }
             }
