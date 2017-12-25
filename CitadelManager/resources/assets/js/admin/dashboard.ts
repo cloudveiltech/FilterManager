@@ -1147,6 +1147,11 @@ namespace Citadel
                             visible: true
                         },
                         {
+                            title: 'App Version',
+                            data: 'app_version',
+                            visible: true
+                        },
+                        {
                             title: 'IP Address',
                             data: 'ip_address',
                             visible: true
