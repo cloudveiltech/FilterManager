@@ -250,7 +250,7 @@ class UserController extends Controller {
                     $activation->token_id = $token->id;
                 }
                 $activation->save();
-                Log::debug('Activation Exists.  Saved'); 
+                //Log::debug('Activation Exists.  Saved'); 
             } else {
                 $activation = new AppUserActivation;
                 $activation->updated_at = Carbon::now()->timestamp;
@@ -283,7 +283,7 @@ class UserController extends Controller {
      */
     public function getUserData(Request $request) {
         $thisUser = \Auth::user();
-        Log::debug($request);
+        //Log::debug($request);
         $userGroup = $thisUser->group()->first();
         if (!is_null($userGroup)) {
             $groupDataPayloadPath = $userGroup->getGroupDataPayloadPath();
