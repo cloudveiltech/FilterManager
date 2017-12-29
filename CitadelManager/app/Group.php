@@ -13,9 +13,13 @@ use Illuminate\Database\Eloquent\Model;
 use App\TextFilteringRule;
 use App\NlpFilteringRule;
 use App\ImageFilteringRule;
+use App\AppGroup;
+use App\App;
+use App\UserGroupToAppGroup;
 use App\Client\FilteringPlainTextListModel;
 use App\Client\PlainTextFilteringListType;
 use App\Client\NLPConfigurationModel;
+use Log;
 
 /**
  * Description of Group
@@ -186,8 +190,33 @@ class Group extends Model {
             array_push($compiledAppConfiguration['ConfiguredNlpModels'], new NLPConfigurationModel($nlpEnabledCategoryKey, $nlpEnabledCategories[$nlpEnabledCategoryKey]));
         }
 
-        $compiledAppConfiguration = array_merge($compiledAppConfiguration, json_decode($this->app_cfg, true));
+        // Merge app_groups into configuration.
+        $app_cfg = json_decode($this->app_cfg, true);
+        $app_group_ids = UserGroupToAppGroup::where('user_group_id',$this->id)->pluck('app_group_id');
+        $app_groups = AppGroup::with('app')->find($app_group_ids);
+        $apps = [];
+        // The apps variable is populated like this to remove duplicates.
+        foreach($app_groups AS $ag) {
+            foreach ($ag['app'] AS $app) {
+                $apps[ $app['name'] ] = $app['name'];
+            }
+        }
+        $apps = array_values($apps);
+
+        //We remove the Whitelist or Blacklist setting before saving to the .zip file as it's not needed.
+        if (isset($app_cfg['Whitelist'])) {
+            unset($app_cfg['Whitelist']);
+            Log::info('Whitelisting apps');
+            $app_cfg['WhitelistedApplications'] = $apps;
+        } elseif (isset($app_cfg['Blacklist'])) {
+            unset($app_cfg['Blacklist']);
+            Log::info('Blacklisting apps');
+            $app_cfg['BlacklistedApplications'] = $apps;
+        }
+
+        $compiledAppConfiguration = array_merge($compiledAppConfiguration, $app_cfg);
         $serializedFinalConfiguration = json_encode($compiledAppConfiguration);
+
         $zip->addFromString('cfg.json', $serializedFinalConfiguration);
         $zip->close();
 
