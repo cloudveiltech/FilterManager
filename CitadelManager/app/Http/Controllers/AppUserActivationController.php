@@ -111,7 +111,7 @@ class AppUserActivationController extends Controller {
     }
 
     /**
-     * Get Activation Bypass Information.
+     * Process Activation Bypass Request
      *
      * @param  int $id
      * @return \Illuminate\Http\Response
@@ -157,11 +157,23 @@ class AppUserActivationController extends Controller {
 
         // Check current status
         $bypass_used = $activation->bypass_used;
-        if ( $bypass_permitted > $bypass_used) {
+        if ($request->has('check_only')) {
+            $arr_output = array(
+                "used" => $bypass_used,
+                "permitted" => $bypass_permitted,
+            );
+            return response()->json($arr_output);
+        } elseif ( $bypass_permitted > $bypass_used) {
+
+            $activation->bypass_used++;
+            $activation->save();
+
             // status : granted
             $arr_output = array(
                 "allowed" => true,
-                "message" => "Request granted. Used ". $bypass_used ." out of ". $bypass_permitted ."." 
+                "message" => "Request granted. Used ". $bypass_used ." out of ". $bypass_permitted .".",
+                "used" => $bypass_used,
+                "permitted" => $bypass_permitted,
             );
 
             // Trigger of bypass_granted
@@ -176,7 +188,9 @@ class AppUserActivationController extends Controller {
             // status: denied
             $arr_output = array(
                 "allowed" => false,
-                "message" => "Request denied. You have already used  ". $bypass_used ." out of ". $bypass_permitted ."." 
+                "message" => "Request denied. You have already used  ". $bypass_used ." out of ". $bypass_permitted .".",
+                "used" => $bypass_used,
+                "permitted" => $bypass_permitted, 
             );
             // Trigger of bypass_denied
             try {
