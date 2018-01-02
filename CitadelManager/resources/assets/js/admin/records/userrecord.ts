@@ -204,6 +204,11 @@ namespace Citadel
                         visible: true
                     },
                     {
+                        title: 'App Version',
+                        data: 'app_version',
+                        visible: true
+                    },
+                    {
                         title: 'IP Address',
                         data: 'ip_address',
                         visible: true
@@ -260,8 +265,8 @@ namespace Citadel
                 };
 
                 activationTableSettings['responsive'] = true;
-            this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
-            this.m_ActivationTables.on('click', 'button.btn-delete', function(e){
+                this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
+                this.m_ActivationTables.on('click', 'button.btn-delete', function(e){
                 e.preventDefault();
                 if (confirm("Are you sure you want to delete this activation?"))
                 {
