@@ -990,13 +990,13 @@ namespace Citadel
                             title: 'Application Name',
                             data: 'name',
                             visible: true,
-                            width: 200
+                            width: '200px'
                         },
                         {
                             title: 'Notes',
                             data: 'notes',
                             visible: true,
-                            width: 200
+                            width: '200px'
                         },
                         {
                             title: 'Linked Group',
@@ -1007,7 +1007,7 @@ namespace Citadel
                             title: 'Date Modified',
                             data: 'updated_at',
                             visible: true,
-                            width: 200
+                            width: '200px'
                         }
                     ];
 
@@ -1065,7 +1065,7 @@ namespace Citadel
                             title: 'App Group Name',
                             data: 'group_name',
                             visible: true,
-                            width: 200
+                            width: '200px'
                         },
                         {
                             title: 'Linked Apps',
@@ -1076,7 +1076,7 @@ namespace Citadel
                             title: 'Date Modified',
                             data: 'updated_at',
                             visible: true,
-                            width: 200
+                            width: '200px'
                         }
                     ];
 

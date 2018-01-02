@@ -94,7 +94,7 @@ class User extends Authenticatable {
     public function getActivationsUsedAttribute(): int {
 
         $activationRelation = $this->activationsCountRelation()->first();
-        Log::debug($activationRelation);
+        //Log::debug($activationRelation);
         if (!is_null($activationRelation)) {
             return $activationRelation->count;
         }

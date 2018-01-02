@@ -44,7 +44,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::resource('blockreview', 'BlockActionReviewRequestController');
 
     //Route::get('activations/{id}', 'UserController@activation_data');
-    //Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
+    Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
     Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
     Route::get('activations', 'AppUserActivationController@index');
 

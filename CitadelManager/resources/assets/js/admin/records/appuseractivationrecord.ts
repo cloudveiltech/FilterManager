@@ -60,6 +60,7 @@ namespace Citadel
         private m_bypassUsedInput: HTMLInputElement;
         private m_submitBtn: HTMLButtonElement;
         private m_cancelBtn: HTMLButtonElement;
+        private m_applicationNameInput: HTMLInputElement;
 
         /**
          * Gets the base API route from this record type.
