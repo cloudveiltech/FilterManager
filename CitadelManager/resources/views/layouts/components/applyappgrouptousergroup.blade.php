@@ -38,7 +38,8 @@
                     </select>
                 </div>
             </div>
-            
+            <br/>
+            <hr class="thin">
             <div class="row cell-auto-size">
                 <div class="form-actions">
                     <button id="apply_app_group_to_user_group_appy" type="button" class="button primary">Apply</button>

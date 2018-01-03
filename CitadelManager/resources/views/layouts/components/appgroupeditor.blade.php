@@ -45,6 +45,7 @@
                     </div>
                 </div>
                 <br />
+                <hr class="thin">
                 <div class="row cell-auto-size">
                     <div class="form-actions">
                         <button id="appgroup_editor_submit" type="submit" class="button primary">Add User</button>

@@ -51,6 +51,8 @@
                         </select>
                     </div>
                 </div>
+                <br />
+                <hr class="thin">
                 <div class="row cell-auto-size marginTop20">
                     <div class="form-actions">
                         <button id="application_editor_submit" type="submit" class="button primary">Add Application</button>
