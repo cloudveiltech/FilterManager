@@ -236,7 +236,7 @@ User editor.
 Whitelist editor.
 */
 #overlay_application_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; overflow: auto}
-#div_application_0{width: 700px; height: 500px; left:50%; top:50%; margin-left: -350px; margin-top: -250px; position:absolute; color: white;}
+#div_application_0{width: 700px; height: 500px; left:50%; top:50%; margin-left: -350px; margin-top: -300px; position:absolute; color: white;}
 #application_editing_title{text-align: center;}
 #div_09c2_1{padding: 20px;}
 #label_application_enabled_0{margin-left: 10px;}
@@ -316,7 +316,7 @@ Apply to group Overlay.
 Apply App to App group Overlay.
 */
 #overlay_apply_app_to_app_group{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
-#div_apply_app_to_app_group_0{width: 90%; height: 100%; left:50%; top:50%; margin-left: -45%; margin-top: -250px; position:absolute; color: white;}
+#div_apply_app_to_app_group_0{width: 700px; height: 100%; left:50%; top:50%; margin-left: -350px; margin-top: -280px; position:absolute; color: white;}
 #apply_app_to_app_group_title{text-align: center;}
 #apply_app_to_app_group_div_c1{margin-right: 20px;margin-left:20px}
 #apply_app_to_app_group_source_list {width:100%; height: 300px;}
@@ -329,7 +329,7 @@ Apply App to App group Overlay.
 Apply Appgroup to Usergroup Overlay.
 */
 #overlay_apply_app_group_to_user_group{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
-#div_apply_app_group_to_user_group_0{width: 90%; height: 100%; left:50%; top:50%; margin-left: -45%; margin-top: -250px; position:absolute; color: white;}
+#div_apply_app_group_to_user_group_0{width: 700px; height: 100%; left:50%; top:50%; margin-left: -350px; margin-top: -280px; position:absolute; color: white;}
 #apply_app_group_to_user_group_title{text-align: center;}
 #apply_app_group_to_user_group_div_c1{margin-right: 20px;margin-left:20px}
 #apply_app_group_to_user_group_source_list {width:100%; height: 300px;}
