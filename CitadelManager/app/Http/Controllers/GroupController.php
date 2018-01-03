@@ -210,7 +210,6 @@ class GroupController extends Controller
             
             // Get any payload stuff off the file system.
             $thisGroup->destroyGroupData();
-            
             // Finally, do away with this group.
             $thisGroup->delete();
         }
@@ -226,7 +225,7 @@ class GroupController extends Controller
             'apps'=>$apps, 
             'app_groups'=>$app_groups,
             'group_to_apps'=>$group_to_apps
-            ]);
+        ]);
     }
 
     public function get_app_data_with_groupid($group_id) {
