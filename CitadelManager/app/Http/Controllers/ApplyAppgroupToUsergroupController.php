@@ -56,6 +56,10 @@ class ApplyAppgroupToUsergroupController extends Controller
                     'user_group_id' => $user_group_id
                 ]);
             }
+            foreach($user_group_ids as $user_group_id) {
+                $user_group = Group::where('id', $user_group_id)->get()->first();
+                $user_group->rebuildGroupData();
+            }
         }
         return response('', 204);
     }

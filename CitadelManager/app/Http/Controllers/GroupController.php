@@ -86,7 +86,7 @@ class GroupController extends Controller
             $arr_app_groups = array();
             foreach($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
                 $arr = array(
-                    'user_group_id' => $id,
+                    'user_group_id' => $myGroup->id,
                     'app_group_id' => $app_group_id
                 );
                 array_push($arr_app_groups, $arr);
@@ -210,7 +210,6 @@ class GroupController extends Controller
             
             // Get any payload stuff off the file system.
             $thisGroup->destroyGroupData();
-            
             // Finally, do away with this group.
             $thisGroup->delete();
         }
@@ -226,7 +225,7 @@ class GroupController extends Controller
             'apps'=>$apps, 
             'app_groups'=>$app_groups,
             'group_to_apps'=>$group_to_apps
-            ]);
+        ]);
     }
 
     public function get_app_data_with_groupid($group_id) {
