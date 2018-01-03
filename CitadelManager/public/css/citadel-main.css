@@ -121,7 +121,7 @@ Group editor.
 #label_ea30_10{margin-left: 2px;}
 #rule_selection_tab{background: transparent;}
 .info_div{font-size: 14px; margin: 10px;}
-.info_div p { padding-left:30px; text-indent: -12px; color:darkgrey; margin: 0;}
+.info_div p { padding-left:30px; text-indent: -12px; color:darkgrey; margin: 0 0 10px 0;}
 #hr_ea30_2{width: 100%}
 #div_ea30_16{width: 100%;}
 #div_ea30_17{margin: 4px;}

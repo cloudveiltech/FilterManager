@@ -183,7 +183,6 @@ var Citadel;
             this.m_ActivationTables.on('click', 'button.btn-block', function (e) {
                 var _this = this;
                 e.preventDefault();
-                console.log("block-action");
                 if (confirm("Are you sure you want to delete this activation and block the token?  The user will need to sign in again.")) {
                     var dataObject = {};
                     var id_str = e.target.id;

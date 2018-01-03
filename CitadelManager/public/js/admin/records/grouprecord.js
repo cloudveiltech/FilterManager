@@ -204,6 +204,7 @@ var Citadel;
             this.m_isActive = data['isactive'];
             this.m_assignedFilterIds = data['assigned_filter_ids'];
             this.m_appConfig = JSON.parse(data['app_cfg']);
+            console.log(this.m_appConfig);
         };
         GroupRecord.prototype.LoadFromForm = function () {
             this.m_groupName = this.m_groupNameInput.value;
@@ -497,10 +498,65 @@ var Citadel;
             switch (data == null) {
                 case true:
                     {
-                        this.m_editorTitle.innerText = "Create New Group";
-                        this.m_submitBtn.innerText = "Create Group";
-                        this.loadAppGroupDatas(false);
-                        this.m_isActiveInput.checked = true;
+                        if (cloneData != null) {
+                            this.m_editorTitle.innerText = "Clone Group";
+                            this.m_submitBtn.innerText = "Clone Group";
+                            this.LoadFromObject(cloneData);
+                            this.m_groupNameInput.value = this.m_groupName + "-cloned";
+                            this.m_isActiveInput.checked = this.m_isActive != 0;
+                            this.m_antiTamperNoTerminateInput.checked = this.m_appConfig['CannotTerminate'];
+                            this.m_antiTamperDisableInternetInput.checked = this.m_appConfig['BlockInternet'];
+                            this.m_antiTamperUseThresholdInput.checked = this.m_appConfig['UseThreshold'];
+                            this.m_antiTamperThresholdCountInput.valueAsNumber = parseInt(this.m_appConfig['ThresholdLimit']);
+                            this.m_antiTamperThresholdTriggerPeriodInput.valueAsNumber = parseInt(this.m_appConfig['ThresholdTriggerPeriod']);
+                            this.m_antiTamperThresholdTimeoutInput.valueAsNumber = parseInt(this.m_appConfig['ThresholdTimeoutPeriod']);
+                            this.m_antiTamperBypassesPerDayInput.valueAsNumber = parseInt(this.m_appConfig['BypassesPermitted']);
+                            this.m_antiTamperBypassDurationInput.valueAsNumber = parseInt(this.m_appConfig['BypassDuration']);
+                            this.m_groupNlpThresholdInput.valueAsNumber = parseFloat(this.m_appConfig['NlpThreshold']);
+                            this.m_textTriggerMaxSizeInput.valueAsNumber = parseInt(this.m_appConfig['MaxTextTriggerScanningSize']);
+                            try {
+                                for (var i = 0; i < this.m_updateChannelSelectInput.options.length; ++i) {
+                                    if (this.m_updateChannelSelectInput.options[i].value.toLowerCase() == this.m_appConfig['UpdateChannel'].toLowerCase()) {
+                                        this.m_updateChannelSelectInput.selectedIndex = this.m_updateChannelSelectInput.options[i].index;
+                                        break;
+                                    }
+                                }
+                            }
+                            catch (ex) {
+                                console.warn(ex);
+                                console.warn("Either the update channel is null or it's an invalid value. Defaulting...");
+                                this.m_updateChannelSelectInput.selectedIndex = 0;
+                            }
+                            this.m_groupUpdateCheckFrequencyInput.valueAsNumber = parseInt(this.m_appConfig['UpdateFrequency']);
+                            this.m_groupPrimaryDnsInput.value = this.m_appConfig['PrimaryDns'];
+                            this.m_groupSecondaryDnsInput.value = this.m_appConfig['SecondaryDns'];
+                            if (this.m_groupPrimaryDnsInput.value == 'undefined') {
+                                this.m_groupPrimaryDnsInput.value = '';
+                            }
+                            if (this.m_groupSecondaryDnsInput.value == 'undefined') {
+                                this.m_groupSecondaryDnsInput.value = '';
+                            }
+                            this.loadAppGroupDatas(true);
+                            if ('Blacklist' in this.m_appConfig) {
+                                this.m_filteredApplicationsAsBlacklistInput.checked = true;
+                                this.m_filteredApplicationsAsWhitelistInput.checked = false;
+                            }
+                            else if ('Whitelist' in this.m_appConfig) {
+                                this.m_filteredApplicationsAsBlacklistInput.checked = false;
+                                this.m_filteredApplicationsAsWhitelistInput.checked = true;
+                            }
+                            else {
+                                this.m_filteredApplicationsAsBlacklistInput.checked = true;
+                                this.m_filteredApplicationsAsWhitelistInput.checked = false;
+                            }
+                            this.m_groupId = undefined;
+                        }
+                        else {
+                            this.m_editorTitle.innerText = "Create New Group";
+                            this.m_submitBtn.innerText = "Create Group";
+                            this.loadAppGroupDatas(false);
+                            this.m_isActiveInput.checked = true;
+                        }
                     }
                     break;
                 case false:
@@ -557,59 +613,6 @@ var Citadel;
                         }
                     }
                     break;
-            }
-            if (cloneData != null) {
-                this.m_editorTitle.innerText = "Clone Group";
-                this.m_submitBtn.innerText = "Clone Group";
-                this.LoadFromObject(cloneData);
-                this.m_groupId = undefined;
-                this.m_groupNameInput.value = this.m_groupName + "-cloned";
-                this.m_isActiveInput.checked = this.m_isActive != 0;
-                this.m_antiTamperNoTerminateInput.checked = this.m_appConfig['CannotTerminate'];
-                this.m_antiTamperDisableInternetInput.checked = this.m_appConfig['BlockInternet'];
-                this.m_antiTamperUseThresholdInput.checked = this.m_appConfig['UseThreshold'];
-                this.m_antiTamperThresholdCountInput.valueAsNumber = parseInt(this.m_appConfig['ThresholdLimit']);
-                this.m_antiTamperThresholdTriggerPeriodInput.valueAsNumber = parseInt(this.m_appConfig['ThresholdTriggerPeriod']);
-                this.m_antiTamperThresholdTimeoutInput.valueAsNumber = parseInt(this.m_appConfig['ThresholdTimeoutPeriod']);
-                this.m_antiTamperBypassesPerDayInput.valueAsNumber = parseInt(this.m_appConfig['BypassesPermitted']);
-                this.m_antiTamperBypassDurationInput.valueAsNumber = parseInt(this.m_appConfig['BypassDuration']);
-                this.m_groupNlpThresholdInput.valueAsNumber = parseFloat(this.m_appConfig['NlpThreshold']);
-                this.m_textTriggerMaxSizeInput.valueAsNumber = parseInt(this.m_appConfig['MaxTextTriggerScanningSize']);
-                try {
-                    for (var i = 0; i < this.m_updateChannelSelectInput.options.length; ++i) {
-                        if (this.m_updateChannelSelectInput.options[i].value.toLowerCase() == this.m_appConfig['UpdateChannel'].toLowerCase()) {
-                            this.m_updateChannelSelectInput.selectedIndex = this.m_updateChannelSelectInput.options[i].index;
-                            break;
-                        }
-                    }
-                }
-                catch (ex) {
-                    console.warn(ex);
-                    console.warn("Either the update channel is null or it's an invalid value. Defaulting...");
-                    this.m_updateChannelSelectInput.selectedIndex = 0;
-                }
-                this.m_groupUpdateCheckFrequencyInput.valueAsNumber = parseInt(this.m_appConfig['UpdateFrequency']);
-                this.m_groupPrimaryDnsInput.value = this.m_appConfig['PrimaryDns'];
-                this.m_groupSecondaryDnsInput.value = this.m_appConfig['SecondaryDns'];
-                if (this.m_groupPrimaryDnsInput.value == 'undefined') {
-                    this.m_groupPrimaryDnsInput.value = '';
-                }
-                if (this.m_groupSecondaryDnsInput.value == 'undefined') {
-                    this.m_groupSecondaryDnsInput.value = '';
-                }
-                this.loadAppGroupDatas(true);
-                if ('Blacklist' in this.m_appConfig) {
-                    this.m_filteredApplicationsAsBlacklistInput.checked = true;
-                    this.m_filteredApplicationsAsWhitelistInput.checked = false;
-                }
-                else if ('Whitelist' in this.m_appConfig) {
-                    this.m_filteredApplicationsAsBlacklistInput.checked = false;
-                    this.m_filteredApplicationsAsWhitelistInput.checked = true;
-                }
-                else {
-                    this.m_filteredApplicationsAsBlacklistInput.checked = true;
-                    this.m_filteredApplicationsAsWhitelistInput.checked = false;
-                }
             }
             this.m_mainForm.onsubmit = (function (e) {
                 var validateOpts = _this.ValidationOptions;

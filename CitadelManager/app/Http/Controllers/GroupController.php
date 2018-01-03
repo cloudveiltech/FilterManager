@@ -86,7 +86,7 @@ class GroupController extends Controller
             $arr_app_groups = array();
             foreach($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
                 $arr = array(
-                    'user_group_id' => $id,
+                    'user_group_id' => $myGroup->id,
                     'app_group_id' => $app_group_id
                 );
                 array_push($arr_app_groups, $arr);
