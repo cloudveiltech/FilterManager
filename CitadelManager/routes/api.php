@@ -89,6 +89,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live','api','auth:api']], f
     Route::post('/me/terms', 'UserController@getUserTerms');
     Route::post('/me/revoketoken', 'UserController@revokeUserToken');
     Route::post('/me/bypass', 'AppUserActivationController@bypass');
+    Route::post('/me/accountability', 'AccountabilityController@index');
     
     Route::get('/me/user', function (Request $request) {
         return $request->user();
