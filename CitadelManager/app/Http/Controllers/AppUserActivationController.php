@@ -120,6 +120,9 @@ class AppUserActivationController extends Controller {
         $validator = Validator::make($request->all(), [
             'identifier' => 'required'
         ]);
+
+        Log::info($request);
+
         // Get Specific Activation with $identifier
         $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
         if (!$activation) {
