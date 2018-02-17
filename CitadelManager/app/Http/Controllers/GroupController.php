@@ -11,10 +11,14 @@ namespace App\Http\Controllers;
 
 use App\Group;
 use App\User;
+use App\App;
+use App\AppGroup;
+use App\AppGroupToApp;
+use App\UserGroupToAppGroup;
 use App\GroupFilterAssignment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-
+use Log;
 class GroupController extends Controller
 {
     
@@ -55,8 +59,9 @@ class GroupController extends Controller
             'name' => 'required'
         ]);
         
-        $groupInput = $request->except('assigned_filter_ids');
+        $groupInput = $request->except(['assigned_filter_ids','assigned_app_groups']);
         $groupListAssigments = $request->only('assigned_filter_ids');
+        $assignedAppgroups = $request->only('assigned_app_groups');
         
         $myGroup = Group::firstOrCreate($groupInput);
 
@@ -77,6 +82,18 @@ class GroupController extends Controller
             GroupFilterAssignment::insertIgnore($groupListAssignmentMassInsert);
         }
         
+        if(is_array($assignedAppgroups['assigned_app_groups'])) {
+            $arr_app_groups = array();
+            foreach($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
+                $arr = array(
+                    'user_group_id' => $myGroup->id,
+                    'app_group_id' => $app_group_id
+                );
+                array_push($arr_app_groups, $arr);
+                //UserGroupToAppGroup::create($arr);
+            }
+            UserGroupToAppGroup::insert($arr_app_groups);
+        }
         $myGroup->rebuildGroupData();
         
         return response('', 204);
@@ -118,9 +135,10 @@ class GroupController extends Controller
             'name' => 'required'
         ]);
         
-        $groupInput = $request->except('assigned_filter_ids');
+        $groupInput = $request->except(['assigned_filter_ids', 'assigned_app_groups']);
         $groupListAssigments = $request->only('assigned_filter_ids');
-        
+        $assignedAppgroups = $request->only('assigned_app_groups');
+
         Group::where('id', $id)->update($groupInput);
         
         GroupFilterAssignment::where('group_id', $id)->delete();
@@ -142,6 +160,20 @@ class GroupController extends Controller
             GroupFilterAssignment::insertIgnore($groupListAssignmentMassInsert);
         }
         
+        
+        UserGroupToAppGroup::where('user_group_id', $id)->delete();
+        if(is_array($assignedAppgroups['assigned_app_groups'])) {
+            $arr_app_groups = array();
+            foreach($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
+                $arr = array(
+                    'user_group_id' => $id,
+                    'app_group_id' => $app_group_id
+                );
+                array_push($arr_app_groups, $arr);
+                //UserGroupToAppGroup::create($arr);
+            }
+            UserGroupToAppGroup::insert($arr_app_groups);
+        }
         $thisGroup = Group::where('id', $id)->first();
         
         if(!is_null($thisGroup))
@@ -174,14 +206,37 @@ class GroupController extends Controller
             User::where('group_id', $id)->update(['group_id' => -1]);
 
             GroupFilterAssignment::where('group_id', $id)->delete();
+            UserGroupToAppGroup::where('user_group_id', $id)->delete();
             
             // Get any payload stuff off the file system.
             $thisGroup->destroyGroupData();
-            
             // Finally, do away with this group.
             $thisGroup->delete();
         }
         
         return response('', 204);
+    }
+
+    public function get_app_data() {
+        $apps = App::get();
+        $app_groups = AppGroup::get();
+        $group_to_apps = AppGroupToApp::get();
+        return response()->json([
+            'apps'=>$apps, 
+            'app_groups'=>$app_groups,
+            'group_to_apps'=>$group_to_apps
+        ]);
+    }
+
+    public function get_app_data_with_groupid($group_id) {
+        $apps = App::get();
+        $app_groups = AppGroup::get();
+        $group_to_apps = AppGroupToApp::get();
+        $selected_app_groups = UserGroupToAppGroup::where('user_group_id', $group_id)->get();
+        return response()->json([
+            'apps'=>$apps, 
+            'app_groups'=>$app_groups,
+            'group_to_apps'=>$group_to_apps,
+            'selected_app_groups'=>$selected_app_groups]);
     }
 }

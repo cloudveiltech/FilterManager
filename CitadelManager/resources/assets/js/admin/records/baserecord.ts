@@ -171,7 +171,7 @@ namespace Citadel
 
             // Get this record's data as an object we can serialize.
             let dataObject = this.ToObject();
-
+            console.log(dataObject);
             this.m_progressWait.Show('Saving Record', 'Saving record to server.');
 
             let ajaxSettings: JQueryAjaxSettings =

@@ -204,6 +204,11 @@ namespace Citadel
                         visible: true
                     },
                     {
+                        title: 'App Version',
+                        data: 'app_version',
+                        visible: true
+                    },
+                    {
                         title: 'IP Address',
                         data: 'ip_address',
                         visible: true
@@ -260,10 +265,10 @@ namespace Citadel
                 };
 
                 activationTableSettings['responsive'] = true;
-            this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
-            this.m_ActivationTables.on('click', 'button.btn-delete', function(e){
+                this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
+                this.m_ActivationTables.on('click', 'button.btn-delete', function(e){
                 e.preventDefault();
-                if (confirm("Are you want to delete this token?"))
+                if (confirm("Are you sure you want to delete this activation?"))
                 {
                     let dataObject = {};
                     let id_str = e.target.id;
@@ -313,8 +318,7 @@ namespace Citadel
             });
             this.m_ActivationTables.on('click', 'button.btn-block', function(e){
                 e.preventDefault();
-                console.log("block-action");
-                if (confirm("Are you want to block this token?"))
+                if (confirm("Are you sure you want to delete this activation and block the token?  The user will need to sign in again."))
                 {
                     let dataObject = {};
                     let id_str = e.target.id;

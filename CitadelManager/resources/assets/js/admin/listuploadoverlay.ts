@@ -209,8 +209,7 @@ namespace Citadel
                         // Set the file accepted to false so that we can track this in other callbacks
                         // and know that it is a failed upload.
                         file.accepted = false;
-                        console.log(message);
-
+                        
                         this.m_progressWait.Show("Upload Failed", xhr.responseText);
 
                         setTimeout(() =>

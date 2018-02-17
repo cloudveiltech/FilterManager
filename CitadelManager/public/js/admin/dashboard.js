@@ -6,8 +6,8 @@ var Citadel;
         DashboardViewStates[DashboardViewStates["GroupListView"] = 1] = "GroupListView";
         DashboardViewStates[DashboardViewStates["FilterListView"] = 2] = "FilterListView";
         DashboardViewStates[DashboardViewStates["DeactivationRequestListView"] = 3] = "DeactivationRequestListView";
-        DashboardViewStates[DashboardViewStates["WhiteListView"] = 4] = "WhiteListView";
-        DashboardViewStates[DashboardViewStates["BlackListView"] = 5] = "BlackListView";
+        DashboardViewStates[DashboardViewStates["AppView"] = 4] = "AppView";
+        DashboardViewStates[DashboardViewStates["AppGroupView"] = 5] = "AppGroupView";
         DashboardViewStates[DashboardViewStates["AppUserActivationView"] = 6] = "AppUserActivationView";
     })(DashboardViewStates || (DashboardViewStates = {}));
     var Dashboard = (function () {
@@ -32,8 +32,8 @@ var Citadel;
             this.m_viewGroupManagement = document.getElementById('view_group_management');
             this.m_viewFilterManagement = document.getElementById('view_filter_management');
             this.m_viewUserDeactivationRequestManagement = document.getElementById('view_user_deactivation_request_management');
-            this.m_viewWhiteListManagement = document.getElementById('view_whitelist_management');
-            this.m_viewBlackListManagement = document.getElementById('view_blacklist_management');
+            this.m_viewAppManagement = document.getElementById('view_app_management');
+            this.m_viewAppGroupManagement = document.getElementById('view_app_group_management');
             this.m_viewAppUserActivationManagement = document.getElementById('view_app_user_activations_management');
             this.ConstructTables();
             this.ConstructDragula();
@@ -362,47 +362,39 @@ var Citadel;
                 };
                 _this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
             });
-            var whiteListTableConstruction = (function () {
-                var whiteListTableColumns = [
+            var appListTableConstruction = (function () {
+                var appListTableColumns = [
                     {
-                        title: 'Whitelist Id',
+                        title: 'App Id',
                         data: 'id',
                         visible: false
                     },
                     {
-                        title: 'Whitelist Application Name',
+                        title: 'Application Name',
                         data: 'name',
-                        visible: true
-                    },
-                    {
-                        title: 'Active',
-                        data: 'isactive',
                         visible: true,
-                        render: (function (data, t, row, meta) {
-                            if (data == null) {
-                                return "";
-                            }
-                            if (data == 1) {
-                                return "True";
-                            }
-                            else {
-                                return "False";
-                            }
-                        })
+                        width: '200px'
                     },
                     {
-                        title: 'Date Registered',
-                        data: 'created_at',
+                        title: 'Notes',
+                        data: 'notes',
+                        visible: true,
+                        width: '200px'
+                    },
+                    {
+                        title: 'Linked Group',
+                        data: 'group_name',
                         visible: true
                     },
                     {
                         title: 'Date Modified',
                         data: 'updated_at',
-                        visible: true
+                        visible: true,
+                        width: '200px'
                     }
                 ];
-                var whiteListTablesLoadFromAjaxSettings = {
-                    url: "api/admin/whitelists",
+                var appListTablesLoadFromAjaxSettings = {
+                    url: "api/admin/app",
                     dataSrc: "",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -413,58 +405,44 @@ var Citadel;
                         }
                     })
                 };
-                var whiteListTableSettings = {
+                var appListTableSettings = {
                     autoWidth: true,
                     stateSave: true,
-                    columns: whiteListTableColumns,
-                    ajax: whiteListTablesLoadFromAjaxSettings,
+                    columns: appListTableColumns,
+                    ajax: appListTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
                         _this.OnTableRowCreated(row, data);
                     })
                 };
-                _this.m_tableWhiteLists = $('#whitelist_table').DataTable(whiteListTableSettings);
+                _this.m_tableAppLists = $('#app_table').DataTable(appListTableSettings);
             });
-            var blackListTableConstruction = (function () {
-                var blackListTableColumns = [
+            var appGroupListTableConstruction = (function () {
+                var appGroupListTableColumns = [
                     {
-                        title: 'Blacklist Id',
+                        title: 'App Group Id',
                         data: 'id',
                         visible: false
                     },
                     {
-                        title: 'Blacklist Application Name',
-                        data: 'name',
-                        visible: true
-                    },
-                    {
-                        title: 'Active',
-                        data: 'isactive',
+                        title: 'App Group Name',
+                        data: 'group_name',
                         visible: true,
-                        render: (function (data, t, row, meta) {
-                            if (data == null) {
-                                return "";
-                            }
-                            if (data == 1) {
-                                return "True";
-                            }
-                            else {
-                                return "False";
-                            }
-                        })
+                        width: '200px'
                     },
                     {
-                        title: 'Date Registered',
-                        data: 'created_at',
+                        title: 'Linked Apps',
+                        data: 'app_names',
                         visible: true
                     },
                     {
                         title: 'Date Modified',
                         data: 'updated_at',
-                        visible: true
+                        visible: true,
+                        width: '200px'
                     }
                 ];
-                var blackListTablesLoadFromAjaxSettings = {
-                    url: "api/admin/blacklists",
+                var appGroupListTablesLoadFromAjaxSettings = {
+                    url: "api/admin/app_group",
                     dataSrc: "",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -475,16 +453,16 @@ var Citadel;
                         }
                     })
                 };
-                var blackListTableSettings = {
+                var appGroupListTableSettings = {
                     autoWidth: true,
                     stateSave: true,
-                    columns: blackListTableColumns,
-                    ajax: blackListTablesLoadFromAjaxSettings,
+                    columns: appGroupListTableColumns,
+                    ajax: appGroupListTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
                         _this.OnTableRowCreated(row, data);
                     })
                 };
-                _this.m_tableBlackLists = $('#blacklist_table').DataTable(blackListTableSettings);
+                _this.m_tableAppGroupLists = $('#app_group_table').DataTable(appGroupListTableSettings);
             });
             var appUserActivationTableConstruction = (function () {
                 var appUserActivationTableColumns = [
@@ -506,6 +484,11 @@ var Citadel;
                     {
                         title: 'Device Id',
                         data: 'device_id',
+                        visible: true
+                    },
+                    {
+                        title: 'App Version',
+                        data: 'app_version',
                         visible: true
                     },
                     {
@@ -561,8 +544,8 @@ var Citadel;
             groupTableConstruction();
             filterTableConstruction();
             deactivationRequestConstruction();
-            whiteListTableConstruction();
-            blackListTableConstruction();
+            appListTableConstruction();
+            appGroupListTableConstruction();
             appUserActivationTableConstruction();
         };
         Dashboard.prototype.ConstructNavigation = function () {
@@ -571,7 +554,7 @@ var Citadel;
             this.m_tabBtnGroups = document.querySelector('a[href="#tab_groups"]');
             this.m_tabBtnFilterLists = document.querySelector('a[href="#tab_filter_lists"]');
             this.m_tabBtnUserRequest = document.querySelector('a[href="#tab_user_deactivation_requests"]');
-            this.m_tabBtnWhiteBlackLists = document.querySelector('a[href="#tab_user_global_white_black_list"]');
+            this.m_tabBtnAppGroup = document.querySelector('a[href="#tab_app_groups"]');
             this.m_tabBtnAppUserActivation = document.querySelector('a[href="#tab_app_user_activations"]');
             this.m_btnCreateUser = document.getElementById('btn_user_add');
             this.m_btnDeleteUser = document.getElementById('btn_user_delete');
@@ -591,8 +574,8 @@ var Citadel;
             this.m_btnDeleteUserDeactivationRequest = document.getElementById('btn_delete_user_deactivation_request');
             this.m_btnDeleteUserDeactivationRequest.disabled = true;
             this.m_btnRefreshUserDeactivationRequests = document.getElementById('btn_refresh_user_deactivation_request_list');
-            this.m_btnBlacklist = document.getElementById('global_radio_blacklist');
-            this.m_btnWhitelist = document.getElementById('global_radio_whitelist');
+            this.m_btnApp = document.getElementById('global_radio_app');
+            this.m_btnAppGroup = document.getElementById('global_radio_app_group');
             this.m_btnAddItem = document.getElementById('btn_application_add');
             this.m_btnRemoveItem = document.getElementById('btn_application_remove');
             this.m_btnRemoveItem.disabled = true;
@@ -653,26 +636,29 @@ var Citadel;
             this.m_tabBtnUserRequest.onclick = (function (e) {
                 _this.ViewState = DashboardViewStates.DeactivationRequestListView;
             });
-            this.m_tabBtnWhiteBlackLists.onclick = (function (e) {
-                if (_this.m_btnWhitelist.checked) {
-                    _this.ViewState = DashboardViewStates.WhiteListView;
+            this.m_tabBtnAppGroup.onclick = (function (e) {
+                if (_this.m_btnApp.checked) {
+                    _this.ViewState = DashboardViewStates.AppView;
                 }
                 else {
-                    _this.ViewState = DashboardViewStates.BlackListView;
+                    _this.ViewState = DashboardViewStates.AppGroupView;
                 }
             });
-            this.m_btnWhitelist.onclick = (function (e) {
-                _this.ViewState = DashboardViewStates.WhiteListView;
-                var itemIsActuallySelected = $("#whitelist_table").children().next().find(".selected").length > 0 ? true : false;
+            this.m_btnApp.onclick = (function (e) {
+                _this.ViewState = DashboardViewStates.AppView;
+                var itemIsActuallySelected = $("#app_table").children().next().find(".selected").length > 0 ? true : false;
                 _this.m_btnRemoveItem.disabled = itemIsActuallySelected;
+                _this.m_btnAddItem.innerHTML = '<span class="icon mif-stack"></span>Add <br /> Application';
+                _this.m_btnRemoveItem.innerHTML = '<span class="mif-cancel"></span>Remove <br /> Application';
+                _this.m_btnApplyToGroup.innerHTML = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To App Group';
             });
-            this.m_tabBtnAppUserActivation.onclick = (function (e) {
-                _this.ViewState = DashboardViewStates.AppUserActivationView;
-            });
-            this.m_btnBlacklist.onclick = (function (e) {
-                _this.ViewState = DashboardViewStates.BlackListView;
-                var itemIsActuallySelected = $("#blacklist_table").children().next().find(".selected").length > 0 ? true : false;
+            this.m_btnAppGroup.onclick = (function (e) {
+                _this.ViewState = DashboardViewStates.AppGroupView;
+                var itemIsActuallySelected = $("#app_group_table").children().next().find(".selected").length > 0 ? true : false;
                 _this.m_btnRemoveItem.disabled = itemIsActuallySelected;
+                _this.m_btnAddItem.innerHTML = '<span class="icon mif-stack"></span>Add <br /> Application <br /> Group';
+                _this.m_btnRemoveItem.innerHTML = '<span class="mif-cancel"></span>Remove <br /> Application <br /> Group';
+                _this.m_btnApplyToGroup.innerHTML = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To User Group';
             });
             this.m_btnAddItem.onclick = (function (e) {
                 _this.OnAddApplicationClicked(e);
@@ -682,6 +668,9 @@ var Citadel;
             });
             this.m_btnApplyToGroup.onclick = (function (e) {
                 _this.onApplyToGroupClicked(e);
+            });
+            this.m_tabBtnAppUserActivation.onclick = (function (e) {
+                _this.ViewState = DashboardViewStates.AppUserActivationView;
             });
             this.m_btnDeleteAppUserActivation.onclick = (function (e) {
                 _this.onDeleteAppUserActivationClicked(e);
@@ -732,12 +721,12 @@ var Citadel;
                         this.m_btnDeleteUserDeactivationRequest.disabled = !itemIsActuallySelected;
                     }
                     break;
-                case 'whitelist_table':
+                case 'app_table':
                     {
                         this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
                     }
                     break;
-                case 'blacklist_table':
+                case 'app_group_table':
                     {
                         this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
                     }
@@ -754,7 +743,6 @@ var Citadel;
             var _this = this;
             e.stopImmediatePropagation();
             e.stopPropagation();
-            console.log(data);
             var selectedRow = e.currentTarget;
             var parentTable = $(selectedRow).closest('table')[0];
             switch (parentTable.id) {
@@ -793,24 +781,24 @@ var Citadel;
                         });
                     }
                     break;
-                case 'whitelist_table':
+                case 'app_table':
                     {
-                        var whitelistRecord_1 = new Citadel.WhitelistRecord();
-                        whitelistRecord_1.ActionCompleteCallback = (function (action) {
-                            whitelistRecord_1.StopEditing();
-                            _this.ForceTableRedraw(_this.m_tableWhiteLists);
+                        var appRecord_1 = new Citadel.AppRecord();
+                        appRecord_1.ActionCompleteCallback = (function (action) {
+                            appRecord_1.StopEditing();
+                            _this.ForceTableRedraw(_this.m_tableAppLists);
                         });
-                        whitelistRecord_1.StartEditing(data);
+                        appRecord_1.StartEditing(data);
                     }
                     break;
-                case 'blacklist_table':
+                case 'app_group_table':
                     {
-                        var blacklistRecord_1 = new Citadel.BlacklistRecord();
-                        blacklistRecord_1.ActionCompleteCallback = (function (action) {
-                            blacklistRecord_1.StopEditing();
-                            _this.ForceTableRedraw(_this.m_tableBlackLists);
+                        var appGroupRecord_1 = new Citadel.AppGroupRecord();
+                        appGroupRecord_1.ActionCompleteCallback = (function (action) {
+                            appGroupRecord_1.StopEditing();
+                            _this.ForceTableRedraw(_this.m_tableAppGroupLists);
                         });
-                        blacklistRecord_1.StartEditing(data);
+                        appGroupRecord_1.StartEditing(data);
                     }
                     break;
                 case 'app_user_activations_table':
@@ -848,7 +836,6 @@ var Citadel;
         };
         Dashboard.prototype.OnCreateUserClicked = function (e) {
             var _this = this;
-            console.log('OnCreateUserClicked');
             var newUser = new Citadel.UserRecord();
             newUser.StartEditing(this.m_tableGroups.data(), this.m_tableUsers.data()['all_user_roles']);
             newUser.ActionCompleteCallback = (function (action) {
@@ -878,7 +865,6 @@ var Citadel;
         };
         Dashboard.prototype.OnCreateGroupClicked = function (e) {
             var _this = this;
-            console.log('OnCreateGroupClicked');
             var groupRecord = new Citadel.GroupRecord();
             groupRecord.ActionCompleteCallback = (function (action) {
                 groupRecord.StopEditing();
@@ -983,68 +969,74 @@ var Citadel;
         };
         Dashboard.prototype.OnAddApplicationClicked = function (e) {
             var _this = this;
-            if (this.m_btnWhitelist.checked) {
-                var newWhitelist_1 = new Citadel.WhitelistRecord();
-                newWhitelist_1.StartEditing();
-                newWhitelist_1.ActionCompleteCallback = (function (action) {
-                    newWhitelist_1.StopEditing();
-                    _this.ForceTableRedraw(_this.m_tableWhiteLists);
+            if (this.m_btnApp.checked) {
+                var newApp_1 = new Citadel.AppRecord();
+                newApp_1.StartEditing();
+                newApp_1.ActionCompleteCallback = (function (action) {
+                    newApp_1.StopEditing();
+                    _this.ForceTableRedraw(_this.m_tableAppLists);
                 });
             }
             else {
-                var newBlacklist_1 = new Citadel.BlacklistRecord();
-                newBlacklist_1.StartEditing();
-                newBlacklist_1.ActionCompleteCallback = (function (action) {
-                    newBlacklist_1.StopEditing();
-                    _this.ForceTableRedraw(_this.m_tableBlackLists);
+                var newAppGroup_1 = new Citadel.AppGroupRecord();
+                newAppGroup_1.StartEditing();
+                newAppGroup_1.ActionCompleteCallback = (function (action) {
+                    newAppGroup_1.StopEditing();
+                    _this.ForceTableRedraw(_this.m_tableAppGroupLists);
                 });
             }
         };
         Dashboard.prototype.onRemoveApplicationClicked = function (e) {
             var _this = this;
             this.m_btnRemoveItem.disabled = true;
-            if (this.m_btnWhitelist.checked) {
-                var selectedItem = this.m_tableWhiteLists.row('.selected').data();
+            if (this.m_btnApp.checked) {
+                var selectedItem = this.m_tableAppLists.row('.selected').data();
                 if (selectedItem != null) {
-                    var whiteListObj;
+                    var appObj;
                     try {
-                        whiteListObj = Citadel.BaseRecord.CreateFromObject(Citadel.WhitelistRecord, selectedItem);
-                        whiteListObj.ActionCompleteCallback = (function (action) {
-                            _this.ForceTableRedraw(_this.m_tableWhiteLists);
+                        appObj = Citadel.BaseRecord.CreateFromObject(Citadel.AppRecord, selectedItem);
+                        appObj.ActionCompleteCallback = (function (action) {
+                            _this.ForceTableRedraw(_this.m_tableAppLists);
                         });
-                        if (confirm("Really delete Whitelist Application? THIS CANNOT BE UNDONE!!!")) {
-                            whiteListObj.Delete();
+                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!")) {
+                            appObj.Delete();
                         }
                     }
                     catch (e) {
                         this.m_btnRemoveItem.disabled = false;
-                        console.log('Failed to load whitelist record from table selection.');
+                        console.log('Failed to load application record from table selection.');
                     }
                 }
             }
             else {
-                var selectedItem = this.m_tableBlackLists.row('.selected').data();
+                var selectedItem = this.m_tableAppGroupLists.row('.selected').data();
                 if (selectedItem != null) {
-                    var blackListObj;
+                    var appGroupObj;
                     try {
-                        blackListObj = Citadel.BaseRecord.CreateFromObject(Citadel.BlacklistRecord, selectedItem);
-                        blackListObj.ActionCompleteCallback = (function (action) {
-                            _this.ForceTableRedraw(_this.m_tableBlackLists);
+                        appGroupObj = Citadel.BaseRecord.CreateFromObject(Citadel.AppGroupRecord, selectedItem);
+                        appGroupObj.ActionCompleteCallback = (function (action) {
+                            _this.ForceTableRedraw(_this.m_tableAppGroupLists);
                         });
-                        if (confirm("Really delete Blacklist Application? THIS CANNOT BE UNDONE!!!")) {
-                            blackListObj.Delete();
+                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!")) {
+                            appGroupObj.Delete();
                         }
                     }
                     catch (e) {
                         this.m_btnRemoveItem.disabled = false;
-                        console.log('Failed to load blacklist record from table selection.');
+                        console.log('Failed to load application record from table selection.');
                     }
                 }
             }
         };
         Dashboard.prototype.onApplyToGroupClicked = function (e) {
-            var apply_overlay = new Citadel.ApplyToGroupOverlay();
-            apply_overlay.Show();
+            if (this.m_btnApp.checked) {
+                var apply_app_to_app_group_overlay = new Citadel.ApplyAppToAppGroup(this);
+                apply_app_to_app_group_overlay.Show();
+            }
+            else {
+                var apply_app_group_to_user_group_overlay = new Citadel.ApplyAppgroupToUsergroup(this);
+                apply_app_group_to_user_group_overlay.Show();
+            }
         };
         Dashboard.prototype.onDeleteAppUserActivationClicked = function (e) {
             var _this = this;
@@ -1093,8 +1085,8 @@ var Citadel;
                 this.m_viewGroupManagement.style.visibility = "hidden";
                 this.m_viewFilterManagement.style.visibility = "hidden";
                 this.m_viewUserDeactivationRequestManagement.style.visibility = "hidden";
-                this.m_viewWhiteListManagement.style.visibility = "hidden";
-                this.m_viewBlackListManagement.style.visibility = "hidden";
+                this.m_viewAppManagement.style.visibility = "hidden";
+                this.m_viewAppGroupManagement.style.visibility = "hidden";
                 this.m_viewAppUserActivationManagement.style.visibility = "hidden";
                 switch (value) {
                     case DashboardViewStates.UserListView:
@@ -1120,16 +1112,16 @@ var Citadel;
                             this.m_viewUserDeactivationRequestManagement.style.visibility = "visible";
                         }
                         break;
-                    case DashboardViewStates.WhiteListView:
+                    case DashboardViewStates.AppView:
                         {
-                            this.ForceTableRedraw(this.m_tableWhiteLists);
-                            this.m_viewWhiteListManagement.style.visibility = "visible";
+                            this.ForceTableRedraw(this.m_tableAppLists);
+                            this.m_viewAppManagement.style.visibility = "visible";
                         }
                         break;
-                    case DashboardViewStates.BlackListView:
+                    case DashboardViewStates.AppGroupView:
                         {
-                            this.ForceTableRedraw(this.m_tableBlackLists);
-                            this.m_viewBlackListManagement.style.visibility = "visible";
+                            this.ForceTableRedraw(this.m_tableAppGroupLists);
+                            this.m_viewAppGroupManagement.style.visibility = "visible";
                         }
                         break;
                     case DashboardViewStates.AppUserActivationView:
@@ -1146,6 +1138,7 @@ var Citadel;
         });
         return Dashboard;
     }());
+    Citadel.Dashboard = Dashboard;
     var citadelDashboard;
     document.onreadystatechange = function (event) {
         if (document.readyState.toUpperCase() == "complete".toUpperCase()) {

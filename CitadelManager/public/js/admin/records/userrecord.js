@@ -104,6 +104,11 @@ var Citadel;
                     visible: true
                 },
                 {
+                    title: 'App Version',
+                    data: 'app_version',
+                    visible: true
+                },
+                {
                     title: 'IP Address',
                     data: 'ip_address',
                     visible: true
@@ -144,7 +149,7 @@ var Citadel;
             this.m_ActivationTables.on('click', 'button.btn-delete', function (e) {
                 var _this = this;
                 e.preventDefault();
-                if (confirm("Are you want to delete this token?")) {
+                if (confirm("Are you sure you want to delete this activation?")) {
                     var dataObject = {};
                     var id_str = e.target.id;
                     var id_1 = id_str.split("_")[1];
@@ -178,8 +183,7 @@ var Citadel;
             this.m_ActivationTables.on('click', 'button.btn-block', function (e) {
                 var _this = this;
                 e.preventDefault();
-                console.log("block-action");
-                if (confirm("Are you want to block this token?")) {
+                if (confirm("Are you sure you want to delete this activation and block the token?  The user will need to sign in again.")) {
                     var dataObject = {};
                     var id_str = e.target.id;
                     var id_2 = id_str.split("_")[1];

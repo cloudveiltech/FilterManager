@@ -13,6 +13,8 @@ const { mix } = require('laravel-mix');
 
 mix.js('resources/assets/js/progresswait.js', 'public/js/progresswait.js')
     .js('resources/assets/js/admin/applytogroupoverlay.js', 'public/js/admin/applytogroupoverlay.js')
+    .js('resources/assets/js/admin/applyapptoappgroup.js', 'public/js/admin/applyapptoappgroup.js')
+    .js('resources/assets/js/admin/applyappgrouptousergroup.js', 'public/js/admin/applyappgrouptousergroup.js')
     .js('resources/assets/js/admin/dashboard.js', 'public/js/admin/dashboard.js')
     .js('resources/assets/js/admin/listuploadoverlay.js', 'public/js/admin/listuploadoverlay.js')
     .js('resources/assets/js/admin/records/appuseractivationrecord.js', 'public/js/admin/records/appuseractivationrecord.js')
@@ -22,5 +24,5 @@ mix.js('resources/assets/js/progresswait.js', 'public/js/progresswait.js')
     .js('resources/assets/js/admin/records/filterlistrecord.js', 'public/js/admin/records/filterlistrecord.js')
     .js('resources/assets/js/admin/records/grouprecord.js', 'public/js/admin/records/grouprecord.js')
     .js('resources/assets/js/admin/records/userrecord.js', 'public/js/admin/records/userrecord.js')
-    .js('resources/assets/js/admin/records/whitelistrecord.js', 'public/js/admin/records/whitelistrecord.js')
+    .js('resources/assets/js/admin/records/apprecord.js', 'public/js/admin/records/apprecord.js')
 
