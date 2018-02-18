@@ -59,17 +59,15 @@ class ApplicationGroupController extends Controller
         $input = $request->only(['group_name']);
         $group = AppGroup::create($input);
         $apps_str = $request->only(['apps']);
-        if ($apps_str['apps'] != "") {
-            $apps = explode(",", $apps_str['apps']);
-            //$arr_group_to_apps = [];
-            foreach ($apps as $app_id) {
-                AppGroupToApp::create( array(
-                    "app_group_id" => $group->id,
-                    "app_id" => intval($app_id)
-                ));
-            }
+        $apps = array_filter(explode(",", $apps_str['apps']));
+
+        foreach ($apps as $app_id) {
+            AppGroupToApp::create( array(
+                "app_group_id" => $group->id,
+                "app_id" => intval($app_id)
+            ));
         }
-        //DB::table('app_group_to_apps')->insert($app_group_to_apps);
+
         return response('', 204);
     }
 
@@ -92,15 +90,11 @@ class ApplicationGroupController extends Controller
 
     public function update(Request $request, $id) {
         
-        // The javascript side/admin UI will not send
-        // password or password_verify unless they are
-        // intentionally trying to change a user's password.
-    
         $input = $request->only(['group_name']);
         AppGroup::where('id', $id)->update($input);
         AppGroupToApp::where('app_group_id', $id)->delete();
         $apps_str = $request->only(['apps']);
-        $apps = explode(",", $apps_str['apps']);        
+        $apps = array_filter(explode(",", $apps_str['apps']));   
         foreach ($apps as $app_id) {
             AppGroupToApp::create( array(
                 "app_group_id" => $id,
