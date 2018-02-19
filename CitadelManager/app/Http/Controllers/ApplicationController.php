@@ -60,7 +60,7 @@ class ApplicationController extends Controller
         $input = $request->only(['name', 'notes']);        
         $app = App::create($input);
         $assigned_groups = $request->only('assigned_appgroup');
-        AppGroupToApp::where('app_id', $id)->delete();
+        
         if(is_array($assigned_groups['assigned_appgroup'])) {
             $arr_assigned_groups = array();
             foreach($assigned_groups['assigned_appgroup'] as $group_id) {
