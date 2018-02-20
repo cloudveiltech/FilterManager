@@ -6,6 +6,7 @@ use App\Group;
 use App\AppGroupToApp;
 use App\App;
 use Illuminate\Http\Request;
+use App\UserGroupToAppGroup;
 use Log;
 class ApplicationGroupController extends Controller
 {
@@ -20,7 +21,7 @@ class ApplicationGroupController extends Controller
      */
     public function index()
     {
-        //return AppGroup::with('user_group')->get();
+        
         $app_groups = AppGroup::with('group_app')->get();
         foreach($app_groups as $app_group) {
             $arr_app_id = [];
@@ -80,6 +81,7 @@ class ApplicationGroupController extends Controller
      */
     public function destroy($id) {
         AppGroupToApp::where('app_group_id', $id)->delete();
+        UserGroupToAppGroup::where('app_group_id', $id)->delete();
         $applicationGroup = AppGroup::where('id', $id)->first();
         if (!is_null($applicationGroup)) {
             $applicationGroup->delete();
