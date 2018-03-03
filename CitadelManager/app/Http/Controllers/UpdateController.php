@@ -45,18 +45,18 @@ class UpdateController extends Controller {
               [
                 [
                   'release' => 'Alpha',
-                  'version_number' => '1.6.22'
+                  'version_number' => '1.6.23'
                 ],
                 [
                   'release' => 'Beta',
-                  'version_number' => '1.6.22'
+                  'version_number' => '1.6.21'
                 ],
                 [
                   'release' => 'Stable',
                   'version_number' => '1.6.21'
                 ]
             ],
-            'date' => 'Mon, 15 Jan 2018 12:39:00 MST'
+            'date' => 'Tue, 20 Feb 2018 12:39:00 MST'
           ]
         )
         ->header('Content-Type', 'text/xml');
