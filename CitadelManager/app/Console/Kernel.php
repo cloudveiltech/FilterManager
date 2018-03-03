@@ -33,6 +33,12 @@ class Kernel extends ConsoleKernel
                 ->where('updated_at', '<', Carbon::now()->subDays(config('app.deactivation_request_expiration'))->format('Y-m-d H:i:s') )
                 ->delete();
         })->daily();
+
+        $schedule->call(function () {
+            /* Reset bypass_used count */
+            DB::table('app_user_activations')
+                ->update(['bypass_used' => 0]);
+        })->dailyAt(config('app.bypass_used_delete_time'));
     } 
 
     /**
