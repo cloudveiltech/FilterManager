@@ -49,6 +49,8 @@ var Citadel;
             this.m_identifierInput = document.querySelector('#editor_activation_input_identifier');
             this.m_deviceIdInput = document.querySelector('#editor_activation_input_device_id');
             this.m_ipAddressInput = document.querySelector('#editor_activation_input_ip_address');
+            this.m_reportLevelInput = document.querySelector('#editor_activation_report_level');
+            this.m_reportLevelText = document.querySelector('#editor_activation_report_level_text');
             this.m_bypassQuantityInput = document.querySelector('#editor_activation_input_bypass_quantity');
             this.m_bypassPeriodInput = document.querySelector('#editor_activation_input_bypass_period');
             this.m_bypassUsedInput = document.querySelector('#editor_activation_input_bypass_used');
@@ -58,6 +60,13 @@ var Citadel;
         };
         AppUserActivationRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
+            var that = this;
+            this.m_reportLevelInput.onchange = (function (e) {
+                if (that.m_reportLevelInput.checked)
+                    that.m_reportLevelText.innerHTML = "Report blocked sites back to server";
+                else
+                    that.m_reportLevelText.innerHTML = "No reporting back to server";
+            });
             this.m_cancelBtn.onclick = (function (e) {
                 _this.StopEditing();
             });
@@ -77,10 +86,12 @@ var Citadel;
             else
                 this.m_bypassPeriod = null;
             this.m_bypassUsed = data['bypass_used'];
+            this.m_reportLevel = data['report_level'];
         };
         AppUserActivationRecord.prototype.LoadFromForm = function () {
             this.m_bypassQuantity = this.m_bypassQuantityInput.value == "" ? null : parseInt(this.m_bypassQuantityInput.value);
             this.m_bypassPeriod = this.m_bypassPeriodInput.value == "" ? null : parseInt(this.m_bypassPeriodInput.value);
+            this.m_reportLevel = this.m_reportLevelInput.checked ? 1 : 0;
         };
         AppUserActivationRecord.prototype.StartEditing = function (userData) {
             var _this = this;
@@ -99,6 +110,7 @@ var Citadel;
             else
                 this.m_bypassPeriodInput.value = "";
             this.m_bypassUsedInput.value = this.m_bypassUsed.toString();
+            this.m_reportLevelInput.checked = (this.m_reportLevel === 1);
             this.m_mainForm.onsubmit = (function (e) {
                 return _this.OnFormSubmitClicked(e, userData == null);
             });
@@ -111,7 +123,8 @@ var Citadel;
             var obj = {
                 'id': this.m_activationId,
                 'bypass_quantity': this.m_bypassQuantity,
-                'bypass_period': this.m_bypassPeriod
+                'bypass_period': this.m_bypassPeriod,
+                'report_level': this.m_reportLevel,
             };
             return obj;
         };

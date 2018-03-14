@@ -87,7 +87,8 @@ namespace Citadel
          * @memberOf GroupRecord
          */
         private m_isActiveInput: HTMLInputElement;
-        
+        private m_reportLevel: HTMLInputElement;
+        private m_reportLevelText: HTMLLabelElement;
         private m_groupPrimaryDnsInput: HTMLInputElement;
 
         private m_groupSecondaryDnsInput: HTMLInputElement;
@@ -415,7 +416,8 @@ namespace Citadel
 
             this.m_groupPrimaryDnsInput = document.querySelector('#editor_cfg_primary_dns_input') as HTMLInputElement;
             this.m_groupSecondaryDnsInput = document.querySelector('#editor_cfg_secondary_dns_input') as HTMLInputElement;
-            
+            this.m_reportLevel = document.querySelector('#editor_group_report_level') as HTMLInputElement;
+            this.m_reportLevelText = document.querySelector('#report_level_text') as HTMLLabelElement;
             let ipv4andv6OnlyFilter = (e:KeyboardEvent) =>
             {
                 let inputBox = e.target as HTMLInputElement;
@@ -624,6 +626,14 @@ namespace Citadel
 
         private InitButtonHandlers(): void
         {
+            let that = this;
+            this.m_reportLevel.onchange = ((e:MouseEvent): any =>
+            {
+                if(that.m_reportLevel.checked) 
+                    that.m_reportLevelText.innerHTML = "Report blocked sites back to server";
+                else 
+                    that.m_reportLevelText.innerHTML = "No reporting back to server";
+            });
             this.m_cancelBtn.onclick = ((e: MouseEvent): any =>
             {
                 this.StopEditing();
@@ -743,6 +753,7 @@ namespace Citadel
                     'NlpThreshold' : this.m_groupNlpThresholdInput.valueAsNumber,
                     'MaxTextTriggerScanningSize': this.m_textTriggerMaxSizeInput.valueAsNumber,
                     'UpdateChannel' : this.m_updateChannelSelectInput.options[this.m_updateChannelSelectInput.selectedIndex].value,
+                    'ReportLevel': this.m_reportLevel.checked,
                 };
 
             appConfig[filterAppsKey] = "checked";
@@ -1171,7 +1182,14 @@ namespace Citadel
 
                         this.m_groupNameInput.value = this.m_groupName;
                         this.m_isActiveInput.checked = this.m_isActive != 0;
-
+                        if(this.m_appConfig['ReportLevel'] === undefined)
+                            this.m_reportLevel.checked = false;
+                        else 
+                            this.m_reportLevel.checked = this.m_appConfig['ReportLevel'];
+                        if(this.m_reportLevel.checked) 
+                            this.m_reportLevelText.innerHTML = "Report blocked sites back to server";
+                        else 
+                            this.m_reportLevelText.innerHTML = "No reporting back to server";
                         this.m_antiTamperNoTerminateInput.checked = this.m_appConfig['CannotTerminate'];
                         this.m_antiTamperDisableInternetInput.checked = this.m_appConfig['BlockInternet'];
                         this.m_antiTamperUseThresholdInput.checked = this.m_appConfig['UseThreshold'];
@@ -1257,6 +1275,7 @@ namespace Citadel
 
             this.m_mainForm.onsubmit = ((e: Event): any =>
             {
+                console.log(this.m_appConfig);
                 let validateOpts = this.ValidationOptions;
                 let validresult = $(this.m_mainForm).validate(validateOpts).form();
 
