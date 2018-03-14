@@ -26,6 +26,7 @@ namespace Citadel
         private m_bypassQuantity: number;
         private m_bypassPeriod: number;
         private m_bypassUsed: number;
+        private m_reportLevel:number;
 
         //
         // ──────────────────────────────────────────────────────────────────────────────── II ──────────
@@ -61,7 +62,8 @@ namespace Citadel
         private m_submitBtn: HTMLButtonElement;
         private m_cancelBtn: HTMLButtonElement;
         private m_applicationNameInput: HTMLInputElement;
-
+        private m_reportLevelInput: HTMLInputElement;
+        private m_reportLevelText: HTMLLabelElement;
         /**
          * Gets the base API route from this record type.
          * 
@@ -116,6 +118,8 @@ namespace Citadel
             this.m_identifierInput = document.querySelector('#editor_activation_input_identifier') as HTMLInputElement;
             this.m_deviceIdInput = document.querySelector('#editor_activation_input_device_id') as HTMLInputElement;
             this.m_ipAddressInput = document.querySelector('#editor_activation_input_ip_address') as HTMLInputElement;
+            this.m_reportLevelInput = document.querySelector('#editor_activation_report_level') as HTMLInputElement;
+            this.m_reportLevelText = document.querySelector('#editor_activation_report_level_text') as HTMLLabelElement;
             
             this.m_bypassQuantityInput = document.querySelector('#editor_activation_input_bypass_quantity') as HTMLInputElement;
             this.m_bypassPeriodInput = document.querySelector('#editor_activation_input_bypass_period') as HTMLInputElement;
@@ -129,6 +133,14 @@ namespace Citadel
 
         private InitButtonHandlers(): void
         {
+            let that = this;
+            this.m_reportLevelInput.onchange = ((e:MouseEvent): any =>
+            {
+                if(that.m_reportLevelInput.checked) 
+                    that.m_reportLevelText.innerHTML = "Report blocked sites back to server";
+                else 
+                    that.m_reportLevelText.innerHTML = "No reporting back to server";
+            });
             this.m_cancelBtn.onclick = ((e: MouseEvent): any =>
             {
                 this.StopEditing();
@@ -142,6 +154,7 @@ namespace Citadel
             this.m_identifier = data['identifier'] as string;
             this.m_ipAddress = data['ip_address'] as string;
             this.m_deviceId = data['device_id'] as string;
+
             if(data['bypass_quantity'] != null)
                 this.m_bypassQuantity = data['bypass_quantity'] as number;
             else 
@@ -152,13 +165,14 @@ namespace Citadel
             else
                 this.m_bypassPeriod = null;
             this.m_bypassUsed = data['bypass_used'] as number;
-            
+            this.m_reportLevel = data['report_level'] as number;
         }
 
         protected LoadFromForm(): void
         {
             this.m_bypassQuantity = this.m_bypassQuantityInput.value == "" ? null:parseInt(this.m_bypassQuantityInput.value);
-            this.m_bypassPeriod = this.m_bypassPeriodInput.value == "" ? null:parseInt(this.m_bypassPeriodInput.value);            
+            this.m_bypassPeriod = this.m_bypassPeriodInput.value == "" ? null:parseInt(this.m_bypassPeriodInput.value);  
+            this.m_reportLevel = this.m_reportLevelInput.checked? 1: 0;          
         }
 
         public StartEditing(userData: Object = null): void
@@ -181,7 +195,7 @@ namespace Citadel
                 this.m_bypassPeriodInput.value = "";
             
             this.m_bypassUsedInput.value = this.m_bypassUsed.toString();
-
+            this.m_reportLevelInput.checked = (this.m_reportLevel === 1);
             this.m_mainForm.onsubmit = ((e: Event): any =>
             {
                 return this.OnFormSubmitClicked(e, userData == null);
@@ -202,7 +216,8 @@ namespace Citadel
                 {
                     'id': this.m_activationId,
                     'bypass_quantity': this.m_bypassQuantity,
-                    'bypass_period': this.m_bypassPeriod
+                    'bypass_period': this.m_bypassPeriod,
+                    'report_level': this.m_reportLevel,
                 };
 
             return obj;

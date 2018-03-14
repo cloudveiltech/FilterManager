@@ -70,7 +70,7 @@ class UserController extends Controller {
             'group_id' => 'required|exists:groups,id'
         ]);
 
-        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id','customer_id','activations_allowed','isactive']);
+        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id','customer_id','activations_allowed','isactive', 'report_level']);
         $input['password'] = Hash::make($input['password']);
         
         $user = User::create($input);   

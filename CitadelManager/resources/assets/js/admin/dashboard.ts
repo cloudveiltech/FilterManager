@@ -1134,7 +1134,8 @@ namespace Citadel
                         {
                             title: 'User',
                             data: 'user.name',
-                            visible: true
+                            visible: true,
+                            width: '200px',
                         },
                         {
                             title: 'Identifier',
@@ -1144,37 +1145,78 @@ namespace Citadel
                         {
                             title: 'Device Id',
                             data: 'device_id',
-                            visible: true
-                        },
-                        {
-                            title: 'App Version',
-                            data: 'app_version',
-                            visible: true
+                            visible: true,
+                            width: '200px',
                         },
                         {
                             title: 'IP Address',
                             data: 'ip_address',
-                            visible: true
+                            visible: true,
+                            width: '200px',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {
+                                if(data == null)
+                                {
+                                    return "";
+                                }
+                                if(data.indexOf(":") >= 0) {
+                                    return data.substring(0,20) + "...";
+                                }
+                                return data;
+                            })
+                        },
+                        {
+                            title: 'App Version',
+                            data: 'app_version',
+                            visible: true,
+                            width: '100px'
+                        },
+                        {
+                            title: 'Report Level',
+                            data: 'report_level',
+                            visible: true,
+                            width: '100px',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {
+                                if(data == null)
+                                {
+                                    return "";
+                                }
+
+                                if(data == 1)
+                                {
+                                    return "On";
+                                }
+                                else
+                                {
+                                    return "";
+                                }
+                            })
                         },
                         {
                             title: 'Bypass Quantity',
                             data: 'bypass_quantity',
-                            visible: true
+                            visible: true,
+                            width: '100px'
                         },
                         {
                             title: 'Bypass Period',
                             data: 'bypass_period',
-                            visible: true
+                            visible: true,
+                            width: '100px'
                         },
                         {
                             title: 'Bypass Used',
                             data: 'bypass_used',
-                            visible: true
+                            visible: true,
+                            width: '100px'
                         },
                         {
                             title: 'Updated date',
                             data: 'updated_at',
-                            visible: true
+                            visible: true,
+                            width: '100px',
+                            className: 'updated_date'
                         }
                     ];
 
