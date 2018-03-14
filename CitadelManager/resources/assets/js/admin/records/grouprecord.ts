@@ -1030,7 +1030,7 @@ namespace Citadel
                     imageClassName = "mif-filter";
                 }
 
-                dram_antiTamperDisableInternetInputggableFilterOption.style.setProperty('margin-top', '10px');
+                draggableFilterOption.style.setProperty('margin-top', '10px');
                 draggableFilterOption.style.setProperty('margin-bottom', '10px');
                 draggableFilterOption.style.setProperty('padding-top', '10px');
                 draggableFilterOption.style.setProperty('padding-bottom', '10px');
