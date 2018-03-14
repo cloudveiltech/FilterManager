@@ -13,6 +13,9 @@ return [
      * audit your license usage to make sure it's not being abused. */
     'license_overage_allowed' => env('APP_LICENSE_OVERAGE_ALLOWED', '1'),
 
+    /* What time of day do we go through and reset the bypass_used count for activations to 0? */
+    'bypass_used_delete_time' => env('APP_BYPASS_USED_DELETE_TIME', '8:00'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name
