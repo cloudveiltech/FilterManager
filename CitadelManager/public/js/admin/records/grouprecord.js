@@ -56,6 +56,8 @@ var Citadel;
             this.m_groupUpdateCheckFrequencyInput = document.querySelector('#editor_cfg_update_frequency_input');
             this.m_groupPrimaryDnsInput = document.querySelector('#editor_cfg_primary_dns_input');
             this.m_groupSecondaryDnsInput = document.querySelector('#editor_cfg_secondary_dns_input');
+            this.m_reportLevel = document.querySelector('#editor_group_report_level');
+            this.m_reportLevelText = document.querySelector('#report_level_text');
             var ipv4andv6OnlyFilter = function (e) {
                 var inputBox = e.target;
                 inputBox.value = inputBox.value.replace(/[^0-9\\.:]/g, '');
@@ -176,6 +178,13 @@ var Citadel;
         };
         GroupRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
+            var that = this;
+            this.m_reportLevel.onchange = (function (e) {
+                if (that.m_reportLevel.checked)
+                    that.m_reportLevelText.innerHTML = "Report blocked sites back to server";
+                else
+                    that.m_reportLevelText.innerHTML = "No reporting back to server";
+            });
             this.m_cancelBtn.onclick = (function (e) {
                 _this.StopEditing();
             });
@@ -245,6 +254,7 @@ var Citadel;
                 'NlpThreshold': this.m_groupNlpThresholdInput.valueAsNumber,
                 'MaxTextTriggerScanningSize': this.m_textTriggerMaxSizeInput.valueAsNumber,
                 'UpdateChannel': this.m_updateChannelSelectInput.options[this.m_updateChannelSelectInput.selectedIndex].value,
+                'ReportLevel': this.m_reportLevel.checked,
             };
             appConfig[filterAppsKey] = "checked";
             this.m_appConfig = appConfig;
@@ -566,6 +576,14 @@ var Citadel;
                         this.m_submitBtn.innerText = "Save";
                         this.m_groupNameInput.value = this.m_groupName;
                         this.m_isActiveInput.checked = this.m_isActive != 0;
+                        if (this.m_appConfig['ReportLevel'] === undefined)
+                            this.m_reportLevel.checked = false;
+                        else
+                            this.m_reportLevel.checked = this.m_appConfig['ReportLevel'];
+                        if (this.m_reportLevel.checked)
+                            this.m_reportLevelText.innerHTML = "Report blocked sites back to server";
+                        else
+                            this.m_reportLevelText.innerHTML = "No reporting back to server";
                         this.m_antiTamperNoTerminateInput.checked = this.m_appConfig['CannotTerminate'];
                         this.m_antiTamperDisableInternetInput.checked = this.m_appConfig['BlockInternet'];
                         this.m_antiTamperUseThresholdInput.checked = this.m_appConfig['UseThreshold'];
@@ -615,6 +633,7 @@ var Citadel;
                     break;
             }
             this.m_mainForm.onsubmit = (function (e) {
+                console.log(_this.m_appConfig);
                 var validateOpts = _this.ValidationOptions;
                 var validresult = $(_this.m_mainForm).validate(validateOpts).form();
                 var validator = $(_this.m_mainForm).validate(validateOpts);
