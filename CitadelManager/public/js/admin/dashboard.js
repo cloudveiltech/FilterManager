@@ -129,6 +129,17 @@ var Citadel;
                         width: '250px'
                     },
                     {
+                        title: 'Report Level',
+                        data: 'report_level',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            var chk_report = (data === 1) ? "checked-alone" : "unchecked-alone";
+                            return "<label class='" + chk_report + "'></label>";
+                        }),
+                        className: 'content-center',
+                        width: '150px'
+                    },
+                    {
                         title: 'Status',
                         data: 'isactive',
                         className: 'content-center',
@@ -271,6 +282,21 @@ var Citadel;
                         }),
                         className: 'content-left',
                         width: '180px'
+                    },
+                    {
+                        title: 'Report Level',
+                        data: 'app_cfg',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data === null || data === "") {
+                                return "";
+                            }
+                            var app_cfg = JSON.parse(data);
+                            var chk_report = (app_cfg.report_level === 1) ? "checked-alone" : "unchecked-alone";
+                            return "<label class='" + chk_report + "'></label>";
+                        }),
+                        className: 'content-center',
+                        width: '150px'
                     },
                     {
                         title: 'Status',
@@ -616,7 +642,6 @@ var Citadel;
                         title: 'User',
                         data: 'user.name',
                         visible: true,
-<<<<<<< HEAD
                         render: (function (data, t, row, meta) {
                             var name = data;
                             if (data.length > 17) {
@@ -625,9 +650,6 @@ var Citadel;
                             return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + name + "</b>";
                         }),
                         width: '200px'
-=======
-                        width: '200px',
->>>>>>> luis-34
                     },
                     {
                         title: 'Identifier',
@@ -643,7 +665,6 @@ var Citadel;
                         title: 'Device Id',
                         data: 'device_id',
                         visible: true,
-<<<<<<< HEAD
                         className: 'device_id',
                         width: '200px'
                     },
@@ -651,7 +672,7 @@ var Citadel;
                         title: 'IP Address',
                         data: 'ip_address',
                         visible: true,
-                        width: '250px',
+                        width: '200px',
                         render: (function (data, t, row, meta) {
                             var user_ip = "<span class='mif-flow-tree self-scale-3'></span>";
                             var name = data;
@@ -666,105 +687,57 @@ var Citadel;
                                 }
                             }
                             return user_ip + " <span title='" + data + "'>" + name + "</span>";
-=======
-                        width: '200px',
-                    },
-                    {
-                        title: 'IP Address',
-                        data: 'ip_address',
-                        visible: true,
-                        width: '200px',
-                        render: (function (data, t, row, meta) {
-                            if (data == null) {
-                                return "";
-                            }
-                            if (data.indexOf(":") >= 0) {
-                                return data.substring(0, 20) + "...";
-                            }
-                            return data;
-                        })
-                    },
-                    {
-                        title: 'App Version',
-                        data: 'app_version',
-                        visible: true,
-                        width: '100px'
-                    },
-                    {
-                        title: 'Report Level',
-                        data: 'report_level',
-                        visible: true,
-                        width: '100px',
-                        render: (function (data, t, row, meta) {
-                            if (data == null) {
-                                return "";
-                            }
-                            if (data == 1) {
-                                return "On";
-                            }
-                            else {
-                                return "";
-                            }
->>>>>>> luis-34
                         })
                     },
                     {
                         title: '#Bypass Used/Quantity/Period',
                         data: 'bypass_quantity',
                         visible: true,
-<<<<<<< HEAD
-                        width: '230px',
+                        width: '210px',
                         render: (function (data, t, row, meta) {
-                            var bypass_used = "<span class='mif-info self-scale-2 fg-cyan'></span>";
+                            var bypass_used = "";
                             if (row.bypass_used === null || row.bypass_used === 0)
-                                bypass_used += " - ";
+                                bypass_used = "<span class='mif-info self-scale-2 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
                             else
-                                bypass_used += " " + row.bypass_used + " ";
-                            var bypass_permitted = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='mif-clipboard self-scale-1 fg-cyan'></span>";
+                                bypass_used = "<span class='mif-info self-scale-2 fg-cyan'></span> " + row.bypass_used + " ";
+                            var bypass_permitted = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
                             if (data === null || data === 0)
-                                bypass_permitted += " - ";
+                                bypass_permitted += "<span class='mif-clipboard self-scale-1 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
                             else
-                                bypass_permitted += " " + data + " ";
+                                bypass_permitted += "<span class='mif-clipboard self-scale-1 fg-cyan'></span> " + data + " ";
                             bypass_permitted += "<span class='unit_day'>/day</span>";
-                            var bypass_duration = "<span class='mif-alarm-on self-scale fg-pink'></span>";
+                            var bypass_duration = "";
                             if (row.bypass_period === null || row.bypass_period === 0)
-                                bypass_duration += " - ";
+                                bypass_duration += "<span class='mif-alarm-on self-scale unset_value_color'></span> <span class='unset_value_color'>-</span> ";
                             else
-                                bypass_duration += " " + row.bypass_period + " ";
+                                bypass_duration += "<span class='mif-alarm-on self-scale fg-pink'></span> " + row.bypass_period + " ";
                             bypass_duration += "<span class='unit_min'>mins</span>";
                             return bypass_used + bypass_permitted + bypass_duration;
                         })
                     },
                     {
+                        title: 'Report Level',
+                        data: 'report_level',
+                        visible: true,
+                        width: '140px',
+                        className: 'content-center',
+                        render: (function (data, t, row, meta) {
+                            var chk_report = (data === 1) ? "checked-alone" : "unchecked-alone";
+                            return "<label class='" + chk_report + "'></label>";
+                        }),
+                    },
+                    {
                         title: 'Version',
                         data: 'app_version',
                         visible: true,
-                        width: '120px'
-=======
-                        width: '100px'
-                    },
-                    {
-                        title: 'Bypass Period',
-                        data: 'bypass_period',
-                        visible: true,
-                        width: '100px'
-                    },
-                    {
-                        title: 'Bypass Used',
-                        data: 'bypass_used',
-                        visible: true,
-                        width: '100px'
->>>>>>> luis-34
+                        width: '110px',
+                        className: 'content-center'
                     },
                     {
                         title: 'Updated date',
                         data: 'updated_at',
                         visible: true,
-<<<<<<< HEAD
                         width: '170px',
-=======
-                        width: '100px',
->>>>>>> luis-34
                         className: 'updated_date'
                     }
                 ];

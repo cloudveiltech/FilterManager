@@ -641,6 +641,18 @@ namespace Citadel
                             width: '250px'
                         },
                         {
+                            title: 'Report Level',
+                            data: 'report_level',
+                            visible: true,
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {
+                                var chk_report = (data === 1) ? "checked-alone":"unchecked-alone";
+                                return "<label class='"+chk_report+"'></label>";
+                            }),
+                            className: 'content-center',
+                            width: '150px'
+                        },
+                        {
                             title: 'Status',
                             data: 'isactive',
                             className: 'content-center',
@@ -817,6 +829,23 @@ namespace Citadel
                             }),
                             className: 'content-left',
                             width: '180px'
+                        },
+                        {
+                            title: 'Report Level',
+                            data: 'app_cfg',
+                            visible: true,
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {
+                                if(data === null || data === "")
+                                {
+                                    return "";
+                                }
+                                var app_cfg = JSON.parse(data);
+                                var chk_report = (app_cfg.report_level === 1) ? "checked-alone":"unchecked-alone";
+                                return "<label class='"+chk_report+"'></label>";
+                            }),
+                            className: 'content-center',
+                            width: '150px'
                         },
                         {
                             title: 'Status',
@@ -1329,7 +1358,7 @@ namespace Citadel
                             title: 'IP Address',
                             data: 'ip_address',
                             visible: true,
-                            width: '250px',
+                            width: '200px',
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
                                 var user_ip = "<span class='mif-flow-tree self-scale-3'></span>";
@@ -1351,36 +1380,49 @@ namespace Citadel
                             title: '#Bypass Used/Quantity/Period',
                             data: 'bypass_quantity',
                             visible: true,
-                            width: '230px',
+                            width: '210px',
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
-                                var bypass_used = "<span class='mif-info self-scale-2 fg-cyan'></span>";
+                                var bypass_used = "";
                                 if(row.bypass_used===null || row.bypass_used===0 )
-                                    bypass_used += " - ";
+                                    bypass_used = "<span class='mif-info self-scale-2 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
                                 else
-                                    bypass_used += " " + row.bypass_used + " ";
+                                    bypass_used = "<span class='mif-info self-scale-2 fg-cyan'></span> " + row.bypass_used + " ";
                                 
-                                var bypass_permitted = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='mif-clipboard self-scale-1 fg-cyan'></span>";
+                                var bypass_permitted = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
                                 if(data===null || data===0 )
-                                    bypass_permitted += " - ";
+                                    bypass_permitted += "<span class='mif-clipboard self-scale-1 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
                                 else
-                                    bypass_permitted += " " + data + " ";
+                                    bypass_permitted += "<span class='mif-clipboard self-scale-1 fg-cyan'></span> " + data + " ";
                                 bypass_permitted += "<span class='unit_day'>/day</span>";
                                 
-                                var bypass_duration = "<span class='mif-alarm-on self-scale fg-pink'></span>";
+                                var bypass_duration = "";
                                 if(row.bypass_period===null || row.bypass_period===0 )
-                                    bypass_duration += " - ";
+                                    bypass_duration += "<span class='mif-alarm-on self-scale unset_value_color'></span> <span class='unset_value_color'>-</span> ";
                                 else
-                                    bypass_duration += " " + row.bypass_period + " ";
+                                    bypass_duration += "<span class='mif-alarm-on self-scale fg-pink'></span> " + row.bypass_period + " ";
                                 bypass_duration += "<span class='unit_min'>mins</span>";
                                 return bypass_used + bypass_permitted + bypass_duration;
                             })
                         },
                         {
+                            title: 'Report Level',
+                            data: 'report_level',
+                            visible: true,
+                            width: '140px',
+                            className: 'content-center',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {
+                                var chk_report = (data === 1) ? "checked-alone":"unchecked-alone";
+                                return "<label class='"+chk_report+"'></label>";
+                            }),
+                        },
+                        {
                             title: 'Version',
                             data: 'app_version',
                             visible: true,
-                            width: '120px'
+                            width: '110px',
+                            className: 'content-center'
                         },
                         {
                             title: 'Updated date',
@@ -1517,7 +1559,6 @@ namespace Citadel
          */
         private InitButtonHandlers(): void
         {
-
             this.m_btnSignOut.onclick = ((e: MouseEvent) =>
             {
                 this.OnSignOutClicked(e);
