@@ -33,7 +33,23 @@ class GroupController extends Controller
      */
     public function index()
     {
-        return Group::with('assignedFilterIds')->get();
+        $rows = Group::with('assignedFilterIds')->with('userCount')->get();
+        $group_data = array();
+        
+        foreach($rows as $key => $group) {
+            $user_count = count($rows[$key]->userCount);
+            $group_data[] = array(
+                "id"=>$group->id,
+                "name"=>$group->name,
+                "user_count"=>$user_count,
+                "app_cfg"=>$group->app_cfg,
+                "isactive"=>$group->isactive,
+                "assigned_filter_ids"=>$group->assignedFilterIds,
+                "created_at"=>$group->created_at->toDateTimeString(),
+                "updated_at"=>$group->updated_at->toDateTimeString()
+            );
+        }
+        return $group_data;
     }
 
     /**

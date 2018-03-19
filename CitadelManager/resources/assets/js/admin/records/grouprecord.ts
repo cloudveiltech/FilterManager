@@ -746,7 +746,7 @@ namespace Citadel
                 };
 
             appConfig[filterAppsKey] = "checked";
-
+            console.log('app cfg,',appConfig);
             this.m_appConfig = appConfig;
         }
 
@@ -1294,6 +1294,7 @@ namespace Citadel
                     'app_cfg': JSON.stringify(this.m_appConfig),
                     'assigned_app_groups': this.m_right_groups
                 };
+                
             return obj;
         }
 

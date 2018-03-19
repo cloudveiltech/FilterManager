@@ -15,6 +15,7 @@ use App\NlpFilteringRule;
 use App\ImageFilteringRule;
 use App\AppGroup;
 use App\App;
+use App\User;
 use App\UserGroupToAppGroup;
 use App\Client\FilteringPlainTextListModel;
 use App\Client\PlainTextFilteringListType;
@@ -59,7 +60,15 @@ class Group extends Model {
 
         return $this->hasMany('App\GroupFilterAssignment');
     }
+    public function userCount() {
+        // From the docs: 
+        // https://laravel.com/docs/5.4/eloquent-relationships#has-many-through
+        // The third argument is the name of the foreign key on the intermediate 
+        // model, the fourth argument is the name of the foreign key on the 
+        // final model, and the fifth argument is the local key.
 
+        return $this->hasMany('App\User');
+    }
     public function getGroupDataPayloadPath(): string {
         $storageDir = storage_path();
         $groupDataZipFolder = $storageDir . DIRECTORY_SEPARATOR . 'group_data' . DIRECTORY_SEPARATOR . $this->id;

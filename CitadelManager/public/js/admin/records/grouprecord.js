@@ -247,6 +247,7 @@ var Citadel;
                 'UpdateChannel': this.m_updateChannelSelectInput.options[this.m_updateChannelSelectInput.selectedIndex].value,
             };
             appConfig[filterAppsKey] = "checked";
+            console.log('app cfg,', appConfig);
             this.m_appConfig = appConfig;
         };
         GroupRecord.prototype.getGroupItem = function (group_id) {
