@@ -89,10 +89,15 @@
                             </select>                        
                         </div>
                     </div>
-                    <div class="cell size4" id="div_08c2_1">
-                        <label for="editor_user_input_isactive">Enabled:</label>                        
-                        <label class="switch-original" id="label_08c2_0">
+                    <div class="cell">
+                        <label class="option-label" for="editor_user_input_isactive">Enabled:</label>                        
+                        <label class="switch-original margin-left-add-30" >
                             <input type="checkbox" id="editor_user_input_isactive" name="editor_user_input_isactive">
+                            <span class="check"></span>
+                        </label> <br /><br />
+                        <label class="option-label" for="editor_user_report_level">Report Level:</label>                        
+                        <label class="switch-original margin-left-add-30">
+                            <input type="checkbox" id="editor_user_report_level" name="editor_user_report_level">
                             <span class="check"></span>
                         </label>
                     </div>

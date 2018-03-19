@@ -100,6 +100,14 @@
                                         </select>                        
                                     </div>
                                 </div>
+                                <div class="cell check-label" >
+                                    <label for="editor_group_report_level">Report Level:</label><br/><br/>
+                                    <label class="switch-original">
+                                        <input type="checkbox" id="editor_group_report_level" name="editor_group_report_level">
+                                        <span class="check"></span>
+                                    </label>
+                                    <label id="report_level_text">No reporting back to server</label>
+                                </div>
                             </div>
                         </div>
                     </form>

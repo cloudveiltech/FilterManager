@@ -34,7 +34,7 @@ namespace Citadel
 
         private m_customerId: number;
         private m_isActive: number;
-
+        private m_reportLevel:number;
         private m_dateRegistered: string;
 
         //
@@ -74,6 +74,8 @@ namespace Citadel
         private m_roleInput: HTMLSelectElement;
 
         private m_isActiveInput: HTMLInputElement;
+
+        private m_reportLevelInput: HTMLInputElement;
 
         private m_submitBtn: HTMLButtonElement;
 
@@ -170,7 +172,7 @@ namespace Citadel
             this.m_roleInput = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
             this.m_isActiveInput = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
             this.m_customerIdInput = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
-            
+            this.m_reportLevelInput = document.querySelector('#editor_user_report_level') as HTMLInputElement;
             this.m_submitBtn = document.querySelector('#user_editor_submit') as HTMLButtonElement;
             this.m_cancelBtn = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
             
@@ -389,6 +391,7 @@ namespace Citadel
             this.m_numActivations = data['activations_allowed'];
             this.m_isActive = data['isactive'];
             this.m_dateRegistered = data['dt'] as string;
+            this.m_reportLevel = data['report_level'] as number;
         }
 
         protected LoadFromForm(): void
@@ -419,6 +422,7 @@ namespace Citadel
             }
             this.m_numActivations = this.m_numActivationsInput.valueAsNumber;
             this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
+            this.m_reportLevel = this.m_reportLevelInput.checked == true ? 1 : 0;
         }
 
         public StartEditing(allGroups: DataTables.DataTable, userData: Object = null): void
@@ -541,6 +545,7 @@ namespace Citadel
                         }
 
                         this.m_isActiveInput.checked = this.m_isActive != 0;
+                        this.m_reportLevelInput.checked = this.m_reportLevel != 0;
                     }
                     break;
             }
@@ -602,9 +607,9 @@ namespace Citadel
                     'customer_id': this.m_customerId,
                     'activations_allowed': this.m_numActivations,
                     'isactive': this.m_isActive,
-                    'dt': this.m_dateRegistered
+                    'dt': this.m_dateRegistered,
+                    'report_level': this.m_reportLevel,
                 };
-            console.log("ddd", this.m_customerId);
             // Only add these params when the passwords are not
             // equal to our dummy insert text.
             if (this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x")))

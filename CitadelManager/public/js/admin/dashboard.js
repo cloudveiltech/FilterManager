@@ -616,6 +616,7 @@ var Citadel;
                         title: 'User',
                         data: 'user.name',
                         visible: true,
+<<<<<<< HEAD
                         render: (function (data, t, row, meta) {
                             var name = data;
                             if (data.length > 17) {
@@ -624,6 +625,9 @@ var Citadel;
                             return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + name + "</b>";
                         }),
                         width: '200px'
+=======
+                        width: '200px',
+>>>>>>> luis-34
                     },
                     {
                         title: 'Identifier',
@@ -639,6 +643,7 @@ var Citadel;
                         title: 'Device Id',
                         data: 'device_id',
                         visible: true,
+<<<<<<< HEAD
                         className: 'device_id',
                         width: '200px'
                     },
@@ -661,12 +666,53 @@ var Citadel;
                                 }
                             }
                             return user_ip + " <span title='" + data + "'>" + name + "</span>";
+=======
+                        width: '200px',
+                    },
+                    {
+                        title: 'IP Address',
+                        data: 'ip_address',
+                        visible: true,
+                        width: '200px',
+                        render: (function (data, t, row, meta) {
+                            if (data == null) {
+                                return "";
+                            }
+                            if (data.indexOf(":") >= 0) {
+                                return data.substring(0, 20) + "...";
+                            }
+                            return data;
+                        })
+                    },
+                    {
+                        title: 'App Version',
+                        data: 'app_version',
+                        visible: true,
+                        width: '100px'
+                    },
+                    {
+                        title: 'Report Level',
+                        data: 'report_level',
+                        visible: true,
+                        width: '100px',
+                        render: (function (data, t, row, meta) {
+                            if (data == null) {
+                                return "";
+                            }
+                            if (data == 1) {
+                                return "On";
+                            }
+                            else {
+                                return "";
+                            }
+>>>>>>> luis-34
                         })
                     },
                     {
                         title: '#Bypass Used/Quantity/Period',
                         data: 'bypass_quantity',
                         visible: true,
+<<<<<<< HEAD
                         width: '230px',
                         render: (function (data, t, row, meta) {
                             var bypass_used = "<span class='mif-info self-scale-2 fg-cyan'></span>";
@@ -694,12 +740,31 @@ var Citadel;
                         data: 'app_version',
                         visible: true,
                         width: '120px'
+=======
+                        width: '100px'
+                    },
+                    {
+                        title: 'Bypass Period',
+                        data: 'bypass_period',
+                        visible: true,
+                        width: '100px'
+                    },
+                    {
+                        title: 'Bypass Used',
+                        data: 'bypass_used',
+                        visible: true,
+                        width: '100px'
+>>>>>>> luis-34
                     },
                     {
                         title: 'Updated date',
                         data: 'updated_at',
                         visible: true,
+<<<<<<< HEAD
                         width: '170px',
+=======
+                        width: '100px',
+>>>>>>> luis-34
                         className: 'updated_date'
                     }
                 ];

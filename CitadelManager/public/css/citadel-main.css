@@ -13,6 +13,7 @@ html, body {
     min-height: 0;
     height: auto;
 }
+<<<<<<< HEAD
 .status{
     background-repeat: repeat-x;
     text-shadow: 0 -1px 0 rgba(0,0,0,0.2);
@@ -192,6 +193,18 @@ th.updated_date{
 }
 .dataTables_scrollHeadInner table {
     width: 100% !important;
+=======
+.option-label {
+    width: 100px;
+    display:inline-block;
+}
+.margin-left-add-30{
+    margin-left:30px;
+}
+.report-level-width{
+    width: 300px;
+    display: inline-block;
+>>>>>>> luis-34
 }
 @media screen and (max-width: 800px){
     #cell-sidebar {
@@ -243,6 +256,7 @@ Main admin page.
 #group_table{width:100%}
 #view_filter_management{width: 100%; padding: 10px;}
 #filter_table{width:100%}
+<<<<<<< HEAD
 #view_user_deactivation_request_management{width: 100%;  padding: 10px;}
 #view_app_group_management{width: 100%;  padding: 10px;}
 #view_app_user_activations_management{width: 100%;  padding: 10px;}
@@ -271,6 +285,14 @@ Main admin page.
 }
 .dataTable.border {
     border-bottom: none !important;
+=======
+#view_user_deactivation_request_management{width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;}
+.margin-left-34{
+    margin-left: -34px;    
+}
+.margin-left-20{
+    margin-left: -20px;    
+>>>>>>> luis-34
 }
 #spiner {
     height: 45px;
@@ -393,6 +415,17 @@ Group editor.
     display:flex;
     flex-direction: row;
 }
+td.updated_date {
+    font-size: 12px !important;
+}
+td.pc_name {
+    font-size: 12px !important;
+}
+
+td.ip_address {
+    font-size: 12px !important;
+}
+
 /*
 List uploader.
 */

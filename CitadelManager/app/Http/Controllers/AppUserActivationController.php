@@ -100,7 +100,7 @@ class AppUserActivationController extends Controller {
         // password or password_verify unless they are
         // intentionally trying to change a user's password.
     
-        $input = $request->only(['bypass_quantity', 'bypass_period']);
+        $input = $request->only(['bypass_quantity', 'bypass_period', 'report_level']);
         AppUserActivation::where('id', $id)->update($input);
 
         return response('', 204);
