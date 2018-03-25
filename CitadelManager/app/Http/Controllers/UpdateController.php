@@ -45,11 +45,11 @@ class UpdateController extends Controller {
               [
                 [
                   'release' => 'Alpha',
-                  'version_number' => '1.6.23'
+                  'version_number' => '1.6.24'
                 ],
                 [
                   'release' => 'Beta',
-                  'version_number' => '1.6.21'
+                  'version_number' => '1.6.24'
                 ],
                 [
                   'release' => 'Stable',
