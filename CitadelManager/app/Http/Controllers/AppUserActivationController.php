@@ -38,7 +38,7 @@ class AppUserActivationController extends Controller {
       if ($request->has('email')) {
           $user = User::where('email', $request->input('email'))->first();
           if ($user && $user->activations()) {
-              return $user->activations()->get();
+              return $user->activations()->with('deactivation_request')->get();
           } else {
               return response()->json([]);
           }
@@ -46,12 +46,12 @@ class AppUserActivationController extends Controller {
           $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
           $user = User::find($user_id);
           if ($user && $user->activations()) {
-              return $user->activations()->get();
+              return $user->activations()->with('deactivation_request')->get();
           } else {
               return response()->json([]);
           } 
       } else {
-          return AppUserActivation::with('user')->get();
+          return AppUserActivation::with(['user','deactivation_request'])->get();
       }
     }
 
