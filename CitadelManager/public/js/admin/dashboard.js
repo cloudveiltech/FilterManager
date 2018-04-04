@@ -69,6 +69,7 @@ var Citadel;
         };
         Dashboard.prototype.ConstructTables = function () {
             var _this = this;
+            var height = $("body").height();
             var userTableConstruction = (function () {
                 var userTableColumns = [
                     {
@@ -83,64 +84,85 @@ var Citadel;
                         visible: false
                     },
                     {
+                        title: 'User Name',
+                        data: 'name',
+                        className: 'content-left',
+                        visible: true,
+                        width: '200px',
+                        render: (function (data, t, row, meta) {
+                            var name = data;
+                            if (data.length > 15) {
+                                name = data.substring(0, 11) + "...";
+                            }
+                            return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + name + "</b>";
+                        })
+                    },
+                    {
                         title: 'Group Name',
                         data: 'group.name',
-                        className: 'phone',
+                        className: 'content-left',
                         defaultContent: 'Unassigned',
-                        visible: true
+                        visible: true,
+                        width: '220px'
                     },
                     {
-                        title: 'Name',
-                        data: 'name',
-                        className: 'desktop',
-                        visible: true
-                    },
-                    {
-                        title: 'Username',
+                        title: 'User Email',
                         data: 'email',
-                        className: 'phone',
+                        className: 'content-left',
                         visible: true
                     },
                     {
                         title: 'Roles',
                         data: 'roles[, ].display_name',
-                        className: 'desktop',
-                        defaultContent: 'None'
+                        className: 'content-left',
+                        defaultContent: 'None',
+                        width: '180px'
                     },
                     {
-                        title: 'Active',
+                        title: '#Lic.Used / #Licenses',
+                        data: 'activations_allowed',
+                        className: 'content-center',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            return "<span class='license_used'>" + row.activations_used + "</span> / <span class='license_allowed'>" + data + "</span>";
+                        }),
+                        width: '250px'
+                    },
+                    {
+                        title: 'Report Level',
+                        data: 'report_level',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            var chk_report = (data === 1) ? "checked-alone" : "unchecked-alone";
+                            return "<label class='" + chk_report + "'></label>";
+                        }),
+                        className: 'content-center',
+                        width: '150px'
+                    },
+                    {
+                        title: 'Status',
                         data: 'isactive',
-                        className: 'phone',
+                        className: 'content-center',
                         visible: true,
                         render: (function (data, t, row, meta) {
                             if (data == null) {
                                 return "";
                             }
                             if (data == 1) {
-                                return "True";
+                                return "<span class='active-s status'>Active</span>";
                             }
                             else {
-                                return "False";
+                                return "<span class='inactive-s status'>Inactive</span>";
                             }
-                        })
-                    },
-                    {
-                        title: '# Licenses',
-                        data: 'activations_allowed',
-                        className: 'desktop',
-                        visible: true
-                    },
-                    {
-                        title: '# Lic. Used',
-                        data: 'activations_used',
-                        className: 'desktop',
-                        visible: true
+                        }),
+                        width: '100px'
                     },
                     {
                         title: 'Date Registered',
                         data: 'created_at',
-                        className: 'desktop',
-                        visible: true
+                        visible: true,
+                        width: '180px',
+                        className: 'updated_date'
                     }
                 ];
                 var userTablesLoadFromAjaxSettings = {
@@ -156,6 +178,8 @@ var Citadel;
                     })
                 };
                 var usersTableSettings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
                     columns: userTableColumns,
@@ -177,10 +201,105 @@ var Citadel;
                     {
                         title: 'Group Name',
                         data: 'name',
-                        visible: true
+                        visible: true,
+                        className: 'content-left',
+                        render: (function (data, t, row, meta) {
+                            return "<span class='mif-organization self-scale-group fg-green'></span> - <b title='" + row.user_count + " users are registered in this group.'>" + data + "</b> <span class='user_count'>(" + row.user_count + ")</span>";
+                        })
                     },
                     {
-                        title: 'Active',
+                        title: 'Primary DNS',
+                        data: 'app_cfg',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data === null || data === "") {
+                                return "";
+                            }
+                            var app_cfg = JSON.parse(data);
+                            var str = "";
+                            if (app_cfg['PrimaryDns'] === null || app_cfg['PrimaryDns'] === "") {
+                            }
+                            else {
+                                str = "<span class='mif-flow-tree self-scale-3'></span> " + app_cfg['PrimaryDns'];
+                            }
+                            return str;
+                        }),
+                        className: 'content-left',
+                        width: '190px'
+                    },
+                    {
+                        title: 'Secondary DNS',
+                        data: 'app_cfg',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data === null || data === "") {
+                                return "";
+                            }
+                            var app_cfg = JSON.parse(data);
+                            var str = "";
+                            if (app_cfg['SecondaryDns'] === null || app_cfg['SecondaryDns'] === "") {
+                            }
+                            else {
+                                str = "<span class='mif-flow-tree self-scale-3'></span> " + app_cfg['SecondaryDns'];
+                            }
+                            return str;
+                        }),
+                        className: 'content-left',
+                        width: '190px'
+                    },
+                    {
+                        title: 'Terminate/Internet/Threshold',
+                        data: 'app_cfg',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data === null || data === "") {
+                                return "";
+                            }
+                            var app_cfg = JSON.parse(data);
+                            var chk_terminate = app_cfg.CannotTerminate ? "checked" : "unchecked";
+                            var chk_internet = app_cfg.BlockInternet ? "checked" : "unchecked";
+                            var chk_threshold = app_cfg.UseThreshold ? "checked" : "unchecked";
+                            var str = "<label class='" + chk_terminate + "'></label>";
+                            str += "<label class='" + chk_internet + "'></label>";
+                            str += "<label class='" + chk_threshold + "'></label>";
+                            return str;
+                        }),
+                        className: 'content-left',
+                        width: '290px'
+                    },
+                    {
+                        title: 'Bypass',
+                        data: 'app_cfg',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data === null || data === "") {
+                                return "";
+                            }
+                            var app_cfg = JSON.parse(data);
+                            var bypass_permitted = app_cfg['BypassesPermitted'] === null || app_cfg['BypassesPermitted'] === 0 ? "" : "<span class='mif-clipboard self-scale-4 fg-cyan'></span> " + app_cfg['BypassesPermitted'] + "<span class='unit_day'>/day</span>";
+                            var bypass_duration = app_cfg['BypassDuration'] === null || app_cfg['BypassDuration'] === 0 ? "" : " <span class='mif-alarm-on self-scale-5 fg-pink'></span> " + app_cfg['BypassDuration'] + "<span class='unit_min'>mins</span>";
+                            return bypass_permitted + bypass_duration;
+                        }),
+                        className: 'content-left',
+                        width: '180px'
+                    },
+                    {
+                        title: 'Report Level',
+                        data: 'app_cfg',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data === null || data === "") {
+                                return "";
+                            }
+                            var app_cfg = JSON.parse(data);
+                            var chk_report = (app_cfg.report_level === 1) ? "checked-alone" : "unchecked-alone";
+                            return "<label class='" + chk_report + "'></label>";
+                        }),
+                        className: 'content-center',
+                        width: '150px'
+                    },
+                    {
+                        title: 'Status',
                         data: 'isactive',
                         visible: true,
                         render: (function (data, t, row, meta) {
@@ -188,12 +307,14 @@ var Citadel;
                                 return "";
                             }
                             if (data == 1) {
-                                return "True";
+                                return "<span class='active-s status'>Active</span>";
                             }
                             else {
-                                return "False";
+                                return "<span class='inactive-s status'>Inactive</span>";
                             }
-                        })
+                        }),
+                        className: 'content-center',
+                        width: '60px'
                     },
                     {
                         title: 'Assigned Filters',
@@ -203,12 +324,9 @@ var Citadel;
                     {
                         title: 'Date Registered',
                         data: 'created_at',
-                        visible: true
-                    },
-                    {
-                        title: 'Date Modified',
-                        data: 'updated_at',
-                        visible: true
+                        visible: true,
+                        width: '180px',
+                        className: 'updated_date'
                     }
                 ];
                 var groupTablesLoadFromAjaxSettings = {
@@ -224,6 +342,8 @@ var Citadel;
                     })
                 };
                 var groupTableSettings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
                     columns: groupTableColumns,
@@ -244,17 +364,45 @@ var Citadel;
                     {
                         title: 'Category Name',
                         data: 'category',
-                        visible: true
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data == null) {
+                                return "";
+                            }
+                            if (row.type === "Filters") {
+                                return "<span class='mif-filter fg-green'></span> " + data;
+                            }
+                            else {
+                                return "<span class='mif-warning fg-red'></span> " + data;
+                            }
+                        })
                     },
                     {
                         title: 'List Group Name',
                         data: 'namespace',
-                        visible: true
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data == null) {
+                                return "";
+                            }
+                            return data;
+                        })
                     },
                     {
                         title: 'Type',
                         data: 'type',
-                        visible: true
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data == null) {
+                                return "";
+                            }
+                            if (data === "Filters") {
+                                return "<span class='mif-filter fg-green'></span> " + data;
+                            }
+                            else {
+                                return "<span class='mif-warning fg-red'></span> " + data;
+                            }
+                        }),
                     },
                     {
                         title: '# Entries',
@@ -264,12 +412,9 @@ var Citadel;
                     {
                         title: 'Date Created',
                         data: 'created_at',
-                        visible: true
-                    },
-                    {
-                        title: 'Date Modified',
-                        data: 'updated_at',
-                        visible: true
+                        visible: true,
+                        width: '180px',
+                        className: 'updated_date'
                     }
                 ];
                 var filterTablesLoadFromAjaxSettings = {
@@ -285,6 +430,8 @@ var Citadel;
                     })
                 };
                 var filterTableSettings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
                     columns: filterTableColumns,
@@ -305,12 +452,17 @@ var Citadel;
                     {
                         title: 'User Full Name',
                         data: 'user.name',
-                        visible: true
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
+                        }),
+                        width: '240px'
                     },
                     {
                         title: 'Username',
                         data: 'user.email',
-                        visible: true
+                        visible: true,
+                        width: '240px'
                     },
                     {
                         title: 'Device Name',
@@ -326,17 +478,20 @@ var Citadel;
                                 return "";
                             }
                             if (data == 1) {
-                                return "True";
+                                return "<label class='checked'></label>";
                             }
                             else {
-                                return "False";
+                                return "<label class='unchecked'></label>";
                             }
-                        })
+                        }),
+                        width: '100px'
                     },
                     {
                         title: 'Date Requested',
                         data: 'created_at',
-                        visible: true
+                        visible: true,
+                        width: '180px',
+                        className: 'updated_date'
                     }
                 ];
                 var userDeactivationRequestTablesLoadFromAjaxSettings = {
@@ -352,6 +507,8 @@ var Citadel;
                     })
                 };
                 var userDeactivationRequestTableSettings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
                     columns: userDeactivationRequestTableColumns,
@@ -373,13 +530,16 @@ var Citadel;
                         title: 'Application Name',
                         data: 'name',
                         visible: true,
-                        width: '200px'
+                        width: '200px',
+                        render: (function (data, t, row, meta) {
+                            return "<span class='mif-file-binary self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
+                        })
                     },
                     {
                         title: 'Notes',
                         data: 'notes',
                         visible: true,
-                        width: '200px'
+                        width: '240px'
                     },
                     {
                         title: 'Linked Group',
@@ -390,7 +550,7 @@ var Citadel;
                         title: 'Date Modified',
                         data: 'updated_at',
                         visible: true,
-                        width: '200px'
+                        width: '220px'
                     }
                 ];
                 var appListTablesLoadFromAjaxSettings = {
@@ -406,6 +566,8 @@ var Citadel;
                     })
                 };
                 var appListTableSettings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
                     columns: appListTableColumns,
@@ -427,7 +589,10 @@ var Citadel;
                         title: 'App Group Name',
                         data: 'group_name',
                         visible: true,
-                        width: '200px'
+                        width: '200px',
+                        render: (function (data, t, row, meta) {
+                            return "<span class='mif-file-folder self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
+                        })
                     },
                     {
                         title: 'Linked Apps',
@@ -438,7 +603,7 @@ var Citadel;
                         title: 'Date Modified',
                         data: 'updated_at',
                         visible: true,
-                        width: '200px'
+                        width: '230px'
                     }
                 ];
                 var appGroupListTablesLoadFromAjaxSettings = {
@@ -454,6 +619,8 @@ var Citadel;
                     })
                 };
                 var appGroupListTableSettings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
                     columns: appGroupListTableColumns,
@@ -474,47 +641,104 @@ var Citadel;
                     {
                         title: 'User',
                         data: 'user.name',
-                        visible: true
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            var name = data;
+                            if (data.length > 17) {
+                                name = data.substring(0, 14) + "...";
+                            }
+                            return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + name + "</b>";
+                        }),
+                        width: '200px'
                     },
                     {
                         title: 'Identifier',
                         data: 'identifier',
-                        visible: true
+                        visible: true,
+                        width: '360px',
+                        className: 'identifier',
+                        render: (function (data, t, row, meta) {
+                            return " <b title='" + data + "'>" + data + "</b>";
+                        })
                     },
                     {
                         title: 'Device Id',
                         data: 'device_id',
-                        visible: true
-                    },
-                    {
-                        title: 'App Version',
-                        data: 'app_version',
-                        visible: true
+                        visible: true,
+                        className: 'device_id',
+                        width: '200px'
                     },
                     {
                         title: 'IP Address',
                         data: 'ip_address',
-                        visible: true
+                        visible: true,
+                        width: '200px',
+                        render: (function (data, t, row, meta) {
+                            var user_ip = "<span class='mif-flow-tree self-scale-3'></span>";
+                            var name = data;
+                            if (data === null || data === undefined) {
+                                name = "-";
+                                data = "*";
+                                return "";
+                            }
+                            else {
+                                if (data.length > 20) {
+                                    name = data.substring(0, 15) + "...";
+                                }
+                            }
+                            return user_ip + " <span title='" + data + "'>" + name + "</span>";
+                        })
                     },
                     {
-                        title: 'Bypass Quantity',
+                        title: '#Bypass Used/Quantity/Period',
                         data: 'bypass_quantity',
-                        visible: true
+                        visible: true,
+                        width: '210px',
+                        render: (function (data, t, row, meta) {
+                            var bypass_used = "";
+                            if (row.bypass_used === null || row.bypass_used === 0)
+                                bypass_used = "<span class='mif-info self-scale-2 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
+                            else
+                                bypass_used = "<span class='mif-info self-scale-2 fg-cyan'></span> " + row.bypass_used + " ";
+                            var bypass_permitted = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                            if (data === null || data === 0)
+                                bypass_permitted += "<span class='mif-clipboard self-scale-1 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
+                            else
+                                bypass_permitted += "<span class='mif-clipboard self-scale-1 fg-cyan'></span> " + data + " ";
+                            bypass_permitted += "<span class='unit_day'>/day</span>";
+                            var bypass_duration = "";
+                            if (row.bypass_period === null || row.bypass_period === 0)
+                                bypass_duration += "<span class='mif-alarm-on self-scale unset_value_color'></span> <span class='unset_value_color'>-</span> ";
+                            else
+                                bypass_duration += "<span class='mif-alarm-on self-scale fg-pink'></span> " + row.bypass_period + " ";
+                            bypass_duration += "<span class='unit_min'>mins</span>";
+                            return bypass_used + bypass_permitted + bypass_duration;
+                        })
                     },
                     {
-                        title: 'Bypass Period',
-                        data: 'bypass_period',
-                        visible: true
+                        title: 'Report Level',
+                        data: 'report_level',
+                        visible: true,
+                        width: '140px',
+                        className: 'content-center',
+                        render: (function (data, t, row, meta) {
+                            var chk_report = (data === 1) ? "checked-alone" : "unchecked-alone";
+                            return "<label class='" + chk_report + "'></label>";
+                        }),
                     },
                     {
-                        title: 'Bypass Used',
-                        data: 'bypass_used',
-                        visible: true
+                        title: 'Version',
+                        data: 'app_version',
+                        visible: true,
+                        width: '110px',
+                        className: 'content-center'
                     },
                     {
                         title: 'Updated date',
                         data: 'updated_at',
-                        visible: true
+                        visible: true,
+                        width: '170px',
+                        className: 'updated_date'
                     }
                 ];
                 var appUserActivationTablesLoadFromAjaxSettings = {
@@ -530,6 +754,8 @@ var Citadel;
                     })
                 };
                 var appUserActivationTableSettings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
                     columns: appUserActivationTableColumns,
@@ -1081,53 +1307,53 @@ var Citadel;
                 return this.m_currentViewState;
             },
             set: function (value) {
-                this.m_viewUserManagement.style.visibility = "hidden";
-                this.m_viewGroupManagement.style.visibility = "hidden";
-                this.m_viewFilterManagement.style.visibility = "hidden";
-                this.m_viewUserDeactivationRequestManagement.style.visibility = "hidden";
-                this.m_viewAppManagement.style.visibility = "hidden";
-                this.m_viewAppGroupManagement.style.visibility = "hidden";
-                this.m_viewAppUserActivationManagement.style.visibility = "hidden";
+                this.m_viewUserManagement.style.display = "none";
+                this.m_viewGroupManagement.style.display = "none";
+                this.m_viewFilterManagement.style.display = "none";
+                this.m_viewUserDeactivationRequestManagement.style.display = "none";
+                this.m_viewAppManagement.style.display = "none";
+                this.m_viewAppGroupManagement.style.display = "none";
+                this.m_viewAppUserActivationManagement.style.display = "none";
                 switch (value) {
                     case DashboardViewStates.UserListView:
                         {
                             this.ForceTableRedraw(this.m_tableUsers);
-                            this.m_viewUserManagement.style.visibility = "visible";
+                            this.m_viewUserManagement.style.display = "block";
                         }
                         break;
                     case DashboardViewStates.GroupListView:
                         {
                             this.ForceTableRedraw(this.m_tableGroups);
-                            this.m_viewGroupManagement.style.visibility = "visible";
+                            this.m_viewGroupManagement.style.display = "block";
                         }
                         break;
                     case DashboardViewStates.FilterListView:
                         {
                             this.ForceTableRedraw(this.m_tableFilterLists);
-                            this.m_viewFilterManagement.style.visibility = "visible";
+                            this.m_viewFilterManagement.style.display = "block";
                         }
                         break;
                     case DashboardViewStates.DeactivationRequestListView:
                         {
-                            this.m_viewUserDeactivationRequestManagement.style.visibility = "visible";
+                            this.m_viewUserDeactivationRequestManagement.style.display = "block";
                         }
                         break;
                     case DashboardViewStates.AppView:
                         {
                             this.ForceTableRedraw(this.m_tableAppLists);
-                            this.m_viewAppManagement.style.visibility = "visible";
+                            this.m_viewAppManagement.style.display = "block";
                         }
                         break;
                     case DashboardViewStates.AppGroupView:
                         {
                             this.ForceTableRedraw(this.m_tableAppGroupLists);
-                            this.m_viewAppGroupManagement.style.visibility = "visible";
+                            this.m_viewAppGroupManagement.style.display = "block";
                         }
                         break;
                     case DashboardViewStates.AppUserActivationView:
                         {
                             this.ForceTableRedraw(this.m_tableAppUserActivationTable);
-                            this.m_viewAppUserActivationManagement.style.visibility = "visible";
+                            this.m_viewAppUserActivationManagement.style.display = "block";
                         }
                         break;
                 }

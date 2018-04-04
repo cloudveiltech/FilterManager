@@ -44,6 +44,19 @@
                             <input type="text"  disabled="disabled" name="editor_activation_input_ip_address" id="editor_activation_input_ip_address" />             
                         </div>
                     </div>
+                    <div class="cell cell-auto-size check-label" style="margin-right: -160px" >
+                        <label for="editor_activation_report_level">Report Level:</label><br/><br/>
+                        <label class="switch-original">
+                            <input type="checkbox" id="editor_activation_report_level" name="editor_activation_report_level">
+                            <span class="check"></span>
+                        </label>
+                        <label id="editor_activation_report_level_text" class="report-level-width">No reporting back to server</label>
+                    </div>
+                    <div class="cell cell-auto-size">
+                        <div class="input-control text" data-role="input">
+                            &nbsp; 
+                        </div>
+                    </div>
                 </div>
                
                 <br/>
@@ -72,14 +85,10 @@
                             <input type="number"  disabled="disabled"  name="editor_activation_input_bypass_used" id="editor_activation_input_bypass_used"  />
                         </div>
                     </div>
-
-                    
                 </div>
                 
                 <br/>
                 <br/>
-                
-    
                 
                 <div class="row cell-auto-size">
                     <div class="form-actions">

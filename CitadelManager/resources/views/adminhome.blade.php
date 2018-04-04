@@ -204,50 +204,50 @@
 </div>
 
 <!-- This is the main content presentation area for the utility. Each tab's content should have its own container in here. -->
-<div id="editor_container" style="margin: 250px 80px 80px 80px; position:absolute; top:0; left:0; right:0; bottom:0; background: white; overflow-y: scroll;">
+<div id="editor_container">
 
     <!-- User editing view. -->
-    <div id="view_user_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
-        <table id="user_table" class="table striped hovered border" style="width:100%">
+    <div id="view_user_management" class="dataTables_wrapper">
+        <table id="user_table" class="table striped hovered border">
 
         </table>
     </div>        
 
     <!-- Group editing view. -->
-    <div id="view_group_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
-        <table id="group_table" class="table striped hovered border" style="width:100%">
+    <div id="view_group_management" class="dataTables_wrapper">
+        <table id="group_table" class="table striped hovered border">
 
         </table>
     </div>
 
     <!-- Filter list editing view. -->
-    <div id="view_filter_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
-        <table id="filter_table" class="table striped hovered border" style="width:100%">
+    <div id="view_filter_management" class="dataTables_wrapper">
+        <table id="filter_table" class="table striped hovered border">
 
         </table>
     </div>
 
     <!-- User requests view. -->
-    <div id="view_user_deactivation_request_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
+    <div id="view_user_deactivation_request_management" class="dataTables_wrapper">
         <table id="user_deactivation_request_table" class="table striped hovered border">
 
         </table>
     </div>
 
     <!-- AppList/AppGroupList editing view. -->
-    <div id="view_app_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
-        <table id="app_table" class="table striped hovered border" style="width:100%">
+    <div id="view_app_management" class="dataTables_wrapper">
+        <table id="app_table" class="table striped hovered border">
 
         </table>
     </div>
-    <div id="view_app_group_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
-        <table id="app_group_table" class="table striped hovered border" style="width:100%">
+    <div id="view_app_group_management" class="dataTables_wrapper">
+        <table id="app_group_table" class="table striped hovered border">
 
         </table>
     </div>
 
     <!-- App User Activations view. -->
-    <div id="view_app_user_activations_management" style="width: 100%; min-height: 100%; position: absolute; visibility: hidden; padding: 10px;">
+    <div id="view_app_user_activations_management" class="dataTables_wrapper">
         <table id="app_user_activations_table" class="table striped hovered border">
 
         </table>

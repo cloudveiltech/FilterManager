@@ -74,6 +74,7 @@ var Citadel;
             this.m_roleInput = document.querySelector('#editor_user_input_role_id');
             this.m_isActiveInput = document.querySelector('#editor_user_input_isactive');
             this.m_customerIdInput = document.querySelector('#editor_user_input_customer_id');
+            this.m_reportLevelInput = document.querySelector('#editor_user_report_level');
             this.m_submitBtn = document.querySelector('#user_editor_submit');
             this.m_cancelBtn = document.querySelector('#user_editor_cancel');
             this.InitButtonHandlers();
@@ -232,6 +233,7 @@ var Citadel;
             this.m_numActivations = data['activations_allowed'];
             this.m_isActive = data['isactive'];
             this.m_dateRegistered = data['dt'];
+            this.m_reportLevel = data['report_level'];
         };
         UserRecord.prototype.LoadFromForm = function () {
             this.m_userFullName = this.m_fullNameInput.value;
@@ -255,6 +257,7 @@ var Citadel;
             }
             this.m_numActivations = this.m_numActivationsInput.valueAsNumber;
             this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
+            this.m_reportLevel = this.m_reportLevelInput.checked == true ? 1 : 0;
         };
         UserRecord.prototype.StartEditing = function (allGroups, userData) {
             var _this = this;
@@ -333,6 +336,7 @@ var Citadel;
                             }
                         }
                         this.m_isActiveInput.checked = this.m_isActive != 0;
+                        this.m_reportLevelInput.checked = this.m_reportLevel != 0;
                     }
                     break;
             }
@@ -382,9 +386,9 @@ var Citadel;
                 'customer_id': this.m_customerId,
                 'activations_allowed': this.m_numActivations,
                 'isactive': this.m_isActive,
-                'dt': this.m_dateRegistered
+                'dt': this.m_dateRegistered,
+                'report_level': this.m_reportLevel,
             };
-            console.log("ddd", this.m_customerId);
             if (this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x"))) {
                 obj['password'] = this.m_userPassword;
                 obj['password_verify'] = this.m_passwordConfirmInput.value;
