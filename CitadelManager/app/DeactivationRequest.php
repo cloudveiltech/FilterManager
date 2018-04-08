@@ -32,4 +32,9 @@ class DeactivationRequest extends Model
     {
         return $this->belongsTo('App\User');
     }
+
+    public function activation()
+    { 
+        return $this->belongsTo('App\AppUserActivation', 'identifier', 'identifier');
+    }
 }

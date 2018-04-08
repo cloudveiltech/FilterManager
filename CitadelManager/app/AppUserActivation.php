@@ -15,4 +15,9 @@ class AppUserActivation extends Model
     {
         return $this->belongsTo('App\User');
     }
+
+    public function deactivation_request()
+    {
+        return $this->hasMany('App\DeactivationRequest', 'identifier', 'identifier');
+    }
 }

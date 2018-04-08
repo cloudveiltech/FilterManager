@@ -157,8 +157,10 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live','auth.basic.once'
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
 
     /* Manage Users */
-    Route::post('/users/{id}', 'UserController@update');
-    Route::get('/users', 'UserController@index');
+    Route::post('/users/{id}', 'UserController@update'); //Should be deprecated.
+    Route::post('/user/{id}', 'UserController@update');
+    Route::get('/users', 'UserController@index');  //Should be deprecated.
+    Route::get('/user', 'UserController@index'); 
     Route::post('/user', 'UserController@store');
 
     /* Return Current User */
@@ -167,8 +169,10 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live','auth.basic.once'
     });
 
     /* Manage Activations */
-    Route::get('/activations', 'AppUserActivationController@index');
+    Route::get('/activations', 'AppUserActivationController@index'); //Should be deprecated.
+    Route::get('/activation', 'AppUserActivationController@index');
     Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
+    Route::get('/deactivation/{id}', 'DeactivationRequestController@update');
     
 });
 

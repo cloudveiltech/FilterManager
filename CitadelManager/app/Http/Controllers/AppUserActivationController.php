@@ -36,20 +36,20 @@ class AppUserActivationController extends Controller {
      */
     public function index(Request $request, $user_id = null) {
       if ($request->has('email')) {
-            $user = User::where('email', $request->input('email'))->first();
-            if ($user && $user->activations()) {
-                return $user->activations()->get();
-            } else {
-                return response()->json([]);
-            }
+          $user = User::where('email', $request->input('email'))->first();
+          if ($user && $user->activations()) {
+              return $user->activations()->with('deactivation_request')->get();
+          } else {
+              return response()->json([]);
+          }
       } else if ($request->has('user_id') || $user_id != null) {
-            $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
-            $user = User::find($user_id);
-            if ($user && $user->activations()) {
-                return $user->activations()->get();
-            } else {
-                return response()->json([]);
-            } 
+          $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
+          $user = User::find($user_id);
+          if ($user && $user->activations()) {
+              return $user->activations()->with('deactivation_request')->get();
+          } else {
+              return response()->json([]);
+          } 
       } else {
 
         $draw = $request->input('draw');
