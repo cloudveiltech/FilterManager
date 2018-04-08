@@ -232,6 +232,15 @@ label.unchecked-alone:after {
 .tab-group-caption{
     padding: 3px;
 }
+.text-light{
+    font-size: 18px;
+}
+.fluent-menu {
+    left: 0; 
+    right: 0;
+    top: 0;
+    margin: 80px 80px 0 80px;
+}
 .fluent-menu .fluent-big-button{
     min-width: 70px;
 }
@@ -320,7 +329,12 @@ Main admin page.
 #div_337a_5{word-wrap: break-word; min-width: 200px; max-width: 500px; padding: 10px; float: right; margin-top: -10px;}
 #overlay_loading_message{color: light-gray; text-align: right; font-size:12px;}
 #tab_user_deactivation_requests{display: none;}
-#editor_container{margin:10px 80px 80px 80px; background: white; height: calc(100% - 300px)}
+#editor_container{
+    margin:10px 80px 80px 80px;
+    background: white;
+    height: calc(100% - 300px);
+    box-shadow: 0 2px 6px rgba(57,73,76,0.35);
+}
 #view_user_management{width: 100%; padding: 10px;}
 #user_table{width:100%}
 #view_group_management{width: 100%; padding: 10px;}
@@ -331,7 +345,10 @@ Main admin page.
 #view_user_deactivation_request_management{width: 100%;  padding: 10px;}
 #view_app_group_management{width: 100%;  padding: 10px;}
 #view_app_user_activations_management{width: 100%;  padding: 10px;}
+#refresh_user_activations {
+    height: 34px;
 
+}
 #view_app_management{width: 100%;  padding: 10px;}
 .dataTable{
     margin: 0 !important;
@@ -360,6 +377,11 @@ Main admin page.
 #spiner {
     height: 45px;
     width: 45px;
+}
+.tabs-holder li a{
+    font-family: "Gotham Medium",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-weight: bold;
 }
 /*
 Upload editor.
@@ -488,7 +510,34 @@ td.pc_name {
 td.ip_address {
     font-size: 12px !important;
 }
-
+.dataTables_wrapper{
+    position: relative;
+}
+.dataTables_processing {
+    background: rgba(127,127,127,0.35) !important;
+    top: 100px;
+    left: 0px;
+    right: 0px;
+    text-align: center;
+    padding-top: calc(50vh - 270px);
+    height: calc(100vh - 470px);
+    position: absolute;
+    z-index: 998;
+    content: "";
+}
+.dataTables_processing:before {
+    content: "Processing...";
+    background: rgba(255,255,255,1) !important;
+    top: calc(50vh - 270px);
+    left: 40%;
+    right: 40%;
+    line-height: 40px;
+    text-align: center;
+    height: 40px;
+    position: absolute;
+    z-index: 999;
+    box-shadow: 0 2px 6px rgba(57, 73, 76,0.35);
+}
 /*
 List uploader.
 */
@@ -646,7 +695,9 @@ Apply Appgroup to Usergroup Overlay.
 /*
 Progress-wait.
 */
-#overlay_loading{width: 100%; height: 100%; z-index:99999999; position:fixed; display:none; left: 0; top: 0; right: 0; bottom: 0;}
+#overlay_loading{
+    width: 100%;
+    height: 100%; z-index:99999999; position:fixed; display:none; left: 0; top: 0; right: 0; bottom: 0;}
 #div_dade_0{width: 500px; height: 500px; left:50%; top:50%; margin-left: -250px; margin-top: -100px; position:absolute; text-align:center; color: white;}
 #div_dade_1{margin: auto;}
 #div_dade_2{word-wrap: break-word; width: 500px; height: auto;}

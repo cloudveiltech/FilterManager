@@ -11,7 +11,7 @@
 </script>
 
 <!-- Primary admin menu. -->
-<div class="fluent-menu" data-role="fluentmenu" style="left: 0; right: 0; top: 0; margin: 80px 80px 0 80px;">
+<div class="fluent-menu" data-role="fluentmenu">
     <ul class="tabs-holder">
         <li id="btn_tab_users" class="active"><a href="#tab_users">Users</a></li>
         <li id="btn_tab_groups"><a href="#tab_groups">Groups</a></li>

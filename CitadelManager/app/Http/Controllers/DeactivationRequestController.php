@@ -21,11 +21,53 @@ class DeactivationRequestController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return DeactivationRequest::with(['user'])->get();
+        $draw = $request->input('draw');
+        $start = $request->input('start');
+        $length = $request->input('length');
+        $search = $request->input('search')['value'];
+        $recordsTotal = DeactivationRequest::count();
+        if(empty($search)) {
+            $rows = DeactivationRequest::with(['user'])
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = $recordsTotal;
+        } else {
+            $rows = DeactivationRequest::with(['user'])
+                ->where('identifier', 'like',"%$search%")
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = DeactivationRequest::where('identifier', 'like',"%$search%")->count();
+        }
+        
+        return response()->json([
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsFilterTotal,
+            "data" => $rows
+        ]);
     }
 
+    public function updateField(Request $request) {
+        $id = $request->input('id');
+        $value = intval($request->input('value'));   //0 or 1
+
+        $id_arr = explode("_", $id);
+        if($id_arr[0] != "deactivatereq") {
+            return response()->json([
+                "success" => false
+            ]);
+        }
+        $activation_id = intval($id_arr[2]);
+        DeactivationRequest::where('id', $activation_id)->update(['granted'=>$value]);
+       
+        return response()->json([
+            "success" => true
+        ]);
+    }
     /**
      * Show the form for creating a new resource.
      *

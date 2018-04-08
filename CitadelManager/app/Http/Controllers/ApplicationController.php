@@ -18,9 +18,28 @@ class ApplicationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $applications = App::with('group')->get();
+        $draw = $request->input('draw');
+        $start = $request->input('start');
+        $length = $request->input('length');
+        $search = $request->input('search')['value'];
+        $recordsTotal = App::count();
+        if(empty($search)) {
+            $applications = App::with('group')
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = $recordsTotal;
+        } else {
+            $applications = App::with('group')
+                ->where('name', 'like',"%$search%")
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = App::where('name', 'like',"%$search%")->count();
+        }
+        
         foreach($applications as $app) {
             $arr_group_id = array();
             foreach($app->group as $group_item) {
@@ -40,7 +59,13 @@ class ApplicationController extends Controller
             }
             $app->group_name = $str;
         }
-        return response()->json($applications);
+
+        return response()->json([
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsFilterTotal,
+            "data" => $applications
+        ]);
     }
 
     public function get_application() {

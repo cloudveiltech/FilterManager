@@ -35,15 +35,46 @@ class UserController extends Controller {
     public function index(Request $request) {
         $email = $request->input('email');
         $customer_id = $request->input('customer_id');
-        return User::with(['group', 'roles','activations'])
-            ->when($email, function($query) use ($email) {
-                return $query->where('email', $email);
-            })
-            ->when($customer_id, function($query) use ($customer_id) {
-                return $query->where('customer_id', $customer_id);
-            })
-            ->get();
+        $draw = $request->input('draw');
+        $start = $request->input('start');
+        $length = $request->input('length');
+        $search = $request->input('search')['value'];
+        $recordsTotal = User::count();
+        if(empty($search)) {
+            $users = User::with(['group', 'roles','activations'])
+                ->when($email, function($query) use ($email) {
+                    return $query->where('email', $email);
+                })
+                ->when($customer_id, function($query) use ($customer_id) {
+                    return $query->where('customer_id', $customer_id);
+                })
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = $recordsTotal;
+        } else {
+            $users = User::with(['group', 'roles','activations'])
+                ->when($email, function($query) use ($email) {
+                    return $query->where('email', $email);
+                })
+                ->when($customer_id, function($query) use ($customer_id) {
+                    return $query->where('customer_id', $customer_id);
+                })
+                ->where('name', 'like',"%$search%")
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = User::where('name', 'like',"%$search%")->count();
+        }
+        return response()->json([
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsFilterTotal,
+            "search" => $search,
+            "data" => $users
+        ]);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -103,6 +134,25 @@ class UserController extends Controller {
         return response('', 405);
     }
 
+    public function updateField(Request $request) {
+        $id = $request->input('id');
+        $value = intval($request->input('value'));   //0 or 1
+
+        $id_arr = explode("_", $id);
+        if($id_arr[0] != "user") {
+            return response()->json([
+                "success" => false
+            ]);
+        }
+        $user_id = intval($id_arr[2]);
+        User::where('id', $user_id)->update(['report_level'=>$value]);
+        $user = User::with(['group', 'roles','activations'])
+                ->where('id', $user_id)->first();
+        return response()->json([
+            "user" => $user,
+            "success" => true
+        ]);
+    }
     /**
      * Update the specified resource in storage.
      *

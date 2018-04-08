@@ -133,8 +133,9 @@ var Citadel;
                         data: 'report_level',
                         visible: true,
                         render: (function (data, t, row, meta) {
-                            var chk_report = (data === 1) ? "checked-alone" : "unchecked-alone";
-                            return "<label class='" + chk_report + "'></label>";
+                            var chk_report = (data === 1) ? "checked" : "";
+                            var str = "<label class='switch-original'><input type='checkbox' id='user_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                            return str;
                         }),
                         className: 'content-center',
                         width: '150px'
@@ -167,7 +168,9 @@ var Citadel;
                 ];
                 var userTablesLoadFromAjaxSettings = {
                     url: "api/admin/users",
-                    dataSrc: "",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -182,13 +185,45 @@ var Citadel;
                     scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
                     columns: userTableColumns,
                     ajax: userTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
                         _this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: (function (settings) {
+                        var that = _this;
+                        $("#user_table").off("change", "input[type='checkbox']");
+                        $("#user_table").on("change", "input[type='checkbox']", function () {
+                            var id_str = this.id;
+                            var val = 0;
+                            if (this.checked) {
+                                val = 1;
+                            }
+                            var checkAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: "api/admin/users/update_field",
+                                data: { id: id_str, value: val },
+                                success: function (data, textStatus, jqXHR) {
+                                    that.ForceTableRedraw(that.m_tableUsers);
+                                    return false;
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    console.log(errorThrown);
+                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                    }
+                                    else {
+                                    }
+                                }
+                            };
+                            $.post(checkAjaxSettings);
+                        });
                     })
                 };
-                usersTableSettings['resonsive'] = true;
                 _this.m_tableUsers = $('#user_table').DataTable(usersTableSettings);
             });
             var groupTableConstruction = (function () {
@@ -256,12 +291,12 @@ var Citadel;
                                 return "";
                             }
                             var app_cfg = JSON.parse(data);
-                            var chk_terminate = app_cfg.CannotTerminate ? "checked" : "unchecked";
-                            var chk_internet = app_cfg.BlockInternet ? "checked" : "unchecked";
-                            var chk_threshold = app_cfg.UseThreshold ? "checked" : "unchecked";
-                            var str = "<label class='" + chk_terminate + "'></label>";
-                            str += "<label class='" + chk_internet + "'></label>";
-                            str += "<label class='" + chk_threshold + "'></label>";
+                            var chk_terminate = app_cfg.CannotTerminate ? "checked" : "";
+                            var chk_internet = app_cfg.BlockInternet ? "checked" : "";
+                            var chk_threshold = app_cfg.UseThreshold ? "checked" : "";
+                            var str = "<label class='switch-original'><input type='checkbox' id='group_terminate_" + row.id + "' " + chk_terminate + " /><span class='check'></span></label>";
+                            str += "<label class='switch-original'><input type='checkbox' id='group_internet_" + row.id + "' " + chk_internet + " /><span class='check'></span></label>";
+                            str += "<label class='switch-original'><input type='checkbox' id='group_threshold_" + row.id + "' " + chk_threshold + " /><span class='check'></span></label>";
                             return str;
                         }),
                         className: 'content-left',
@@ -292,8 +327,8 @@ var Citadel;
                                 return "";
                             }
                             var app_cfg = JSON.parse(data);
-                            var chk_report = (app_cfg.report_level === 1) ? "checked-alone" : "unchecked-alone";
-                            return "<label class='" + chk_report + "'></label>";
+                            var chk_report = (app_cfg.ReportLevel == 1) ? "checked" : "";
+                            return "<label class='switch-original'><input type='checkbox' id='group_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
                         }),
                         className: 'content-center',
                         width: '150px'
@@ -331,7 +366,9 @@ var Citadel;
                 ];
                 var groupTablesLoadFromAjaxSettings = {
                     url: "api/admin/groups",
-                    dataSrc: "",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -346,10 +383,43 @@ var Citadel;
                     scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
                     columns: groupTableColumns,
                     ajax: groupTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
                         _this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: (function (settings) {
+                        var that = _this;
+                        $("#group_table").off("change", "input[type='checkbox']");
+                        $("#group_table").on("change", "input[type='checkbox']", function () {
+                            var id_str = this.id;
+                            var val = 0;
+                            if (this.checked) {
+                                val = 1;
+                            }
+                            var checkAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: "api/admin/groups/update_field",
+                                data: { id: id_str, value: val },
+                                success: function (data, textStatus, jqXHR) {
+                                    that.ForceTableRedraw(that.m_tableGroups);
+                                    return false;
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    console.log(errorThrown);
+                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                    }
+                                    else {
+                                    }
+                                }
+                            };
+                            $.post(checkAjaxSettings);
+                        });
                     })
                 };
                 _this.m_tableGroups = $('#group_table').DataTable(groupTableSettings);
@@ -419,7 +489,9 @@ var Citadel;
                 ];
                 var filterTablesLoadFromAjaxSettings = {
                     url: "api/admin/filterlists",
-                    dataSrc: "",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -434,6 +506,10 @@ var Citadel;
                     scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
                     columns: filterTableColumns,
                     ajax: filterTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
@@ -477,12 +553,9 @@ var Citadel;
                             if (data == null) {
                                 return "";
                             }
-                            if (data == 1) {
-                                return "<label class='checked'></label>";
-                            }
-                            else {
-                                return "<label class='unchecked'></label>";
-                            }
+                            var chk_report = (data === 1) ? "checked" : "";
+                            var str = "<label class='switch-original'><input type='checkbox' id='deactivatereq_enabled_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                            return str;
                         }),
                         width: '100px'
                     },
@@ -496,7 +569,9 @@ var Citadel;
                 ];
                 var userDeactivationRequestTablesLoadFromAjaxSettings = {
                     url: "api/admin/deactivationreq",
-                    dataSrc: "",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -511,10 +586,43 @@ var Citadel;
                     scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
                     columns: userDeactivationRequestTableColumns,
                     ajax: userDeactivationRequestTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
                         _this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: (function (settings) {
+                        var that = _this;
+                        $("#user_deactivation_request_table").off("change", "input[type='checkbox']");
+                        $("#user_deactivation_request_table").on("change", "input[type='checkbox']", function () {
+                            var id_str = this.id;
+                            var val = 0;
+                            if (this.checked) {
+                                val = 1;
+                            }
+                            var checkAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: "api/admin/deactivationreq/update_field",
+                                data: { id: id_str, value: val },
+                                success: function (data, textStatus, jqXHR) {
+                                    that.ForceTableRedraw(that.m_tableUserDeactivationRequests);
+                                    return false;
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    console.log(errorThrown);
+                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                    }
+                                    else {
+                                    }
+                                }
+                            };
+                            $.post(checkAjaxSettings);
+                        });
                     })
                 };
                 _this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
@@ -555,7 +663,9 @@ var Citadel;
                 ];
                 var appListTablesLoadFromAjaxSettings = {
                     url: "api/admin/app",
-                    dataSrc: "",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -570,6 +680,10 @@ var Citadel;
                     scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
                     columns: appListTableColumns,
                     ajax: appListTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
@@ -608,7 +722,9 @@ var Citadel;
                 ];
                 var appGroupListTablesLoadFromAjaxSettings = {
                     url: "api/admin/app_group",
-                    dataSrc: "",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -623,6 +739,10 @@ var Citadel;
                     scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
                     columns: appGroupListTableColumns,
                     ajax: appGroupListTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
@@ -650,16 +770,6 @@ var Citadel;
                             return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + name + "</b>";
                         }),
                         width: '200px'
-                    },
-                    {
-                        title: 'Identifier',
-                        data: 'identifier',
-                        visible: true,
-                        width: '360px',
-                        className: 'identifier',
-                        render: (function (data, t, row, meta) {
-                            return " <b title='" + data + "'>" + data + "</b>";
-                        })
                     },
                     {
                         title: 'Device Id',
@@ -722,8 +832,8 @@ var Citadel;
                         width: '140px',
                         className: 'content-center',
                         render: (function (data, t, row, meta) {
-                            var chk_report = (data === 1) ? "checked-alone" : "unchecked-alone";
-                            return "<label class='" + chk_report + "'></label>";
+                            var chk_report = (data === 1) ? "checked" : "";
+                            return "<label class='switch-original'><input type='checkbox' id='useractivation_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
                         }),
                     },
                     {
@@ -743,7 +853,9 @@ var Citadel;
                 ];
                 var appUserActivationTablesLoadFromAjaxSettings = {
                     url: "api/admin/activations",
-                    dataSrc: "",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -758,13 +870,50 @@ var Citadel;
                     scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
                     columns: appUserActivationTableColumns,
                     ajax: appUserActivationTablesLoadFromAjaxSettings,
                     rowCallback: (function (row, data) {
                         _this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: (function (settings) {
+                        var that = _this;
+                        $("#app_user_activations_table").off("change", "input[type='checkbox']");
+                        $("#app_user_activations_table").on("change", "input[type='checkbox']", function () {
+                            var id_str = this.id;
+                            var val = 0;
+                            if (this.checked) {
+                                val = 1;
+                            }
+                            var checkAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: "api/admin/activations/update_field",
+                                data: { id: id_str, value: val },
+                                success: function (data, textStatus, jqXHR) {
+                                    that.ForceTableRedraw(that.m_tableAppUserActivationTable);
+                                    return false;
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    console.log(errorThrown);
+                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                    }
+                                    else {
+                                    }
+                                }
+                            };
+                            $.post(checkAjaxSettings);
+                        });
                     })
                 };
                 _this.m_tableAppUserActivationTable = $('#app_user_activations_table').DataTable(appUserActivationTableSettings);
+                $('<button id="refresh_user_activations"><span class="mif-loop2 "></span> Refresh</button>').appendTo('#app_user_activations_table_wrapper div.dataTables_filter');
+                $("#refresh_user_activations").click(function (e) {
+                    _this.ForceTableRedraw(_this.m_tableAppUserActivationTable);
+                });
             });
             userTableConstruction();
             groupTableConstruction();
@@ -912,6 +1061,7 @@ var Citadel;
                 _this.OnTableRowClicked(e, data);
             });
             tableRow.ondblclick = (function (e) {
+                console.log("bind", data);
                 _this.OnTableRowDoubleClicked(e, data);
             });
         };
@@ -1335,6 +1485,7 @@ var Citadel;
                         break;
                     case DashboardViewStates.DeactivationRequestListView:
                         {
+                            this.ForceTableRedraw(this.m_tableUserDeactivationRequests);
                             this.m_viewUserDeactivationRequestManagement.style.display = "block";
                         }
                         break;
