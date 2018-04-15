@@ -14,12 +14,14 @@ var Citadel;
         function Dashboard() {
             var _this = this;
             this.ConstructNavigation();
+            this.loadAllFilters();
             this.ConstructManagementViews();
             this.m_filterListUploadController = new Citadel.ListUploadOverlay();
             this.m_filterListUploadController.UploadCompleteCallback = (function () {
                 _this.ForceTableRedraw(_this.m_tableFilterLists);
                 _this.ForceTableRedraw(_this.m_tableGroups);
                 _this.m_filterListUploadController.Hide();
+                _this.loadAllFilters();
             });
             this.m_filterListUploadController.UploadFailedCallback = (function () {
                 _this.ForceTableRedraw(_this.m_tableFilterLists);
@@ -27,6 +29,21 @@ var Citadel;
                 _this.m_filterListUploadController.Hide();
             });
         }
+        Dashboard.prototype.loadAllFilters = function () {
+            var _this = this;
+            var ajaxSettings = {
+                method: "GET",
+                timeout: 60000,
+                url: "api/admin/filterlist/all",
+                success: function (data, textStatus, jqXHR) {
+                    _this.m_allFilters = data;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(errorThrown);
+                }
+            };
+            $.post(ajaxSettings);
+        };
         Dashboard.prototype.ConstructManagementViews = function () {
             this.m_viewUserManagement = document.getElementById('view_user_management');
             this.m_viewGroupManagement = document.getElementById('view_group_management');
@@ -350,11 +367,6 @@ var Citadel;
                         }),
                         className: 'content-center',
                         width: '60px'
-                    },
-                    {
-                        title: 'Assigned Filters',
-                        data: 'assigned_filter_ids',
-                        visible: false
                     },
                     {
                         title: 'Date Registered',
@@ -1061,7 +1073,6 @@ var Citadel;
                 _this.OnTableRowClicked(e, data);
             });
             tableRow.ondblclick = (function (e) {
-                console.log("bind", data);
                 _this.OnTableRowDoubleClicked(e, data);
             });
         };
@@ -1135,7 +1146,7 @@ var Citadel;
                 case 'group_table':
                     {
                         var groupRecord_1 = new Citadel.GroupRecord();
-                        groupRecord_1.StartEditing(this.m_tableFilterLists.data(), data);
+                        groupRecord_1.StartEditing(this.m_allFilters, data);
                         groupRecord_1.ActionCompleteCallback = (function (action) {
                             groupRecord_1.StopEditing();
                             _this.ForceTableRedraw(_this.m_tableGroups);

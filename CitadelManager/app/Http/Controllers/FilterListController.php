@@ -52,7 +52,9 @@ class FilterListController extends Controller {
             "data" => $rows
         ]);
     }
-
+    public function get_filters() {
+        return FilterList::all(); 
+    }
     /**
      * Show the form for creating a new resource.
      *

@@ -213,7 +213,6 @@ var Citadel;
             this.m_isActive = data['isactive'];
             this.m_assignedFilterIds = data['assigned_filter_ids'];
             this.m_appConfig = JSON.parse(data['app_cfg']);
-            console.log(this.m_appConfig);
         };
         GroupRecord.prototype.LoadFromForm = function () {
             this.m_groupName = this.m_groupNameInput.value;
@@ -451,7 +450,8 @@ var Citadel;
                     allAssignedFilters = cloneData['assigned_filter_ids'];
                 }
             }
-            allFilters.each(function (elm) {
+            for (var a = 0; a < allFilters.length; a++) {
+                var elm = allFilters[a];
                 var imageClassName = "";
                 var draggableFilterOption = document.createElement('div');
                 draggableFilterOption.setAttribute('citadel-filter-list-id', elm['id']);
@@ -493,19 +493,19 @@ var Citadel;
                 }
                 if (alreadyHasThisFilterList && existingItem != null) {
                     if (existingItem['as_blacklist'] == true) {
-                        _this.m_blacklistFiltersContainer.appendChild(draggableFilterOption);
+                        this.m_blacklistFiltersContainer.appendChild(draggableFilterOption);
                     }
                     else if (existingItem['as_whitelist'] == true) {
-                        _this.m_whitelistFiltersContainer.appendChild(draggableFilterOption);
+                        this.m_whitelistFiltersContainer.appendChild(draggableFilterOption);
                     }
                     else if (existingItem['as_bypass'] == true) {
-                        _this.m_bypassFiltersContainer.appendChild(draggableFilterOption);
+                        this.m_bypassFiltersContainer.appendChild(draggableFilterOption);
                     }
                 }
                 else {
-                    _this.m_unassignedFiltersContainer.appendChild(draggableFilterOption);
+                    this.m_unassignedFiltersContainer.appendChild(draggableFilterOption);
                 }
-            });
+            }
             switch (data == null) {
                 case true:
                     {

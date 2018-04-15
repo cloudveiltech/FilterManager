@@ -44,6 +44,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::resource('deactivationreq', 'DeactivationRequestController');
     Route::post('deactivationreq/update_field', 'DeactivationRequestController@updateField');
     Route::resource('filterlists', 'FilterListController');
+    Route::get('filterlist/all', 'FilterListController@get_filters');
+    
     Route::resource('blockreview', 'BlockActionReviewRequestController');
 
     //Route::get('activations/{id}', 'UserController@activation_data');

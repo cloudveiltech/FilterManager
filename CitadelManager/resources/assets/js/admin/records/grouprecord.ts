@@ -674,7 +674,7 @@ namespace Citadel
             this.m_isActive = data['isactive'];
             this.m_assignedFilterIds = data['assigned_filter_ids'] as Object[];
             this.m_appConfig = JSON.parse(data['app_cfg']);
-            console.log(this.m_appConfig);
+            
         }
 
         protected LoadFromForm(): void
@@ -933,8 +933,7 @@ namespace Citadel
             let clearListContainer = ((container: HTMLDivElement): void =>
             {
                 let assignedChildren = container.querySelectorAll('div[citadel-filter-list-id]');
-                for (let i = 0; i < assignedChildren.length; ++i)
-                {
+                for (let i = 0; i < assignedChildren.length; ++i){
                     container.removeChild(assignedChildren.item(i));
                 }
             });
@@ -997,10 +996,10 @@ namespace Citadel
             }
             // Iterate over all available filter lists and put them in the
             // correct column for editing/assignment.
-            allFilters.each((elm: any): void =>
+            for(var a = 0; a < allFilters.length; a++)
             {
+                var elm = allFilters[a];
                 let imageClassName = "";
-
                 let draggableFilterOption = document.createElement('div') as HTMLDivElement;
                 draggableFilterOption.setAttribute('citadel-filter-list-id', elm['id']);
                 draggableFilterOption.style.setProperty('font-size', '10');
@@ -1072,7 +1071,7 @@ namespace Citadel
                 {
                     this.m_unassignedFiltersContainer.appendChild(draggableFilterOption);
                 }
-            });
+            }
             switch (data == null)
             {
                 case true:
@@ -1147,20 +1146,6 @@ namespace Citadel
                                 this.m_filteredApplicationsAsWhitelistInput.checked = false;
                             }
                             this.m_groupId = undefined;
-            /*
-                            let savedFilteredAppsList: Array<String>;
-            
-                            if (savedFilteredAppsList != null)
-                            {
-                                savedFilteredAppsList.forEach((line: String): void =>
-                                {
-                                    line = line.trim();
-                                    if(line.length > 0)
-                                    {
-                                        this.m_filteredApplicationsList.value += line + "\n";
-                                    }
-                                });
-                            } */
                         } else {
                             this.m_editorTitle.innerText = "Create New Group";
                             this.m_submitBtn.innerText = "Create Group";
@@ -1253,20 +1238,6 @@ namespace Citadel
                             this.m_filteredApplicationsAsBlacklistInput.checked = true;
                             this.m_filteredApplicationsAsWhitelistInput.checked = false;
                         }
-/*
-                        let savedFilteredAppsList: Array<String>;
-
-                        if (savedFilteredAppsList != null)
-                        {
-                            savedFilteredAppsList.forEach((line: String): void =>
-                            {
-                                line = line.trim();
-                                if(line.length > 0)
-                                {
-                                    this.m_filteredApplicationsList.value += line + "\n";
-                                }
-                            });
-                        }*/
                     }
                     break;
             }

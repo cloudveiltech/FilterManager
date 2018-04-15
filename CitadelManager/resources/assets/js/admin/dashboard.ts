@@ -442,6 +442,8 @@ namespace Citadel
          */
         private m_filterGroupSelectionArea: dragula.Drake;
 
+        private m_allFilters;
+
         /**
          * Creates an instance of Dashboard.
          * 
@@ -452,7 +454,7 @@ namespace Citadel
         {
             // Setup nav.
             this.ConstructNavigation();
-
+            this.loadAllFilters();
             // Initialize views.
             this.ConstructManagementViews();
 
@@ -464,6 +466,7 @@ namespace Citadel
                 this.ForceTableRedraw(this.m_tableFilterLists);
                 this.ForceTableRedraw(this.m_tableGroups);
                 this.m_filterListUploadController.Hide();
+                this.loadAllFilters();
             });
             this.m_filterListUploadController.UploadFailedCallback = (():void =>
             {
@@ -471,6 +474,22 @@ namespace Citadel
                 this.ForceTableRedraw(this.m_tableGroups);
                 this.m_filterListUploadController.Hide();
             });
+        }
+
+        private loadAllFilters(): void {
+            let ajaxSettings: JQueryAjaxSettings = {
+                method:"GET",
+                timeout: 60000,
+                url: "api/admin/filterlist/all",
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                    this.m_allFilters = data;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(errorThrown);
+                }
+            }
+
+            $.post(ajaxSettings);
         }
 
         private ConstructManagementViews(): void
@@ -887,11 +906,6 @@ namespace Citadel
                             }),
                             className: 'content-center',
                             width: '60px'
-                        },
-                        {
-                            title: 'Assigned Filters',
-                            data: 'assigned_filter_ids',
-                            visible: false
                         },
                         {
                             title: 'Date Registered',
@@ -1867,7 +1881,6 @@ namespace Citadel
 
             tableRow.ondblclick = ((e: MouseEvent) =>
             {
-                console.log("bind", data);
                 this.OnTableRowDoubleClicked(e, data);
             });
             /*
@@ -2024,7 +2037,7 @@ namespace Citadel
 
                         // We supply everything in the filter lists table so that assigned
                         // filters can be laid out for editing.
-                        groupRecord.StartEditing(this.m_tableFilterLists.data(), data);
+                        groupRecord.StartEditing(this.m_allFilters, data);
 
                         groupRecord.ActionCompleteCallback = ((action: string): void =>
                         {
@@ -2413,9 +2426,8 @@ namespace Citadel
 
                     // We want to update both users and groups after delete.
                     filterListObject.ActionCompleteCallback = ((action: string): void =>
-                    {
-                        this.ForceTableRedraw(this.m_tableUsers);
-                        this.ForceTableRedraw(this.m_tableGroups);
+                    {   
+                        this.loadAllFilters();
                         this.ForceTableRedraw(this.m_tableFilterLists);
                     });
 
@@ -2458,8 +2470,7 @@ namespace Citadel
                     // We want to update both users and groups after delete.
                     filterListObject.ActionCompleteCallback = ((action: string): void =>
                     {
-                        this.ForceTableRedraw(this.m_tableUsers);
-                        this.ForceTableRedraw(this.m_tableGroups);
+                        this.loadAllFilters();
                         this.ForceTableRedraw(this.m_tableFilterLists);
                     });
                     
