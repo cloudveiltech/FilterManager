@@ -19,6 +19,7 @@
         <li id="btn_user_deactivation_requests"><a href="#tab_user_deactivation_requests">Deactivation Requests</a></li>
         <li id="btn_tab_app_groups"><a href="#tab_app_groups">Application Groups</a></li>
         <li id="btn_app_user_activations"><a href="#tab_app_user_activations">App User Activations</a></li>
+        <li id="btn_system_versions"><a href="#tab_system_versions">System Versions</a></li>
     </ul>
 
     <!-- Primary menu contents container. -->
@@ -178,7 +179,6 @@
             </div>
         </div>
 
-
         <!-- App User Activations tab. -->
         <div class="tab-panel" id="tab_app_user_activations" style="display: none;">
             <div class="tab-panel-group">
@@ -199,6 +199,36 @@
                 </div>
                 <div class="tab-group-caption">Delete/Block Activations</div>
             </div>
+        </div>
+
+        <!-- System versions tab. -->
+        <div class="tab-panel" id="tab_system_versions" style="display: none;">
+            <div class="tab-panel-group">
+                <div class="tab-group-content">
+                    <button id="btn_version_add" class="fluent-big-button">
+                        <span class="icon mif-move-up"></span> Add
+                        <br>Version
+                    </button>
+                    <div class="tab-content-segment">
+                        <!-- Default state of all delete buttons should be disabled. -->
+                        <button id="btn_version_delete" class="fluent-big-button" disabled>
+                            <span class="mif-move-down"></span>
+                            <span class="label">Remove<br>Version</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="tab-group-caption">Add / Remove</div>
+            </div> 
+            <div class="tab-panel-group">
+                <div class="tab-group-content">
+                    <button id="btn_sysem_platform" class="fluent-big-button">
+                        <span class="icon mif-phonelink"></span> Manage
+                        <br>Platforms
+                    </button>
+                </div>
+                <div class="tab-group-caption">Platforms</div>
+            </div>         
+            
         </div>
     </div>
 </div>
@@ -252,6 +282,13 @@
 
         </table>
     </div>
+
+    <!-- System version view. -->
+    <div id="view_system_versions_management" class="dataTables_wrapper">
+        <table id="system_versions_table" class="table striped hovered border">
+
+        </table>
+    </div>
 </div>
 
 <!-- Include progress-wait script/UI. -->
@@ -281,6 +318,10 @@
 @include('layouts.components.applyappgrouptousergroup')
 <!-- Require Apply to group overlay. -->
 @include('layouts.components.appuseractivationeditor')
+<!-- Require System Version overlay. -->
+@include('layouts.components.appversion')
+<!-- Require Platform overlay. -->
+@include('layouts.components.platform')
 <!-- Include dashboard JS to drive UI. -->
 <script src="{{ asset('js/admin/dashboard.js') }}">
 </script>

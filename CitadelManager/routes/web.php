@@ -40,6 +40,7 @@ Route::get('/', function () {
 });
 
 Route::get('/update/win{platform}/update.xml', 'UpdateController@retrieve');
+Route::middleware(['auth.basic.once','role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions'); 
 
 Route::get('/download/latest/64', function() {
   return redirect('/releases/CloudVeil-1.6.21-x64.msi');

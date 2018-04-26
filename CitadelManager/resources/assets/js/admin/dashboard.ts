@@ -13,6 +13,7 @@
 ///<reference path="records/apprecord.ts"/>
 ///<reference path="records/appgrouprecord.ts"/>
 ///<reference path="records/appuseractivationrecord.ts"/>
+///<reference path="records/versionrecord.ts"/>
 
 namespace Citadel
 {
@@ -29,7 +30,8 @@ namespace Citadel
         DeactivationRequestListView,
         AppView,
         AppGroupView,
-        AppUserActivationView
+        AppUserActivationView,
+        SystemVersionView
     }
 
     /**
@@ -59,141 +61,48 @@ namespace Citadel
          * @memberOf Dashboard
          */
         private m_tabBtnUsers: HTMLLinkElement;
-
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for group
-         * management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_tabBtnGroups: HTMLLinkElement;
-
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for filter
-         * list management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_tabBtnFilterLists: HTMLLinkElement;
-
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for user
-         * request management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_tabBtnUserRequest: HTMLLinkElement;
-
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for global
-         * applist & appgrouplist management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_tabBtnAppGroup: HTMLLinkElement;
-
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for global
-         * AppUserActivation management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_tabBtnAppUserActivation: HTMLLinkElement;
+        private m_tabBtnSystemVersion: HTMLLinkElement;
 
         /**
-         * Button to initiate the process of creating a new user.
+         * Buttons in User Management View
          * 
          * @private
          * @type {HTMLButtonElement}
          * @memberOf DashboardMenu
          */
         private m_btnCreateUser: HTMLButtonElement;
-
-        /**
-         * Button to initiate the process of deleting an existing, selected
-         * user.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
         private m_btnDeleteUser: HTMLButtonElement;
 
         /// Group management tab elements.
 
         /**
-         * Button to initiate the process of creating a new group.
+         * Buttons in Group Management View
          * 
          * @private
          * @type {HTMLButtonElement}
          * @memberOf DashboardMenu
          */
         private m_btnCreateGroup: HTMLButtonElement;
-
-        /**
-         * Button to initiate the process of deleting an existing, selected
-         * group.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
         private m_btnDeleteGroup: HTMLButtonElement;
-        /**
-         * Button to initiate the process of creating a new group.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
         private m_btnCloneGroup: HTMLButtonElement;
         
         /// Filter list/data management tab elements.
 
         /**
-         * Button used to force open the list file upload modal overlay.
+         * Buttons in Filter Management View
          * 
          * @private
          * @type {HTMLButtonElement}
          * @memberOf Dashboard
          */
         private m_btnUploadFilterLists: HTMLButtonElement;
-
-        /**
-         * Button to initiate the process of deleting an existing, selected
-         * filter list.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
         private m_btnDeleteFilterList: HTMLButtonElement;
-
-        /**
-         * Button to initiate the process of deleting all filter lists in the same
-         * namespace as a selected list.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
         private m_btnDeleteFilterListInNamespace: HTMLButtonElement;
-
-
-        /**
-         * Button to initiate the process of deleting all filter lists in the same namespace
-         * that are of the same type as the list selected.
-         */
         private m_btnDeleteFilterListTypeInNamespace: HTMLButtonElement;
 
         /**
@@ -205,15 +114,6 @@ namespace Citadel
          * @memberOf Dashboard
          */
         private m_btnDeleteUserDeactivationRequest: HTMLButtonElement;
-
-        /**
-         * Button to initiate the process of refreshing the user deactivation
-         * request table.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf Dashboard
-         */
         private m_btnRefreshUserDeactivationRequests: HTMLButtonElement;
 
         /// Global Applist & AppGroupList tab elements.
@@ -226,24 +126,7 @@ namespace Citadel
          * @memberOf DashboardMenu
          */
         private m_btnAddItem: HTMLButtonElement;
-
-        /**
-         * Button to initiate the process of removing item an existing, selected
-         * item.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
         private m_btnRemoveItem: HTMLButtonElement;
-        /**
-         * Button to initiate the process of removing item an existing, selected
-         * item.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
         private m_btnApplyToGroup: HTMLButtonElement;
         /**
          * RadioButton to indicate AppList
@@ -253,14 +136,6 @@ namespace Citadel
          * @memberOf DashboardMenu
          */
         private m_btnApp: HTMLInputElement;
-        
-        /**
-         * RadioButton to indicate AppGroupList
-         * 
-         * @private
-         * @type {HTMLInputElement}
-         * @memberOf DashboardMenu
-         */
         private m_btnAppGroup: HTMLInputElement;
 
         /**
@@ -288,8 +163,17 @@ namespace Citadel
          * 
          * @memberOf Dashboard
          */
-        private m_btnSignOut;        
-
+        private m_btnSignOut;
+        /**
+         * Buttons in User Management View
+         * 
+         * @private
+         * @type {HTMLButtonElement}
+         * @memberOf DashboardMenu
+         */
+        private m_btnCreateVersion: HTMLButtonElement;
+        private m_btnDeleteVersion: HTMLButtonElement;
+        private m_btnSystemPlatform: HTMLButtonElement;
         //
         // ──────────────────────────────────────────────────────────────────────────────── III ──────────
         //   :::::: D A T A   P R E S E N T E R   V I E W S : :  :   :    :     :        :          :
@@ -304,52 +188,13 @@ namespace Citadel
          * @memberOf Dashboard
          */
         private m_viewUserManagement: HTMLDivElement;
-
-        /**
-         * Host container where group related data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_viewGroupManagement: HTMLDivElement;
-
-        /**
-         * Host container where filter list related data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_viewFilterManagement: HTMLDivElement;
-
-        /**
-         * Host container where user request data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_viewUserDeactivationRequestManagement: HTMLDivElement;
-
-        /**
-         * Host container where AppList/AppGroupList related data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_viewAppManagement: HTMLDivElement;
         private m_viewAppGroupManagement: HTMLDivElement;
-
-        /**
-         * Host container where App User Activations related data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
         private m_viewAppUserActivationManagement: HTMLDivElement;
+        private m_viewSystemVersionManagement: HTMLDivElement;
         //
         // ────────────────────────────────────────────────────────────── IV ──────────
         //   :::::: D A T A   T A B L E S : :  :   :    :     :        :          :
@@ -357,59 +202,20 @@ namespace Citadel
         //
 
         /**
-         * User DataTable.
+         * DataTables.
          * 
          * @private
          * @type {DataTables.DataTable}
          * @memberOf Dashboard
          */
         private m_tableUsers: DataTables.DataTable;
-
-        /**
-         * Group DataTable.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
         private m_tableGroups: DataTables.DataTable;
-
-        /**
-         * Filter list DataTable.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
         private m_tableFilterLists: DataTables.DataTable;
-
-        /**
-         * Deactivation requests table.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
         private m_tableUserDeactivationRequests: DataTables.DataTable;
-
-        /**
-         *  BlackWhite DataTable.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
         public m_tableAppLists: DataTables.DataTable;
         public m_tableAppGroupLists: DataTables.DataTable;
-
-        /**
-         * App User Activations table.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
         private m_tableAppUserActivationTable: DataTables.DataTable;
+        private m_tableSystemVersions: DataTables.DataTable;
         /**
          * Represents the current view state of the application. This must not
          * be accessed directly, but rather the getters and setters should be
@@ -502,12 +308,12 @@ namespace Citadel
             this.m_viewAppManagement = document.getElementById('view_app_management') as HTMLDivElement;
             this.m_viewAppGroupManagement = document.getElementById('view_app_group_management') as HTMLDivElement;
             this.m_viewAppUserActivationManagement = document.getElementById('view_app_user_activations_management') as HTMLDivElement;
+            this.m_viewSystemVersionManagement = document.getElementById('view_system_versions_management') as HTMLDivElement;
             // Build the tables.
             this.ConstructTables();
 
             // Build dragula for editing group's assigned filters.
             this.ConstructDragula();
-
             // Set the current state to the user lists view.
             this.ViewState = DashboardViewStates.UserListView;
         }
@@ -1638,6 +1444,271 @@ namespace Citadel
                     this.ForceTableRedraw(this.m_tableAppUserActivationTable);
                 })
             });
+            let systemVersionTableConstruction = (() =>
+            {  
+                
+                let systemVersionTableColumns: DataTables.ColumnSettings[] =
+                    [
+                        {
+                            title: 'Version Id',
+                            data: 'id',
+                            visible: false,                            
+                        },
+                        {
+                            title: 'Platform',
+                            data: 'platform',
+                            className: 'content-left',
+                            visible: true,
+                            width: '200px',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {       
+                                var name = row.os_name;        
+                                var span = "";
+                                if(data ==="WIN")
+                                {
+                                    span = "<span class='mif-windows os_win'></span>";
+                                } else if(data ==="OSX") {
+                                    span = "<span class='mif-apple os_mac'></span>";
+                                } else if(data ==="LINUX") {
+                                    span = "<span class='mif-linux os_linux'></span>";
+                                } else {
+                                    span = "<span class='mif-notification os_mac'></span>";
+                                }
+                                if( row.active === 1) {
+                                    return span+ " &nbsp; <b>" + name + "</b>";
+                                } else {
+                                    return "<span class='inactive'>" + span+ " &nbsp; <b>" + name + "</b></span>";
+                                }                                
+                            })
+                        },
+                        {
+                            // This field belongs to a different table, so it
+                            // needs to be included on the server side!
+                            title: 'App Name',
+                            data: 'app_name',
+                            className: 'content-left',
+                            visible: true,
+                            width: '140px',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {       
+                                
+                                if( row.active === 1) {
+                                    return data;
+                                } else {
+                                    return "<span class='inactive'>" + data + "</span>";
+                                }                                
+                            })
+                        },
+                        {
+                            title: 'File Name',
+                            data: 'file_name',
+                            className: 'content-left',
+                            visible: true,
+                            width: '140px',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {       
+                                
+                                if( row.active === 1) {
+                                    return data;
+                                } else {
+                                    return "<span class='inactive'>" + data + "</span>";
+                                }                                
+                            })
+                        },
+                        {
+                            title: 'Version',                            
+                            data: 'version_number',
+                            className: 'content-left version_number',
+                            defaultContent: 'None',
+                            width: '100px',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {       
+                                
+                                if( row.active === 1) {
+                                    return data;
+                                } else {
+                                    return "<span class='inactive'>" + data + "</span>";
+                                }                                
+                            })
+                        },
+                        {
+                            title: 'Release Date',
+                            data: 'release_date',
+                            visible: true,
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {
+                                if( row.active === 1) {
+                                    return data;
+                                } else {
+                                    return "<span class='inactive'>" + data + "</span>";
+                                }  
+                            }),
+                            className: 'content-center version_date',
+                            width: '180px'
+                        },
+                        {
+                            title: 'Alpha',
+                            data: 'alpha',
+                            className: 'content-center sub_version_number',
+                            visible: true, 
+                            width: '100px',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {       
+                                
+                                if( row.active === 1) {
+                                    return data;
+                                } else {
+                                    return "<span class='inactive'>" + data + "</span>";
+                                }                                
+                            })
+                        },
+                        {
+                            title: 'Beta',
+                            data: 'beta',
+                            visible: true,
+                            width: '100px',
+                            className:'content-center sub_version_number',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {       
+                                
+                                if( row.active === 1) {
+                                    return data;
+                                } else {
+                                    return "<span class='inactive'>" + data + "</span>";
+                                }                                
+                            })
+                        },
+                        {
+                            title: 'Stable',
+                            data: 'stable',
+                            visible: true,
+                            width: '100px',
+                            className:'content-center sub_version_number',
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {       
+                                
+                                if( row.active === 1) {
+                                    return data;
+                                } else {
+                                    return "<span class='inactive'>" + data + "</span>";
+                                }                                
+                            })
+                        },
+                        {
+                            // This field belongs to a different database, so it
+                            // needs to be included on the server side!
+                            title: 'Changes',
+                            data: 'changes',
+                            className: 'content-left',
+                            visible: true,
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {       
+                                
+                                if( row.active === 1) {
+                                    return data;
+                                } else {
+                                    return "<span class='inactive'>" + data + "</span>";
+                                }                                
+                            })
+                        },
+                        {
+                            title: 'Action',
+                            data: 'active',
+                            visible: true,
+                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                            {
+                                
+                                if( data === 1) {
+                                    return "<label class='checked-alone'></label>";
+                                } else {
+                                    return "<label class='switch-original'><input type='checkbox' id='versions_"+row.id+"' /><span class='check'></span></label>";
+                                }
+                            }),
+                            className: 'content-left padding-left-10',
+                            width: '60px'
+                        }
+                    ];
+
+                // Set our table's loading AJAX settings to call the admin
+                // control API with the appropriate arguments.
+                let systemVersionTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+                    {
+                        url: "api/admin/versions",
+                        dataSrc: function ( json ) {
+                            return json.data;
+                        },                        
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        method: "GET",
+                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                        {
+                            if(jqXHR.status > 399 && jqXHR.status < 500)
+                            {
+                                // Almost certainly auth related error. Redirect to login
+                                // by signalling for logout.
+                                ////window.location.href = 'login.php?logout';
+                            }
+                        })
+                    };
+
+                // Define user table settings, ENSURE TO INCLUDE AJAX SETTINGS!
+               
+                let systemVersionsTableSettings: DataTables.Settings = {
+                    scrollY: ''+ (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: systemVersionTableColumns,
+                    ajax: systemVersionTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void =>
+                    {
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: (( settings ): void =>
+                    {
+                        let that = this;
+                        $("#system_versions_table").off("change", "input[type='checkbox']");
+                        $("#system_versions_table").on("change", "input[type='checkbox']", function () {
+                            
+                            if(!confirm("Do you want to set this version as default version?"))
+                            {                                
+                                this.checked = false;
+                                return;
+                            }
+                                
+                            let id_str = this.id;
+                            let checkAjaxSettings: JQueryAjaxSettings = {
+                                method:"POST",
+                                timeout: 60000,
+                                url: "api/admin/versions/update_status",
+                                data: {id: id_str},
+                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                    that.ForceTableRedraw(that.m_tableSystemVersions);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                        // Almost certainly auth related error. Redirect to login
+                                        // by signalling for logout.
+                                        //window.location.href = 'login.php?logout';
+                                    } else {
+                                        
+                                    }
+                                }
+                            }
+                
+                            $.post(checkAjaxSettings);
+                        }); 
+                    })
+                };
+                this.m_tableSystemVersions = $('#system_versions_table').DataTable(systemVersionsTableSettings);
+            });
 
             userTableConstruction();
             groupTableConstruction();
@@ -1646,14 +1717,15 @@ namespace Citadel
             appListTableConstruction();
             appGroupListTableConstruction();
             appUserActivationTableConstruction();
+            systemVersionTableConstruction();
 
         }
 
         private ConstructNavigation(): void
         {
             // Get references to the top level menu buttons.            
-            this.m_btnSignOut = document.getElementById('btn_sign_out') as HTMLLinkElement;
-
+            this.m_btnSignOut = document.getElementById('btn_sign_out') as HTMLLIElement;
+            
             // Get reference to the main menu tab buttons.
             this.m_tabBtnUsers = document.querySelector('a[href="#tab_users"]') as HTMLLinkElement;
             this.m_tabBtnGroups = document.querySelector('a[href="#tab_groups"]') as HTMLLinkElement;
@@ -1661,6 +1733,7 @@ namespace Citadel
             this.m_tabBtnUserRequest = document.querySelector('a[href="#tab_user_deactivation_requests"]') as HTMLLinkElement;
             this.m_tabBtnAppGroup = document.querySelector('a[href="#tab_app_groups"]') as HTMLLinkElement;
             this.m_tabBtnAppUserActivation = document.querySelector('a[href="#tab_app_user_activations"]') as HTMLLinkElement;
+            this.m_tabBtnSystemVersion = document.querySelector('a[href="#tab_system_versions"]') as HTMLLinkElement;
             // Init user management button references.
             this.m_btnCreateUser = document.getElementById('btn_user_add') as HTMLButtonElement;
             this.m_btnDeleteUser = document.getElementById('btn_user_delete') as HTMLButtonElement;
@@ -1705,6 +1778,11 @@ namespace Citadel
             this.m_btnBlockAppUserActivation = document.getElementById('btn_block_activations') as HTMLButtonElement;
             this.m_btnDeleteAppUserActivation.disabled = true;
             this.m_btnBlockAppUserActivation.disabled = true;
+
+            this.m_btnCreateVersion = document.getElementById('btn_version_add') as HTMLButtonElement;
+            this.m_btnDeleteVersion = document.getElementById('btn_version_delete') as HTMLButtonElement;
+            this.m_btnDeleteVersion.disabled = true;
+            this.m_btnSystemPlatform = document.getElementById('btn_sysem_platform') as HTMLButtonElement;
             // Get handlers setup for all input.
             this.InitButtonHandlers();
         }
@@ -1780,7 +1858,21 @@ namespace Citadel
             {
                 this.ForceTableRedraw(this.m_tableUserDeactivationRequests);
             });
+            
+            this.m_btnCreateVersion.onclick = ((e: MouseEvent) =>
+            {
+                this.OnClickAddVersion(e);
+            });
 
+            this.m_btnDeleteVersion.onclick = ((e: MouseEvent) =>
+            {
+                this.OnClickDeleteVersion(e);
+            });
+            
+            this.m_btnSystemPlatform.onclick = ((e: MouseEvent) =>
+            {
+                this.OnClickPlatform(e);
+            });
             // In our main menu tab click handlers, all we need to do is
             // synchronize the view state, so we just call the setter from
             // within.
@@ -1803,6 +1895,14 @@ namespace Citadel
             {
                 this.ViewState = DashboardViewStates.DeactivationRequestListView;
             });
+
+            
+            this.m_tabBtnSystemVersion.onclick = ((e: MouseEvent) =>
+            {
+                this.ViewState = DashboardViewStates.SystemVersionView;
+            });
+
+
             this.m_tabBtnAppGroup.onclick = ((e: MouseEvent) =>
             {
                 if(this.m_btnApp.checked) {
@@ -1883,20 +1983,7 @@ namespace Citadel
             {
                 this.OnTableRowDoubleClicked(e, data);
             });
-            /*
-            let checkBoxes = $(tableRow).find("input[type=checkbox]");
-            let that = this;
-            if(checkBoxes.length > 0) {
-                checkBoxes.each(function( index ) {
-                    $(this).trigger("change");
-                    $(this).change =  ((element: MouseEvent) =>
-                    {
-                        console.log($(this).attr("id"));
-                        that.onCheckBoxClicked(element);
-                    });
-                });
-            }
-            */
+           
         }
 
         /**
@@ -1979,8 +2066,12 @@ namespace Citadel
                         this.m_btnDeleteAppUserActivation.disabled = !itemIsActuallySelected;
                         this.m_btnBlockAppUserActivation.disabled = !itemIsActuallySelected;
                     }
-                    break;                
-                
+                    break;
+                case 'system_versions_table':
+                    {
+                        this.m_btnDeleteVersion.disabled = !itemIsActuallySelected;
+                    }
+                    break;
             }   
         }
 
@@ -2123,28 +2214,32 @@ namespace Citadel
                         // can be changed to any available group.
                         appGroupRecord.StartEditing(data);
                     }
-                    break;      
+                    break;
                 case 'app_user_activations_table':
                     {
                         let appUserActivationRecord = new AppUserActivationRecord();
                         
                         appUserActivationRecord.ActionCompleteCallback = ((action: string): void =>
                         {
-
                             appUserActivationRecord.StopEditing();
-
-                            // Whenever we do any action on a user record
-                            // successfully, we want to simply redraw the user
-                            // table to get the updated data showing.
-                            
                             this.ForceTableRedraw(this.m_tableAppUserActivationTable);
                         });
-
-                        // We supply everything in the groups table so that the user's group
-                        // can be changed to any available group.
                         appUserActivationRecord.StartEditing(data);
                     }
-                    break;      
+                    break;
+                    
+                case 'system_versions_table':
+                    {
+                        let versionRecord = new VersionRecord();
+                        
+                        versionRecord.ActionCompleteCallback = ((action: string): void =>
+                        {
+                            versionRecord.StopEditing();
+                            this.ForceTableRedraw(this.m_tableSystemVersions);
+                        });
+                        versionRecord.StartEditing(data);
+                    }
+                    break;  
             }
         }
 
@@ -2219,7 +2314,6 @@ namespace Citadel
                 )
             }
         }
-
         /**
          * Called whenever the user clicks the user creation button. Internally
          * we'll validate that the current state is correct for this action.
@@ -2253,6 +2347,51 @@ namespace Citadel
             });
         }
 
+        private OnClickPlatform(e: MouseEvent): any {
+            let platformOverlay = new PlatformOverlay();
+            platformOverlay.StartEditing();
+        }
+
+        private OnClickAddVersion(e: MouseEvent): any {
+            let appVersion = new VersionRecord();
+            appVersion.ActionCompleteCallback = ((action: string): void =>
+            {
+                appVersion.StopEditing();
+                this.ForceTableRedraw(this.m_tableSystemVersions);
+            });
+            
+            appVersion.StartEditing();
+        }
+
+        private OnClickDeleteVersion(e: MouseEvent): any {
+            let selectedItem = this.m_tableSystemVersions.row('.selected').data();
+
+            if (selectedItem != null)
+            {
+                var versionObject: VersionRecord;
+
+                try 
+                {
+                    versionObject = BaseRecord.CreateFromObject(VersionRecord, selectedItem);
+
+                    // We want to update the table after a delete.
+                    versionObject.ActionCompleteCallback = ((action: string): void =>
+                    {
+                        this.ForceTableRedraw(this.m_tableSystemVersions);
+                    });
+
+                    if (confirm("Really delete user? THIS CANNOT BE UNDONE!!!"))
+                    {
+                        versionObject.Delete();
+                    }
+                }
+                catch (e)
+                {
+                    console.log('Failed to load user record from table selection.');
+                    console.log(e);
+                }
+            }
+        }
         /**
          * Called whenever the user clicks the user deletion button. Internally
          * we'll validate that the current state is correct for this action, and
@@ -2745,6 +2884,7 @@ namespace Citadel
             this.m_viewAppManagement.style.display = "none";
             this.m_viewAppGroupManagement.style.display = "none";
             this.m_viewAppUserActivationManagement.style.display = "none";
+            this.m_viewSystemVersionManagement.style.display = "none";
           
             switch (value)
             {
@@ -2793,6 +2933,12 @@ namespace Citadel
                     {
                         this.ForceTableRedraw(this.m_tableAppUserActivationTable);
                         this.m_viewAppUserActivationManagement.style.display = "block";
+                    }
+                    break;
+                case DashboardViewStates.SystemVersionView:
+                    {
+                        this.ForceTableRedraw(this.m_tableSystemVersions);
+                        this.m_viewSystemVersionManagement.style.display = "block";
                     }
                     break;
             }

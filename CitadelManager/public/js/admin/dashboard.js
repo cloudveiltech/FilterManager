@@ -9,6 +9,7 @@ var Citadel;
         DashboardViewStates[DashboardViewStates["AppView"] = 4] = "AppView";
         DashboardViewStates[DashboardViewStates["AppGroupView"] = 5] = "AppGroupView";
         DashboardViewStates[DashboardViewStates["AppUserActivationView"] = 6] = "AppUserActivationView";
+        DashboardViewStates[DashboardViewStates["SystemVersionView"] = 7] = "SystemVersionView";
     })(DashboardViewStates || (DashboardViewStates = {}));
     var Dashboard = (function () {
         function Dashboard() {
@@ -52,6 +53,7 @@ var Citadel;
             this.m_viewAppManagement = document.getElementById('view_app_management');
             this.m_viewAppGroupManagement = document.getElementById('view_app_group_management');
             this.m_viewAppUserActivationManagement = document.getElementById('view_app_user_activations_management');
+            this.m_viewSystemVersionManagement = document.getElementById('view_system_versions_management');
             this.ConstructTables();
             this.ConstructDragula();
             this.ViewState = DashboardViewStates.UserListView;
@@ -927,6 +929,237 @@ var Citadel;
                     _this.ForceTableRedraw(_this.m_tableAppUserActivationTable);
                 });
             });
+            var systemVersionTableConstruction = (function () {
+                var systemVersionTableColumns = [
+                    {
+                        title: 'Version Id',
+                        data: 'id',
+                        visible: false,
+                    },
+                    {
+                        title: 'Platform',
+                        data: 'platform',
+                        className: 'content-left',
+                        visible: true,
+                        width: '200px',
+                        render: (function (data, t, row, meta) {
+                            var name = row.os_name;
+                            var span = "";
+                            if (data === "WIN") {
+                                span = "<span class='mif-windows os_win'></span>";
+                            }
+                            else if (data === "OSX") {
+                                span = "<span class='mif-apple os_mac'></span>";
+                            }
+                            else if (data === "LINUX") {
+                                span = "<span class='mif-linux os_linux'></span>";
+                            }
+                            else {
+                                span = "<span class='mif-notification os_mac'></span>";
+                            }
+                            if (row.active === 1) {
+                                return span + " &nbsp; <b>" + name + "</b>";
+                            }
+                            else {
+                                return "<span class='inactive'>" + span + " &nbsp; <b>" + name + "</b></span>";
+                            }
+                        })
+                    },
+                    {
+                        title: 'App Name',
+                        data: 'app_name',
+                        className: 'content-left',
+                        visible: true,
+                        width: '140px',
+                        render: (function (data, t, row, meta) {
+                            if (row.active === 1) {
+                                return data;
+                            }
+                            else {
+                                return "<span class='inactive'>" + data + "</span>";
+                            }
+                        })
+                    },
+                    {
+                        title: 'File Name',
+                        data: 'file_name',
+                        className: 'content-left',
+                        visible: true,
+                        width: '140px',
+                        render: (function (data, t, row, meta) {
+                            if (row.active === 1) {
+                                return data;
+                            }
+                            else {
+                                return "<span class='inactive'>" + data + "</span>";
+                            }
+                        })
+                    },
+                    {
+                        title: 'Version',
+                        data: 'version_number',
+                        className: 'content-left version_number',
+                        defaultContent: 'None',
+                        width: '100px',
+                        render: (function (data, t, row, meta) {
+                            if (row.active === 1) {
+                                return data;
+                            }
+                            else {
+                                return "<span class='inactive'>" + data + "</span>";
+                            }
+                        })
+                    },
+                    {
+                        title: 'Release Date',
+                        data: 'release_date',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (row.active === 1) {
+                                return data;
+                            }
+                            else {
+                                return "<span class='inactive'>" + data + "</span>";
+                            }
+                        }),
+                        className: 'content-center version_date',
+                        width: '180px'
+                    },
+                    {
+                        title: 'Alpha',
+                        data: 'alpha',
+                        className: 'content-center sub_version_number',
+                        visible: true,
+                        width: '100px',
+                        render: (function (data, t, row, meta) {
+                            if (row.active === 1) {
+                                return data;
+                            }
+                            else {
+                                return "<span class='inactive'>" + data + "</span>";
+                            }
+                        })
+                    },
+                    {
+                        title: 'Beta',
+                        data: 'beta',
+                        visible: true,
+                        width: '100px',
+                        className: 'content-center sub_version_number',
+                        render: (function (data, t, row, meta) {
+                            if (row.active === 1) {
+                                return data;
+                            }
+                            else {
+                                return "<span class='inactive'>" + data + "</span>";
+                            }
+                        })
+                    },
+                    {
+                        title: 'Stable',
+                        data: 'stable',
+                        visible: true,
+                        width: '100px',
+                        className: 'content-center sub_version_number',
+                        render: (function (data, t, row, meta) {
+                            if (row.active === 1) {
+                                return data;
+                            }
+                            else {
+                                return "<span class='inactive'>" + data + "</span>";
+                            }
+                        })
+                    },
+                    {
+                        title: 'Changes',
+                        data: 'changes',
+                        className: 'content-left',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (row.active === 1) {
+                                return data;
+                            }
+                            else {
+                                return "<span class='inactive'>" + data + "</span>";
+                            }
+                        })
+                    },
+                    {
+                        title: 'Action',
+                        data: 'active',
+                        visible: true,
+                        render: (function (data, t, row, meta) {
+                            if (data === 1) {
+                                return "<label class='checked-alone'></label>";
+                            }
+                            else {
+                                return "<label class='switch-original'><input type='checkbox' id='versions_" + row.id + "' /><span class='check'></span></label>";
+                            }
+                        }),
+                        className: 'content-left padding-left-10',
+                        width: '60px'
+                    }
+                ];
+                var systemVersionTablesLoadFromAjaxSettings = {
+                    url: "api/admin/versions",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: (function (jqXHR, textStatus, errorThrown) {
+                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                        }
+                    })
+                };
+                var systemVersionsTableSettings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: systemVersionTableColumns,
+                    ajax: systemVersionTablesLoadFromAjaxSettings,
+                    rowCallback: (function (row, data) {
+                        _this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: (function (settings) {
+                        var that = _this;
+                        $("#system_versions_table").off("change", "input[type='checkbox']");
+                        $("#system_versions_table").on("change", "input[type='checkbox']", function () {
+                            if (!confirm("Do you want to set this version as default version?")) {
+                                this.checked = false;
+                                return;
+                            }
+                            var id_str = this.id;
+                            var checkAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: "api/admin/versions/update_status",
+                                data: { id: id_str },
+                                success: function (data, textStatus, jqXHR) {
+                                    that.ForceTableRedraw(that.m_tableSystemVersions);
+                                    return false;
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    console.log(errorThrown);
+                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                    }
+                                    else {
+                                    }
+                                }
+                            };
+                            $.post(checkAjaxSettings);
+                        });
+                    })
+                };
+                _this.m_tableSystemVersions = $('#system_versions_table').DataTable(systemVersionsTableSettings);
+            });
             userTableConstruction();
             groupTableConstruction();
             filterTableConstruction();
@@ -934,6 +1167,7 @@ var Citadel;
             appListTableConstruction();
             appGroupListTableConstruction();
             appUserActivationTableConstruction();
+            systemVersionTableConstruction();
         };
         Dashboard.prototype.ConstructNavigation = function () {
             this.m_btnSignOut = document.getElementById('btn_sign_out');
@@ -943,6 +1177,7 @@ var Citadel;
             this.m_tabBtnUserRequest = document.querySelector('a[href="#tab_user_deactivation_requests"]');
             this.m_tabBtnAppGroup = document.querySelector('a[href="#tab_app_groups"]');
             this.m_tabBtnAppUserActivation = document.querySelector('a[href="#tab_app_user_activations"]');
+            this.m_tabBtnSystemVersion = document.querySelector('a[href="#tab_system_versions"]');
             this.m_btnCreateUser = document.getElementById('btn_user_add');
             this.m_btnDeleteUser = document.getElementById('btn_user_delete');
             this.m_btnDeleteUser.disabled = true;
@@ -971,6 +1206,10 @@ var Citadel;
             this.m_btnBlockAppUserActivation = document.getElementById('btn_block_activations');
             this.m_btnDeleteAppUserActivation.disabled = true;
             this.m_btnBlockAppUserActivation.disabled = true;
+            this.m_btnCreateVersion = document.getElementById('btn_version_add');
+            this.m_btnDeleteVersion = document.getElementById('btn_version_delete');
+            this.m_btnDeleteVersion.disabled = true;
+            this.m_btnSystemPlatform = document.getElementById('btn_sysem_platform');
             this.InitButtonHandlers();
         };
         Dashboard.prototype.InitButtonHandlers = function () {
@@ -1011,6 +1250,15 @@ var Citadel;
             this.m_btnRefreshUserDeactivationRequests.onclick = (function (e) {
                 _this.ForceTableRedraw(_this.m_tableUserDeactivationRequests);
             });
+            this.m_btnCreateVersion.onclick = (function (e) {
+                _this.OnClickAddVersion(e);
+            });
+            this.m_btnDeleteVersion.onclick = (function (e) {
+                _this.OnClickDeleteVersion(e);
+            });
+            this.m_btnSystemPlatform.onclick = (function (e) {
+                _this.OnClickPlatform(e);
+            });
             this.m_tabBtnUsers.onclick = (function (e) {
                 _this.ViewState = DashboardViewStates.UserListView;
             });
@@ -1022,6 +1270,9 @@ var Citadel;
             });
             this.m_tabBtnUserRequest.onclick = (function (e) {
                 _this.ViewState = DashboardViewStates.DeactivationRequestListView;
+            });
+            this.m_tabBtnSystemVersion.onclick = (function (e) {
+                _this.ViewState = DashboardViewStates.SystemVersionView;
             });
             this.m_tabBtnAppGroup.onclick = (function (e) {
                 if (_this.m_btnApp.checked) {
@@ -1124,6 +1375,11 @@ var Citadel;
                         this.m_btnBlockAppUserActivation.disabled = !itemIsActuallySelected;
                     }
                     break;
+                case 'system_versions_table':
+                    {
+                        this.m_btnDeleteVersion.disabled = !itemIsActuallySelected;
+                    }
+                    break;
             }
         };
         Dashboard.prototype.OnTableRowDoubleClicked = function (e, data) {
@@ -1198,6 +1454,16 @@ var Citadel;
                         appUserActivationRecord_1.StartEditing(data);
                     }
                     break;
+                case 'system_versions_table':
+                    {
+                        var versionRecord_1 = new Citadel.VersionRecord();
+                        versionRecord_1.ActionCompleteCallback = (function (action) {
+                            versionRecord_1.StopEditing();
+                            _this.ForceTableRedraw(_this.m_tableSystemVersions);
+                        });
+                        versionRecord_1.StartEditing(data);
+                    }
+                    break;
             }
         };
         Dashboard.prototype.GetSelectedRowForTable = function (table) {
@@ -1229,6 +1495,39 @@ var Citadel;
                 newUser.StopEditing();
                 _this.ForceTableRedraw(_this.m_tableUsers);
             });
+        };
+        Dashboard.prototype.OnClickPlatform = function (e) {
+            var platformOverlay = new Citadel.PlatformOverlay();
+            platformOverlay.StartEditing();
+        };
+        Dashboard.prototype.OnClickAddVersion = function (e) {
+            var _this = this;
+            var appVersion = new Citadel.VersionRecord();
+            appVersion.ActionCompleteCallback = (function (action) {
+                appVersion.StopEditing();
+                _this.ForceTableRedraw(_this.m_tableSystemVersions);
+            });
+            appVersion.StartEditing();
+        };
+        Dashboard.prototype.OnClickDeleteVersion = function (e) {
+            var _this = this;
+            var selectedItem = this.m_tableSystemVersions.row('.selected').data();
+            if (selectedItem != null) {
+                var versionObject;
+                try {
+                    versionObject = Citadel.BaseRecord.CreateFromObject(Citadel.VersionRecord, selectedItem);
+                    versionObject.ActionCompleteCallback = (function (action) {
+                        _this.ForceTableRedraw(_this.m_tableSystemVersions);
+                    });
+                    if (confirm("Really delete user? THIS CANNOT BE UNDONE!!!")) {
+                        versionObject.Delete();
+                    }
+                }
+                catch (e) {
+                    console.log('Failed to load user record from table selection.');
+                    console.log(e);
+                }
+            }
         };
         Dashboard.prototype.OnDeleteUserClicked = function (e) {
             var _this = this;
@@ -1300,8 +1599,7 @@ var Citadel;
                 try {
                     filterListObject = Citadel.BaseRecord.CreateFromObject(Citadel.FilterListRecord, selectedItem);
                     filterListObject.ActionCompleteCallback = (function (action) {
-                        _this.ForceTableRedraw(_this.m_tableUsers);
-                        _this.ForceTableRedraw(_this.m_tableGroups);
+                        _this.loadAllFilters();
                         _this.ForceTableRedraw(_this.m_tableFilterLists);
                     });
                     if (confirm("Really delete filter list? THIS CANNOT BE UNDONE!!!")) {
@@ -1321,8 +1619,7 @@ var Citadel;
                 try {
                     filterListObject = Citadel.BaseRecord.CreateFromObject(Citadel.FilterListRecord, selectedItem);
                     filterListObject.ActionCompleteCallback = (function (action) {
-                        _this.ForceTableRedraw(_this.m_tableUsers);
-                        _this.ForceTableRedraw(_this.m_tableGroups);
+                        _this.loadAllFilters();
                         _this.ForceTableRedraw(_this.m_tableFilterLists);
                     });
                     var confirmMsg = constraintToType == true ? "Really delete all filters with the same type in this lists' namespace? THIS CANNOT BE UNDONE!!!" : "Really delete all filters in this lists' namespace? THIS CANNOT BE UNDONE!!!";
@@ -1475,6 +1772,7 @@ var Citadel;
                 this.m_viewAppManagement.style.display = "none";
                 this.m_viewAppGroupManagement.style.display = "none";
                 this.m_viewAppUserActivationManagement.style.display = "none";
+                this.m_viewSystemVersionManagement.style.display = "none";
                 switch (value) {
                     case DashboardViewStates.UserListView:
                         {
@@ -1516,6 +1814,12 @@ var Citadel;
                         {
                             this.ForceTableRedraw(this.m_tableAppUserActivationTable);
                             this.m_viewAppUserActivationManagement.style.display = "block";
+                        }
+                        break;
+                    case DashboardViewStates.SystemVersionView:
+                        {
+                            this.ForceTableRedraw(this.m_tableSystemVersions);
+                            this.m_viewSystemVersionManagement.style.display = "block";
                         }
                         break;
                 }
