@@ -21,6 +21,8 @@
     <link href="{{ asset('css/metro-responsive.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dragula.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/citadel-main.css') }}" rel="stylesheet">
+    
+    <link href="{{ asset('plugins/datetimepicker-2.2.4/jquery.datetimepicker.css') }}" rel="stylesheet">
     <!-- re-enable these when we manage to make datatables.responsive work properly.. -->
     <!-- <link href="{{ asset('css/datatables.min.css') }}" rel="stylesheet"> -->
     <!-- <link href="{{ asset('css/responsive.datatables.min.css') }}" rel="stylesheet"> -->
@@ -34,6 +36,8 @@
 
     <script src="{{ asset('js/metro.min.js') }}"></script>
     <script src="{{ asset('js/datatables.min.js') }}"></script>
+
+    <script src="{{ asset('plugins/datetimepicker-2.2.4/jquery.datetimepicker.js') }}"></script>
     
     <script>
         window.Laravel = {!! json_encode([
@@ -58,6 +62,10 @@
                     $(this).addClass('active');
                 }
             });
+            $('#system_version_input_rdate').datetimepicker({
+                mask:'9999/19/39 29:59'
+            });
+
         })
     </script>
 </head>

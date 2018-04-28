@@ -20,6 +20,8 @@ use App\AppUserActivation;
 use Laravel\Passport\Passport;
 use Log;
 use Carbon\Carbon;
+use App\SystemVersion;
+use App\SystemPlatform;
 
 class UpdateController extends Controller {
 
@@ -61,5 +63,47 @@ class UpdateController extends Controller {
         )
         ->header('Content-Type', 'text/xml');
     }
-
+    /**
+     * Returns the version with JSON.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function currentVersions(Request $request, $platform) {
+      $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
+      Log::debug("---platforms----");
+      Log::debug($platforms);
+      if($platforms->count() > 0) {
+        $os = $platforms->first();
+        $platform_id = $os->id;
+        $versions = SystemVersion::where('platform_id','=', $platform_id)->where('active','=',1)->get();
+        Log::debug("---Versions----");
+        Log::debug($versions);
+        if($versions->count() > 0) {
+          $version = $versions->first();
+          return response()->json([
+            "current_version" => $version->version_number,
+            "platform"=>$platform,
+            "release_date" => $version->release_date,
+            "error"=>"",
+            "success"=>true
+          ]);
+        } else {
+          return response()->json([
+            "current_version" => "unavailable",
+            "platform"=>$platform,
+            "release_date" => "---",
+            "error"=>"Platform[".$platform."] doesn't exist.",
+            "success"=>false
+          ]);
+        }
+      } else {
+        return response()->json([
+          "current_version" => "unavailable",
+          "platform"=>$platform,
+          "release_date" => "---",
+          "error"=>"Platform[".$platform."] doesn't exist.",
+          "success"=>false
+        ]);
+      }
+    }
 }

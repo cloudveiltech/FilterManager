@@ -180,7 +180,7 @@ label.checked-alone {
 }
 label.checked-alone:after {
     position: absolute;
-    left: -1px;
+    right: 1px;
     top: -1px;
     display: block;
     content: "";
@@ -350,6 +350,22 @@ Main admin page.
 
 }
 #view_app_management{width: 100%;  padding: 10px;}
+#view_system_versions_management{width: 100%; padding: 10px;}
+.version_number{
+    font-size: 14px;
+    font-weight: bold;
+    color: blue;
+}
+.selected .version_number{
+    color: #e1e1e1 !important;
+}
+.sub_version_number{
+    font-size: 14px;
+    font-weight: bold;
+}
+.version_date{
+    font-size:14px;    
+}
 .dataTable{
     margin: 0 !important;
 }
@@ -386,7 +402,7 @@ Main admin page.
 /*
 Upload editor.
 */
-#overlay_deactivation_request_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#overlay_deactivation_request_editor{width: 100%; height: 100%; z-index:1101; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
 #div_f213_0{width: 700px; height: 500px; left:50%; top:50%; margin-left: -350px; margin-top: -300px; position:absolute; color: white;}
 #deactivation_request_editing_title{text-align: center;}
 #div_f213_1{padding: 20px;}
@@ -396,7 +412,7 @@ Upload editor.
 /*
 Group editor.
 */
-#overlay_group_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; overflow-y: scroll;}
+#overlay_group_editor{width: 100%; height: 100%; z-index:1102; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; overflow-y: scroll;}
 #div_ea30_0{width: 80%; height: 100%; left:50%; top:20px; margin-left: -40%; position:absolute; color: white;}
 #group_editing_title{text-align: center;}
 .tabs li a {color: white !important;}
@@ -541,7 +557,7 @@ td.ip_address {
 /*
 List uploader.
 */
-#overlay_list_upload{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#overlay_list_upload{width: 100%; height: 100%; z-index:1103; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
 #div_0717_0{width: 700px; height: 500px; left:50%; top:50%; margin-left: -350px; margin-top: -300px; position:absolute; color: white;}
 #h1_0717_0{text-align: center;}
 #div_0717_1{float: right; margin-right: 50px;}
@@ -578,7 +594,7 @@ User editor.
 .no-bottom {
     margin-bottom: 0px !important;
 }
-#overlay_user_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; overflow: auto}
+#overlay_user_editor{width: 100%; height: 100%; z-index:1104; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; overflow: auto}
 #div_08c2_0{width: 90%; height: 500px; left:5%; top:40%; margin-left: 0px; margin-top: -250px; position:absolute; color: white;}
 #user_editing_title{text-align: center;}
 #div_08c2_1{padding: 20px;}
@@ -590,7 +606,7 @@ User editor.
 /*
 Whitelist editor.
 */
-#overlay_application_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; overflow: auto}
+#overlay_application_editor{width: 100%; height: 100%; z-index:1105; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; overflow: auto}
 #div_application_0{width: 700px; height: 500px; left:50%; top:50%; margin-left: -350px; margin-top: -300px; position:absolute; color: white;}
 #application_editing_title{text-align: center;}
 #div_09c2_1{padding: 20px;}
@@ -628,10 +644,57 @@ Whitelist editor.
     margin-right: 20px;
     top: 0 !important;
 }
+
+.drop-menu-mine{
+    border: 1px solid #ffffff !important;
+}
+.unstyled-list{
+    margin: 0;
+}
+
+.unstyled-list li{
+    height: 40px;
+    line-height: 40px;
+    padding-left: 10px;
+}
+.unstyled-list li:hover{
+    color: #333;
+    text-shadow: 1px 1px 1px #888888;
+}
+.os_win {
+    color: #0cb3ee;
+    vertical-align: 0px !important;
+}
+.os_linux{
+    color: #000;
+    vertical-align: 0px !important;
+}
+.os_mac{
+    color: #1e1e1e;
+    vertical-align: 0px !important;
+}
+.selected .os_mac {
+    color: #d1d1d1 !important;
+}
+.selected .os_linux {
+    color: #d1d1d1 !important;
+}
+.selected .os_win {
+    color: #d1d1d1 !important;
+}
+.inactive{
+    font-style: italic;
+    opacity: 0.4;
+}
+.set_default_version{
+    cursor: pointer;
+    opacity: 0.4;
+    font-size: 14px;
+}
 /*
 appgroup editor.
 */
-#overlay_appgroup_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#overlay_appgroup_editor{width: 100%; height: 100%; z-index:1105; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
 #div_appgroup_0{width: 700px; height: 500px; left:50%; top:50%; margin-left: -350px; margin-top: -300px; position:absolute; color: white;}
 #appgroup_editing_title{text-align: center;}
 #div_10c2_1{padding: 20px;}
@@ -644,7 +707,7 @@ appgroup editor.
 /*
 appgroup editor.
 */
-#overlay_activation_editor{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#overlay_activation_editor{width: 100%; height: 100%; z-index:1106; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
 #div_activation_0{width: 700px; height: 500px; left:50%; top:50%; margin-left: -350px; margin-top: -250px; position:absolute; color: white;}
 #activation_editing_title{text-align: center;}
 #overlay_activation_editor input:disabled{ background:darkgray ;}
@@ -658,7 +721,7 @@ Application & Application Group
 /*
 Apply to group Overlay.
 */
-#overlay_apply_togroup{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#overlay_apply_togroup{width: 100%; height: 100%; z-index:1107; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
 #div_apply_togroup_0{width: 90%; height: 100%; left:50%; top:50%; margin-left: -45%; margin-top: -250px; position:absolute; color: white;}
 #apply_togroup_title{text-align: center;}
 #apply_togroup_div_c1{margin-right: 20px;margin-left:20px}
@@ -670,7 +733,7 @@ Apply to group Overlay.
 /*
 Apply App to App group Overlay.
 */
-#overlay_apply_app_to_app_group{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#overlay_apply_app_to_app_group{width: 100%; height: 100%; z-index:1108; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
 #div_apply_app_to_app_group_0{width: 700px; height: 100%; left:50%; top:50%; margin-left: -350px; margin-top: -280px; position:absolute; color: white;}
 #apply_app_to_app_group_title{text-align: center;}
 #apply_app_to_app_group_div_c1{margin-right: 20px;margin-left:20px}
@@ -683,7 +746,7 @@ Apply App to App group Overlay.
 /*
 Apply Appgroup to Usergroup Overlay.
 */
-#overlay_apply_app_group_to_user_group{width: 100%; height: 100%; z-index:999999; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#overlay_apply_app_group_to_user_group{width: 100%; height: 100%; z-index:1109; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
 #div_apply_app_group_to_user_group_0{width: 700px; height: 100%; left:50%; top:50%; margin-left: -350px; margin-top: -280px; position:absolute; color: white;}
 #apply_app_group_to_user_group_title{text-align: center;}
 #apply_app_group_to_user_group_div_c1{margin-right: 20px;margin-left:20px}
@@ -692,12 +755,165 @@ Apply Appgroup to Usergroup Overlay.
 #apply_app_group_to_user_group_actions {padding: 20px;}
 #apply_app_group_to_user_group_actions button{width:100%;}
 #apply_app_group_to_user_group_white_appgroup{width:100%; height:240px;}
+
+/*
+Apply Appgroup to Usergroup Overlay.
+*/
+.padding-left-100 {
+    padding-left:50px;
+}
+.padding-left-10 {
+    padding-left:10px;
+}
+.margin-20{
+    margin-top:20px;
+    margin-bottom: 20px;
+}
+.margin-left-50 {
+    margin-left:50px;
+}
+.sub-title{
+    font-size: 24px;
+    color: #aaa;
+}
+.version-div{
+    height: 300px;
+    border: 1px dotted #aaa;
+    margin-right: 30px;
+    margin-top: 10px;
+    overflow: auto;
+    position: relative;
+}
+.spin_loading {
+    vertical-align: -3px;
+}
+.version-last-div{
+    height: 300px;
+    border: 1px dotted #aaa;
+}
+#overlay_system_version{width: 100%; height: 100%; z-index:1100; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#overlay_system_0101{ width: 80%; height: 80%; left: 10%; top: 10%; position:absolute; color: white;}
+#overlay_system_title{text-align: center;}
+
+.version-item {
+    height: 40px;
+    line-height: 40px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-bottom: 1px dotted #999;
+    background-color:#2a2a2a;
+}
+.version-item.active {
+    background-color:#fff;
+}
+.version-item .active-version{
+    padding-left: 10px;
+    color: #00f;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.version-item .active-version-time{
+    padding-right: 25px;
+    color: #00f;
+    font-size: 12px;
+    font-weight: normal;
+    float:right;
+}
+.version-item .item-actions {
+    float:right;
+}
+.version-item .version{
+    padding-left: 24px;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: normal;
+}
+.version-item .version-time{
+    padding-right: 25px;
+    color: #ccc;
+    font-size: 12px;
+    font-weight: normal;
+    float:right;
+}
+.version-item .item-actions a{
+    margin-left: 5px;
+    margin-right: 5px;
+    cursor:pointer;
+}
+.italic-text{
+    font-style: italic;
+}
+.no-versions{
+    color: #4d4d4d !important;
+    
+}
+.margin-l-r-5{
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.v_segment{
+    margin-left: 30px;
+}
+.v_segment .v_label{
+    color: rgb(160, 160, 160);
+    font-size: 12px;
+}
+.v_segment .v_value{
+    color: rgb(218, 218, 218);
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+#overlay_platform{width: 100%; height: 100%; z-index:1100; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none;}
+#overlay_platform_0101{ width: 80%; height: 80%; left: 10%; top: 10%; position:absolute; color: white;}
+#platform_title{text-align: center;}
+.platform-item {
+    height: 40px;
+    line-height: 40px;
+    padding-left: 20px;
+    padding-right: 10px;
+    border-bottom: 1px dotted #999;
+    background-color:#2a2a2a;
+}
+.platform-item.active {
+    background-color:#fff;
+}
+.platform-item .active-version{
+    padding-left: 10px;
+    color: #00f;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.platform-item .active-version-time{
+    padding-right: 25px;
+    color: #00f;
+    font-size: 12px;
+    font-weight: normal;
+    float:right;
+}
+.platform-item .item-actions {
+    float:right;
+}
+.platform-item .os_name{
+    padding-left: 15px;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: normal;
+}
+.platform-item .item-actions a{
+    margin-left: 5px;
+    margin-right: 5px;
+    cursor:pointer;
+}
 /*
 Progress-wait.
 */
 #overlay_loading{
     width: 100%;
-    height: 100%; z-index:99999999; position:fixed; display:none; left: 0; top: 0; right: 0; bottom: 0;}
+    height: 100%; z-index:1200; position:fixed; display:none; left: 0; top: 0; right: 0; bottom: 0;}
 #div_dade_0{width: 500px; height: 500px; left:50%; top:50%; margin-left: -250px; margin-top: -100px; position:absolute; text-align:center; color: white;}
 #div_dade_1{margin: auto;}
 #div_dade_2{word-wrap: break-word; width: 500px; height: auto;}

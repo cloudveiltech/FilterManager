@@ -86,6 +86,13 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::get('/get_appgroup_data', 'ApplicationController@get_appgroup_data');
     Route::get('/get_appgroup_data/{id}', 'ApplicationController@get_appgroup_data_with_app_id');
     
+    Route::get('/versions', 'SystemVersionController@index');
+    Route::post('/versions/update_status', 'SystemVersionController@updateStatus');
+    Route::get('/platforms', 'SystemVersionController@getPlatforms');
+    Route::post('/platform/create', 'SystemVersionController@createPlatform');
+    Route::post('/platform/update/{id}', 'SystemVersionController@updatePlatform');
+    Route::post('/platform/delete', 'SystemVersionController@deletePlatform');
+    Route::resource('version', 'SystemVersionController');
     
 });
 
