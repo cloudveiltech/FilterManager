@@ -51,10 +51,57 @@ class AppUserActivationController extends Controller {
               return response()->json([]);
           } 
       } else {
-          return AppUserActivation::with(['user','deactivation_request'])->get();
+
+        $draw = $request->input('draw');
+        $start = $request->input('start');
+        $length = $request->input('length');
+        $search = $request->input('search')['value'];
+        $recordsTotal = AppUserActivation::count();
+        if(empty($search)) {
+            $rows = AppUserActivation::with(['user'])
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = $recordsTotal;
+        } else {
+            $rows = User::where('name', 'like',"%$search%")->select("id")->get()->toArray();
+            $id_arr = [];
+            foreach ($rows as $row) {
+                $id_arr[] = $row['id'];
+            }
+            $rows = AppUserActivation::with(['user'])
+                ->whereIn('user_id', $id_arr)
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = AppUserActivation::whereIn('user_id', $id_arr)->count();
+        }
+        
+        return response()->json([
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsFilterTotal,
+            "data" => $rows
+        ]);
       }
     }
+    public function updateField(Request $request) {
+        $id = $request->input('id');
+        $value = intval($request->input('value'));   //0 or 1
 
+        $id_arr = explode("_", $id);
+        if($id_arr[0] != "useractivation") {
+            return response()->json([
+                "success" => false
+            ]);
+        }
+        $activation_id = intval($id_arr[2]);
+        AppUserActivation::where('id', $activation_id)->update(['report_level'=>$value]);
+       
+        return response()->json([
+            "success" => true
+        ]);
+    }
     /**
      * Remove the specified resource from storage.
      *

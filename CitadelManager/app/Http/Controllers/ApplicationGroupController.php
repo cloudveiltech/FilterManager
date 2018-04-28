@@ -19,10 +19,28 @@ class ApplicationGroupController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        
-        $app_groups = AppGroup::with('group_app')->get();
+        $draw = $request->input('draw');
+        $start = $request->input('start');
+        $length = $request->input('length');
+        $search = $request->input('search')['value'];
+        $recordsTotal = AppGroup::count();
+
+        if(empty($search)) {
+            $app_groups = AppGroup::with('group_app')
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = $recordsTotal;
+        } else {
+            $app_groups = AppGroup::with('group_app')
+                ->where('group_name', 'like',"%$search%")
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = AppGroup::where('group_name', 'like',"%$search%")->count();
+        }
         foreach($app_groups as $app_group) {
             $arr_app_id = [];
             foreach($app_group->group_app as $group_item) {
@@ -43,7 +61,12 @@ class ApplicationGroupController extends Controller
             }
             $app_group->app_names = $str;
         }
-        return response()->json($app_groups);
+        return response()->json([
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsFilterTotal,
+            "data" => $app_groups
+        ]);
     }
 
     /**

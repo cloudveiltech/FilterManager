@@ -38,8 +38,11 @@ use Illuminate\Http\Request;
 Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin']], function() {
 
     Route::resource('users', 'UserController');
+    Route::post('users/update_field', 'UserController@updateField');
     Route::resource('groups', 'GroupController');
+    Route::post('groups/update_field', 'GroupController@updateField');
     Route::resource('deactivationreq', 'DeactivationRequestController');
+    Route::post('deactivationreq/update_field', 'DeactivationRequestController@updateField');
     Route::resource('filterlists', 'FilterListController');
     Route::resource('blockreview', 'BlockActionReviewRequestController');
 
@@ -47,6 +50,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
     Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
     Route::get('activations', 'AppUserActivationController@index');
+    Route::post('activations/update_field', 'AppUserActivationController@updateField');
 
     Route::resource('whitelists', 'GlobalWhitelistController');
     Route::resource('blacklists', 'GlobalBlacklistController');

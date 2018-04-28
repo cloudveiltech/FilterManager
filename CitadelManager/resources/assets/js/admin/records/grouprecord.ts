@@ -753,7 +753,7 @@ namespace Citadel
                     'NlpThreshold' : this.m_groupNlpThresholdInput.valueAsNumber,
                     'MaxTextTriggerScanningSize': this.m_textTriggerMaxSizeInput.valueAsNumber,
                     'UpdateChannel' : this.m_updateChannelSelectInput.options[this.m_updateChannelSelectInput.selectedIndex].value,
-                    'ReportLevel': this.m_reportLevel.checked,
+                    'ReportLevel': this.m_reportLevel.checked?1:0,
                 };
 
             appConfig[filterAppsKey] = "checked";

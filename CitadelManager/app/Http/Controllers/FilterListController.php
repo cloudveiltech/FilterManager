@@ -26,8 +26,31 @@ class FilterListController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function index() {
-        return FilterList::all();
+    public function index(Request $request) {
+        $draw = $request->input('draw');
+        $start = $request->input('start');
+        $length = $request->input('length');
+        $search = $request->input('search')['value'];
+        $recordsTotal = FilterList::count();
+        if(empty($search)) {
+            $rows = FilterList::offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = $recordsTotal;
+        } else {
+            $rows = FilterList::where('category', 'like',"%$search%")
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = FilterList::where('category', 'like',"%$search%")->count();
+        }
+        
+        return response()->json([
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsFilterTotal,
+            "data" => $rows
+        ]);
     }
 
     /**

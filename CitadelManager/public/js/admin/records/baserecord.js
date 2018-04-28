@@ -36,7 +36,6 @@ var Citadel;
             if (newlyCreated === void 0) { newlyCreated = false; }
             this.LoadFromForm();
             var dataObject = this.ToObject();
-            console.log(dataObject);
             this.m_progressWait.Show('Saving Record', 'Saving record to server.');
             var ajaxSettings = {
                 method: newlyCreated == true ? "POST" : "PATCH",
@@ -51,9 +50,6 @@ var Citadel;
                     return false;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    console.log(jqXHR.responseText);
-                    console.log(errorThrown);
-                    console.log(textStatus);
                     _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
                     setTimeout(function () {
                         _this.m_progressWait.Hide();

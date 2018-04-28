@@ -31,9 +31,30 @@ class GroupController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $rows = Group::with('assignedFilterIds')->with('userCount')->get();
+        $draw = $request->input('draw');
+        $start = $request->input('start');
+        $length = $request->input('length');
+        $search = $request->input('search')['value'];
+        $recordsTotal = Group::count();
+        if(empty($search)) {
+            $rows = Group::with('assignedFilterIds')
+                ->with('userCount')
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = $recordsTotal;
+        } else {
+            $rows = Group::with('assignedFilterIds')
+                ->with('userCount')
+                ->where('name', 'like',"%$search%")
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            $recordsFilterTotal = Group::where('name', 'like',"%$search%")->count();
+        }
+        
         $group_data = array();
         
         foreach($rows as $key => $group) {
@@ -49,9 +70,50 @@ class GroupController extends Controller
                 "updated_at"=>$group->updated_at->toDateTimeString()
             );
         }
-        return $group_data;
+        return response()->json([
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsFilterTotal,
+            "data" => $group_data
+        ]);
     }
+    public function updateField(Request $request) {
+        $id = $request->input('id');
+        $value = intval($request->input('value'));   //0 or 1
 
+        $id_arr = explode("_", $id);
+        if($id_arr[0] != "group") {
+            return response()->json([
+                "success" => false
+            ]);
+        }
+        $group_id = intval($id_arr[2]);
+        $group = Group::find($group_id);
+        $app_cfg = json_decode($group->app_cfg);
+        switch($id_arr[1]) {
+            case "threshold":
+                $app_cfg->UseThreshold = $value === 1? true: false;
+                break;
+            case "report":
+                $app_cfg->ReportLevel = $value;
+                break;
+            case "terminate":
+                $app_cfg->CannotTerminate = $value === 1? true: false;
+                break;
+            case "internet":
+                $app_cfg->BlockInternet = $value === 1? true: false;
+            break;
+        }
+
+        $group->app_cfg = json_encode($app_cfg);
+       // Group::where('id', $group_id)->update($group);
+        $group->save();
+        return response()->json([
+            "id" => $id,
+            "success" => true,
+            "app_cfg" => $app_cfg
+        ]);
+    }
     /**
      * Show the form for creating a new resource.
      *

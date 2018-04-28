@@ -23,39 +23,13 @@ namespace Citadel
      */
     enum DashboardViewStates
     {
-        /**
-         * A view with a dataTables instance that lists all existing users.
-         */
         UserListView,
-
-        /**
-         * A view with a dataTables instance that lists all existing groups.
-         */
         GroupListView,
-
-        /**
-         * A view with a dataTables instance that lists all existing filter
-         * lists.
-         */
         FilterListView,
-
-        /**
-         * A view with a dataTables instance that lists all existing user
-         * deactivation requests.
-         */
         DeactivationRequestListView,
-        /**
-         * A view with a dataTables instance that lists all existing global
-         * App & App Group 
-         */
         AppView,
         AppGroupView,
-        /**
-         * A view with a dataTables instance that lists all existing global
-         * App User Activations
-         */
         AppUserActivationView
-        
     }
 
     /**
@@ -572,8 +546,10 @@ namespace Citadel
         private ConstructTables(): void
         {
             let height = $("body").height();
+            
             let userTableConstruction = (() =>
-            {
+            {  
+                
                 let userTableColumns: DataTables.ColumnSettings[] =
                     [
                         {
@@ -646,8 +622,9 @@ namespace Citadel
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
-                                var chk_report = (data === 1) ? "checked-alone":"unchecked-alone";
-                                return "<label class='"+chk_report+"'></label>";
+                                var chk_report = (data === 1) ? "checked":"";
+                                var str = "<label class='switch-original'><input type='checkbox' id='user_report_"+row.id+"' "+chk_report+" /><span class='check'></span></label>";
+                                return str;
                             }),
                             className: 'content-center',
                             width: '150px'
@@ -689,7 +666,9 @@ namespace Citadel
                 let userTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
                         url: "api/admin/users",
-                        dataSrc: "",                        
+                        dataSrc: function ( json ) {
+                            return json.data;
+                        },                        
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -707,21 +686,56 @@ namespace Citadel
 
                 // Define user table settings, ENSURE TO INCLUDE AJAX SETTINGS!
                
-                let usersTableSettings: DataTables.Settings =
+                let usersTableSettings: DataTables.Settings = {
+                    scrollY: ''+ (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: userTableColumns,
+                    ajax: userTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void =>
                     {
-                        scrollY: ''+ (height - 470) + 'px',
-                        scrollCollapse: true,
-                        autoWidth: true,
-                        stateSave: true,
-                        columns: userTableColumns,
-                        ajax: userTablesLoadFromAjaxSettings,
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        })
-                    };
-
-                    usersTableSettings['resonsive'] = true;
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: (( settings ): void =>
+                    {
+                        let that = this;
+                        $("#user_table").off("change", "input[type='checkbox']");
+                        $("#user_table").on("change", "input[type='checkbox']", function () {
+                            let id_str = this.id;
+                            let val = 0;
+                            if (this.checked) {
+                                val = 1;
+                            }
+                            let checkAjaxSettings: JQueryAjaxSettings = {
+                                method:"POST",
+                                timeout: 60000,
+                                url: "api/admin/users/update_field",
+                                data: {id: id_str, value: val},
+                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                    that.ForceTableRedraw(that.m_tableUsers);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                        // Almost certainly auth related error. Redirect to login
+                                        // by signalling for logout.
+                                        //window.location.href = 'login.php?logout';
+                                    } else {
+                                        
+                                    }
+                                }
+                            }
+                
+                            $.post(checkAjaxSettings);
+                        });
+                    })
+                };
                 this.m_tableUsers = $('#user_table').DataTable(usersTableSettings);
             });
 
@@ -801,12 +815,13 @@ namespace Citadel
                                     return "";
                                 }
                                 var app_cfg = JSON.parse(data);
-                                var chk_terminate = app_cfg.CannotTerminate ? "checked":"unchecked";
-                                var chk_internet = app_cfg.BlockInternet ? "checked":"unchecked";
-                                var chk_threshold = app_cfg.UseThreshold ? "checked":"unchecked";
-                                var str = "<label class='"+chk_terminate+"'></label>";
-                                str += "<label class='"+chk_internet+"'></label>";
-                                str += "<label class='"+chk_threshold+"'></label>";
+                                var chk_terminate = app_cfg.CannotTerminate ? "checked":"";
+                                var chk_internet = app_cfg.BlockInternet ? "checked":"";
+                                var chk_threshold = app_cfg.UseThreshold ? "checked":"";
+                                //var str = "<label class='"+chk_terminate+"'></label>";
+                                var str = "<label class='switch-original'><input type='checkbox' id='group_terminate_"+row.id+"' "+chk_terminate+" /><span class='check'></span></label>";
+                                str += "<label class='switch-original'><input type='checkbox' id='group_internet_"+row.id+"' "+chk_internet+" /><span class='check'></span></label>";
+                                str += "<label class='switch-original'><input type='checkbox' id='group_threshold_"+row.id+"' "+chk_threshold+" /><span class='check'></span></label>";
                                 return str;
                             }),
                             className: 'content-left',
@@ -836,13 +851,16 @@ namespace Citadel
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
+                                //console.log(row.id, data);
                                 if(data === null || data === "")
                                 {
                                     return "";
                                 }
                                 var app_cfg = JSON.parse(data);
-                                var chk_report = (app_cfg.report_level === 1) ? "checked-alone":"unchecked-alone";
-                                return "<label class='"+chk_report+"'></label>";
+                                
+                                var chk_report = (app_cfg.ReportLevel == 1) ? "checked":"";
+                                //return app_cfg.ReportLevel;
+                                return "<label class='switch-original'><input type='checkbox' id='group_report_"+row.id+"' "+chk_report+" /><span class='check'></span></label>";
                             }),
                             className: 'content-center',
                             width: '150px'
@@ -889,7 +907,9 @@ namespace Citadel
                 let groupTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
                         url: "api/admin/groups",
-                        dataSrc: "",
+                        dataSrc: function ( json ) {
+                            return json.data;
+                        },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -912,6 +932,10 @@ namespace Citadel
                         scrollCollapse: true,
                         autoWidth: true,
                         stateSave: true,
+                        processing: true,
+                        serverSide: true,
+                        responsive: true,
+                        deferLoading: 0,
                         columns: groupTableColumns,
                         ajax: groupTablesLoadFromAjaxSettings,
 
@@ -922,6 +946,40 @@ namespace Citadel
                         rowCallback: ((row: Node, data: any[] | Object): void =>
                         {
                             this.OnTableRowCreated(row, data);
+                        }),
+                        drawCallback: (( settings ) :void =>
+                        {
+                            let that = this;
+                            $("#group_table").off("change", "input[type='checkbox']");
+                            $("#group_table").on("change", "input[type='checkbox']", function () {
+                                let id_str = this.id;
+                                let val = 0;
+                                if (this.checked) {
+                                    val = 1;
+                                }
+                                let checkAjaxSettings: JQueryAjaxSettings = {
+                                    method:"POST",
+                                    timeout: 60000,
+                                    url: "api/admin/groups/update_field",
+                                    data: {id: id_str, value: val},
+                                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                        that.ForceTableRedraw(that.m_tableGroups);
+                                        return false;
+                                    },
+                                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                        console.log(errorThrown);
+                                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                            // Almost certainly auth related error. Redirect to login
+                                            // by signalling for logout.
+                                            //window.location.href = 'login.php?logout';
+                                        } else {
+                                            
+                                        }
+                                    }
+                                }
+                    
+                                $.post(checkAjaxSettings);
+                            });
                         })
                     };
 
@@ -1011,7 +1069,9 @@ namespace Citadel
                 let filterTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
                         url: "api/admin/filterlists",
-                        dataSrc: "",
+                        dataSrc: function ( json ) {
+                            return json.data;
+                        },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -1034,6 +1094,10 @@ namespace Citadel
                         scrollCollapse: true,
                         autoWidth: true,
                         stateSave: true,
+                        processing: true,
+                        serverSide: true,
+                        responsive: true,
+                        deferLoading: 0,
                         columns: filterTableColumns,
                         ajax: filterTablesLoadFromAjaxSettings,
 
@@ -1091,14 +1155,10 @@ namespace Citadel
                                 {
                                     return "";
                                 }
-                                if(data == 1)
-                                {
-                                    return "<label class='checked'></label>";
-                                }
-                                else
-                                {
-                                    return "<label class='unchecked'></label>";
-                                }
+
+                                var chk_report = (data === 1) ? "checked":"";
+                                var str = "<label class='switch-original'><input type='checkbox' id='deactivatereq_enabled_"+row.id+"' "+chk_report+" /><span class='check'></span></label>";
+                                return str;
                             }),
                             width: '100px'
                         },
@@ -1116,7 +1176,9 @@ namespace Citadel
                 let userDeactivationRequestTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
                         url: "api/admin/deactivationreq",
-                        dataSrc: "",
+                        dataSrc: function ( json ) {
+                            return json.data;
+                        },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -1140,6 +1202,10 @@ namespace Citadel
                         scrollCollapse: true,
                         autoWidth: true,
                         stateSave: true,
+                        processing: true,
+                        serverSide: true,
+                        responsive: true,
+                        deferLoading: 0,
                         columns: userDeactivationRequestTableColumns,
                         ajax: userDeactivationRequestTablesLoadFromAjaxSettings,
 
@@ -1150,6 +1216,40 @@ namespace Citadel
                         rowCallback: ((row: Node, data: any[] | Object): void =>
                         {
                             this.OnTableRowCreated(row, data);
+                        }),
+                        drawCallback: (( settings ) :void =>
+                        {
+                            let that = this;
+                            $("#user_deactivation_request_table").off("change", "input[type='checkbox']");
+                            $("#user_deactivation_request_table").on("change", "input[type='checkbox']", function () {
+                                let id_str = this.id;
+                                let val = 0;
+                                if (this.checked) {
+                                    val = 1;
+                                }
+                                let checkAjaxSettings: JQueryAjaxSettings = {
+                                    method:"POST",
+                                    timeout: 60000,
+                                    url: "api/admin/deactivationreq/update_field",
+                                    data: {id: id_str, value: val},
+                                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                        that.ForceTableRedraw(that.m_tableUserDeactivationRequests);
+                                        return false;
+                                    },
+                                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                        console.log(errorThrown);
+                                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                            // Almost certainly auth related error. Redirect to login
+                                            // by signalling for logout.
+                                            //window.location.href = 'login.php?logout';
+                                        } else {
+                                            
+                                        }
+                                    }
+                                }
+                    
+                                $.post(checkAjaxSettings);
+                            });
                         })
                     };
 
@@ -1199,7 +1299,9 @@ namespace Citadel
                 let appListTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
                         url: "api/admin/app",
-                        dataSrc: "",
+                        dataSrc: function ( json ) {
+                            return json.data;
+                        },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -1222,6 +1324,10 @@ namespace Citadel
                         scrollCollapse: true,
                         autoWidth: true,
                         stateSave: true,
+                        processing: true,
+                        serverSide: true,
+                        responsive: true,
+                        deferLoading: 0,
                         columns: appListTableColumns,
                         ajax: appListTablesLoadFromAjaxSettings,
 
@@ -1274,7 +1380,9 @@ namespace Citadel
                 let appGroupListTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
                         url: "api/admin/app_group",
-                        dataSrc: "",
+                        dataSrc: function ( json ) {
+                            return json.data;
+                        },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -1297,6 +1405,10 @@ namespace Citadel
                         scrollCollapse: true,
                         autoWidth: true,
                         stateSave: true,
+                        processing: true,
+                        serverSide: true,
+                        responsive: true,
+                        deferLoading: 0,
                         columns: appGroupListTableColumns,
                         ajax: appGroupListTablesLoadFromAjaxSettings,
 
@@ -1335,17 +1447,6 @@ namespace Citadel
                                 return "<span class='mif-user self-scale-group fg-green'></span>  <b title='"+data+"'>" + name + "</b>";
                             }),
                             width: '200px'
-                        },
-                        {
-                            title: 'Identifier',
-                            data: 'identifier',
-                            visible: true,
-                            width: '360px',
-                            className: 'identifier',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                return " <b title='"+data+"'>"+data+"</b>";
-                            })
                         },
                         {
                             title: 'Device Id',
@@ -1413,8 +1514,11 @@ namespace Citadel
                             className: 'content-center',
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
-                                var chk_report = (data === 1) ? "checked-alone":"unchecked-alone";
-                                return "<label class='"+chk_report+"'></label>";
+                                //var chk_report = (data === 1) ? "checked-alone":"unchecked-alone";
+                                //return "<label class='"+chk_report+"'></label>";
+                                var chk_report = (data === 1) ? "checked":"";
+                                //return app_cfg.ReportLevel;
+                                return "<label class='switch-original'><input type='checkbox' id='useractivation_report_"+row.id+"' "+chk_report+" /><span class='check'></span></label>";
                             }),
                         },
                         {
@@ -1438,7 +1542,9 @@ namespace Citadel
                 let appUserActivationTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
                     {
                         url: "api/admin/activations",
-                        dataSrc: "",
+                        dataSrc: function ( json ) {
+                            return json.data;
+                        },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -1461,6 +1567,10 @@ namespace Citadel
                         scrollCollapse: true,
                         autoWidth: true,
                         stateSave: true,
+                        processing: true,
+                        serverSide: true,
+                        responsive: true,
+                        deferLoading: 0,
                         columns: appUserActivationTableColumns,
                         ajax: appUserActivationTablesLoadFromAjaxSettings,
 
@@ -1471,10 +1581,48 @@ namespace Citadel
                         rowCallback: ((row: Node, data: any[] | Object): void =>
                         {
                             this.OnTableRowCreated(row, data);
+                        }),
+                        drawCallback: (( settings ) :void =>
+                        {
+                            let that = this;
+                            $("#app_user_activations_table").off("change", "input[type='checkbox']");
+                            $("#app_user_activations_table").on("change", "input[type='checkbox']", function () {
+                                let id_str = this.id;
+                                let val = 0;
+                                if (this.checked) {
+                                    val = 1;
+                                }
+                                let checkAjaxSettings: JQueryAjaxSettings = {
+                                    method:"POST",
+                                    timeout: 60000,
+                                    url: "api/admin/activations/update_field",
+                                    data: {id: id_str, value: val},
+                                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                        that.ForceTableRedraw(that.m_tableAppUserActivationTable);
+                                        return false;
+                                    },
+                                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                        console.log(errorThrown);
+                                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                            // Almost certainly auth related error. Redirect to login
+                                            // by signalling for logout.
+                                            //window.location.href = 'login.php?logout';
+                                        } else {
+                                            
+                                        }
+                                    }
+                                }
+                    
+                                $.post(checkAjaxSettings);
+                            });
                         })
                     };
 
                 this.m_tableAppUserActivationTable = $('#app_user_activations_table').DataTable(appUserActivationTableSettings);
+                $('<button id="refresh_user_activations"><span class="mif-loop2 "></span> Refresh</button>').appendTo('#app_user_activations_table_wrapper div.dataTables_filter');
+                $("#refresh_user_activations").click((e:MouseEvent):void => {
+                    this.ForceTableRedraw(this.m_tableAppUserActivationTable);
+                })
             });
 
             userTableConstruction();
@@ -1484,6 +1632,7 @@ namespace Citadel
             appListTableConstruction();
             appGroupListTableConstruction();
             appUserActivationTableConstruction();
+
         }
 
         private ConstructNavigation(): void
@@ -1694,6 +1843,7 @@ namespace Citadel
             {
                 this.onBlockAppUserActivationClicked(e); 
             });
+
         }   
 
         /**
@@ -1717,8 +1867,23 @@ namespace Citadel
 
             tableRow.ondblclick = ((e: MouseEvent) =>
             {
+                console.log("bind", data);
                 this.OnTableRowDoubleClicked(e, data);
             });
+            /*
+            let checkBoxes = $(tableRow).find("input[type=checkbox]");
+            let that = this;
+            if(checkBoxes.length > 0) {
+                checkBoxes.each(function( index ) {
+                    $(this).trigger("change");
+                    $(this).change =  ((element: MouseEvent) =>
+                    {
+                        console.log($(this).attr("id"));
+                        that.onCheckBoxClicked(element);
+                    });
+                });
+            }
+            */
         }
 
         /**
@@ -2595,6 +2760,7 @@ namespace Citadel
 
                 case DashboardViewStates.DeactivationRequestListView:
                     {
+                        this.ForceTableRedraw(this.m_tableUserDeactivationRequests);
                         this.m_viewUserDeactivationRequestManagement.style.display = "block";
                     }
                     break;
