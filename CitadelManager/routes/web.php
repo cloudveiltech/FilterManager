@@ -39,7 +39,7 @@ Route::get('/', function () {
     }
 });
 
-Route::get('/update/win{platform}/update.xml', 'UpdateController@retrieve');
+Route::get('/update/{platform}/update.xml', 'UpdateController@retrieve');
 Route::middleware(['auth.basic.once','role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions'); 
 
 Route::get('/download/latest/64', function() {
