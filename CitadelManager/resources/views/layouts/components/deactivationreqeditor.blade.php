@@ -24,7 +24,7 @@
                     </div>                   
 
                     <div class="cell size4" id="div_f213_1">
-                        <label for="editor_deactivation_request_input_isgranted">Enabled:</label>                        
+                        <label for="editor_deactivation_request_input_isgranted">Granted:</label>                        
                         <label class="switch-original" id="label_f213_0">
                             <input type="checkbox" id="editor_deactivation_request_input_isgranted" name="editor_deactivation_request_input_isgranted">
                             <span class="check"></span>
