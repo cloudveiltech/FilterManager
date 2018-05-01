@@ -604,21 +604,16 @@ namespace Citadel
                         },
                         {
                             title: 'Primary DNS',
-                            data: 'app_cfg',
+                            data: 'primary_dns',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
-                                if(data === null || data === "")
-                                {
-                                    return "";
-                                }
-                                var app_cfg = JSON.parse(data);
                                 var str = "";
-                                if(app_cfg['PrimaryDns']===null || app_cfg['PrimaryDns']==="") {
+                                if(data===null || data==="") {
                                     
                                 } else {
 
-                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + app_cfg['PrimaryDns'];
+                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
                                 }
                                 return str;
                             }),
@@ -627,21 +622,16 @@ namespace Citadel
                         },
                         {
                             title: 'Secondary DNS',
-                            data: 'app_cfg',
+                            data: 'secondary_dns',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
-                                if(data === null || data === "")
-                                {
-                                    return "";
-                                }
-                                var app_cfg = JSON.parse(data);
                                 var str = "";
-                                if(app_cfg['SecondaryDns']===null || app_cfg['SecondaryDns']==="") {
+                                if(data===null ||data==="") {
                                     
                                 } else {
 
-                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + app_cfg['SecondaryDns'];
+                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
                                 }
                                 return str;
                             }),
@@ -650,7 +640,7 @@ namespace Citadel
                         },
                         {
                             title: 'Terminate/Internet/Threshold',
-                            data: 'app_cfg',
+                            data: 'terminate',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -658,7 +648,7 @@ namespace Citadel
                                 {
                                     return "";
                                 }
-                                var app_cfg = JSON.parse(data);
+                                var app_cfg = JSON.parse(row.app_cfg);
                                 var chk_terminate = app_cfg.CannotTerminate ? "checked":"";
                                 var chk_internet = app_cfg.BlockInternet ? "checked":"";
                                 var chk_threshold = app_cfg.UseThreshold ? "checked":"";
@@ -673,7 +663,7 @@ namespace Citadel
                         },
                         {
                             title: 'Bypass',
-                            data: 'app_cfg',
+                            data: 'bypass',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -681,7 +671,7 @@ namespace Citadel
                                 {
                                     return "";
                                 }
-                                var app_cfg = JSON.parse(data);
+                                var app_cfg = JSON.parse(row.app_cfg);
                                 var bypass_permitted = app_cfg['BypassesPermitted']===null || app_cfg['BypassesPermitted']===0 ? "": "<span class='mif-clipboard self-scale-4 fg-cyan'></span> " + app_cfg['BypassesPermitted'] + "<span class='unit_day'>/day</span>";
                                 var bypass_duration = app_cfg['BypassDuration']===null || app_cfg['BypassDuration']===0?"":" <span class='mif-alarm-on self-scale-5 fg-pink'></span> " + app_cfg['BypassDuration'] + "<span class='unit_min'>mins</span>";
                                 return bypass_permitted + bypass_duration;
@@ -691,16 +681,12 @@ namespace Citadel
                         },
                         {
                             title: 'Report Level',
-                            data: 'app_cfg',
+                            data: 'report_level',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
                                 //console.log(row.id, data);
-                                if(data === null || data === "")
-                                {
-                                    return "";
-                                }
-                                var app_cfg = JSON.parse(data);
+                                var app_cfg = JSON.parse(row.app_cfg);
                                 
                                 var chk_report = (app_cfg.ReportLevel == 1) ? "checked":"";
                                 //return app_cfg.ReportLevel;
