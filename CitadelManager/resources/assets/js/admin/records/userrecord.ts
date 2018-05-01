@@ -192,37 +192,42 @@ namespace Citadel
                 [                   
                     {
                         title: 'Action Id',
-                        data: 'id',                          
+                        data: 'id',
                         visible: false
                     },
                     {
                         title: 'Identifier',
                         data: 'identifier',
-                        visible: true
+                        visible: true,
+                        width: '425px'
                     },
                     {
                         title: 'Device Id',
                         data: 'device_id',
-                        visible: true
+                        visible: true,
+                        width: '300px'
                     },
                     {
                         title: 'App Version',
                         data: 'app_version',
-                        visible: true
+                        visible: true,
+                        width: '180px'
                     },
                     {
                         title: 'IP Address',
                         data: 'ip_address',
-                        visible: true
+                        visible: true,
+                        width: '200px'
                     },
                     {
                         title: 'Updated date',
                         data: 'updated_at',
-                        visible: true
+                        visible: true,
+                        width: "220px"
                     },
                     {
                         "mRender": function ( data, type, row ) {
-                            return "<button id='delete_"+row.id+"' class='btn-delete'>Delete</button> <button id='block_"+row.id+"' class='btn-block'>Block</button>";
+                            return "<button id='delete_"+row.id+"' class='btn-delete button primary'>Delete</button> <button id='block_"+row.id+"' class='btn-block button primary'>Block</button>";
                         }
                     }
                 ];

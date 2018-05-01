@@ -31,36 +31,79 @@ class UpdateController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function retrieve(Request $request, $platform) {
-      return response()
-        ->view('update.windows.update_xml',
-          [
-            'platform' => $platform,
-            'app_name' => 'CloudVeil',
-            'file_name' => 'CloudVeil',
-            //'version_name' => '1.6.21 Release',
-            'version_number' => '1.6.21',
-            'changes' =>
-              [
-                'Changes to ssl',
-              ],
-            'channels' =>
-              [
-                [
-                  'release' => 'Alpha',
-                  'version_number' => '1.6.24'
-                ],
-                [
-                  'release' => 'Beta',
-                  'version_number' => '1.6.24'
-                ],
-                [
-                  'release' => 'Stable',
-                  'version_number' => '1.6.21'
-                ]
+      $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
+      $arr_data = ["platform"=>$platform];
+
+      if($platforms->count() > 0) {
+        $os = $platforms->first();
+        $platform_id = $os->id;
+        $versions = SystemVersion::where('platform_id','=', $platform_id)->where('active','=',1)->get();
+        if($versions->count() > 0) {
+          $version = $versions->first();
+          $arr_data['app_name'] = $version->app_name;
+          $arr_data['file_name'] = $version->file_name;
+          $arr_data['version_number'] = $version->version_number;
+          $arr_data['changes'] = array($version->changes);
+          $arr_data['channels'] = [
+            [
+              'release'=>'Alpha',
+              'version_number'=>$version->alpha
             ],
-            'date' => 'Tue, 20 Feb 2018 12:39:00 MST'
+            [
+              'release'=>'Beta',
+              'version_number'=>$version->beta
+            ],
+            [
+              'release'=>'Stable',
+              'version_number'=>$version->stable
+            ]
+          ];
+          $arr_data['date'] = $version->release_date;
+        } else {
+          $arr_data['app_name'] = "unavailable";
+          $arr_data['file_name'] = "unavailable";
+          $arr_data['version_number'] = "---";
+          $arr_data['changes'] = array();
+          $arr_data['channels'] = [
+            [
+              'release'=>'Alpha',
+              'version_number'=>"---"
+            ],
+            [
+              'release'=>'Beta',
+              'version_number'=>"---"
+            ],
+            [
+              'release'=>'Stable',
+              'version_number'=>"---"
+            ]
+          ];
+          $arr_data['date'] = "---";
+        }
+      } else {
+        $arr_data['app_name'] = "unavailable";
+        $arr_data['file_name'] = "unavailable";
+        $arr_data['version_number'] = "---";
+        $arr_data['changes'] = array();
+        $arr_data['channels'] = [
+          [
+            'release'=>'Alpha',
+            'version_number'=>"---"
+          ],
+          [
+            'release'=>'Beta',
+            'version_number'=>"---"
+          ],
+          [
+            'release'=>'Stable',
+            'version_number'=>"---"
           ]
-        )
+        ];
+        $arr_data['date'] = "---";
+      }
+
+      return response()
+        ->view('update.windows.update_xml', $arr_data)
         ->header('Content-Type', 'text/xml');
     }
     /**
@@ -70,14 +113,10 @@ class UpdateController extends Controller {
      */
     public function currentVersions(Request $request, $platform) {
       $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
-      Log::debug("---platforms----");
-      Log::debug($platforms);
       if($platforms->count() > 0) {
         $os = $platforms->first();
         $platform_id = $os->id;
         $versions = SystemVersion::where('platform_id','=', $platform_id)->where('active','=',1)->get();
-        Log::debug("---Versions----");
-        Log::debug($versions);
         if($versions->count() > 0) {
           $version = $versions->first();
           return response()->json([
