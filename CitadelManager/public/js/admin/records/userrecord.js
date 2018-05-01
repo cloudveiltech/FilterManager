@@ -270,12 +270,13 @@ var Citadel;
             if (this.m_groupIdInput.options != null) {
                 this.m_groupIdInput.options.length = 0;
             }
-            allGroups.each(function (elm) {
+            for (var _i = 0, allGroups_1 = allGroups; _i < allGroups_1.length; _i++) {
+                var elm = allGroups_1[_i];
                 var option = document.createElement('option');
                 option.text = elm['name'];
                 option.value = elm['id'];
-                _this.m_groupIdInput.options.add(option);
-            });
+                this.m_groupIdInput.options.add(option);
+            }
             switch (userData == null) {
                 case true:
                     {

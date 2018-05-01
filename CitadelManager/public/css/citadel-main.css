@@ -690,6 +690,9 @@ Whitelist editor.
     opacity: 0.4;
     font-size: 14px;
 }
+.dataTables_scrollBody thead th:after{
+    display: none;
+}
 /*
 appgroup editor.
 */

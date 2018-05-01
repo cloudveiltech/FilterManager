@@ -249,6 +249,7 @@ namespace Citadel
         private m_filterGroupSelectionArea: dragula.Drake;
 
         private m_allFilters;
+        private m_allGroups;
 
         /**
          * Creates an instance of Dashboard.
@@ -261,6 +262,7 @@ namespace Citadel
             // Setup nav.
             this.ConstructNavigation();
             this.loadAllFilters();
+            this.loadAllGroups();
             // Initialize views.
             this.ConstructManagementViews();
 
@@ -298,6 +300,23 @@ namespace Citadel
             $.post(ajaxSettings);
         }
 
+        private loadAllGroups(): void {
+            let ajaxSettings: JQueryAjaxSettings = {
+                method:"GET",
+                timeout: 60000,
+                url: "api/admin/group/all",
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                    this.m_allGroups = data;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(errorThrown);
+                }
+            }
+
+            $.post(ajaxSettings);
+        }
+
+        
         private ConstructManagementViews(): void
         {
             // Grab main view container references.
@@ -2118,7 +2137,7 @@ namespace Citadel
 
                         // We supply everything in the groups table so that the user's group
                         // can be changed to any available group.
-                        userRecord.StartEditing(this.m_tableGroups.data(), data);
+                        userRecord.StartEditing(this.m_allGroups, data);
                     }
                     break;
 

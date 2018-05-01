@@ -77,6 +77,10 @@ class GroupController extends Controller
             "data" => $group_data
         ]);
     }
+
+    public function get_groups() {
+        return Group::select("id", "name")->get();
+    }
     public function updateField(Request $request) {
         $id = $request->input('id');
         $value = intval($request->input('value'));   //0 or 1

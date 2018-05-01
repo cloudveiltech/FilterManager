@@ -6,6 +6,7 @@ use App\AppGroup;
 use App\AppGroupToApp;
 use Illuminate\Http\Request;
 use App\Group;
+use App\UserGroupToAppGroup;
 use Log;
 class ApplicationController extends Controller
 {
@@ -180,5 +181,22 @@ class ApplicationController extends Controller
         return response()->json([
             'app_groups'=>$app_groups,
             'selected_app_groups'=>$selected_app_groups]);
+    }
+    
+    private function rebuildGroupDataByApp($app_id) {
+        $appGroupLists = AppGroupToApp::where('app_id', '=', $app_id)->get();
+        if($appGroupLists->count() > 0) {
+            $arr_group_id = [];
+            foreach($appGroupLists as $app_group)  {
+                $arr_group_id[] = $app_group->app_group_id;
+            }
+
+            $userGroupLists = UserGroupToAppGroup::whereIn('app_group_id', $arr_group_id)->get();
+            if($userGroupLists->count() > 0) {
+                foreach($userGroupLists as $user_group) {
+                    Group::where('id', '=', $user_group->user_group_id)->rebuiltGroupData();
+                }
+            }
+        }
     }
 }

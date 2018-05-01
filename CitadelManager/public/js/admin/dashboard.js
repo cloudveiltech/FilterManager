@@ -16,6 +16,7 @@ var Citadel;
             var _this = this;
             this.ConstructNavigation();
             this.loadAllFilters();
+            this.loadAllGroups();
             this.ConstructManagementViews();
             this.m_filterListUploadController = new Citadel.ListUploadOverlay();
             this.m_filterListUploadController.UploadCompleteCallback = (function () {
@@ -38,6 +39,21 @@ var Citadel;
                 url: "api/admin/filterlist/all",
                 success: function (data, textStatus, jqXHR) {
                     _this.m_allFilters = data;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(errorThrown);
+                }
+            };
+            $.post(ajaxSettings);
+        };
+        Dashboard.prototype.loadAllGroups = function () {
+            var _this = this;
+            var ajaxSettings = {
+                method: "GET",
+                timeout: 60000,
+                url: "api/admin/group/all",
+                success: function (data, textStatus, jqXHR) {
+                    _this.m_allGroups = data;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log(errorThrown);
@@ -1396,7 +1412,7 @@ var Citadel;
                             userRecord_1.StopEditing();
                             _this.ForceTableRedraw(_this.m_tableUsers);
                         });
-                        userRecord_1.StartEditing(this.m_tableGroups.data(), data);
+                        userRecord_1.StartEditing(this.m_allGroups, data);
                     }
                     break;
                 case 'group_table':

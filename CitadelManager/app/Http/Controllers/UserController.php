@@ -33,24 +33,42 @@ class UserController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request) {
-        $email = $request->input('email');
-        $customer_id = $request->input('customer_id');
+        
         $draw = $request->input('draw');
         $start = $request->input('start');
         $length = $request->input('length');
         $search = $request->input('search')['value'];
+        $order = $request->input('order')[0]['column'];
+        $order_name = $request->input('columns')[intval($order)]['data'];
+        $order_str = $request->input('order')[0]['dir'];
+
         $recordsTotal = User::count();
         if(empty($search)) {
-            $users = User::with(['group', 'roles','activations'])
-                ->when($email, function($query) use ($email) {
-                    return $query->where('email', $email);
-                })
-                ->when($customer_id, function($query) use ($customer_id) {
-                    return $query->where('customer_id', $customer_id);
-                })
+            if($order_name == 'group.name') {
+                $users = User::with(['group', 'roles','activations'])
+                    ->select('users.*')
+                    ->leftJoin('groups','groups.id','=','users.group_id')
+                    ->orderBy("groups.name", $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+                
+            } else if ($order_name == 'roles[, ].display_name') {
+                $users = User::with(['group', 'roles','activations'])
+                    ->select('users.*')
+                    ->leftJoin('role_user','role_user.user_id','=','users.id')
+                    ->orderBy("role_user.role_id", $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            }else {
+                $users = User::with(['group', 'roles','activations'])
+                ->orderBy($order_name, $order_str)
                 ->offset($start)
                 ->limit($length)
                 ->get();
+            }
+            
             $recordsFilterTotal = $recordsTotal;
         } else {
             $users = User::with(['group', 'roles','activations'])
@@ -61,6 +79,7 @@ class UserController extends Controller {
                     return $query->where('customer_id', $customer_id);
                 })
                 ->where('name', 'like',"%$search%")
+                ->orderBy($order_name, $order_str)
                 ->offset($start)
                 ->limit($length)
                 ->get();
