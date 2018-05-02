@@ -32,7 +32,7 @@ class FilterList extends Model {
      * @var array
      */
     protected $fillable = [
-        'namespace', 'category', 'type',
+        'namespace', 'category', 'type', 'created_at', 'updated_at'
     ];
 
     /**

@@ -580,6 +580,7 @@ User editor.
     font-size:14px;
     text-shadow: 1px 1px #ffffff;
     border-right: 1px solid #b7c9e1;
+    height: 50px;
 }
 .grid .row {
     margin-bottom: 20px;
