@@ -947,6 +947,7 @@ var Citadel;
                         title: 'Platform',
                         data: 'platform',
                         className: 'content-left',
+                        bSortable: false,
                         visible: true,
                         width: '200px',
                         render: (function (data, t, row, meta) {
@@ -975,6 +976,7 @@ var Citadel;
                     {
                         title: 'App Name',
                         data: 'app_name',
+                        bSortable: false,
                         className: 'content-left',
                         visible: true,
                         width: '140px',
@@ -991,6 +993,7 @@ var Citadel;
                         title: 'File Name',
                         data: 'file_name',
                         className: 'content-left',
+                        bSortable: false,
                         visible: true,
                         width: '140px',
                         render: (function (data, t, row, meta) {
@@ -1005,6 +1008,7 @@ var Citadel;
                     {
                         title: 'Version',
                         data: 'version_number',
+                        bSortable: false,
                         className: 'content-left version_number',
                         defaultContent: 'None',
                         width: '100px',
@@ -1020,6 +1024,7 @@ var Citadel;
                     {
                         title: 'Release Date',
                         data: 'release_date',
+                        bSortable: false,
                         visible: true,
                         render: (function (data, t, row, meta) {
                             if (row.active === 1) {
@@ -1035,6 +1040,7 @@ var Citadel;
                     {
                         title: 'Alpha',
                         data: 'alpha',
+                        bSortable: false,
                         className: 'content-center sub_version_number',
                         visible: true,
                         width: '100px',
@@ -1050,6 +1056,7 @@ var Citadel;
                     {
                         title: 'Beta',
                         data: 'beta',
+                        bSortable: false,
                         visible: true,
                         width: '100px',
                         className: 'content-center sub_version_number',
@@ -1065,6 +1072,7 @@ var Citadel;
                     {
                         title: 'Stable',
                         data: 'stable',
+                        bSortable: false,
                         visible: true,
                         width: '100px',
                         className: 'content-center sub_version_number',
@@ -1080,6 +1088,7 @@ var Citadel;
                     {
                         title: 'Changes',
                         data: 'changes',
+                        bSortable: false,
                         className: 'content-left',
                         visible: true,
                         render: (function (data, t, row, meta) {
@@ -1094,6 +1103,7 @@ var Citadel;
                     {
                         title: 'Action',
                         data: 'active',
+                        bSortable: false,
                         visible: true,
                         render: (function (data, t, row, meta) {
                             if (data === 1) {

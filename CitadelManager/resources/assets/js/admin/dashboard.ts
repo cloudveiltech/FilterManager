@@ -1465,6 +1465,7 @@ namespace Citadel
                             title: 'Platform',
                             data: 'platform',
                             className: 'content-left',
+                            bSortable: false,
                             visible: true,
                             width: '200px',
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
@@ -1493,6 +1494,7 @@ namespace Citadel
                             // needs to be included on the server side!
                             title: 'App Name',
                             data: 'app_name',
+                            bSortable: false,
                             className: 'content-left',
                             visible: true,
                             width: '140px',
@@ -1510,6 +1512,7 @@ namespace Citadel
                             title: 'File Name',
                             data: 'file_name',
                             className: 'content-left',
+                            bSortable: false,
                             visible: true,
                             width: '140px',
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
@@ -1525,6 +1528,7 @@ namespace Citadel
                         {
                             title: 'Version',                            
                             data: 'version_number',
+                            bSortable: false,
                             className: 'content-left version_number',
                             defaultContent: 'None',
                             width: '100px',
@@ -1541,6 +1545,7 @@ namespace Citadel
                         {
                             title: 'Release Date',
                             data: 'release_date',
+                            bSortable: false,
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -1556,6 +1561,7 @@ namespace Citadel
                         {
                             title: 'Alpha',
                             data: 'alpha',
+                            bSortable: false,
                             className: 'content-center sub_version_number',
                             visible: true, 
                             width: '100px',
@@ -1572,6 +1578,7 @@ namespace Citadel
                         {
                             title: 'Beta',
                             data: 'beta',
+                            bSortable: false,
                             visible: true,
                             width: '100px',
                             className:'content-center sub_version_number',
@@ -1588,6 +1595,7 @@ namespace Citadel
                         {
                             title: 'Stable',
                             data: 'stable',
+                            bSortable: false,
                             visible: true,
                             width: '100px',
                             className:'content-center sub_version_number',
@@ -1606,6 +1614,7 @@ namespace Citadel
                             // needs to be included on the server side!
                             title: 'Changes',
                             data: 'changes',
+                            bSortable: false,
                             className: 'content-left',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
@@ -1621,6 +1630,7 @@ namespace Citadel
                         {
                             title: 'Action',
                             data: 'active',
+                            bSortable: false,
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -1990,7 +2000,6 @@ namespace Citadel
             {
                 this.OnTableRowDoubleClicked(e, data);
             });
-           
         }
 
         /**
