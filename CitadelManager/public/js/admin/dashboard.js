@@ -781,7 +781,7 @@ var Citadel;
                     },
                     {
                         title: 'User',
-                        data: 'user.name',
+                        data: 'name',
                         visible: true,
                         render: (function (data, t, row, meta) {
                             var name = data;

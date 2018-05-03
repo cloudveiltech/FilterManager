@@ -29,22 +29,43 @@ class ApplicationController extends Controller
         $order = $request->input('order')[0]['column'];
         $order_name = $request->input('columns')[intval($order)]['data'];
         $order_str = $request->input('order')[0]['dir'];
-
         $recordsTotal = App::count();
         if(empty($search)) {
-            $applications = App::with('group')
-                ->orderBy($order_name, $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
+            if($order_name == "bypass_quantity") {
+                $applications = App::with('group')
+                    ->orderBy("bypass_used", $order_str)
+                    ->orderBy("bypass_quantity", $order_str)
+                    ->orderBy("bypass_period", $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            } else {
+                $applications = App::with('group')
+                    ->orderBy($order_name, $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            }
+            
             $recordsFilterTotal = $recordsTotal;
         } else {
-            $applications = App::with('group')
-                ->where('name', 'like',"%$search%")
-                ->orderBy($order_name, $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
+            if($order_name == "bypass_quantity") {
+                $applications = App::with('group')
+                    ->where('name', 'like',"%$search%")
+                    ->orderBy("bypass_used", $order_str)
+                    ->orderBy("bypass_quantity", $order_str)
+                    ->orderBy("bypass_period", $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            } else {
+                $applications = App::with('group')
+                    ->where('name', 'like',"%$search%")
+                    ->orderBy($order_name, $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            }
             $recordsFilterTotal = App::where('name', 'like',"%$search%")->count();
         }
         

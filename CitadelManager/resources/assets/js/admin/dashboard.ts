@@ -1263,7 +1263,7 @@ namespace Citadel
                         },
                         {
                             title: 'User',
-                            data: 'user.name',
+                            data: 'name',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
