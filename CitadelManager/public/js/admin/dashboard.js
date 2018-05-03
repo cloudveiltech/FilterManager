@@ -671,6 +671,7 @@ var Citadel;
                     {
                         title: 'Linked Group',
                         data: 'group_name',
+                        bSortable: false,
                         visible: true
                     },
                     {

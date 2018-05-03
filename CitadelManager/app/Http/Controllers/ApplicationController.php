@@ -25,9 +25,15 @@ class ApplicationController extends Controller
         $start = $request->input('start');
         $length = $request->input('length');
         $search = $request->input('search')['value'];
+
+        $order = $request->input('order')[0]['column'];
+        $order_name = $request->input('columns')[intval($order)]['data'];
+        $order_str = $request->input('order')[0]['dir'];
+
         $recordsTotal = App::count();
         if(empty($search)) {
             $applications = App::with('group')
+                ->orderBy($order_name, $order_str)
                 ->offset($start)
                 ->limit($length)
                 ->get();
@@ -35,6 +41,7 @@ class ApplicationController extends Controller
         } else {
             $applications = App::with('group')
                 ->where('name', 'like',"%$search%")
+                ->orderBy($order_name, $order_str)
                 ->offset($start)
                 ->limit($length)
                 ->get();
