@@ -731,6 +731,7 @@ var Citadel;
                     {
                         title: 'Linked Apps',
                         data: 'app_names',
+                        bSortable: false,
                         visible: true
                     },
                     {
