@@ -232,8 +232,8 @@ class AppUserActivationController extends Controller {
             // status : granted
             $arr_output = array(
                 "allowed" => true,
-                "message" => "Request granted. Used ". $bypass_used ." out of ". $bypass_permitted .".",
-                "used" => $bypass_used,
+                "message" => "Request granted. Used ". $activation->bypass_used ." out of ". $bypass_permitted .".",
+                "used" => $activation->bypass_used,
                 "permitted" => $bypass_permitted,
             );
 
