@@ -41,6 +41,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::post('users/update_field', 'UserController@updateField');
     Route::resource('groups', 'GroupController');
     Route::post('groups/update_field', 'GroupController@updateField');
+    Route::get('group/all', 'GroupController@get_groups');
     Route::resource('deactivationreq', 'DeactivationRequestController');
     Route::post('deactivationreq/update_field', 'DeactivationRequestController@updateField');
     Route::resource('filterlists', 'FilterListController');

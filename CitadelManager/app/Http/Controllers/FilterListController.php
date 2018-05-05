@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
+use Log;
 class FilterListController extends Controller {
 
     /**
@@ -31,18 +32,94 @@ class FilterListController extends Controller {
         $start = $request->input('start');
         $length = $request->input('length');
         $search = $request->input('search')['value'];
+
+        $order = $request->input('order')[0]['column'];
+        $order_name = $request->input('columns')[intval($order)]['data'];
+        $order_str = $request->input('order')[0]['dir'];
+
         $recordsTotal = FilterList::count();
         if(empty($search)) {
-            $rows = FilterList::offset($start)
-                ->limit($length)
-                ->get();
-            $recordsFilterTotal = $recordsTotal;
-        } else {
-            $rows = FilterList::where('category', 'like',"%$search%")
+            if($order_name == "entries_count") {
+                $rows = FilterList::get();
+                $filter_rows = [];
+                foreach($rows as $key => $filter_item) {
+                    
+                    $filter_rows[] = array(
+                        "id"=>$filter_item->id,
+                        "namespace"=>$filter_item->namespace,
+                        "category"=>$filter_item->category,
+                        "entries_count"=>$filter_item->entries_count,
+                        "type"=>$filter_item->type,
+                        "created_at"=>$filter_item->created_at->toDateTimeString()
+                    );
+                }
+                
+                $sortArray = array(); 
+                
+                foreach($filter_rows as $filter){ 
+                    foreach($filter as $key=>$value){ 
+                        if(!isset($sortArray[$key])){ 
+                            $sortArray[$key] = array(); 
+                        } 
+                        $sortArray[$key][] = $value; 
+                    } 
+                } 
+                if($order_str == "desc") {
+                    array_multisort($sortArray[$order_name],SORT_DESC,$filter_rows);
+                } else {
+                    array_multisort($sortArray[$order_name],SORT_ASC,$filter_rows);
+                }
+                $rows = array_slice($filter_rows,$start,$length,false);
+               
+            } else {
+
+                $rows = FilterList::orderBy($order_name, $order_str)
                 ->offset($start)
                 ->limit($length)
                 ->get();
-            $recordsFilterTotal = FilterList::where('category', 'like',"%$search%")->count();
+            }
+            $recordsFilterTotal = $recordsTotal;
+        } else {
+            if($order_name == "entries_count") {
+                $rows = FilterList::where('category', 'like',"%$search%")->get();
+                $filter_rows = [];
+                foreach($rows as $key => $filter_item) {
+                    
+                    $filter_rows[] = array(
+                        "id"=>$filter_item->id,
+                        "namespace"=>$filter_item->namespace,
+                        "category"=>$filter_item->category,
+                        "entries_count"=>$filter_item->entries_count,
+                        "type"=>$filter_item->type,
+                        "created_at"=>$filter_item->created_at->toDateTimeString()
+                    );
+                }
+                
+                $sortArray = array(); 
+                
+                foreach($filter_rows as $filter){ 
+                    foreach($filter as $key=>$value){ 
+                        if(!isset($sortArray[$key])){ 
+                            $sortArray[$key] = array(); 
+                        } 
+                        $sortArray[$key][] = $value; 
+                    } 
+                } 
+                if($order_str == "desc") {
+                    array_multisort($sortArray[$order_name],SORT_DESC,$filter_rows);
+                } else {
+                    array_multisort($sortArray[$order_name],SORT_ASC,$filter_rows);
+                }
+                $rows = array_slice($filter_rows,$start,$length,false);
+                $recordsFilterTotal = count($filter_rows);
+            } else {
+                $rows = FilterList::where('category', 'like',"%$search%")
+                    ->orderBy($order_name, $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+                $recordsFilterTotal = FilterList::where('category', 'like',"%$search%")->count();
+            }
         }
         
         return response()->json([

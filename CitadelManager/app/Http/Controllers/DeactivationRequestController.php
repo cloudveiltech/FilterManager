@@ -27,19 +27,46 @@ class DeactivationRequestController extends Controller
         $start = $request->input('start');
         $length = $request->input('length');
         $search = $request->input('search')['value'];
+
+        $order = $request->input('order')[0]['column'];
+        $order_name = $request->input('columns')[intval($order)]['data'];
+        $order_str = $request->input('order')[0]['dir'];
+
         $recordsTotal = DeactivationRequest::count();
         if(empty($search)) {
-            $rows = DeactivationRequest::with(['user'])
+            if($order_name == "user.name" || $order_name == "user.email") {
+                $rows = DeactivationRequest::with(['user'])
+                ->select('deactivation_requests.*')
+                ->leftJoin('users','deactivation_requests.user_id','=','users.id')
+                ->orderBy(str_replace("user", "users", $order_name), $order_str)
                 ->offset($start)
                 ->limit($length)
                 ->get();
+            }else{
+                $rows = DeactivationRequest::with(['user'])
+                ->offset($start)
+                ->limit($length)
+                ->get();
+            }
             $recordsFilterTotal = $recordsTotal;
         } else {
-            $rows = DeactivationRequest::with(['user'])
-                ->where('identifier', 'like',"%$search%")
+            if($order_name == "user.name" || $order_name == "user.email") {
+                $rows = DeactivationRequest::with(['user'])
+                ->where('device_id', 'like',"%$search%")
+                ->select('deactivation_requests.*')
+                ->leftJoin('users','deactivation_requests.user_id','=','users.id')
+                ->orderBy(str_replace("user", "users", $order_name), $order_str)
                 ->offset($start)
                 ->limit($length)
                 ->get();
+            }else{
+                $rows = DeactivationRequest::with(['user'])
+                    ->where('device_id', 'like',"%$search%")
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            }
+
             $recordsFilterTotal = DeactivationRequest::where('identifier', 'like',"%$search%")->count();
         }
         

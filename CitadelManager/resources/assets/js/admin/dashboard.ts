@@ -249,6 +249,7 @@ namespace Citadel
         private m_filterGroupSelectionArea: dragula.Drake;
 
         private m_allFilters;
+        private m_allGroups;
 
         /**
          * Creates an instance of Dashboard.
@@ -261,6 +262,7 @@ namespace Citadel
             // Setup nav.
             this.ConstructNavigation();
             this.loadAllFilters();
+            this.loadAllGroups();
             // Initialize views.
             this.ConstructManagementViews();
 
@@ -298,6 +300,23 @@ namespace Citadel
             $.post(ajaxSettings);
         }
 
+        private loadAllGroups(): void {
+            let ajaxSettings: JQueryAjaxSettings = {
+                method:"GET",
+                timeout: 60000,
+                url: "api/admin/group/all",
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                    this.m_allGroups = data;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(errorThrown);
+                }
+            }
+
+            $.post(ajaxSettings);
+        }
+
+        
         private ConstructManagementViews(): void
         {
             // Grab main view container references.
@@ -585,21 +604,16 @@ namespace Citadel
                         },
                         {
                             title: 'Primary DNS',
-                            data: 'app_cfg',
+                            data: 'primary_dns',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
-                                if(data === null || data === "")
-                                {
-                                    return "";
-                                }
-                                var app_cfg = JSON.parse(data);
                                 var str = "";
-                                if(app_cfg['PrimaryDns']===null || app_cfg['PrimaryDns']==="") {
+                                if(data===null || data==="") {
                                     
                                 } else {
 
-                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + app_cfg['PrimaryDns'];
+                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
                                 }
                                 return str;
                             }),
@@ -608,21 +622,16 @@ namespace Citadel
                         },
                         {
                             title: 'Secondary DNS',
-                            data: 'app_cfg',
+                            data: 'secondary_dns',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
-                                if(data === null || data === "")
-                                {
-                                    return "";
-                                }
-                                var app_cfg = JSON.parse(data);
                                 var str = "";
-                                if(app_cfg['SecondaryDns']===null || app_cfg['SecondaryDns']==="") {
+                                if(data===null ||data==="") {
                                     
                                 } else {
 
-                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + app_cfg['SecondaryDns'];
+                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
                                 }
                                 return str;
                             }),
@@ -631,7 +640,7 @@ namespace Citadel
                         },
                         {
                             title: 'Terminate/Internet/Threshold',
-                            data: 'app_cfg',
+                            data: 'terminate',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -639,7 +648,7 @@ namespace Citadel
                                 {
                                     return "";
                                 }
-                                var app_cfg = JSON.parse(data);
+                                var app_cfg = JSON.parse(row.app_cfg);
                                 var chk_terminate = app_cfg.CannotTerminate ? "checked":"";
                                 var chk_internet = app_cfg.BlockInternet ? "checked":"";
                                 var chk_threshold = app_cfg.UseThreshold ? "checked":"";
@@ -654,7 +663,7 @@ namespace Citadel
                         },
                         {
                             title: 'Bypass',
-                            data: 'app_cfg',
+                            data: 'bypass',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -662,7 +671,7 @@ namespace Citadel
                                 {
                                     return "";
                                 }
-                                var app_cfg = JSON.parse(data);
+                                var app_cfg = JSON.parse(row.app_cfg);
                                 var bypass_permitted = app_cfg['BypassesPermitted']===null || app_cfg['BypassesPermitted']===0 ? "": "<span class='mif-clipboard self-scale-4 fg-cyan'></span> " + app_cfg['BypassesPermitted'] + "<span class='unit_day'>/day</span>";
                                 var bypass_duration = app_cfg['BypassDuration']===null || app_cfg['BypassDuration']===0?"":" <span class='mif-alarm-on self-scale-5 fg-pink'></span> " + app_cfg['BypassDuration'] + "<span class='unit_min'>mins</span>";
                                 return bypass_permitted + bypass_duration;
@@ -672,16 +681,12 @@ namespace Citadel
                         },
                         {
                             title: 'Report Level',
-                            data: 'app_cfg',
+                            data: 'report_level',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
                                 //console.log(row.id, data);
-                                if(data === null || data === "")
-                                {
-                                    return "";
-                                }
-                                var app_cfg = JSON.parse(data);
+                                var app_cfg = JSON.parse(row.app_cfg);
                                 
                                 var chk_report = (app_cfg.ReportLevel == 1) ? "checked":"";
                                 //return app_cfg.ReportLevel;
@@ -1104,6 +1109,7 @@ namespace Citadel
                         {
                             title: 'Linked Group',
                             data: 'group_name',
+                            bSortable: false,
                             visible: true
                         },
                         {
@@ -1185,6 +1191,7 @@ namespace Citadel
                         {
                             title: 'Linked Apps',
                             data: 'app_names',
+                            bSortable: false,
                             visible: true
                         },
                         {
@@ -1256,7 +1263,7 @@ namespace Citadel
                         },
                         {
                             title: 'User',
-                            data: 'user.name',
+                            data: 'name',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -1458,6 +1465,7 @@ namespace Citadel
                             title: 'Platform',
                             data: 'platform',
                             className: 'content-left',
+                            bSortable: false,
                             visible: true,
                             width: '200px',
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
@@ -1486,6 +1494,7 @@ namespace Citadel
                             // needs to be included on the server side!
                             title: 'App Name',
                             data: 'app_name',
+                            bSortable: false,
                             className: 'content-left',
                             visible: true,
                             width: '140px',
@@ -1503,6 +1512,7 @@ namespace Citadel
                             title: 'File Name',
                             data: 'file_name',
                             className: 'content-left',
+                            bSortable: false,
                             visible: true,
                             width: '140px',
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
@@ -1518,6 +1528,7 @@ namespace Citadel
                         {
                             title: 'Version',                            
                             data: 'version_number',
+                            bSortable: false,
                             className: 'content-left version_number',
                             defaultContent: 'None',
                             width: '100px',
@@ -1534,6 +1545,7 @@ namespace Citadel
                         {
                             title: 'Release Date',
                             data: 'release_date',
+                            bSortable: false,
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -1549,6 +1561,7 @@ namespace Citadel
                         {
                             title: 'Alpha',
                             data: 'alpha',
+                            bSortable: false,
                             className: 'content-center sub_version_number',
                             visible: true, 
                             width: '100px',
@@ -1565,6 +1578,7 @@ namespace Citadel
                         {
                             title: 'Beta',
                             data: 'beta',
+                            bSortable: false,
                             visible: true,
                             width: '100px',
                             className:'content-center sub_version_number',
@@ -1581,6 +1595,7 @@ namespace Citadel
                         {
                             title: 'Stable',
                             data: 'stable',
+                            bSortable: false,
                             visible: true,
                             width: '100px',
                             className:'content-center sub_version_number',
@@ -1599,6 +1614,7 @@ namespace Citadel
                             // needs to be included on the server side!
                             title: 'Changes',
                             data: 'changes',
+                            bSortable: false,
                             className: 'content-left',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
@@ -1614,6 +1630,7 @@ namespace Citadel
                         {
                             title: 'Action',
                             data: 'active',
+                            bSortable: false,
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -1983,7 +2000,6 @@ namespace Citadel
             {
                 this.OnTableRowDoubleClicked(e, data);
             });
-           
         }
 
         /**
@@ -2118,7 +2134,7 @@ namespace Citadel
 
                         // We supply everything in the groups table so that the user's group
                         // can be changed to any available group.
-                        userRecord.StartEditing(this.m_tableGroups.data(), data);
+                        userRecord.StartEditing(this.m_allGroups, data);
                     }
                     break;
 

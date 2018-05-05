@@ -56,21 +56,32 @@ class AppUserActivationController extends Controller {
         $start = $request->input('start');
         $length = $request->input('length');
         $search = $request->input('search')['value'];
+
+
+        $order = $request->input('order')[0]['column'];
+        $order_name = $request->input('columns')[intval($order)]['data'];
+        $order_str = $request->input('order')[0]['dir'];
+
         $recordsTotal = AppUserActivation::count();
         if(empty($search)) {
-            $rows = AppUserActivation::with(['user'])
+            $rows = AppUserActivation::leftJoin("users", "users.id","=", "app_user_activations.user_id")
+                ->select('app_user_activations.*','users.name')
+                ->orderBy($order_name, $order_str)
                 ->offset($start)
                 ->limit($length)
                 ->get();
             $recordsFilterTotal = $recordsTotal;
         } else {
+            /*
             $rows = User::where('name', 'like',"%$search%")->select("id")->get()->toArray();
             $id_arr = [];
             foreach ($rows as $row) {
                 $id_arr[] = $row['id'];
-            }
-            $rows = AppUserActivation::with(['user'])
-                ->whereIn('user_id', $id_arr)
+            }*/
+            $rows = AppUserActivation::leftJoin("users", "users.id","=", "app_user_activations.user_id")
+                ->select('app_user_activations.*','users.name')
+                ->where('users.name', 'like',"%$search%")
+                ->orderBy($order_name, $order_str)
                 ->offset($start)
                 ->limit($length)
                 ->get();
