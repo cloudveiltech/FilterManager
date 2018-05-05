@@ -6,6 +6,7 @@ use App\AppGroup;
 use App\AppGroupToApp;
 use Illuminate\Http\Request;
 use App\Group;
+use App\UserGroupToAppGroup;
 use Log;
 class ApplicationController extends Controller
 {
@@ -24,19 +25,47 @@ class ApplicationController extends Controller
         $start = $request->input('start');
         $length = $request->input('length');
         $search = $request->input('search')['value'];
+
+        $order = $request->input('order')[0]['column'];
+        $order_name = $request->input('columns')[intval($order)]['data'];
+        $order_str = $request->input('order')[0]['dir'];
         $recordsTotal = App::count();
         if(empty($search)) {
-            $applications = App::with('group')
-                ->offset($start)
-                ->limit($length)
-                ->get();
+            if($order_name == "bypass_quantity") {
+                $applications = App::with('group')
+                    ->orderBy("bypass_used", $order_str)
+                    ->orderBy("bypass_quantity", $order_str)
+                    ->orderBy("bypass_period", $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            } else {
+                $applications = App::with('group')
+                    ->orderBy($order_name, $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            }
+            
             $recordsFilterTotal = $recordsTotal;
         } else {
-            $applications = App::with('group')
-                ->where('name', 'like',"%$search%")
-                ->offset($start)
-                ->limit($length)
-                ->get();
+            if($order_name == "bypass_quantity") {
+                $applications = App::with('group')
+                    ->where('name', 'like',"%$search%")
+                    ->orderBy("bypass_used", $order_str)
+                    ->orderBy("bypass_quantity", $order_str)
+                    ->orderBy("bypass_period", $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            } else {
+                $applications = App::with('group')
+                    ->where('name', 'like',"%$search%")
+                    ->orderBy($order_name, $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            }
             $recordsFilterTotal = App::where('name', 'like',"%$search%")->count();
         }
         
@@ -180,5 +209,22 @@ class ApplicationController extends Controller
         return response()->json([
             'app_groups'=>$app_groups,
             'selected_app_groups'=>$selected_app_groups]);
+    }
+    
+    private function rebuildGroupDataByApp($app_id) {
+        $appGroupLists = AppGroupToApp::where('app_id', '=', $app_id)->get();
+        if($appGroupLists->count() > 0) {
+            $arr_group_id = [];
+            foreach($appGroupLists as $app_group)  {
+                $arr_group_id[] = $app_group->app_group_id;
+            }
+
+            $userGroupLists = UserGroupToAppGroup::whereIn('app_group_id', $arr_group_id)->get();
+            if($userGroupLists->count() > 0) {
+                foreach($userGroupLists as $user_group) {
+                    Group::where('id', '=', $user_group->user_group_id)->rebuiltGroupData();
+                }
+            }
+        }
     }
 }

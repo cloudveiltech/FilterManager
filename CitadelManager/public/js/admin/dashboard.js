@@ -16,6 +16,7 @@ var Citadel;
             var _this = this;
             this.ConstructNavigation();
             this.loadAllFilters();
+            this.loadAllGroups();
             this.ConstructManagementViews();
             this.m_filterListUploadController = new Citadel.ListUploadOverlay();
             this.m_filterListUploadController.UploadCompleteCallback = (function () {
@@ -38,6 +39,21 @@ var Citadel;
                 url: "api/admin/filterlist/all",
                 success: function (data, textStatus, jqXHR) {
                     _this.m_allFilters = data;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(errorThrown);
+                }
+            };
+            $.post(ajaxSettings);
+        };
+        Dashboard.prototype.loadAllGroups = function () {
+            var _this = this;
+            var ajaxSettings = {
+                method: "GET",
+                timeout: 60000,
+                url: "api/admin/group/all",
+                success: function (data, textStatus, jqXHR) {
+                    _this.m_allGroups = data;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log(errorThrown);
@@ -263,18 +279,14 @@ var Citadel;
                     },
                     {
                         title: 'Primary DNS',
-                        data: 'app_cfg',
+                        data: 'primary_dns',
                         visible: true,
                         render: (function (data, t, row, meta) {
-                            if (data === null || data === "") {
-                                return "";
-                            }
-                            var app_cfg = JSON.parse(data);
                             var str = "";
-                            if (app_cfg['PrimaryDns'] === null || app_cfg['PrimaryDns'] === "") {
+                            if (data === null || data === "") {
                             }
                             else {
-                                str = "<span class='mif-flow-tree self-scale-3'></span> " + app_cfg['PrimaryDns'];
+                                str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
                             }
                             return str;
                         }),
@@ -283,18 +295,14 @@ var Citadel;
                     },
                     {
                         title: 'Secondary DNS',
-                        data: 'app_cfg',
+                        data: 'secondary_dns',
                         visible: true,
                         render: (function (data, t, row, meta) {
-                            if (data === null || data === "") {
-                                return "";
-                            }
-                            var app_cfg = JSON.parse(data);
                             var str = "";
-                            if (app_cfg['SecondaryDns'] === null || app_cfg['SecondaryDns'] === "") {
+                            if (data === null || data === "") {
                             }
                             else {
-                                str = "<span class='mif-flow-tree self-scale-3'></span> " + app_cfg['SecondaryDns'];
+                                str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
                             }
                             return str;
                         }),
@@ -303,13 +311,13 @@ var Citadel;
                     },
                     {
                         title: 'Terminate/Internet/Threshold',
-                        data: 'app_cfg',
+                        data: 'terminate',
                         visible: true,
                         render: (function (data, t, row, meta) {
                             if (data === null || data === "") {
                                 return "";
                             }
-                            var app_cfg = JSON.parse(data);
+                            var app_cfg = JSON.parse(row.app_cfg);
                             var chk_terminate = app_cfg.CannotTerminate ? "checked" : "";
                             var chk_internet = app_cfg.BlockInternet ? "checked" : "";
                             var chk_threshold = app_cfg.UseThreshold ? "checked" : "";
@@ -323,13 +331,13 @@ var Citadel;
                     },
                     {
                         title: 'Bypass',
-                        data: 'app_cfg',
+                        data: 'bypass',
                         visible: true,
                         render: (function (data, t, row, meta) {
                             if (data === null || data === "") {
                                 return "";
                             }
-                            var app_cfg = JSON.parse(data);
+                            var app_cfg = JSON.parse(row.app_cfg);
                             var bypass_permitted = app_cfg['BypassesPermitted'] === null || app_cfg['BypassesPermitted'] === 0 ? "" : "<span class='mif-clipboard self-scale-4 fg-cyan'></span> " + app_cfg['BypassesPermitted'] + "<span class='unit_day'>/day</span>";
                             var bypass_duration = app_cfg['BypassDuration'] === null || app_cfg['BypassDuration'] === 0 ? "" : " <span class='mif-alarm-on self-scale-5 fg-pink'></span> " + app_cfg['BypassDuration'] + "<span class='unit_min'>mins</span>";
                             return bypass_permitted + bypass_duration;
@@ -339,13 +347,10 @@ var Citadel;
                     },
                     {
                         title: 'Report Level',
-                        data: 'app_cfg',
+                        data: 'report_level',
                         visible: true,
                         render: (function (data, t, row, meta) {
-                            if (data === null || data === "") {
-                                return "";
-                            }
-                            var app_cfg = JSON.parse(data);
+                            var app_cfg = JSON.parse(row.app_cfg);
                             var chk_report = (app_cfg.ReportLevel == 1) ? "checked" : "";
                             return "<label class='switch-original'><input type='checkbox' id='group_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
                         }),
@@ -666,6 +671,7 @@ var Citadel;
                     {
                         title: 'Linked Group',
                         data: 'group_name',
+                        bSortable: false,
                         visible: true
                     },
                     {
@@ -725,6 +731,7 @@ var Citadel;
                     {
                         title: 'Linked Apps',
                         data: 'app_names',
+                        bSortable: false,
                         visible: true
                     },
                     {
@@ -774,7 +781,7 @@ var Citadel;
                     },
                     {
                         title: 'User',
-                        data: 'user.name',
+                        data: 'name',
                         visible: true,
                         render: (function (data, t, row, meta) {
                             var name = data;
@@ -940,6 +947,7 @@ var Citadel;
                         title: 'Platform',
                         data: 'platform',
                         className: 'content-left',
+                        bSortable: false,
                         visible: true,
                         width: '200px',
                         render: (function (data, t, row, meta) {
@@ -968,6 +976,7 @@ var Citadel;
                     {
                         title: 'App Name',
                         data: 'app_name',
+                        bSortable: false,
                         className: 'content-left',
                         visible: true,
                         width: '140px',
@@ -984,6 +993,7 @@ var Citadel;
                         title: 'File Name',
                         data: 'file_name',
                         className: 'content-left',
+                        bSortable: false,
                         visible: true,
                         width: '140px',
                         render: (function (data, t, row, meta) {
@@ -998,6 +1008,7 @@ var Citadel;
                     {
                         title: 'Version',
                         data: 'version_number',
+                        bSortable: false,
                         className: 'content-left version_number',
                         defaultContent: 'None',
                         width: '100px',
@@ -1013,6 +1024,7 @@ var Citadel;
                     {
                         title: 'Release Date',
                         data: 'release_date',
+                        bSortable: false,
                         visible: true,
                         render: (function (data, t, row, meta) {
                             if (row.active === 1) {
@@ -1028,6 +1040,7 @@ var Citadel;
                     {
                         title: 'Alpha',
                         data: 'alpha',
+                        bSortable: false,
                         className: 'content-center sub_version_number',
                         visible: true,
                         width: '100px',
@@ -1043,6 +1056,7 @@ var Citadel;
                     {
                         title: 'Beta',
                         data: 'beta',
+                        bSortable: false,
                         visible: true,
                         width: '100px',
                         className: 'content-center sub_version_number',
@@ -1058,6 +1072,7 @@ var Citadel;
                     {
                         title: 'Stable',
                         data: 'stable',
+                        bSortable: false,
                         visible: true,
                         width: '100px',
                         className: 'content-center sub_version_number',
@@ -1073,6 +1088,7 @@ var Citadel;
                     {
                         title: 'Changes',
                         data: 'changes',
+                        bSortable: false,
                         className: 'content-left',
                         visible: true,
                         render: (function (data, t, row, meta) {
@@ -1087,6 +1103,7 @@ var Citadel;
                     {
                         title: 'Action',
                         data: 'active',
+                        bSortable: false,
                         visible: true,
                         render: (function (data, t, row, meta) {
                             if (data === 1) {
@@ -1396,7 +1413,7 @@ var Citadel;
                             userRecord_1.StopEditing();
                             _this.ForceTableRedraw(_this.m_tableUsers);
                         });
-                        userRecord_1.StartEditing(this.m_tableGroups.data(), data);
+                        userRecord_1.StartEditing(this.m_allGroups, data);
                     }
                     break;
                 case 'group_table':

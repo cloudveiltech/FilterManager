@@ -430,7 +430,7 @@ namespace Citadel
             this.m_reportLevel = this.m_reportLevelInput.checked == true ? 1 : 0;
         }
 
-        public StartEditing(allGroups: DataTables.DataTable, userData: Object = null): void
+        public StartEditing(allGroups: any[], userData: Object = null): void
         {
 
             // Clear any existing options.
@@ -440,13 +440,13 @@ namespace Citadel
             }
 
             // Populate group options with what we have available.
-            allGroups.each((elm: any): void =>
+            for(var elm of allGroups) 
             {
                 let option = document.createElement('option') as HTMLOptionElement;
                 option.text = elm['name'];
                 option.value = elm['id'];
                 this.m_groupIdInput.options.add(option);
-            });
+            }
 
             switch (userData == null)
             {

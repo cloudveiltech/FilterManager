@@ -37,28 +37,80 @@ class GroupController extends Controller
         $start = $request->input('start');
         $length = $request->input('length');
         $search = $request->input('search')['value'];
+        $order = $request->input('order')[0]['column'];
+        $order_name = $request->input('columns')[intval($order)]['data'];
+        $order_str = $request->input('order')[0]['dir'];
         $recordsTotal = Group::count();
         if(empty($search)) {
-            $rows = Group::with('assignedFilterIds')
-                ->with('userCount')
-                ->offset($start)
-                ->limit($length)
-                ->get();
+            if($order_name == "name" || $order_name == "isactive" || $order_name== "created_at") {
+
+                $rows = Group::with('assignedFilterIds')
+                    ->with('userCount')
+                    ->orderBy($order_name, $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            } else {
+
+                $rows = Group::with('assignedFilterIds')
+                    ->with('userCount')
+                    ->get();
+            }
             $recordsFilterTotal = $recordsTotal;
         } else {
-            $rows = Group::with('assignedFilterIds')
-                ->with('userCount')
-                ->where('name', 'like',"%$search%")
-                ->offset($start)
-                ->limit($length)
-                ->get();
+            if($order_name == "name" || $order_name == "isactive" || $order_name== "created_at") {
+
+                $rows = Group::with('assignedFilterIds')
+                    ->with('userCount')
+                    ->where('name', 'like',"%$search%")
+                    ->orderBy($order_name, $order_str)
+                    ->offset($start)
+                    ->limit($length)
+                    ->get();
+            }else {
+                $rows = Group::with('assignedFilterIds')
+                    ->with('userCount')
+                    ->where('name', 'like',"%$search%")
+                    ->get();
+            }
             $recordsFilterTotal = Group::where('name', 'like',"%$search%")->count();
         }
         
         $group_data = array();
-        
         foreach($rows as $key => $group) {
             $user_count = count($rows[$key]->userCount);
+            $app_cfg = json_decode($group->app_cfg);
+            $terminate = "";
+            if($app_cfg->CannotTerminate){
+                $terminate .= "1";
+            } else {
+                $terminate .= "0";
+            }
+            if($app_cfg->BlockInternet){
+                $terminate .= "1";
+            } else {
+                $terminate .= "0";
+            }
+            if($app_cfg->UseThreshold){
+                $terminate .= "1";
+            } else {
+                $terminate .= "0";
+            }
+            $bypass = "";
+            if($app_cfg->BypassesPermitted == null) {
+                $bypass .= "000";
+            } else {
+                $bypass .= str_pad($app_cfg->BypassesPermitted, 3, '0', STR_PAD_LEFT);
+            }
+            if($app_cfg->BypassDuration == null) {
+                $bypass .= "000";
+            } else {
+                $bypass .= str_pad($app_cfg->BypassDuration, 3, '0', STR_PAD_LEFT);
+            }
+            $report_level = 0;
+            if(isset($app_cfg->ReportLevel)) {
+                $report_level = $app_cfg->ReportLevel;
+            }
             $group_data[] = array(
                 "id"=>$group->id,
                 "name"=>$group->name,
@@ -67,15 +119,45 @@ class GroupController extends Controller
                 "isactive"=>$group->isactive,
                 "assigned_filter_ids"=>$group->assignedFilterIds,
                 "created_at"=>$group->created_at->toDateTimeString(),
-                "updated_at"=>$group->updated_at->toDateTimeString()
+                "updated_at"=>$group->updated_at->toDateTimeString(),
+                "primary_dns"=>$app_cfg->PrimaryDns,
+                "secondary_dns"=>$app_cfg->SecondaryDns,
+                "terminate"=>$terminate,
+                "bypass"=>$bypass,
+                "report_level"=>$report_level
             );
         }
+        
+        
+        if($order_name == "primary_dns" || $order_name == "secondary_dns" || $order_name == "terminate"|| $order_name == "bypass"|| $order_name == "report_level" ) {
+
+            $sortArray = array(); 
+            
+            foreach($group_data as $group){ 
+                foreach($group as $key=>$value){ 
+                    if(!isset($sortArray[$key])){ 
+                        $sortArray[$key] = array(); 
+                    } 
+                    $sortArray[$key][] = $value; 
+                } 
+            } 
+            if($order_str == "desc") {
+                array_multisort($sortArray[$order_name],SORT_DESC,$group_data);
+            } else {
+                array_multisort($sortArray[$order_name],SORT_ASC,$group_data);
+            }
+            $group_data = array_slice($group_data,$start,$length,false);
+        }
+
         return response()->json([
             "draw" => intval($draw),
             "recordsTotal" => $recordsTotal,
             "recordsFiltered" => $recordsFilterTotal,
             "data" => $group_data
         ]);
+    }
+    public function get_groups() {
+        return Group::select("id", "name")->get();
     }
     public function updateField(Request $request) {
         $id = $request->input('id');
