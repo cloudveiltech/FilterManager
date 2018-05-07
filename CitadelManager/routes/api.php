@@ -59,9 +59,11 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::resource('blockreview', 'BlockActionReviewRequestController');
 
     //Route::get('activations/{id}', 'UserController@activation_data');
+    Route::resource('user_activations', 'AppUserActivationController');
     Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
     Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
-
+    Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
+    
     Route::get('activations', 'AppUserActivationController@index');
     Route::post('activations/update_report', 'AppUserActivationController@updateReport');
     Route::post('activations/update_alert', 'AppUserActivationController@updateAlert');
@@ -69,10 +71,9 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
 
     Route::resource('whitelists', 'GlobalWhitelistController');
     Route::resource('blacklists', 'GlobalBlacklistController');
+
     Route::resource('app', 'ApplicationController');
     Route::resource('app_group', 'ApplicationGroupController');
-    Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
-    Route::resource('user_activations', 'AppUserActivationController');
 
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
@@ -186,8 +187,10 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live','api','auth:api
      Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
      
      Route::get('activations', 'AppUserActivationController@index');
-     Route::post('activations/update_field', 'AppUserActivationController@updateField');
- 
+     Route::post('activations/update_report', 'AppUserActivationController@updateReport');
+     Route::post('activations/update_alert', 'AppUserActivationController@updateAlert');
+     Route::post('activations/update_check_in_days', 'AppUserActivationController@updateCheckInDays');
+
      Route::resource('whitelists', 'GlobalWhitelistController');
      Route::resource('blacklists', 'GlobalBlacklistController');
      Route::resource('app', 'ApplicationController');
