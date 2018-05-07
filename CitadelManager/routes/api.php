@@ -35,15 +35,24 @@ use Illuminate\Http\Request;
 // For example, there should be group admins, where a user is given
 // access/responsibility to manage their group. This would need to
 // be factored into some design changes here.
+
+/* 
+ * ATTENTION: We are looking at migrating this section of routes to be accessible with api protection
+ * These routes are all duplicated farther down in the file.
+ * Any additional routes should go in v2/admin to allow us to keep integrating with other systems.
+ */
 Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin']], function() {
 
     Route::resource('users', 'UserController');
     Route::post('users/update_field', 'UserController@updateField');
+
     Route::resource('groups', 'GroupController');
     Route::post('groups/update_field', 'GroupController@updateField');
     Route::get('group/all', 'GroupController@get_groups');
+
     Route::resource('deactivationreq', 'DeactivationRequestController');
     Route::post('deactivationreq/update_field', 'DeactivationRequestController@updateField');
+
     Route::resource('filterlists', 'FilterListController');
     Route::get('filterlist/all', 'FilterListController@get_filters');
     
@@ -52,6 +61,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     //Route::get('activations/{id}', 'UserController@activation_data');
     Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
     Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
+
     Route::get('activations', 'AppUserActivationController@index');
     Route::post('activations/update_report', 'AppUserActivationController@updateReport');
     Route::post('activations/update_alert', 'AppUserActivationController@updateAlert');
@@ -71,6 +81,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::post('/apply_app_to_app_group', 'ApplyAppToAppGroupController@applyToGroup');
     Route::get('/apply_app_to_appgroup/data', 'ApplyAppToAppGroupController@getRetrieveData');
     Route::get('/apply_app_to_appgroup/selected_group/{id}', 'ApplyAppToAppGroupController@getSelectedGroups');
+
     // Apply app  to appgroup.
     Route::post('/apply_appgroup_to_usergroup', 'ApplyAppgroupToUsergroupController@applyToGroup');
     Route::get('/apply_appgroup_to_usergroup/data', 'ApplyAppgroupToUsergroupController@getRetrieveData');
@@ -153,6 +164,71 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live','api','auth:api
     });
     
     Route::get('/activations', 'AppUserActivationController@index');
+
+     /*Start API Auth Routes*/
+     Route::resource('users', 'UserController');
+     Route::post('users/update_field', 'UserController@updateField');
+ 
+     Route::resource('groups', 'GroupController');
+     Route::post('groups/update_field', 'GroupController@updateField');
+     Route::get('group/all', 'GroupController@get_groups');
+ 
+     Route::resource('deactivationreq', 'DeactivationRequestController');
+     Route::post('deactivationreq/update_field', 'DeactivationRequestController@updateField');
+ 
+     Route::resource('filterlists', 'FilterListController');
+     Route::get('filterlist/all', 'FilterListController@get_filters');
+     
+     Route::resource('blockreview', 'BlockActionReviewRequestController');
+ 
+     //Route::get('activations/{id}', 'UserController@activation_data');
+     Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
+     Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
+     
+     Route::get('activations', 'AppUserActivationController@index');
+     Route::post('activations/update_field', 'AppUserActivationController@updateField');
+ 
+     Route::resource('whitelists', 'GlobalWhitelistController');
+     Route::resource('blacklists', 'GlobalBlacklistController');
+     Route::resource('app', 'ApplicationController');
+     Route::resource('app_group', 'ApplicationGroupController');
+     Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
+     Route::resource('user_activations', 'AppUserActivationController');
+ 
+     // For handling mass upload of filter lists.
+     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
+ 
+     // Apply app  to appgroup.
+     Route::post('/apply_app_to_app_group', 'ApplyAppToAppGroupController@applyToGroup');
+     Route::get('/apply_app_to_appgroup/data', 'ApplyAppToAppGroupController@getRetrieveData');
+     Route::get('/apply_app_to_appgroup/selected_group/{id}', 'ApplyAppToAppGroupController@getSelectedGroups');
+ 
+     // Apply app  to appgroup.
+     Route::post('/apply_appgroup_to_usergroup', 'ApplyAppgroupToUsergroupController@applyToGroup');
+     Route::get('/apply_appgroup_to_usergroup/data', 'ApplyAppgroupToUsergroupController@getRetrieveData');
+     Route::get('/apply_appgroup_to_usergroup/selected_user_group/{id}', 'ApplyAppgroupToUsergroupController@getSelectedUsergroups');
+ 
+     
+     // For handling deletion of all records in a namespace.
+     Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');
+ 
+     // Get application for app_group_editing.
+     Route::get('/applications', 'ApplicationController@get_application');
+     Route::get('/get_app_data', 'GroupController@get_app_data');
+     Route::get('/get_app_data/{id}', 'GroupController@get_app_data_with_groupid');
+     //Route::get('/get_current_applications', 'ApplicationController@getApps');
+ 
+     Route::get('/get_appgroup_data', 'ApplicationController@get_appgroup_data');
+     Route::get('/get_appgroup_data/{id}', 'ApplicationController@get_appgroup_data_with_app_id');
+     
+     Route::get('/versions', 'SystemVersionController@index');
+     Route::post('/versions/update_status', 'SystemVersionController@updateStatus');
+     Route::get('/platforms', 'SystemVersionController@getPlatforms');
+     Route::post('/platform/create', 'SystemVersionController@createPlatform');
+     Route::post('/platform/update/{id}', 'SystemVersionController@updatePlatform');
+     Route::post('/platform/delete', 'SystemVersionController@deletePlatform');
+     Route::resource('version', 'SystemVersionController');
+     /*End API Auth Routes*/
 });
 
 /* Token Management */

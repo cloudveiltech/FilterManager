@@ -19,14 +19,14 @@ class checkDBLive
         try {
             DB::connection()->getPdo();
             if(DB::connection()->getDatabaseName()){
-                Log::debug("Connection Success!" . DB::connection()->getDatabaseName());
+                //Log::debug("Connection Success!" . DB::connection()->getDatabaseName());
                 return $next($request);
             } else {
-                Log::debug("Connection Failed1!");
+                Log::debug("Database Connection Failed!");
                 return response('System Failure.', 500);    
             }
         } catch (\Exception $e) {
-            Log::debug("Connection Failed!");
+            Log::debug("Database Connection Failed!");
             return response('System Failure.', 500);
         }   
     }
