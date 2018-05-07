@@ -73,7 +73,7 @@ var Citadel;
         };
         AppUserActivationRecord.prototype.LoadFromObject = function (data) {
             this.m_activationId = data['id'];
-            this.m_userName = data['user']['name'];
+            this.m_userName = data['name'];
             this.m_identifier = data['identifier'];
             this.m_ipAddress = data['ip_address'];
             this.m_deviceId = data['device_id'];
@@ -111,6 +111,12 @@ var Citadel;
                 this.m_bypassPeriodInput.value = "";
             this.m_bypassUsedInput.value = this.m_bypassUsed.toString();
             this.m_reportLevelInput.checked = (this.m_reportLevel === 1);
+            if (this.m_reportLevel === 1) {
+                this.m_reportLevelText.innerHTML = "Report blocked sites back to server";
+            }
+            else {
+                this.m_reportLevelText.innerHTML = "No reporting back to server";
+            }
             this.m_mainForm.onsubmit = (function (e) {
                 return _this.OnFormSubmitClicked(e, userData == null);
             });
