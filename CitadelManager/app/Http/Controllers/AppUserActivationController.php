@@ -57,7 +57,6 @@ class AppUserActivationController extends Controller {
         $length = $request->input('length');
         $search = $request->input('search')['value'];
 
-
         $order = $request->input('order')[0]['column'];
         $order_name = $request->input('columns')[intval($order)]['data'];
         $order_str = $request->input('order')[0]['dir'];
@@ -96,7 +95,7 @@ class AppUserActivationController extends Controller {
         ]);
       }
     }
-    public function updateField(Request $request) {
+    public function updateReport(Request $request) {
         $id = $request->input('id');
         $value = intval($request->input('value'));   //0 or 1
 
@@ -108,6 +107,25 @@ class AppUserActivationController extends Controller {
         }
         $activation_id = intval($id_arr[2]);
         AppUserActivation::where('id', $activation_id)->update(['report_level'=>$value]);
+       
+        return response()->json([
+            "success" => true
+        ]);
+    }
+
+    public function updateAlert(Request $request) {
+        $id = $request->input('id');
+        $value = intval($request->input('value'));   //0 or 1
+        AppUserActivation::where('id', $id)->update(['alert_partner'=>$value]);
+        return response()->json([
+            "success" => true
+        ]);
+    }
+
+    public function updateCheckInDays(Request $request) {
+        $id = $request->input('id');
+        $value = intval($request->input('value'));   
+        AppUserActivation::where('id', $id)->update(['check_in_days'=>$value]);
        
         return response()->json([
             "success" => true

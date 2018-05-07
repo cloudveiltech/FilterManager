@@ -53,7 +53,9 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live','web','role:admin'
     Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
     Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
     Route::get('activations', 'AppUserActivationController@index');
-    Route::post('activations/update_field', 'AppUserActivationController@updateField');
+    Route::post('activations/update_report', 'AppUserActivationController@updateReport');
+    Route::post('activations/update_alert', 'AppUserActivationController@updateAlert');
+    Route::post('activations/update_check_in_days', 'AppUserActivationController@updateCheckInDays');
 
     Route::resource('whitelists', 'GlobalWhitelistController');
     Route::resource('blacklists', 'GlobalBlacklistController');

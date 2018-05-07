@@ -349,6 +349,9 @@ Main admin page.
     height: 34px;
 
 }
+.check-in-days {
+    width: 40px;
+}
 #view_app_management{width: 100%;  padding: 10px;}
 #view_system_versions_management{width: 100%; padding: 10px;}
 .version_number{
@@ -596,7 +599,7 @@ User editor.
     margin-bottom: 0px !important;
 }
 #overlay_user_editor{width: 100%; height: 100%; z-index:1104; position:fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; overflow: auto}
-#div_08c2_0{width: 90%; height: 500px; left:5%; top:40%; margin-left: 0px; margin-top: -250px; position:absolute; color: white;}
+#div_08c2_0{width: 90%; height: 500px; left:5%; top:0; margin-left: 0px; margin-top: 50px; position:absolute; color: white;}
 #user_editing_title{text-align: center;}
 #div_08c2_1{padding: 20px;}
 #label_08c2_0{margin-left: 10px;}

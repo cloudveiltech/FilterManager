@@ -199,7 +199,6 @@ namespace Citadel
                         title: 'Identifier',
                         data: 'identifier',
                         visible: true,
-                        width: '425px'
                     },
                     {
                         title: 'Device Id',
@@ -223,9 +222,33 @@ namespace Citadel
                         title: 'Updated date',
                         data: 'updated_at',
                         visible: true,
-                        width: "220px"
+                        width: "280px"
                     },
                     {
+                        title: 'Check-in Days',
+                        data: 'check_in_days',
+                        visible: true,
+                        width: "100px",
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                        {   
+                            return "<input type='number' data-id='" + row.id + "' value='"+data+"' class='check-in-days' />";
+                        })
+                    },
+                    {
+                        title: 'Alert Partner',
+                        data: 'alert_partner',
+                        visible: true,
+                        width: "100px",
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
+                        {   
+                            var chk_report = (data === 1) ? "checked":"";
+                            var str = "<label class='switch-original'><input type='checkbox' data-id='"+row.id+"' "+chk_report+" /><span class='check'></span></label>";
+                            return str;
+                            
+                        })
+                    },
+                    {
+                        width: "300px",
                         "mRender": function ( data, type, row ) {
                             return "<button id='delete_"+row.id+"' class='btn-delete button primary'>Delete</button> <button id='block_"+row.id+"' class='btn-block button primary'>Block</button>";
                         }
@@ -258,6 +281,7 @@ namespace Citadel
                 {
                     autoWidth: true,
                     stateSave: true,
+                    responsive: true,
                     columns: activationTableColumns,
                     ajax: activationTablesLoadFromAjaxSettings,
                     
@@ -268,111 +292,177 @@ namespace Citadel
                     rowCallback: ((row: Node, data: any[] | Object): void =>
                     {
                         //this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: (( settings ): void =>
+                    {
+                        let that = this;
+                        $("#user_activation_table").off("change", "input[type='checkbox']");
+                        $("#user_activation_table").on("change", "input[type='checkbox']", function () {
+                            let id = $(this).attr("data-id");
+                            let val = 0;
+                            if (this.checked) {
+                                val = 1;
+                            }
+                            let checkAjaxSettings: JQueryAjaxSettings = {
+                                method:"POST",
+                                timeout: 60000,
+                                url: "api/admin/activations/update_alert",
+                                data: {id: id, value: val},
+                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                    //that.ForceTableRedraw(that.m_tableUsers);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                        // Almost certainly auth related error. Redirect to login
+                                        // by signalling for logout.
+                                        //window.location.href = 'login.php?logout';
+                                    } else {
+                                        
+                                    }
+                                }
+                            }
+                
+                            $.post(checkAjaxSettings);
+                        });
+
+                        $("#user_activation_table").off("blur", "input[type='number']");
+                        $("#user_activation_table").on("blur", "input[type='number']", function () {
+                            let id = $(this).attr("data-id");
+                            let val = this.value;
+
+                            let checkAjaxSettings: JQueryAjaxSettings = {
+                                method:"POST",
+                                timeout: 60000,
+                                url: "api/admin/activations/update_check_in_days",
+                                data: {id: id, value: val},
+                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                    //that.ForceTableRedraw(that.m_tableUsers);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                                        // Almost certainly auth related error. Redirect to login
+                                        // by signalling for logout.
+                                        //window.location.href = 'login.php?logout';
+                                    } else {
+                                        
+                                    }
+                                }
+                            }
+                
+                            $.post(checkAjaxSettings);
+                        });
+                        $("#user_activation_table").off("click", "button.btn-delete");
+                        $("#user_activation_table").on('click', 'button.btn-delete', function(e){
+                            e.preventDefault();
+                            if (confirm("Are you sure you want to delete this activation?"))
+                            {
+                                let dataObject = {};
+                                let id_str = e.target.id;
+                                let id = id_str.split("_")[1];
+                                let ajaxSettings: JQueryAjaxSettings =
+                                {
+                                    method: "POST",
+                                    timeout: 60000,
+                                    url:'api/admin/user_activations/delete/' +id,
+                                    data: dataObject,
+                                    // Callback if the call was a success.
+                                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
+                                    {                            
+                                        that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
+                                        that.m_ActivationTables.ajax.reload()
+                                        return false;
+                                    },
+                
+                                    // Callback if the call was a failure.
+                                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                                    {
+                                        console.log(jqXHR.responseText);
+                                        console.log(errorThrown);
+                                        console.log(textStatus);
+                                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                        setTimeout(() => 
+                                            {
+                                                this.m_progressWait.Hide();
+                                            }, 5000);
+                
+                                        if (jqXHR.status > 399 && jqXHR.status < 500)
+                                        {
+                                            // Almost certainly auth related error. Redirect to login
+                                            // by signalling for logout.
+                                            //window.location.href = 'login.php?logout';
+                                        }
+                                        else
+                                        {
+                                            
+                                        }
+                                    }
+                                }
+                
+                                // POST the auth request.
+                                $.post(ajaxSettings);
+                            }
+                        });
+                        $("#user_activation_table").off("click", "button.btn-block");
+                        $("#user_activation_table").on('click', 'button.btn-block', function(e){
+                            e.preventDefault();
+                            if (confirm("Are you sure you want to delete this activation and block the token?  The user will need to sign in again."))
+                            {
+                                let dataObject = {};
+                                let id_str = e.target.id;
+                                let id = id_str.split("_")[1];
+                                let ajaxSettings: JQueryAjaxSettings =
+                                {
+                                    method: "POST",
+                                    timeout: 60000,
+                                    url:'api/admin/user_activations/block/' +id,
+                                    data: dataObject,
+                                    // Callback if the call was a success.
+                                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
+                                    {                            
+                                        that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
+                                        that.m_ActivationTables.ajax.reload()
+                                        return false;
+                                    },
+                
+                                    // Callback if the call was a failure.
+                                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
+                                    {
+                                        console.log(jqXHR.responseText);
+                                        console.log(errorThrown);
+                                        console.log(textStatus);
+                                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                        setTimeout(() => 
+                                            {
+                                                this.m_progressWait.Hide();
+                                            }, 5000);
+                
+                                        if (jqXHR.status > 399 && jqXHR.status < 500)
+                                        {
+                                            // Almost certainly auth related error. Redirect to login
+                                            // by signalling for logout.
+                                            //window.location.href = 'login.php?logout';
+                                        }
+                                        else
+                                        {
+                                            
+                                        }
+                                    }
+                                }
+                
+                                // POST the auth request.
+                                $.post(ajaxSettings);
+                            }
+                        });
                     })
                 };
-
-                activationTableSettings['responsive'] = true;
-                this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
-                this.m_ActivationTables.on('click', 'button.btn-delete', function(e){
-                e.preventDefault();
-                if (confirm("Are you sure you want to delete this activation?"))
-                {
-                    let dataObject = {};
-                    let id_str = e.target.id;
-                    let id = id_str.split("_")[1];
-                    let ajaxSettings: JQueryAjaxSettings =
-                    {
-                        method: "POST",
-                        timeout: 60000,
-                        url:'api/admin/user_activations/delete/' +id,
-                        data: dataObject,
-                        // Callback if the call was a success.
-                        success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                        {                            
-                            that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
-                            that.m_ActivationTables.ajax.reload()
-                            return false;
-                        },
-    
-                        // Callback if the call was a failure.
-                        error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            console.log(jqXHR.responseText);
-                            console.log(errorThrown);
-                            console.log(textStatus);
-                            this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
-                            setTimeout(() => 
-                                {
-                                    this.m_progressWait.Hide();
-                                }, 5000);
-    
-                            if (jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //window.location.href = 'login.php?logout';
-                            }
-                            else
-                            {
-                                
-                            }
-                        }
-                    }
-    
-                    // POST the auth request.
-                    $.post(ajaxSettings);
-                }
-            });
-            this.m_ActivationTables.on('click', 'button.btn-block', function(e){
-                e.preventDefault();
-                if (confirm("Are you sure you want to delete this activation and block the token?  The user will need to sign in again."))
-                {
-                    let dataObject = {};
-                    let id_str = e.target.id;
-                    let id = id_str.split("_")[1];
-                    let ajaxSettings: JQueryAjaxSettings =
-                    {
-                        method: "POST",
-                        timeout: 60000,
-                        url:'api/admin/user_activations/block/' +id,
-                        data: dataObject,
-                        // Callback if the call was a success.
-                        success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                        {                            
-                            that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
-                            that.m_ActivationTables.ajax.reload()
-                            return false;
-                        },
-    
-                        // Callback if the call was a failure.
-                        error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            console.log(jqXHR.responseText);
-                            console.log(errorThrown);
-                            console.log(textStatus);
-                            this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
-                            setTimeout(() => 
-                                {
-                                    this.m_progressWait.Hide();
-                                }, 5000);
-    
-                            if (jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //window.location.href = 'login.php?logout';
-                            }
-                            else
-                            {
-                                
-                            }
-                        }
-                    }
-    
-                    // POST the auth request.
-                    $.post(ajaxSettings);
-                }
-            });
+                
+            this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
+            
+            
             
         }
 
