@@ -46,7 +46,8 @@ class AppUserActivationController extends Controller {
           $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
           $user = User::find($user_id);
           if ($user && $user->activations()) {
-              return $user->activations()->with('deactivation_request')->get();
+            $activations = $user->activations()->with('deactivation_request')->get();
+              return $activations;
           } else {
               return response()->json([]);
           } 
@@ -71,12 +72,6 @@ class AppUserActivationController extends Controller {
                 ->get();
             $recordsFilterTotal = $recordsTotal;
         } else {
-            /*
-            $rows = User::where('name', 'like',"%$search%")->select("id")->get()->toArray();
-            $id_arr = [];
-            foreach ($rows as $row) {
-                $id_arr[] = $row['id'];
-            }*/
             $rows = AppUserActivation::leftJoin("users", "users.id","=", "app_user_activations.user_id")
                 ->select('app_user_activations.*','users.name')
                 ->where('users.name', 'like',"%$search%")
