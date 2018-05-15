@@ -84,7 +84,8 @@ class AppUserActivationController extends Controller {
                 ->offset($start)
                 ->limit($length)
                 ->get();
-            $recordsFilterTotal = AppUserActivation::whereIn('user_id', $id_arr)->count();
+
+            $recordsFilterTotal = User::where('name', 'like',"%$search%")->count();;
         }
         
         return response()->json([
