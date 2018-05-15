@@ -150,7 +150,7 @@ namespace Citadel
         protected LoadFromObject(data: Object): void
         {
             this.m_activationId = data['id'] as number;
-            this.m_userName = data['user']['name'] as string;
+            this.m_userName = data['name'] as string;
             this.m_identifier = data['identifier'] as string;
             this.m_ipAddress = data['ip_address'] as string;
             this.m_deviceId = data['device_id'] as string;
@@ -196,6 +196,11 @@ namespace Citadel
             
             this.m_bypassUsedInput.value = this.m_bypassUsed.toString();
             this.m_reportLevelInput.checked = (this.m_reportLevel === 1);
+            if(this.m_reportLevel === 1) {
+                this.m_reportLevelText.innerHTML = "Report blocked sites back to server";
+            } else {
+                this.m_reportLevelText.innerHTML = "No reporting back to server";
+            }
             this.m_mainForm.onsubmit = ((e: Event): any =>
             {
                 return this.OnFormSubmitClicked(e, userData == null);

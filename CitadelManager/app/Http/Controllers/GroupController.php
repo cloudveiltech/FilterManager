@@ -129,10 +129,10 @@ class GroupController extends Controller
         }
         
         
-        if($order_name == "primary_dns" || $order_name == "secondary_dns" || $order_name == "terminate"|| $order_name == "bypass"|| $order_name == "report_level" ) {
-
-            $sortArray = array(); 
+        if($order_name == "id" || $order_name == "primary_dns" || $order_name == "secondary_dns" || $order_name == "terminate"|| $order_name == "bypass"|| $order_name == "report_level" ) {
             
+            $sortArray = array(); 
+        
             foreach($group_data as $group){ 
                 foreach($group as $key=>$value){ 
                     if(!isset($sortArray[$key])){ 
@@ -146,6 +146,7 @@ class GroupController extends Controller
             } else {
                 array_multisort($sortArray[$order_name],SORT_ASC,$group_data);
             }
+            
             $group_data = array_slice($group_data,$start,$length,false);
         }
 
@@ -153,7 +154,9 @@ class GroupController extends Controller
             "draw" => intval($draw),
             "recordsTotal" => $recordsTotal,
             "recordsFiltered" => $recordsFilterTotal,
-            "data" => $group_data
+            "data" => $group_data,
+            "ordername"=>$order_name,
+            "asc"=>$order_str
         ]);
     }
     public function get_groups() {
