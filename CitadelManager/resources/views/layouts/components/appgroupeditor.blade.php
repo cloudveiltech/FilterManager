@@ -35,7 +35,6 @@
                         <button class="button primary" type="button" id="app_source_to_target"> &gt; </button><br />
                         <button class="button primary" type="button" id="app_target_to_source"> &lt; </button><br />
                         <button class="button primary" type="button" id="apps_target_to_source"> &lt;&lt;  </button><br />
-                        
                     </div>
                     
                     <div class="cell colspan5">

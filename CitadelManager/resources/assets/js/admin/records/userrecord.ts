@@ -80,7 +80,9 @@ namespace Citadel
         private m_submitBtn: HTMLButtonElement;
 
         private m_cancelBtn: HTMLButtonElement;
-
+        private jsonData: any[];
+        private m_tableSettings: DataTables.Settings;
+        private m_tableColumns:DataTables.ColumnSettings[];
         /**
          * User Activation DataTable.
          * 
@@ -188,7 +190,7 @@ namespace Citadel
             } else {
                 id = this.m_userId;
             }
-            let activationTableColumns: DataTables.ColumnSettings[] =
+            this.m_tableColumns =
                 [                   
                     {
                         title: 'Action Id',
@@ -255,40 +257,18 @@ namespace Citadel
                     }
                 ];
 
-            // Set our table's loading AJAX settings to call the admin
-            // control API with the appropriate arguments.
-            let activationTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
-                {
-                    url: "api/admin/user_activations/" + id,
-                    dataSrc: "",                        
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    method: "GET",
-                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                    {
-                        if(jqXHR.status > 399 && jqXHR.status < 500)
-                        {
-                            // Almost certainly auth related error. Redirect to login
-                            // by signalling for logout.
-                            ////window.location.href = 'login.php?logout';
-                        }
-                    })
-                };
+            
 
             // Define user table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-            let activationTableSettings: DataTables.Settings =
+            this.m_tableSettings =
                 {
                     autoWidth: true,
                     stateSave: true,
                     responsive: true,
-                    columns: activationTableColumns,
-                    ajax: activationTablesLoadFromAjaxSettings,
-                    
-                    // We grab the row callback with a fat arrow to keep the
-                    // class context. Otherwise, we'll lose it in the
-                    // callback, and "this" will be the datatable or a child
-                    // of it.
+                    columns: this.m_tableColumns,
+                    data: this.jsonData,
+                    destroy: true,
+
                     rowCallback: ((row: Node, data: any[] | Object): void =>
                     {
                         //this.OnTableRowCreated(row, data);
@@ -309,17 +289,12 @@ namespace Citadel
                                 url: "api/admin/activations/update_alert",
                                 data: {id: id, value: val},
                                 success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
-                                    //that.ForceTableRedraw(that.m_tableUsers);
                                     return false;
                                 },
                                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
                                     console.log(errorThrown);
                                     if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                        // Almost certainly auth related error. Redirect to login
-                                        // by signalling for logout.
-                                        //window.location.href = 'login.php?logout';
                                     } else {
-                                        
                                     }
                                 }
                             }
@@ -357,6 +332,8 @@ namespace Citadel
                         });
                         $("#user_activation_table").off("click", "button.btn-delete");
                         $("#user_activation_table").on('click', 'button.btn-delete', function(e){
+                            
+                            
                             e.preventDefault();
                             if (confirm("Are you sure you want to delete this activation?"))
                             {
@@ -371,9 +348,18 @@ namespace Citadel
                                     data: dataObject,
                                     // Callback if the call was a success.
                                     success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                                    {                            
-                                        that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
-                                        that.m_ActivationTables.ajax.reload()
+                                    { 
+                                        var index = -1;
+                                        for(var i = 0; i < that.jsonData.length; i++) {
+                                            if(that.jsonData[i].id == id){
+                                                index = i;
+                                                break;
+                                            }
+                                        }
+                                        that.jsonData.splice(i,1);
+                                        that.InitUserActivationTables();
+                                        //that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
+                                        //that.m_ActivationTables.ajax.reload()
                                         return false;
                                     },
                 
@@ -423,8 +409,15 @@ namespace Citadel
                                     // Callback if the call was a success.
                                     success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
                                     {                            
-                                        that.m_ActivationTables.ajax.url( "api/admin/user_activations/" + that.m_userId);
-                                        that.m_ActivationTables.ajax.reload()
+                                        var index = -1;
+                                        for(var i = 0; i < that.jsonData.length; i++) {
+                                            if(that.jsonData[i].id == id){
+                                                index = i;
+                                                break;
+                                            }
+                                        }
+                                        that.jsonData.splice(i,1);
+                                        that.InitUserActivationTables();
                                         return false;
                                     },
                 
@@ -459,18 +452,20 @@ namespace Citadel
                         });
                     })
                 };
-                
-            this.m_ActivationTables = $('#user_activation_table').DataTable(activationTableSettings);
             
-            
-            
+            this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
+
         }
 
         private InitButtonHandlers(): void
         {
             this.m_cancelBtn.onclick = ((e: MouseEvent): any =>
             {
-                this.StopEditing();
+                if (this.m_actionCompleteCallback != null) {
+                    this.m_actionCompleteCallback("Cancel");
+                } else {
+                    this.StopEditing();
+                }
             });
         }
          
@@ -487,6 +482,7 @@ namespace Citadel
             this.m_isActive = data['isactive'];
             this.m_dateRegistered = data['dt'] as string;
             this.m_reportLevel = data['report_level'] as number;
+            this.jsonData = data['activations'];
         }
 
         protected LoadFromForm(): void
@@ -661,25 +657,12 @@ namespace Citadel
 
             if(userData != null) {
                 this.m_userId = userData.id;
-                if ( $.fn.dataTable.isDataTable( '#user_activation_table' ) ) {
-                    this.m_ActivationTables = $('#user_activation_table').DataTable();
-                    this.m_ActivationTables.clear();
-                    this.m_ActivationTables.draw();
-                    this.m_ActivationTables.ajax.url( "api/admin/user_activations/" + userData.id);
-                    this.m_ActivationTables.ajax.reload();
-                }
-                else {
-                    this.InitUserActivationTables();
-                }
+                this.InitUserActivationTables();
+                
             } else {
-                if ( $.fn.dataTable.isDataTable( '#user_activation_table' ) ) {
-                    this.m_ActivationTables = $('#user_activation_table').DataTable();
-                    this.m_ActivationTables.clear();
-                    this.m_ActivationTables.draw();
-                }
-                else {
-                    this.InitUserActivationTables();
-                }
+                
+                this.InitUserActivationTables();
+               
             }
             // Show the editor.
             $(this.m_editorOverlay).fadeIn(250);
