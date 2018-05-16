@@ -76,6 +76,7 @@ class UserController extends Controller {
                     ->select('users.*')
                     ->leftJoin('groups','groups.id','=','users.group_id')
                     ->where('users.name', 'like',"%$search%")
+                    ->orWhere('users.email', 'like', "%$search%")
                     ->orderBy("groups.name", $order_str)
                     ->offset($start)
                     ->limit($length)
@@ -86,6 +87,7 @@ class UserController extends Controller {
                     ->select('users.*')
                     ->leftJoin('role_user','role_user.user_id','=','users.id')
                     ->where('name', 'like',"%$search%")
+                    ->orWhere('users.email', 'like', "%$search%")
                     ->orderBy("role_user.role_id", $order_str)
                     ->offset($start)
                     ->limit($length)
@@ -93,6 +95,7 @@ class UserController extends Controller {
             }else {
                 $users = User::with(['group', 'roles','activations'])
                 ->where('name', 'like',"%$search%")
+                ->orWhere('users.email', 'like', "%$search%")
                 ->orderBy($order_name, $order_str)
                 ->offset($start)
                 ->limit($length)
