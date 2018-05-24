@@ -39,7 +39,7 @@ class UserController extends Controller {
         $length = $request->input('length');
         $search = $request->input('search')['value'];
         $order = $request->input('order')[0]['column'];
-        $order_name = $request->input('columns')[intval($order)]['data'];
+        $order_name = $request->input('columns')[intval($order)]['data'] ? $request->input('columns')[intval($order)]['data'] : 'email';
         $order_str = $request->input('order')[0]['dir'];
 
         $recordsTotal = User::count();
