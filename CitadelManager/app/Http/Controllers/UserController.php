@@ -36,73 +36,51 @@ class UserController extends Controller {
         
         $draw = $request->input('draw');
         $start = $request->input('start');
-        $length = $request->input('length');
+        $length = $request->input('length') ? $request->input('length') : 10;
         $search = $request->input('search')['value'];
         $order = $request->input('order')[0]['column'];
         $order_name = $request->input('columns')[intval($order)]['data'] ? $request->input('columns')[intval($order)]['data'] : 'email';
-        $order_str = $request->input('order')[0]['dir'];
+        $order_str = $request->input('order')[0]['dir'] ? $request->input('order')[0]['dir'] : 'ASC';
+
+        $customer_id = $request->input('customer_id');
+        $id = $request->input('id');
+        $email = $request->input('email');
 
         $recordsTotal = User::count();
-        if(empty($search)) {
-            if($order_name == 'group.name') {
-                $users = User::with(['group', 'roles','activations'])
-                    ->select('users.*')
-                    ->leftJoin('groups','groups.id','=','users.group_id')
-                    ->orderBy("groups.name", $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-                
-            } else if ($order_name == 'roles[, ].display_name') {
-                $users = User::with(['group', 'roles','activations'])
-                    ->select('users.*')
-                    ->leftJoin('role_user','role_user.user_id','=','users.id')
-                    ->orderBy("role_user.role_id", $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-            }else {
-                $users = User::with(['group', 'roles','activations'])
-                ->orderBy($order_name, $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            }
-            
-            $recordsFilterTotal = $recordsTotal;
-        } else {
-            if($order_name == 'group.name') {
-                $users = User::with(['group', 'roles','activations'])
-                    ->select('users.*')
-                    ->leftJoin('groups','groups.id','=','users.group_id')
-                    ->where('users.name', 'like',"%$search%")
-                    ->orWhere('users.email', 'like', "%$search%")
-                    ->orderBy("groups.name", $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-                
-            } else if ($order_name == 'roles[, ].display_name') {
-                $users = User::with(['group', 'roles','activations'])
-                    ->select('users.*')
-                    ->leftJoin('role_user','role_user.user_id','=','users.id')
-                    ->where('name', 'like',"%$search%")
-                    ->orWhere('users.email', 'like', "%$search%")
-                    ->orderBy("role_user.role_id", $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-            }else {
-                $users = User::with(['group', 'roles','activations'])
-                ->where('name', 'like',"%$search%")
-                ->orWhere('users.email', 'like', "%$search%")
-                ->orderBy($order_name, $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            }
-            $recordsFilterTotal = User::where('name', 'like',"%$search%")->count();
-        }
+
+        $query = User::with(['group', 'roles','activations'])
+            ->select('users.*')
+            ->when($search, function($query) use($search) {
+                return $query->where('users.name', 'like',"%$search%")
+                    ->orWhere('users.email', 'like', "%$search%");
+            })
+            ->when($email, function($query) use($email) {
+                return $query->where('users.email', $email);
+            })
+            ->when($id, function($query) use($id) {
+                return $query->where('users.id', $id);
+            })
+            ->when($customer_id, function($query) use($customer_id) {
+                return $query->where('users.customer_id', $customer_id);
+            })
+            ->when(($order_name == 'group.name' || $order_name == 'roles[, ].display_name'), function ($query) use ($order_str, $order_name) {
+                if ($order_name == 'group.name') {
+                    return $query->leftJoin('groups','groups.id','=','users.group_id')
+                        ->orderBy("groups.name", $order_str);
+                } elseif ($order_name == 'roles[, ].display_name') {
+                    return $query->leftJoin('role_user','role_user.user_id','=','users.id')
+                        ->orderBy("role_user.role_id", $order_str);
+                }
+            }, function ($query) use ($order_str, $order_name) {
+                return $query->orderBy($order_name, $order_str);
+            });
+
+        $recordsFilterTotal = $query->count();
+        
+        $users = $query->offset($start)
+            ->limit($length)
+            ->get();
+
         return response()->json([
             "draw" => intval($draw),
             "recordsTotal" => $recordsTotal,
