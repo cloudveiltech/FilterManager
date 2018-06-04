@@ -41,41 +41,25 @@ class GroupController extends Controller
         $order_name = $request->input('columns')[intval($order)]['data'];
         $order_str = $request->input('order')[0]['dir'];
         $recordsTotal = Group::count();
-        if(empty($search)) {
-            if($order_name == "name" || $order_name == "isactive" || $order_name== "created_at") {
 
-                $rows = Group::with('assignedFilterIds')
-                    ->with('userCount')
-                    ->orderBy($order_name, $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-            } else {
-
-                $rows = Group::with('assignedFilterIds')
-                    ->with('userCount')
-                    ->get();
-            }
-            $recordsFilterTotal = $recordsTotal;
+        $query = Group::with(['assignedFilterIds', 'userCount'])
+            ->select('groups.*')
+            ->when($search, function($query) use($search) {
+                return $query->where('groups.name', 'like',"%$search%");
+            })
+            ->when(($order_name == 'name' || $order_name == 'isactive' || $order_name == 'created_at'), function ($query) use ($order_str, $order_name) {
+                return $query->orderBy($order_name, $order_str);
+            }, function ($query) use ($order_str, $order_name) {
+                
+            });
+        $recordsFilterTotal = $query->count();
+        if($order_name == 'name' || $order_name == 'isactive' || $order_name == 'created_at') {
+            $rows =  $query->offset($start)
+            ->limit($length)
+            ->get();
         } else {
-            if($order_name == "name" || $order_name == "isactive" || $order_name== "created_at") {
-
-                $rows = Group::with('assignedFilterIds')
-                    ->with('userCount')
-                    ->where('name', 'like',"%$search%")
-                    ->orderBy($order_name, $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-            }else {
-                $rows = Group::with('assignedFilterIds')
-                    ->with('userCount')
-                    ->where('name', 'like',"%$search%")
-                    ->get();
-            }
-            $recordsFilterTotal = Group::where('name', 'like',"%$search%")->count();
+            $rows =  $query->get();
         }
-        
         $group_data = array();
         foreach($rows as $key => $group) {
             $user_count = count($rows[$key]->userCount);
@@ -128,27 +112,31 @@ class GroupController extends Controller
             );
         }
         
-        
-        if($order_name == "id" || $order_name == "primary_dns" || $order_name == "secondary_dns" || $order_name == "terminate"|| $order_name == "bypass"|| $order_name == "report_level" ) {
+        if(count($group_data) == 0) {
+
+        } else {
+            if($order_name == "id" || $order_name == "primary_dns" || $order_name == "secondary_dns" || $order_name == "terminate"|| $order_name == "bypass"|| $order_name == "report_level" ) {
             
-            $sortArray = array(); 
-        
-            foreach($group_data as $group){ 
-                foreach($group as $key=>$value){ 
-                    if(!isset($sortArray[$key])){ 
-                        $sortArray[$key] = array(); 
+                $sortArray = array(); 
+            
+                foreach($group_data as $group){ 
+                    foreach($group as $key=>$value){ 
+                        if(!isset($sortArray[$key])){ 
+                            $sortArray[$key] = array(); 
+                        } 
+                        $sortArray[$key][] = $value; 
                     } 
-                    $sortArray[$key][] = $value; 
                 } 
-            } 
-            if($order_str == "desc") {
-                array_multisort($sortArray[$order_name],SORT_DESC,$group_data);
-            } else {
-                array_multisort($sortArray[$order_name],SORT_ASC,$group_data);
+                if($order_str == "desc") {
+                    array_multisort($sortArray[$order_name],SORT_DESC,$group_data);
+                } else {
+                    array_multisort($sortArray[$order_name],SORT_ASC,$group_data);
+                }
+                
+                $group_data = array_slice($group_data,$start,$length,false);
             }
-            
-            $group_data = array_slice($group_data,$start,$length,false);
         }
+        
 
         return response()->json([
             "draw" => intval($draw),

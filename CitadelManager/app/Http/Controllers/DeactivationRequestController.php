@@ -33,43 +33,29 @@ class DeactivationRequestController extends Controller
         $order_str = $request->input('order')[0]['dir'];
 
         $recordsTotal = DeactivationRequest::count();
-        if(empty($search)) {
-            if($order_name == "user.name" || $order_name == "user.email") {
-                $rows = DeactivationRequest::with(['user'])
-                ->select('deactivation_requests.*')
-                ->leftJoin('users','deactivation_requests.user_id','=','users.id')
-                ->orderBy(str_replace("user", "users", $order_name), $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            }else{
-                $rows = DeactivationRequest::with(['user'])
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            }
-            $recordsFilterTotal = $recordsTotal;
-        } else {
-            if($order_name == "user.name" || $order_name == "user.email") {
-                $rows = DeactivationRequest::with(['user'])
-                ->where('device_id', 'like',"%$search%")
-                ->select('deactivation_requests.*')
-                ->leftJoin('users','deactivation_requests.user_id','=','users.id')
-                ->orderBy(str_replace("user", "users", $order_name), $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            }else{
-                $rows = DeactivationRequest::with(['user'])
-                    ->where('device_id', 'like',"%$search%")
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-            }
 
-            $recordsFilterTotal = DeactivationRequest::where('identifier', 'like',"%$search%")->count();
-        }
+        $query = DeactivationRequest::with(['user'])
+            ->select('deactivation_requests.*')
+            ->when($search, function($query) use($search) {
+                return $query->leftJoin('users','deactivation_requests.user_id','=','users.id')
+                    ->where('deactivation_requests.device_id', 'like',"%$search%")
+                    ->orWhere('users.email', 'like', "%$search%");
+            })
+            ->when(($order_name == "user.name" || $order_name == "user.email"), function ($query) use ($order_str, $order_name) {
+               
+                return $query->leftJoin('users','deactivation_requests.user_id','=','users.id')
+                ->orderBy(str_replace("user", "users", $order_name), $order_str);
+               
+            }, function ($query) use ($order_str, $order_name) {
+                return $query->orderBy($order_name, $order_str);
+            });
+
+        $recordsFilterTotal = $query->count();
         
+        $rows = $query->offset($start)
+            ->limit($length)
+            ->get();
+
         return response()->json([
             "draw" => intval($draw),
             "recordsTotal" => $recordsTotal,

@@ -23,26 +23,23 @@ class SystemVersionController extends Controller
         $length = $request->input('length');
         $search = $request->input('search')['value'];
         $recordsTotal = SystemVersion::count();
-        if(empty($search)) {
-            $versions = SystemVersion::select('system_versions.*', 'system_platforms.platform', 'system_platforms.os_name')
-                ->leftJoin('system_platforms','system_platforms.id','=','system_versions.platform_id')
-                ->orderBy('system_versions.platform_id', 'ASC')
-                ->orderBy('system_versions.release_date', 'DESC')
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            $recordsFilterTotal = $recordsTotal;
-        } else {
-            $versions = SystemVersion::leftJoin('system_platforms','system_platforms.id','=','system_versions.platform_id')
-                ->where('os_name', 'like',"%$search%")
-                ->orderBy('system_versions.platform_id', 'ASC')
-                ->orderBy('system_versions.release_date', 'DESC')
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            $recordsFilterTotal = $versions->count();
-        }
+        $query = SystemVersion::leftJoin('system_platforms','system_platforms.id','=','system_versions.platform_id')
+            ->select('system_versions.*', 'system_platforms.platform', 'system_platforms.os_name')
+            ->when($search, function($query) use($search) {
+                return $query->where('os_name', 'like',"%$search%")
+                    ->orWhere('app_name', 'like',"%$search%")
+                    ->orWhere('file_name', 'like',"%$search%");
+            }, function ($query) {
+                return $query->orderBy('system_versions.platform_id', 'ASC')
+                    ->orderBy('system_versions.release_date', 'DESC');
+            });
+
+        $recordsFilterTotal = $query->count();
         
+        $versions = $query->offset($start)
+            ->limit($length)
+            ->get();
+            
         return response()->json([
             "draw" => intval($draw),
             "recordsTotal" => $recordsTotal,
