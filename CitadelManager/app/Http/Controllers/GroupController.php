@@ -35,7 +35,7 @@ class GroupController extends Controller
     {
         $draw = $request->input('draw');
         $start = $request->input('start');
-        $length = $request->input('length');
+        $length = $request->input('length')? $request->input('length') : 10;
         $search = $request->input('search')['value'];
         $order = $request->input('order')[0]['column'];
         $order_name = $request->input('columns')[intval($order)]['data'];

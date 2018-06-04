@@ -20,25 +20,39 @@ class SystemVersionController extends Controller
     {
         $draw = $request->input('draw');
         $start = $request->input('start');
-        $length = $request->input('length');
+        $length = $request->input('length') ? $request->input('length') : 10;
         $search = $request->input('search')['value'];
+
+        $active = $request->input('active');
+        $platform = $request->input('platform');
+        $os_name = $request->input('os_name');
+
         $recordsTotal = SystemVersion::count();
-        $query = SystemVersion::leftJoin('system_platforms','system_platforms.id','=','system_versions.platform_id')
-            ->select('system_versions.*', 'system_platforms.platform', 'system_platforms.os_name')
-            ->when($search, function($query) use($search) {
-                return $query->where('os_name', 'like',"%$search%")
-                    ->orWhere('app_name', 'like',"%$search%")
-                    ->orWhere('file_name', 'like',"%$search%");
-            }, function ($query) {
-                return $query->orderBy('system_versions.platform_id', 'ASC')
-                    ->orderBy('system_versions.release_date', 'DESC');
-            });
+
+
+        $query = SystemVersion::select('system_versions.*', 'system_platforms.platform', 'system_platforms.os_name')
+            ->leftJoin('system_platforms','system_platforms.id','=','system_versions.platform_id')
+            ->when($search, function ($query) use($search) {
+                return $query->where('os_name', 'like',"%$search%");
+            })
+            ->when($active, function ($query) use ($active) {
+                return $query->where('active', $active);
+            })
+            ->when($platform, function($query) use ($platform) {
+                return $query->where('platform', $platform);
+            })
+            ->when($os_name, function($query) use ($os_name) {
+                return $query->where('os_name', $os_name);
+            })
+            ->orderBy('system_versions.platform_id', 'ASC')
+            ->orderBy('system_versions.release_date', 'DESC')
+            ->offset($start)
+            ->limit($length);
+
+        $versions = $query->get();
 
         $recordsFilterTotal = $query->count();
         
-        $versions = $query->offset($start)
-            ->limit($length)
-            ->get();
             
         return response()->json([
             "draw" => intval($draw),
