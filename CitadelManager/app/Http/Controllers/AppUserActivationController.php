@@ -35,27 +35,27 @@ class AppUserActivationController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request, $user_id = null) {
-      if ($request->has('email')) {
-          $user = User::where('email', $request->input('email'))->first();
-          if ($user && $user->activations()) {
-              return $user->activations()->with('deactivation_request')->get();
-          } else {
-              return response()->json([]);
-          }
-      } else if ($request->has('user_id') || $user_id != null) {
-          $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
-          $user = User::find($user_id);
-          if ($user && $user->activations()) {
+        if ($request->has('email')) {
+            $user = User::where('email', $request->input('email'))->first();
+            if ($user && $user->activations()) {
+                return $user->activations()->with('deactivation_request')->get();
+            } else {
+                return response()->json([]);
+            }
+        } else if ($request->has('user_id') || $user_id != null) {
+            $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
+            $user = User::find($user_id);
+            if ($user && $user->activations()) {
             $activations = $user->activations()->with('deactivation_request')->get();
-              return $activations;
-          } else {
-              return response()->json([]);
-          } 
-      } else {
+                return $activations;
+            } else {
+                return response()->json([]);
+            } 
+        }
 
         $draw = $request->input('draw');
         $start = $request->input('start');
-        $length = $request->input('length');
+        $length = $request->input('length')? $request->input('length') : 10;
         $search = $request->input('search')['value'];
 
         $order = $request->input('order')[0]['column'];
@@ -63,25 +63,20 @@ class AppUserActivationController extends Controller {
         $order_str = $request->input('order')[0]['dir'];
 
         $recordsTotal = AppUserActivation::count();
-        if(empty($search)) {
-            $rows = AppUserActivation::leftJoin("users", "users.id","=", "app_user_activations.user_id")
-                ->select('app_user_activations.*','users.name')
-                ->orderBy($order_name, $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            $recordsFilterTotal = $recordsTotal;
-        } else {
-            $rows = AppUserActivation::leftJoin("users", "users.id","=", "app_user_activations.user_id")
-                ->select('app_user_activations.*','users.name')
-                ->where('users.name', 'like',"%$search%")
-                ->orderBy($order_name, $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
+        $query = AppUserActivation::leftJoin("users", "users.id","=", "app_user_activations.user_id")
+            ->select('app_user_activations.*','users.name')
+            ->when($search, function($query) use($search) {
+                return $query->where('users.name', 'like',"%$search%")
+                    ->orWhere('app_user_activations.device_id', 'like', "%$search%");
+            }, function ($query) use ($order_str, $order_name) {
+                return $query->orderBy($order_name, $order_str);
+            });
 
-            $recordsFilterTotal = User::where('name', 'like',"%$search%")->count();;
-        }
+        $recordsFilterTotal = $query->count();
+            
+        $rows = $query->offset($start)
+            ->limit($length)
+            ->get();
         
         return response()->json([
             "draw" => intval($draw),
@@ -89,7 +84,7 @@ class AppUserActivationController extends Controller {
             "recordsFiltered" => $recordsFilterTotal,
             "data" => $rows
         ]);
-      }
+      
     }
     public function updateReport(Request $request) {
         $id = $request->input('id');

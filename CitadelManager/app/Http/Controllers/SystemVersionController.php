@@ -29,6 +29,7 @@ class SystemVersionController extends Controller
 
         $recordsTotal = SystemVersion::count();
 
+
         $query = SystemVersion::select('system_versions.*', 'system_platforms.platform', 'system_platforms.os_name')
             ->leftJoin('system_platforms','system_platforms.id','=','system_versions.platform_id')
             ->when($search, function ($query) use($search) {
@@ -49,8 +50,10 @@ class SystemVersionController extends Controller
             ->limit($length);
 
         $versions = $query->get();
+
         $recordsFilterTotal = $query->count();
         
+            
         return response()->json([
             "draw" => intval($draw),
             "recordsTotal" => $recordsTotal,

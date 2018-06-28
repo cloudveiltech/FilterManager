@@ -23,32 +23,28 @@ class ApplicationGroupController extends Controller
     {
         $draw = $request->input('draw');
         $start = $request->input('start');
-        $length = $request->input('length');
+        $length = $request->input('length')? $request->input('length') : 10;
         $search = $request->input('search')['value'];
-
 
         $order = $request->input('order')[0]['column'];
         $order_name = $request->input('columns')[intval($order)]['data'];
         $order_str = $request->input('order')[0]['dir'];
 
         $recordsTotal = AppGroup::count();
+        $query = AppGroup::with(['group_app'])
+            ->select('app_groups.*')
+            ->when($search, function($query) use($search) {
+                return $query->where('group_name', 'like',"%$search%");
+            }, function ($query) use ($order_str, $order_name) {
+                return $query->orderBy($order_name, $order_str);
+            });
 
-        if(empty($search)) {
-            $app_groups = AppGroup::with('group_app')
-                ->orderBy($order_name, $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            $recordsFilterTotal = $recordsTotal;
-        } else {
-            $app_groups = AppGroup::with('group_app')
-                ->where('group_name', 'like',"%$search%")
-                ->orderBy($order_name, $order_str)
-                ->offset($start)
-                ->limit($length)
-                ->get();
-            $recordsFilterTotal = AppGroup::where('group_name', 'like',"%$search%")->count();
-        }
+        $recordsFilterTotal = $query->count();
+        
+        $app_groups = $query->offset($start)
+            ->limit($length)
+            ->get();
+       
         foreach($app_groups as $app_group) {
             $arr_app_id = [];
             foreach($app_group->group_app as $group_item) {

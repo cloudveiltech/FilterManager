@@ -23,52 +23,33 @@ class ApplicationController extends Controller
     {
         $draw = $request->input('draw');
         $start = $request->input('start');
-        $length = $request->input('length');
+        $length = $request->input('length') ? $request->input('length') : 10;
         $search = $request->input('search')['value'];
-
         $order = $request->input('order')[0]['column'];
-        $order_name = $request->input('columns')[intval($order)]['data'];
-        $order_str = $request->input('order')[0]['dir'];
-        $recordsTotal = App::count();
-        if(empty($search)) {
-            if($order_name == "bypass_quantity") {
-                $applications = App::with('group')
-                    ->orderBy("bypass_used", $order_str)
-                    ->orderBy("bypass_quantity", $order_str)
-                    ->orderBy("bypass_period", $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-            } else {
-                $applications = App::with('group')
-                    ->orderBy($order_name, $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-            }
-            
-            $recordsFilterTotal = $recordsTotal;
-        } else {
-            if($order_name == "bypass_quantity") {
-                $applications = App::with('group')
-                    ->where('name', 'like',"%$search%")
-                    ->orderBy("bypass_used", $order_str)
-                    ->orderBy("bypass_quantity", $order_str)
-                    ->orderBy("bypass_period", $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-            } else {
-                $applications = App::with('group')
-                    ->where('name', 'like',"%$search%")
-                    ->orderBy($order_name, $order_str)
-                    ->offset($start)
-                    ->limit($length)
-                    ->get();
-            }
-            $recordsFilterTotal = App::where('name', 'like',"%$search%")->count();
-        }
+        $order_name = $request->input('columns')[intval($order)]['data'] ? $request->input('columns')[intval($order)]['data'] : 'email';
+        $order_str = $request->input('order')[0]['dir'] ? $request->input('order')[0]['dir'] : 'ASC';
         
+        $recordsTotal = App::count();
+        $query = App::with(['group'])
+            ->select('apps.*')
+            ->when($search, function($query) use($search) {
+                return $query->where('name', 'like',"%$search%");
+            })
+            ->when(($order_name == 'bypass_quantity'), function ($query) use ($order_str, $order_name) {
+                return $query->orderBy("bypass_used", $order_str)
+                    ->orderBy("bypass_quantity", $order_str)
+                    ->orderBy("bypass_period", $order_str);
+                
+            }, function ($query) use ($order_str, $order_name) {
+                return $query->orderBy($order_name, $order_str);
+            });
+
+        $recordsFilterTotal = $query->count();
+        
+        $applications = $query->offset($start)
+            ->limit($length)
+            ->get();
+            
         foreach($applications as $app) {
             $arr_group_id = array();
             foreach($app->group as $group_item) {
