@@ -3,49 +3,14 @@
 namespace Tests\Feature;
 
 use App\User;
+use Tests\AuthenticatedTestCase;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
-class AppTest extends TestCase
+class AppTest extends AuthenticatedTestCase
 {
-    /**
-     * @var \GuzzleHttp\Client
-     */
-    static $globalClient = null;
-
-    /**
-     * @var \GuzzleHttp\Client
-     */
-    public $client = null;
-
-    /**
-     * @beforeClass
-     */
-    public static function setUpGlobal() {
-        self::$globalClient = new \GuzzleHttp\Client([
-            'base_uri' => 'https://localhost',
-
-            'verify' => false,
-            'cookies' => true
-        ]);
-
-        self::$globalClient->post('/login', [
-            'form_params' => [
-                'email' => 'kent@cloudveil.org',
-                'password' => 'SamplePassword'
-            ]
-        ]);
-    }
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->client = self::$globalClient;
-    }
-
     public function appGroupWithoutAppsProvider()
     {
         return [
@@ -387,5 +352,19 @@ class AppTest extends TestCase
         $response = $this->client->delete('/api/admin/app_group/1');
 
         $this->assertEquals(204, $response->getStatusCode());
+    }
+
+    public function testGetAppData() {
+        $response = $this->client->get('/api/admin/get_app_data');
+
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $json = json_decode($response->getBody());
+
+        $this->assertEquals(JSON_ERROR_NONE, json_last_error(), "Invalid JSON");
+
+        $this->assertObjectHasAttribute("app_groups", $json);
+        $this->assertObjectHasAttribute("apps", $json);
+        $this->assertObjectHasAttribute("group_to_apps", $json);
     }
 }
