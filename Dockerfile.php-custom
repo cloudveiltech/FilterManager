@@ -1,0 +1,15 @@
+
+# Use this dockerfile for spinning up automated test instances for API integration testing
+FROM php:7.2-apache
+
+# Install PHP extensions
+
+RUN docker-php-ext-install pdo_mysql
+
+RUN apt-get update && apt-get install -y zlib1g-dev
+RUN docker-php-ext-install zip
+
+RUN apt-get install -y netcat
+
+# Enable SSL and rewrite
+RUN a2enmod rewrite ssl

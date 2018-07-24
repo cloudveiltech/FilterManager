@@ -1,0 +1,37 @@
+version: '3.1'
+
+
+services:
+  database:
+    image: mariadb:10-jessie
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: testpassword
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: testpassword
+      MYSQL_DATABASE: citadel
+
+#    networks:
+#      default:
+#        aliases:
+#          - database
+
+  redis:
+    image: redis:4
+#    networks:
+#      default:
+#        aliases:
+#          - redis-host
+
+  php-apache:
+    build: .
+#    networks:
+#      default:
+#        aliases:
+#          - web-host
+    depends_on:
+      - database
+      - redis
+    ports:
+      - "8000:80"
+      - "8443:443"

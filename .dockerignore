@@ -1,0 +1,11 @@
+*-test-instance.sh
+#test-instance.env - needed by container
+#test-instance-vhost.conf - needed by container
+test-instance.yaml
+Dockerfile
+Dockerfile.db
+build.sh
+.git
+.gitignore
+nbproject/
+CitadelManager/node_modules/
