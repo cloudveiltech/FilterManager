@@ -118,6 +118,21 @@ After saving the .env file with your proper settings, go ahead and "next" all th
 
 Once the installer is finished, you will be redirected to the login page. Sign in with the admin credentials you set in your ENV file.
 
+### Automated Instance Setup
+There is a dockerfile and docker-compose file which will allow you to spin up your own dev instance via docker if you so desire.
+
+If this is your first time running the dev containers, you'll need docker and docker-compose first of all.
+
+To spin the containers up, all you'll need to do is run `sh init-dev-instance.sh` and it should take care of all the database and laravel initialization for you. **Note:** This only covers database and app initialization for you.
+
+If you have a database clone you want to restore, run something like this:
+```
+docker cp ~/Downloads/database-backup.sql filtermanager_database_1:/mysql-database.sql
+docker-compose -f dev-instance.yaml exec database bash -c "mysqldump -u root -p < /mysql-database.sql"
+```
+
+Just run laravel's install and you should be good to go!
+
 ### Closing Notes  
 ---
 If you do not configure the first admin account via the .ENV variables when using the installer interface, an admin account will be generated automatically from random strings. However, since you used the installer UI, you will not have seen the output of this action. If you missed this step, but don't want to re-run through installer process, you can run the following command from with the `CitadelManager` directory:
