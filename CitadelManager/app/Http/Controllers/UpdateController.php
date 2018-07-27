@@ -35,8 +35,8 @@ class UpdateController extends Controller {
             'platform' => $platform,
             'app_name' => 'CloudVeil',
             'file_name' => 'CloudVeil',
-            //'version_name' => '1.6.21 Release',
-            'version_number' => '1.6.21',
+            //'version_name' => '1.6.28 Release',
+            'version_number' => '1.6.28',
             'changes' =>
               [
                 'Changes to ssl',
@@ -45,18 +45,18 @@ class UpdateController extends Controller {
               [
                 [
                   'release' => 'Alpha',
-                  'version_number' => '1.6.24'
+                  'version_number' => '1.6.28'
                 ],
                 [
                   'release' => 'Beta',
-                  'version_number' => '1.6.24'
+                  'version_number' => '1.6.28'
                 ],
                 [
                   'release' => 'Stable',
-                  'version_number' => '1.6.21'
+                  'version_number' => '1.6.28'
                 ]
             ],
-            'date' => 'Tue, 20 Feb 2018 12:39:00 MST'
+            'date' => 'Mon, 25 Jun 2018 06:39:00 MST'
           ]
         )
         ->header('Content-Type', 'text/xml');
