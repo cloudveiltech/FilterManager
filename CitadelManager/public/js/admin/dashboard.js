@@ -235,7 +235,8 @@ var Citadel;
                         $("#user_table").on("change", "input[type='checkbox']", function () {
                             var id_str = this.id;
                             var val = 0;
-                            if (this.checked) {
+                            var checkObj = this;
+                            if (checkObj.checked) {
                                 val = 1;
                             }
                             var checkAjaxSettings = {
@@ -417,7 +418,8 @@ var Citadel;
                         $("#group_table").on("change", "input[type='checkbox']", function () {
                             var id_str = this.id;
                             var val = 0;
-                            if (this.checked) {
+                            var checkObj = this;
+                            if (checkObj.checked) {
                                 val = 1;
                             }
                             var checkAjaxSettings = {
@@ -620,7 +622,8 @@ var Citadel;
                         $("#user_deactivation_request_table").on("change", "input[type='checkbox']", function () {
                             var id_str = this.id;
                             var val = 0;
-                            if (this.checked) {
+                            var checkObj = this;
+                            if (checkObj.checked) {
                                 val = 1;
                             }
                             var checkAjaxSettings = {
@@ -671,7 +674,7 @@ var Citadel;
                     {
                         title: 'Linked Group',
                         data: 'group_name',
-                        bSortable: false,
+                        orderable: false,
                         visible: true
                     },
                     {
@@ -731,7 +734,7 @@ var Citadel;
                     {
                         title: 'Linked Apps',
                         data: 'app_names',
-                        bSortable: false,
+                        orderable: false,
                         visible: true
                     },
                     {
@@ -906,7 +909,8 @@ var Citadel;
                         $("#app_user_activations_table").on("change", "input[type='checkbox']", function () {
                             var id_str = this.id;
                             var val = 0;
-                            if (this.checked) {
+                            var checkObj = this;
+                            if (checkObj.checked) {
                                 val = 1;
                             }
                             var checkAjaxSettings = {
@@ -932,7 +936,7 @@ var Citadel;
                 };
                 _this.m_tableAppUserActivationTable = $('#app_user_activations_table').DataTable(appUserActivationTableSettings);
                 $('<button id="refresh_user_activations"><span class="mif-loop2 "></span> Refresh</button>').appendTo('#app_user_activations_table_wrapper div.dataTables_filter');
-                $("#refresh_user_activations").click(function (e) {
+                $("#refresh_user_activations").click(function () {
                     _this.ForceTableRedraw(_this.m_tableAppUserActivationTable);
                 });
             });
@@ -947,7 +951,7 @@ var Citadel;
                         title: 'Platform',
                         data: 'platform',
                         className: 'content-left',
-                        bSortable: false,
+                        orderable: false,
                         visible: true,
                         width: '200px',
                         render: (function (data, t, row, meta) {
@@ -976,7 +980,7 @@ var Citadel;
                     {
                         title: 'App Name',
                         data: 'app_name',
-                        bSortable: false,
+                        orderable: false,
                         className: 'content-left',
                         visible: true,
                         width: '140px',
@@ -993,7 +997,7 @@ var Citadel;
                         title: 'File Name',
                         data: 'file_name',
                         className: 'content-left',
-                        bSortable: false,
+                        orderable: false,
                         visible: true,
                         width: '140px',
                         render: (function (data, t, row, meta) {
@@ -1008,7 +1012,7 @@ var Citadel;
                     {
                         title: 'Version',
                         data: 'version_number',
-                        bSortable: false,
+                        orderable: false,
                         className: 'content-left version_number',
                         defaultContent: 'None',
                         width: '100px',
@@ -1024,7 +1028,7 @@ var Citadel;
                     {
                         title: 'Release Date',
                         data: 'release_date',
-                        bSortable: false,
+                        orderable: false,
                         visible: true,
                         render: (function (data, t, row, meta) {
                             if (row.active === 1) {
@@ -1040,7 +1044,7 @@ var Citadel;
                     {
                         title: 'Alpha',
                         data: 'alpha',
-                        bSortable: false,
+                        orderable: false,
                         className: 'content-center sub_version_number',
                         visible: true,
                         width: '100px',
@@ -1056,7 +1060,7 @@ var Citadel;
                     {
                         title: 'Beta',
                         data: 'beta',
-                        bSortable: false,
+                        orderable: false,
                         visible: true,
                         width: '100px',
                         className: 'content-center sub_version_number',
@@ -1072,7 +1076,7 @@ var Citadel;
                     {
                         title: 'Stable',
                         data: 'stable',
-                        bSortable: false,
+                        orderable: false,
                         visible: true,
                         width: '100px',
                         className: 'content-center sub_version_number',
@@ -1088,7 +1092,7 @@ var Citadel;
                     {
                         title: 'Changes',
                         data: 'changes',
-                        bSortable: false,
+                        orderable: false,
                         className: 'content-left',
                         visible: true,
                         render: (function (data, t, row, meta) {
@@ -1103,7 +1107,7 @@ var Citadel;
                     {
                         title: 'Action',
                         data: 'active',
-                        bSortable: false,
+                        orderable: false,
                         visible: true,
                         render: (function (data, t, row, meta) {
                             if (data === 1) {
@@ -1150,7 +1154,8 @@ var Citadel;
                         $("#system_versions_table").off("change", "input[type='checkbox']");
                         $("#system_versions_table").on("change", "input[type='checkbox']", function () {
                             if (!confirm("Do you want to set this version as default version?")) {
-                                this.checked = false;
+                                var objCheck = this;
+                                objCheck.checked = false;
                                 return;
                             }
                             var id_str = this.id;
@@ -1507,7 +1512,8 @@ var Citadel;
         Dashboard.prototype.OnCreateUserClicked = function (e) {
             var _this = this;
             var newUser = new Citadel.UserRecord();
-            newUser.StartEditing(this.m_tableGroups.data(), this.m_tableUsers.data()['all_user_roles']);
+            var usergoup_data = this.m_tableGroups.data();
+            newUser.StartEditing(usergoup_data, this.m_tableUsers.data()['all_user_roles']);
             newUser.ActionCompleteCallback = (function (action) {
                 newUser.StopEditing();
                 _this.ForceTableRedraw(_this.m_tableUsers);

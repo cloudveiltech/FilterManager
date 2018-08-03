@@ -133,7 +133,7 @@ namespace Citadel
             }
             $("#spiner_5").show();
             this.m_submitBtn.disabled = true;
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "GET",
                 timeout: 60000,

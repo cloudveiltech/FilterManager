@@ -87,7 +87,7 @@ namespace Citadel
                 platform: platform_type,
                 os_name: os_name
             };
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "POST",
                 timeout: 60000,
@@ -124,7 +124,7 @@ namespace Citadel
                 platform: platform_type,
                 os_name: os_name
             };
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "POST",
                 timeout: 60000,
@@ -164,7 +164,7 @@ namespace Citadel
         {
             const spin_name = '#spin_platforms';
             $(spin_name).show();
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "GET",
                 timeout: 60000,
@@ -236,7 +236,7 @@ namespace Citadel
                 var platform_id = parseInt($(this).attr("data-id"));
                 
                 if(confirm("Do you want to delete this platform?")) {
-                    let ajaxSettings: JQueryAjaxSettings =
+                    let ajaxSettings: JQuery.UrlAjaxSettings =
                     {
                         method: "POST",
                         timeout: 60000,

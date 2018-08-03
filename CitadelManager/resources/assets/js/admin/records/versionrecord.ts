@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-///<reference path="../progresswait.ts"/>
+///<reference path="../../progresswait.ts"/>
 namespace Citadel
 {
     /**
@@ -237,7 +237,7 @@ namespace Citadel
 
         private loadPlatforms(): void
         {
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "GET",
                 timeout: 60000,

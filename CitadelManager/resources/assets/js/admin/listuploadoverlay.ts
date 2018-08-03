@@ -172,7 +172,7 @@ namespace Citadel
             this.m_progressWait = new ProgressWait();
 
             // Build the filter list upload dropzone.
-            let dropzoneOptions: DropzoneOptions =
+            let dropzoneOptions: Dropzone.DropzoneOptions =
                 {
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -185,7 +185,7 @@ namespace Citadel
                     maxFiles: 1,
                     parallelUploads: 1,
                     url: 'api/admin/filterlists/upload',
-                    complete: ((file: DropzoneFile): void =>
+                    complete: ((file: Dropzone.DropzoneFile): void =>
                     {
                         this.m_filterListDropzone.removeAllFiles();
 
@@ -204,7 +204,7 @@ namespace Citadel
                             }, 4000);
                         }
                     }),
-                    error: ((file: DropzoneFile, message: string | Error, xhr: XMLHttpRequest): void =>
+                    error: ((file: Dropzone.DropzoneFile, message: string | Error, xhr: XMLHttpRequest): void =>
                     {
                         // Set the file accepted to false so that we can track this in other callbacks
                         // and know that it is a failed upload.
@@ -225,7 +225,7 @@ namespace Citadel
 
                         this.m_filterListDropzone.removeAllFiles();
                     }),
-                    maxfilesexceeded: ((file: DropzoneFile): void =>
+                    maxfilesexceeded: ((file: Dropzone.DropzoneFile): void =>
                     {
                         this.m_filterListDropzone.removeAllFiles();
                         this.m_filterListDropzone.addFile(file);
@@ -234,13 +234,13 @@ namespace Citadel
 
                         this.m_submitButton.disabled = false;
                     }),
-                    addedfile: ((file:DropzoneFile) : void => 
+                    addedfile: ((file:Dropzone.DropzoneFile) : void => 
                     {
                         this.m_listSelectedFileNameInput.value = file.name;
 
                         this.m_submitButton.disabled = false;
                     }),
-                    uploadprogress: ((file: DropzoneFile, progress: number, bytesSent: number): any =>
+                    uploadprogress: ((file: Dropzone.DropzoneFile, progress: number, bytesSent: number): any =>
                     {
                         // We have no control over the flow of events from dropzone. As such, we set the 
                         // accepted property on files to false whenever a failure happens, so that when
@@ -251,7 +251,7 @@ namespace Citadel
                             this.m_progressWait.Show("Uploading File", 'Uploading file. ' + progress.toFixed(2) + '%. File is being processed. Do not refresh your browser.');
                         }
                     }),
-                    sending: ((file:DropzoneFile, xhr:XMLHttpRequest, formData:FormData): void =>
+                    sending: ((file:Dropzone.DropzoneFile, xhr:XMLHttpRequest, formData:FormData): void =>
                     {
                         // This is where you're going to send all the extra post data that you want
                         // along with an upload.
@@ -327,12 +327,12 @@ namespace Citadel
          * to extract existing filter groups/namespaces to show them as suggestions
          * inside the input field.
          * 
-         * @param {DataTables.DataTable} allLists
+         * @param {DataTables.Api} allLists
          * @param {number} [fadeInTimeMsec=200]
          * 
          * @memberOf ListUploadOverlay
          */
-        public Show(allLists: DataTables.DataTable, fadeInTimeMsec: number = 200): void
+        public Show(allLists: DataTables.Api, fadeInTimeMsec: number = 200): void
         {
             this.Reset();
 

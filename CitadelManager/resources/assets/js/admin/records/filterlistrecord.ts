@@ -130,20 +130,12 @@ namespace Citadel
 
             let dataObject = this.ToObject();
 
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
                 {
                     // PHP script expects post.
                     method: "DELETE",
-
-                    // 60 seconds or quit.
                     timeout: 60000,
-
-                    contents: { _token: $('meta[name="csrf-token"]').attr('content') },
-
-                    // Sent to setup.php.
                     url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'],
-
-                    // Callback if the call was a success.
                     success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
                     {
                         this.m_progressWait.Hide();

@@ -205,17 +205,18 @@ namespace Citadel
          * DataTables.
          * 
          * @private
-         * @type {DataTables.DataTable}
+         * @type {DataTables.Api}
          * @memberOf Dashboard
          */
-        private m_tableUsers: DataTables.DataTable;
-        private m_tableGroups: DataTables.DataTable;
-        private m_tableFilterLists: DataTables.DataTable;
-        private m_tableUserDeactivationRequests: DataTables.DataTable;
-        public m_tableAppLists: DataTables.DataTable;
-        public m_tableAppGroupLists: DataTables.DataTable;
-        private m_tableAppUserActivationTable: DataTables.DataTable;
-        private m_tableSystemVersions: DataTables.DataTable;
+        
+        private m_tableUsers: DataTables.Api;
+        private m_tableGroups: DataTables.Api;
+        private m_tableFilterLists: DataTables.Api;
+        private m_tableUserDeactivationRequests: DataTables.Api;
+        public m_tableAppLists: DataTables.Api;
+        public m_tableAppGroupLists: DataTables.Api;
+        private m_tableAppUserActivationTable: DataTables.Api;
+        private m_tableSystemVersions: DataTables.Api;
         /**
          * Represents the current view state of the application. This must not
          * be accessed directly, but rather the getters and setters should be
@@ -285,7 +286,7 @@ namespace Citadel
         }
 
         private loadAllFilters(): void {
-            let ajaxSettings: JQueryAjaxSettings = {
+            let ajaxSettings: JQuery.UrlAjaxSettings = {
                 method:"GET",
                 timeout: 60000,
                 url: "api/admin/filterlist/all",
@@ -301,7 +302,7 @@ namespace Citadel
         }
 
         private loadAllGroups(): void {
-            let ajaxSettings: JQueryAjaxSettings = {
+            let ajaxSettings: JQuery.UrlAjaxSettings = {
                 method:"GET",
                 timeout: 60000,
                 url: "api/admin/group/all",
@@ -552,10 +553,11 @@ namespace Citadel
                         $("#user_table").on("change", "input[type='checkbox']", function () {
                             let id_str = this.id;
                             let val = 0;
-                            if (this.checked) {
+                            var checkObj = <HTMLInputElement> this;
+                            if (checkObj.checked) {
                                 val = 1;
                             }
-                            let checkAjaxSettings: JQueryAjaxSettings = {
+                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
                                 method:"POST",
                                 timeout: 60000,
                                 url: "api/admin/users/update_field",
@@ -779,10 +781,11 @@ namespace Citadel
                             $("#group_table").on("change", "input[type='checkbox']", function () {
                                 let id_str = this.id;
                                 let val = 0;
-                                if (this.checked) {
+                                var checkObj = <HTMLInputElement>this;
+                                if (checkObj.checked) {
                                     val = 1;
                                 }
-                                let checkAjaxSettings: JQueryAjaxSettings = {
+                                let checkAjaxSettings: JQuery.UrlAjaxSettings = {
                                     method:"POST",
                                     timeout: 60000,
                                     url: "api/admin/groups/update_field",
@@ -1049,10 +1052,11 @@ namespace Citadel
                             $("#user_deactivation_request_table").on("change", "input[type='checkbox']", function () {
                                 let id_str = this.id;
                                 let val = 0;
-                                if (this.checked) {
+                                var checkObj = <HTMLInputElement>this;
+                                if (checkObj.checked) {
                                     val = 1;
                                 }
-                                let checkAjaxSettings: JQueryAjaxSettings = {
+                                let checkAjaxSettings: JQuery.UrlAjaxSettings = {
                                     method:"POST",
                                     timeout: 60000,
                                     url: "api/admin/deactivationreq/update_field",
@@ -1109,7 +1113,7 @@ namespace Citadel
                         {
                             title: 'Linked Group',
                             data: 'group_name',
-                            bSortable: false,
+                            orderable: false,
                             visible: true
                         },
                         {
@@ -1191,7 +1195,7 @@ namespace Citadel
                         {
                             title: 'Linked Apps',
                             data: 'app_names',
-                            bSortable: false,
+                            orderable: false,
                             visible: true
                         },
                         {
@@ -1416,10 +1420,11 @@ namespace Citadel
                             $("#app_user_activations_table").on("change", "input[type='checkbox']", function () {
                                 let id_str = this.id;
                                 let val = 0;
-                                if (this.checked) {
+                                var checkObj = <HTMLInputElement> this;
+                                if (checkObj.checked) {
                                     val = 1;
                                 }
-                                let checkAjaxSettings: JQueryAjaxSettings = {
+                                let checkAjaxSettings: JQuery.UrlAjaxSettings = {
                                     method:"POST",
                                     timeout: 60000,
                                     url: "api/admin/activations/update_field",
@@ -1447,7 +1452,7 @@ namespace Citadel
 
                 this.m_tableAppUserActivationTable = $('#app_user_activations_table').DataTable(appUserActivationTableSettings);
                 $('<button id="refresh_user_activations"><span class="mif-loop2 "></span> Refresh</button>').appendTo('#app_user_activations_table_wrapper div.dataTables_filter');
-                $("#refresh_user_activations").click((e:MouseEvent):void => {
+                $("#refresh_user_activations").click(() => {
                     this.ForceTableRedraw(this.m_tableAppUserActivationTable);
                 })
             });
@@ -1465,7 +1470,7 @@ namespace Citadel
                             title: 'Platform',
                             data: 'platform',
                             className: 'content-left',
-                            bSortable: false,
+                            orderable: false,
                             visible: true,
                             width: '200px',
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
@@ -1494,7 +1499,7 @@ namespace Citadel
                             // needs to be included on the server side!
                             title: 'App Name',
                             data: 'app_name',
-                            bSortable: false,
+                            orderable: false,
                             className: 'content-left',
                             visible: true,
                             width: '140px',
@@ -1512,7 +1517,7 @@ namespace Citadel
                             title: 'File Name',
                             data: 'file_name',
                             className: 'content-left',
-                            bSortable: false,
+                            orderable: false,
                             visible: true,
                             width: '140px',
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
@@ -1528,7 +1533,7 @@ namespace Citadel
                         {
                             title: 'Version',                            
                             data: 'version_number',
-                            bSortable: false,
+                            orderable: false,
                             className: 'content-left version_number',
                             defaultContent: 'None',
                             width: '100px',
@@ -1545,7 +1550,7 @@ namespace Citadel
                         {
                             title: 'Release Date',
                             data: 'release_date',
-                            bSortable: false,
+                            orderable: false,
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -1561,7 +1566,7 @@ namespace Citadel
                         {
                             title: 'Alpha',
                             data: 'alpha',
-                            bSortable: false,
+                            orderable: false,
                             className: 'content-center sub_version_number',
                             visible: true, 
                             width: '100px',
@@ -1578,7 +1583,7 @@ namespace Citadel
                         {
                             title: 'Beta',
                             data: 'beta',
-                            bSortable: false,
+                            orderable: false,
                             visible: true,
                             width: '100px',
                             className:'content-center sub_version_number',
@@ -1595,7 +1600,7 @@ namespace Citadel
                         {
                             title: 'Stable',
                             data: 'stable',
-                            bSortable: false,
+                            orderable: false,
                             visible: true,
                             width: '100px',
                             className:'content-center sub_version_number',
@@ -1614,7 +1619,7 @@ namespace Citadel
                             // needs to be included on the server side!
                             title: 'Changes',
                             data: 'changes',
-                            bSortable: false,
+                            orderable: false,
                             className: 'content-left',
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
@@ -1630,7 +1635,7 @@ namespace Citadel
                         {
                             title: 'Action',
                             data: 'active',
-                            bSortable: false,
+                            orderable: false,
                             visible: true,
                             render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
                             {
@@ -1693,13 +1698,14 @@ namespace Citadel
                         $("#system_versions_table").on("change", "input[type='checkbox']", function () {
                             
                             if(!confirm("Do you want to set this version as default version?"))
-                            {                                
-                                this.checked = false;
+                            {
+                                var objCheck = <HTMLInputElement> this;
+                                objCheck.checked = false;
                                 return;
                             }
                                 
                             let id_str = this.id;
-                            let checkAjaxSettings: JQueryAjaxSettings = {
+                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
                                 method:"POST",
                                 timeout: 60000,
                                 url: "api/admin/versions/update_status",
@@ -2111,7 +2117,7 @@ namespace Citadel
             let selectedRow = e.currentTarget as HTMLTableRowElement;
 
             // Get the parent HTML table element.
-            let parentTable = $(selectedRow).closest('table')[0] as HTMLTableElement;
+            let parentTable = $(selectedRow).closest('table')[0];
 
             // Switch the unique ID on the parent table to figure out which type of
             // element we're going to start editing.
@@ -2263,12 +2269,12 @@ namespace Citadel
          * Gets the selected item in a table, if any. Return will be null if no current selected item.
          * 
          * @private
-         * @param {DataTables.DataTable} table
+         * @param {DataTables.Api} table
          * @returns {DataTables.RowMethods}
          * 
          * @memberOf Dashboard
          */
-        private GetSelectedRowForTable(table: DataTables.DataTable): DataTables.RowMethods
+        private GetSelectedRowForTable(table: DataTables.Api): DataTables.RowMethods
         {
 
             let selectedRow = $(table).find('tr .selected').first();
@@ -2285,11 +2291,11 @@ namespace Citadel
          * Clears any and all selected item(s) in the given table.
          * 
          * @private
-         * @param {DataTables.DataTable} table
+         * @param {DataTables.Api} table
          * 
          * @memberOf Dashboard
          */
-        private ClearSelectedItemsInTable(table: DataTables.DataTable): void
+        private ClearSelectedItemsInTable(table: DataTables.Api): void
         {
             $(table).children().removeClass('selected');
         }
@@ -2298,12 +2304,12 @@ namespace Citadel
          * Forces the given table to re-render itself.
          * 
          * @private
-         * @param {DataTables.DataTable} table
+         * @param {DataTables.Api} table
          * @param {boolean} [resetPagination=false]
          * 
          * @memberOf Dashboard
          */
-        public ForceTableRedraw(table: DataTables.DataTable, resetPagination: boolean = false): void
+        public ForceTableRedraw(table: DataTables.Api, resetPagination: boolean = false): void
         {
             table.ajax.reload();
         }
@@ -2348,8 +2354,9 @@ namespace Citadel
             let newUser = new UserRecord();
 
             // We supply everything in the groups table so that the user's group
-            // can be changed to any available group.            
-            newUser.StartEditing(this.m_tableGroups.data(), this.m_tableUsers.data()['all_user_roles']);
+            // can be changed to any available group.
+            var usergoup_data = this.m_tableGroups.data();
+            newUser.StartEditing( usergoup_data , this.m_tableUsers.data()['all_user_roles']);
 
             newUser.ActionCompleteCallback = ((action: string): void =>
             {

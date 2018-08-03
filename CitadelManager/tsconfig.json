@@ -9,7 +9,11 @@
         "noLib": false,            
         "noImplicitAny": false,
         "outDir": "public/js",
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "typeRoots": [
+            // add path to @types
+            "node_modules/@types"
+         ]
     },    
     "exclude": [
         "vendor/**/*.ts",
@@ -21,6 +25,7 @@
     ],
     "typeRoots": [
         "typings/global",
-        "typings/modules"
+        "typings/modules",
+        "node_modules/@types"
     ]
 }

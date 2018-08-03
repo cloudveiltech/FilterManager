@@ -145,7 +145,7 @@ namespace Citadel
          * @memberOf ApplyToGroupOverlay
          */
         private getRetrieveData() {
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "GET",
                 timeout: 60000,
@@ -199,7 +199,7 @@ namespace Citadel
         private loadSelectedGroups(id: Number) {
             this.m_applyButton.disabled = true;
             $('#spiner_2').show();
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "GET",
                 timeout: 60000,
@@ -365,7 +365,7 @@ namespace Citadel
                 app_id: sel_id,
                 group_ids: this.m_selectedGroups
             };
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "POST",
                 timeout: 60000,
@@ -405,7 +405,7 @@ namespace Citadel
          * to extract existing filter groups/namespaces to show them as suggestions
          * inside the input field.
          * 
-         * @param {DataTables.DataTable} allLists
+         * @param {DataTables.Api} allLists
          * @param {number} [fadeInTimeMsec=200]
          * 
          * @memberOf ListUploadOverlay

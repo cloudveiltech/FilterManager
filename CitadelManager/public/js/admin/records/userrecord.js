@@ -147,7 +147,7 @@ var Citadel;
                     },
                     {
                         width: "300px",
-                        "mRender": function (data, type, row) {
+                        render: function (data, type, row) {
                             return "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> <button id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
                         }
                     }
@@ -168,7 +168,8 @@ var Citadel;
                         $("#user_activation_table").on("change", "input[type='checkbox']", function () {
                             var id = $(this).attr("data-id");
                             var val = 0;
-                            if (this.checked) {
+                            var objCheck = this;
+                            if (objCheck.checked) {
                                 val = 1;
                             }
                             var checkAjaxSettings = {
@@ -192,7 +193,8 @@ var Citadel;
                         $("#user_activation_table").off("blur", "input[type='number']");
                         $("#user_activation_table").on("blur", "input[type='number']", function () {
                             var id = $(this).attr("data-id");
-                            var val = this.value;
+                            var objInput = this;
+                            var val = objInput.value;
                             var checkAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
@@ -213,7 +215,6 @@ var Citadel;
                         });
                         $("#user_activation_table").off("click", "button.btn-delete");
                         $("#user_activation_table").on('click', 'button.btn-delete', function (e) {
-                            var _this = this;
                             e.preventDefault();
                             if (confirm("Are you sure you want to delete this activation?")) {
                                 var dataObject = {};
@@ -240,9 +241,9 @@ var Citadel;
                                         console.log(jqXHR.responseText);
                                         console.log(errorThrown);
                                         console.log(textStatus);
-                                        _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                        that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
                                         setTimeout(function () {
-                                            _this.m_progressWait.Hide();
+                                            that.m_progressWait.Hide();
                                         }, 5000);
                                         if (jqXHR.status > 399 && jqXHR.status < 500) {
                                         }
@@ -255,7 +256,6 @@ var Citadel;
                         });
                         $("#user_activation_table").off("click", "button.btn-block");
                         $("#user_activation_table").on('click', 'button.btn-block', function (e) {
-                            var _this = this;
                             e.preventDefault();
                             if (confirm("Are you sure you want to delete this activation and block the token?  The user will need to sign in again.")) {
                                 var dataObject = {};
@@ -282,9 +282,9 @@ var Citadel;
                                         console.log(jqXHR.responseText);
                                         console.log(errorThrown);
                                         console.log(textStatus);
-                                        _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                        that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
                                         setTimeout(function () {
-                                            _this.m_progressWait.Hide();
+                                            that.m_progressWait.Hide();
                                         }, 5000);
                                         if (jqXHR.status > 399 && jqXHR.status < 500) {
                                         }
@@ -439,7 +439,7 @@ var Citadel;
                 return false;
             });
             if (userData != null) {
-                this.m_userId = userData.id;
+                this.m_userId = userData['id'];
                 this.InitUserActivationTables();
             }
             else {
