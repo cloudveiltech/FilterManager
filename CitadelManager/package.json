@@ -13,15 +13,21 @@
     "axios": "^0.15.3",
     "bootstrap-sass": "^3.3.7",
     "cross-env": "^3.2.3",
+    "dragula": "3.7.2",
+    "dropzone": "4.3.0",
     "jquery": "^3.1.1",
     "laravel-mix": "0.*",
     "lodash": "^4.17.4",
-    "vue": "^2.1.10",
-    "dragula": "3.7.2",
-    "dropzone": "4.3.0",
-    "typings": "2.1.1"
+    "typings": "2.1.1",
+    "vue": "^2.1.10"
   },
   "dependencies": {
+    "@types/node": "^10.5.5",
+    "@types/datatables.net": "^1.10.12",
+    "@types/dragula": "^2.1.33",
+    "@types/dropzone": "^5.0.4",
+    "@types/jquery": "^3.3.5",
+    "@types/jquery.validation": "^1.16.4",
     "jquery": "^3.2.1",
     "typescript": "^2.5.3"
   }

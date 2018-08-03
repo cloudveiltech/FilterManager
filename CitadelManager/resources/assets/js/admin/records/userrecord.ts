@@ -87,10 +87,10 @@ namespace Citadel
          * User Activation DataTable.
          * 
          * @private
-         * @type {DataTables.DataTable}
+         * @type {DataTables.Api}
          * @memberOf Dashboard
          */
-        private m_ActivationTables: DataTables.DataTable;
+        private m_ActivationTables: DataTables.Api;
         /**
          * Gets the base API route from this record type.
          * 
@@ -251,7 +251,7 @@ namespace Citadel
                     },
                     {
                         width: "300px",
-                        "mRender": function ( data, type, row ) {
+                        render: function ( data, type, row ) {
                             return "<button id='delete_"+row.id+"' class='btn-delete button primary'>Delete</button> <button id='block_"+row.id+"' class='btn-block button primary'>Block</button>";
                         }
                     }
@@ -280,10 +280,11 @@ namespace Citadel
                         $("#user_activation_table").on("change", "input[type='checkbox']", function () {
                             let id = $(this).attr("data-id");
                             let val = 0;
-                            if (this.checked) {
+                            var objCheck = <HTMLInputElement> this;
+                            if (objCheck.checked) {
                                 val = 1;
                             }
-                            let checkAjaxSettings: JQueryAjaxSettings = {
+                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
                                 method:"POST",
                                 timeout: 60000,
                                 url: "api/admin/activations/update_alert",
@@ -305,9 +306,10 @@ namespace Citadel
                         $("#user_activation_table").off("blur", "input[type='number']");
                         $("#user_activation_table").on("blur", "input[type='number']", function () {
                             let id = $(this).attr("data-id");
-                            let val = this.value;
+                            var objInput = <HTMLInputElement> this;
+                            let val = objInput.value;
 
-                            let checkAjaxSettings: JQueryAjaxSettings = {
+                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
                                 method:"POST",
                                 timeout: 60000,
                                 url: "api/admin/activations/update_check_in_days",
@@ -332,15 +334,13 @@ namespace Citadel
                         });
                         $("#user_activation_table").off("click", "button.btn-delete");
                         $("#user_activation_table").on('click', 'button.btn-delete', function(e){
-                            
-                            
                             e.preventDefault();
                             if (confirm("Are you sure you want to delete this activation?"))
                             {
                                 let dataObject = {};
                                 let id_str = e.target.id;
                                 let id = id_str.split("_")[1];
-                                let ajaxSettings: JQueryAjaxSettings =
+                                let ajaxSettings: JQuery.UrlAjaxSettings =
                                 {
                                     method: "POST",
                                     timeout: 60000,
@@ -369,10 +369,10 @@ namespace Citadel
                                         console.log(jqXHR.responseText);
                                         console.log(errorThrown);
                                         console.log(textStatus);
-                                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                        that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
                                         setTimeout(() => 
                                             {
-                                                this.m_progressWait.Hide();
+                                                that.m_progressWait.Hide();
                                             }, 5000);
                 
                                         if (jqXHR.status > 399 && jqXHR.status < 500)
@@ -400,7 +400,7 @@ namespace Citadel
                                 let dataObject = {};
                                 let id_str = e.target.id;
                                 let id = id_str.split("_")[1];
-                                let ajaxSettings: JQueryAjaxSettings =
+                                let ajaxSettings: JQuery.UrlAjaxSettings =
                                 {
                                     method: "POST",
                                     timeout: 60000,
@@ -427,10 +427,10 @@ namespace Citadel
                                         console.log(jqXHR.responseText);
                                         console.log(errorThrown);
                                         console.log(textStatus);
-                                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                        that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
                                         setTimeout(() => 
                                             {
-                                                this.m_progressWait.Hide();
+                                                that.m_progressWait.Hide();
                                             }, 5000);
                 
                                         if (jqXHR.status > 399 && jqXHR.status < 500)
@@ -516,7 +516,7 @@ namespace Citadel
             this.m_reportLevel = this.m_reportLevelInput.checked == true ? 1 : 0;
         }
 
-        public StartEditing(allGroups: any[], userData: Object = null): void
+        public StartEditing(allGroups, userData: Object = null): void
         {
 
             // Clear any existing options.
@@ -656,7 +656,7 @@ namespace Citadel
             });
 
             if(userData != null) {
-                this.m_userId = userData.id;
+                this.m_userId = userData['id'];
                 this.InitUserActivationTables();
                 
             } else {

@@ -868,7 +868,7 @@ namespace Citadel
             if (flag) {
                 url += '/' + this.m_groupId; 
             }   
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "GET",
                 timeout: 60000,
@@ -928,7 +928,7 @@ namespace Citadel
             }
             $.get(ajaxSettings);
         }
-        public StartEditing(allFilters: DataTables.DataTable, data: Object = null, cloneData: Object = null): void
+        public StartEditing(allFilters: DataTables.Api, data: Object = null, cloneData: Object = null): void
         {
             let clearListContainer = ((container: HTMLDivElement): void =>
             {

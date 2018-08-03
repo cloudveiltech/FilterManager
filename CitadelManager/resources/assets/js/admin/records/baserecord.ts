@@ -156,7 +156,7 @@ namespace Citadel
             let dataObject = this.ToObject();
             this.m_progressWait.Show('Saving Record', 'Saving record to server.');
 
-            let ajaxSettings: JQueryAjaxSettings = {
+            let ajaxSettings: JQuery.UrlAjaxSettings = {
                 method: newlyCreated == true ? "POST" : "PATCH",
                 timeout: 60000,
                 url: newlyCreated == true ? this.RecordRoute : this.RecordRoute + '/' + dataObject['id'],
@@ -197,10 +197,9 @@ namespace Citadel
 
             this.m_progressWait.Show('Deleting Record', 'Deleting record from server.');
             let dataObject = this.ToObject();
-            let ajaxSettings: JQueryAjaxSettings = {
+            let ajaxSettings: JQuery.UrlAjaxSettings = {
                 method: "DELETE",
                 timeout: 60000,
-                contents: { _token: $('meta[name="csrf-token"]').attr('content') },
                 url: this.RecordRoute + '/' + dataObject['id'],
                 success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
                     this.m_progressWait.Hide();

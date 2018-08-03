@@ -237,11 +237,10 @@ namespace Citadel
 
             this.m_progressWait.Show('Block Record', 'Blocking record to server.');
 
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
                 {
                     method: "POST",
                     timeout: 60000,
-                    contents: { _token: $('meta[name="csrf-token"]').attr('content') },
                     url: this.RecordRoute + '/block/' + this.m_activationId,
                     data: dataObject,
                     success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>

@@ -141,7 +141,6 @@ var Citadel;
             var ajaxSettings = {
                 method: "POST",
                 timeout: 60000,
-                contents: { _token: $('meta[name="csrf-token"]').attr('content') },
                 url: this.RecordRoute + '/block/' + this.m_activationId,
                 data: dataObject,
                 success: function (data, textStatus, jqXHR) {

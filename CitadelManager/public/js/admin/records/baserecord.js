@@ -69,7 +69,6 @@ var Citadel;
             var ajaxSettings = {
                 method: "DELETE",
                 timeout: 60000,
-                contents: { _token: $('meta[name="csrf-token"]').attr('content') },
                 url: this.RecordRoute + '/' + dataObject['id'],
                 success: function (data, textStatus, jqXHR) {
                     _this.m_progressWait.Hide();

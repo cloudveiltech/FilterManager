@@ -134,7 +134,7 @@ namespace Citadel
         }
         private getRetrieveApplications() {
             $('#spiner_1').show();
-            let ajaxSettings: JQueryAjaxSettings =
+            let ajaxSettings: JQuery.UrlAjaxSettings =
             {
                 method: "GET",
                 timeout: 60000,
