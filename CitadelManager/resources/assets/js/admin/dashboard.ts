@@ -2184,7 +2184,7 @@ namespace Citadel {
             // We supply everything in the groups table so that the user's group
             // can be changed to any available group.
             var usergoup_data = this.m_tableGroups.data();
-            newUser.StartEditing(usergoup_data, this.m_tableUsers.data()['all_user_roles']);
+            newUser.StartEditing(this.m_allGroups, this.m_tableUsers.data()['all_user_roles']);
 
             newUser.ActionCompleteCallback = ((action: string): void => {
 
