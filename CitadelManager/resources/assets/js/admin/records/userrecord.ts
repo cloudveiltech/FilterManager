@@ -218,7 +218,7 @@ namespace Citadel {
                     visible: true,
                     width: "100px",
                     render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                        return "<input type='number' data-id='" + row.id + "' value='" + data + "' class='check-in-days' />";
+                        return "<input type='number' min='0' data-id='" + row.id + "' value='" + data + "' class='check-in-days' />";
                     })
                 },
                 {
