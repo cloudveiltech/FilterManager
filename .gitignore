@@ -291,6 +291,7 @@ __pycache__/
 /node_modules
 /public/hot
 /public/storage
+/public/js/admin
 /storage/*.key
 /vendor
 /.idea
