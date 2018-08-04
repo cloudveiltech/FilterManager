@@ -1513,7 +1513,7 @@ var Citadel;
             var _this = this;
             var newUser = new Citadel.UserRecord();
             var usergoup_data = this.m_tableGroups.data();
-            newUser.StartEditing(usergoup_data, this.m_tableUsers.data()['all_user_roles']);
+            newUser.StartEditing(this.m_allGroups, this.m_tableUsers.data()['all_user_roles']);
             newUser.ActionCompleteCallback = (function (action) {
                 newUser.StopEditing();
                 _this.ForceTableRedraw(_this.m_tableUsers);

@@ -298,6 +298,9 @@ var Citadel;
                     })
                 };
             this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
+            if (id == 0) {
+                this.m_ActivationTables.clear().draw();
+            }
         };
         UserRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
@@ -359,7 +362,7 @@ var Citadel;
                 var option = document.createElement('option');
                 option.text = elm['name'];
                 option.value = elm['id'];
-                this.m_groupIdInput.options.add(option);
+                this.m_groupIdInput.options.add(option, null);
             }
             switch (userData == null) {
                 case true:
@@ -443,6 +446,7 @@ var Citadel;
                 this.InitUserActivationTables();
             }
             else {
+                this.m_userId = undefined;
                 this.InitUserActivationTables();
             }
             $(this.m_editorOverlay).fadeIn(250);
