@@ -82,222 +82,191 @@ var Citadel;
         UserRecord.prototype.InitUserActivationTables = function () {
             var _this = this;
             var that = this;
-            var id = 0;
-            if (this.m_userId === undefined) {
-                id = 0;
-            }
-            else {
-                id = this.m_userId;
-            }
-            this.m_tableColumns =
-                [
-                    {
-                        title: 'Action Id',
-                        data: 'id',
-                        visible: false
-                    },
-                    {
-                        title: 'Identifier',
-                        data: 'identifier',
-                        visible: true,
-                    },
-                    {
-                        title: 'Device Id',
-                        data: 'device_id',
-                        visible: true,
-                        width: '300px'
-                    },
-                    {
-                        title: 'App Version',
-                        data: 'app_version',
-                        visible: true,
-                        width: '180px'
-                    },
-                    {
-                        title: 'IP Address',
-                        data: 'ip_address',
-                        visible: true,
-                        width: '200px'
-                    },
-                    {
-                        title: 'Updated date',
-                        data: 'updated_at',
-                        visible: true,
-                        width: "280px"
-                    },
-                    {
-                        title: 'Check-in Days',
-                        data: 'check_in_days',
-                        visible: true,
-                        width: "100px",
-                        render: (function (data, t, row, meta) {
-                            return "<input type='number' data-id='" + row.id + "' value='" + data + "' class='check-in-days' />";
-                        })
-                    },
-                    {
-                        title: 'Alert Partner',
-                        data: 'alert_partner',
-                        visible: true,
-                        width: "100px",
-                        render: (function (data, t, row, meta) {
-                            var chk_report = (data === 1) ? "checked" : "";
-                            var str = "<label class='switch-original'><input type='checkbox' data-id='" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
-                            return str;
-                        })
-                    },
-                    {
-                        width: "300px",
-                        render: function (data, type, row) {
-                            return "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> <button id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
-                        }
-                    }
-                ];
-            this.m_tableSettings =
-                {
-                    autoWidth: true,
-                    stateSave: true,
-                    responsive: true,
-                    columns: this.m_tableColumns,
-                    data: this.jsonData,
-                    destroy: true,
-                    rowCallback: (function (row, data) {
-                    }),
-                    drawCallback: (function (settings) {
-                        var that = _this;
-                        $("#user_activation_table").off("change", "input[type='checkbox']");
-                        $("#user_activation_table").on("change", "input[type='checkbox']", function () {
-                            var id = $(this).attr("data-id");
-                            var val = 0;
-                            var objCheck = this;
-                            if (objCheck.checked) {
-                                val = 1;
-                            }
-                            var checkAjaxSettings = {
-                                method: "POST",
-                                timeout: 60000,
-                                url: "api/admin/activations/update_alert",
-                                data: { id: id, value: val },
-                                success: function (data, textStatus, jqXHR) {
-                                    return false;
-                                },
-                                error: function (jqXHR, textStatus, errorThrown) {
-                                    console.log(errorThrown);
-                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                    }
-                                    else {
-                                    }
-                                }
-                            };
-                            $.post(checkAjaxSettings);
-                        });
-                        $("#user_activation_table").off("blur", "input[type='number']");
-                        $("#user_activation_table").on("blur", "input[type='number']", function () {
-                            var id = $(this).attr("data-id");
-                            var objInput = this;
-                            var val = objInput.value;
-                            var checkAjaxSettings = {
-                                method: "POST",
-                                timeout: 60000,
-                                url: "api/admin/activations/update_check_in_days",
-                                data: { id: id, value: val },
-                                success: function (data, textStatus, jqXHR) {
-                                    return false;
-                                },
-                                error: function (jqXHR, textStatus, errorThrown) {
-                                    console.log(errorThrown);
-                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                    }
-                                    else {
-                                    }
-                                }
-                            };
-                            $.post(checkAjaxSettings);
-                        });
-                        $("#user_activation_table").off("click", "button.btn-delete");
-                        $("#user_activation_table").on('click', 'button.btn-delete', function (e) {
-                            e.preventDefault();
-                            if (confirm("Are you sure you want to delete this activation?")) {
-                                var dataObject = {};
-                                var id_str = e.target.id;
-                                var id_1 = id_str.split("_")[1];
-                                var ajaxSettings = {
-                                    method: "POST",
-                                    timeout: 60000,
-                                    url: 'api/admin/user_activations/delete/' + id_1,
-                                    data: dataObject,
-                                    success: function (data, textStatus, jqXHR) {
-                                        var index = -1;
-                                        for (var i = 0; i < that.jsonData.length; i++) {
-                                            if (that.jsonData[i].id == id_1) {
-                                                index = i;
-                                                break;
-                                            }
-                                        }
-                                        that.jsonData.splice(i, 1);
-                                        that.InitUserActivationTables();
-                                        return false;
-                                    },
-                                    error: function (jqXHR, textStatus, errorThrown) {
-                                        console.log(jqXHR.responseText);
-                                        console.log(errorThrown);
-                                        console.log(textStatus);
-                                        that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
-                                        setTimeout(function () {
-                                            that.m_progressWait.Hide();
-                                        }, 5000);
-                                        if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                        }
-                                        else {
-                                        }
-                                    }
-                                };
-                                $.post(ajaxSettings);
-                            }
-                        });
-                        $("#user_activation_table").off("click", "button.btn-block");
-                        $("#user_activation_table").on('click', 'button.btn-block', function (e) {
-                            e.preventDefault();
-                            if (confirm("Are you sure you want to delete this activation and block the token?  The user will need to sign in again.")) {
-                                var dataObject = {};
-                                var id_str = e.target.id;
-                                var id_2 = id_str.split("_")[1];
-                                var ajaxSettings = {
-                                    method: "POST",
-                                    timeout: 60000,
-                                    url: 'api/admin/user_activations/block/' + id_2,
-                                    data: dataObject,
-                                    success: function (data, textStatus, jqXHR) {
-                                        var index = -1;
-                                        for (var i = 0; i < that.jsonData.length; i++) {
-                                            if (that.jsonData[i].id == id_2) {
-                                                index = i;
-                                                break;
-                                            }
-                                        }
-                                        that.jsonData.splice(i, 1);
-                                        that.InitUserActivationTables();
-                                        return false;
-                                    },
-                                    error: function (jqXHR, textStatus, errorThrown) {
-                                        console.log(jqXHR.responseText);
-                                        console.log(errorThrown);
-                                        console.log(textStatus);
-                                        that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
-                                        setTimeout(function () {
-                                            that.m_progressWait.Hide();
-                                        }, 5000);
-                                        if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                        }
-                                        else {
-                                        }
-                                    }
-                                };
-                                $.post(ajaxSettings);
-                            }
-                        });
+            var id = this.m_userId === undefined ? 0 : this.m_userId;
+            this.m_tableColumns = [{
+                    title: 'Action Id',
+                    data: 'id',
+                    visible: false
+                }, {
+                    title: 'Identifier',
+                    data: 'identifier',
+                    visible: true,
+                }, {
+                    title: 'Device Id',
+                    data: 'device_id',
+                    visible: true,
+                    width: '300px'
+                }, {
+                    title: 'App Version',
+                    data: 'app_version',
+                    visible: true,
+                    width: '180px'
+                }, {
+                    title: 'IP Address',
+                    data: 'ip_address',
+                    visible: true,
+                    width: '200px'
+                }, {
+                    title: 'Updated date',
+                    data: 'updated_at',
+                    visible: true,
+                    width: "280px"
+                }, {
+                    title: 'Check-in Days',
+                    data: 'check_in_days',
+                    visible: true,
+                    width: "100px",
+                    render: (function (data, t, row, meta) {
+                        return "<input type='number' min='0' data-id='" + row.id + "' value='" + data + "' class='check-in-days' />";
                     })
-                };
+                }, {
+                    title: 'Alert Partner',
+                    data: 'alert_partner',
+                    visible: true,
+                    width: "100px",
+                    render: (function (data, t, row, meta) {
+                        var chk_report = (data === 1) ? "checked" : "";
+                        var str = "<label class='switch-original'><input type='checkbox' data-id='" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                        return str;
+                    })
+                }, {
+                    width: "300px",
+                    render: function (data, type, row) {
+                        return "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> <button id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
+                    }
+                }];
+            this.m_tableSettings = {
+                autoWidth: true,
+                stateSave: true,
+                responsive: true,
+                columns: this.m_tableColumns,
+                data: this.jsonData,
+                destroy: true,
+                rowCallback: (function (row, data) {
+                }),
+                drawCallback: (function (settings) {
+                    var that = _this;
+                    $("#user_activation_table").off("change", "input[type='checkbox']");
+                    $("#user_activation_table").on("change", "input[type='checkbox']", function () {
+                        var id = $(this).attr("data-id");
+                        var val = 0;
+                        var objCheck = this;
+                        if (objCheck.checked) {
+                            val = 1;
+                        }
+                        var checkAjaxSettings = {
+                            method: "POST",
+                            timeout: 60000,
+                            url: "api/admin/activations/update_alert",
+                            data: {
+                                id: id,
+                                value: val
+                            },
+                            success: function (data, textStatus, jqXHR) {
+                                return false;
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                console.log(errorThrown);
+                            }
+                        };
+                        $.post(checkAjaxSettings);
+                    });
+                    $("#user_activation_table").off("blur", "input[type='number']");
+                    $("#user_activation_table").on("blur", "input[type='number']", function () {
+                        var id = $(this).attr("data-id");
+                        var objInput = this;
+                        var val = objInput.value;
+                        var checkAjaxSettings = {
+                            method: "POST",
+                            timeout: 60000,
+                            url: "api/admin/activations/update_check_in_days",
+                            data: {
+                                id: id,
+                                value: val
+                            },
+                            success: function (data, textStatus, jqXHR) {
+                                return false;
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                console.log(errorThrown);
+                            }
+                        };
+                        $.post(checkAjaxSettings);
+                    });
+                    $("#user_activation_table").off("click", "button.btn-delete");
+                    $("#user_activation_table").on('click', 'button.btn-delete', function (e) {
+                        e.preventDefault();
+                        if (confirm("Are you sure you want to delete this activation?")) {
+                            var dataObject = {};
+                            var id_str = e.target.id;
+                            var id_1 = id_str.split("_")[1];
+                            var ajaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: 'api/admin/user_activations/delete/' + id_1,
+                                data: dataObject,
+                                success: function (data, textStatus, jqXHR) {
+                                    var index = -1;
+                                    for (var i = 0; i < that.jsonData.length; i++) {
+                                        if (that.jsonData[i].id == id_1) {
+                                            index = i;
+                                            break;
+                                        }
+                                    }
+                                    that.jsonData.splice(i, 1);
+                                    that.InitUserActivationTables();
+                                    return false;
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                    setTimeout(function () {
+                                        that.m_progressWait.Hide();
+                                    }, 5000);
+                                }
+                            };
+                            $.post(ajaxSettings);
+                        }
+                    });
+                    $("#user_activation_table").off("click", "button.btn-block");
+                    $("#user_activation_table").on('click', 'button.btn-block', function (e) {
+                        e.preventDefault();
+                        if (confirm("Are you sure you want to delete this activation and block the token?  The user will need to sign in again.")) {
+                            var dataObject = {};
+                            var id_str = e.target.id;
+                            var id_2 = id_str.split("_")[1];
+                            var ajaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: 'api/admin/user_activations/block/' + id_2,
+                                data: dataObject,
+                                success: function (data, textStatus, jqXHR) {
+                                    var index = -1;
+                                    for (var i = 0; i < that.jsonData.length; i++) {
+                                        if (that.jsonData[i].id == id_2) {
+                                            index = i;
+                                            break;
+                                        }
+                                    }
+                                    that.jsonData.splice(i, 1);
+                                    that.InitUserActivationTables();
+                                    return false;
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                    setTimeout(function () {
+                                        that.m_progressWait.Hide();
+                                    }, 5000);
+                                }
+                            };
+                            $.post(ajaxSettings);
+                        }
+                    });
+                })
+            };
             this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
+            if (id == 0) {
+                this.m_ActivationTables.clear().draw();
+            }
         };
         UserRecord.prototype.InitButtonHandlers = function () {
             var _this = this;
@@ -359,7 +328,7 @@ var Citadel;
                 var option = document.createElement('option');
                 option.text = elm['name'];
                 option.value = elm['id'];
-                this.m_groupIdInput.options.add(option);
+                this.m_groupIdInput.options.add(option, null);
             }
             switch (userData == null) {
                 case true:
@@ -443,6 +412,7 @@ var Citadel;
                 this.InitUserActivationTables();
             }
             else {
+                this.m_userId = undefined;
                 this.InitUserActivationTables();
             }
             $(this.m_editorOverlay).fadeIn(250);
