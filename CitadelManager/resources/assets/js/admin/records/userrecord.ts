@@ -454,7 +454,9 @@ namespace Citadel
                 };
             
             this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
-
+            if(id == 0) {
+                this.m_ActivationTables.clear().draw();
+            }
         }
 
         private InitButtonHandlers(): void
@@ -518,7 +520,6 @@ namespace Citadel
 
         public StartEditing(allGroups, userData: Object = null): void
         {
-
             // Clear any existing options.
             if (this.m_groupIdInput.options != null)
             {
@@ -526,12 +527,13 @@ namespace Citadel
             }
 
             // Populate group options with what we have available.
+            
             for(var elm of allGroups) 
             {
-                let option = document.createElement('option') as HTMLOptionElement;
+                var option = document.createElement('option') as HTMLOptionElement;
                 option.text = elm['name'];
                 option.value = elm['id'];
-                this.m_groupIdInput.options.add(option);
+                this.m_groupIdInput.options.add(option, null);
             }
 
             switch (userData == null)
@@ -660,7 +662,7 @@ namespace Citadel
                 this.InitUserActivationTables();
                 
             } else {
-                
+                this.m_userId = undefined;
                 this.InitUserActivationTables();
                
             }
