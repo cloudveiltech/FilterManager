@@ -4,16 +4,18 @@
     <!-- Show configured site name. -->
     <a class="app-bar-element branding">{{ config('app.name', 'Citadel') }}</a>
     <span class="app-bar-divider"></span>
-    
+
     <!-- Right hand side menu container. -->
     <div class="app-bar-element place-right">
 
         <!-- Drop down with primary title has logged user's username. -->
-        <span class="dropdown-toggle"><span class="mif-cog"></span>
+        <span class="dropdown-toggle">
+            <span class="mif-cog"></span>
             {{ Auth::user()->name }}
         </span>
-        <div class="app-bar-drop-container place-right no-margin-top block-shadow fg-dark drop-menu-mine" data-role="dropdown" data-no-close="true" style="width: 220px">
-            
+        <div class="app-bar-drop-container place-right no-margin-top block-shadow fg-dark drop-menu-mine" data-role="dropdown" data-no-close="true"
+            style="width: 220px">
+
             <ul class="unstyled-list fg-dark">
                 <li id='btn_system_version'>System Versions</li>
                 <!-- Sign out button. -->

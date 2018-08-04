@@ -122,7 +122,8 @@ var Citadel;
                         this.m_versionTitle.innerText = "Add New Version";
                         this.m_addBtn.innerText = "Add Version";
                         this.m_mainForm.reset();
-                        this, this.m_platformId = 0;
+                        this,
+                            this.m_platformId = 0;
                         this.loadPlatforms();
                         this.m_appNameInput.value = this.m_appName;
                         this.m_fileNameInput.value = this.m_fileName;

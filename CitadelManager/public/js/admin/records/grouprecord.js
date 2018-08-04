@@ -256,7 +256,6 @@ var Citadel;
                 'ReportLevel': this.m_reportLevel.checked ? 1 : 0,
             };
             appConfig[filterAppsKey] = "checked";
-            console.log('app cfg,', appConfig);
             this.m_appConfig = appConfig;
         };
         GroupRecord.prototype.getGroupItem = function (group_id) {
@@ -397,11 +396,11 @@ var Citadel;
                 error: function (jqXHR, textStatus, errorThrown) {
                     $("#spiner_4").hide();
                     _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
-                    setTimeout(function () { _this.m_progressWait.Hide(); }, 5000);
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                    }
-                    else {
-                    }
+                    setTimeout(function () {
+                        _this.m_progressWait.Hide();
+                    }, 5000);
+                    if (jqXHR.status > 399 && jqXHR.status < 500) { }
+                    else { }
                 }
             };
             $.get(ajaxSettings);
@@ -634,7 +633,6 @@ var Citadel;
                     break;
             }
             this.m_mainForm.onsubmit = (function (e) {
-                console.log(_this.m_appConfig);
                 var validateOpts = _this.ValidationOptions;
                 var validresult = $(_this.m_mainForm).validate(validateOpts).form();
                 var validator = $(_this.m_mainForm).validate(validateOpts);

@@ -178,7 +178,9 @@ var Citadel;
                         method: "POST",
                         timeout: 60000,
                         url: "api/admin/platform/delete",
-                        data: { platform_id: platform_id },
+                        data: {
+                            platform_id: platform_id
+                        },
                         success: function (data, textStatus, jqXHR) {
                             that.loadDatas();
                             return false;

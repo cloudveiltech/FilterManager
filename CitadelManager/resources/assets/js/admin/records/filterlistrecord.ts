@@ -7,14 +7,12 @@
 
 ///<reference path="../../progresswait.ts"/>
 
-namespace Citadel
-{
-    export class FilterListRecord extends BaseRecord
-    {
+namespace Citadel {
+    export class FilterListRecord extends BaseRecord {
 
         /**
          * The unique ID of this filter list.
-         * 
+         *
          * @private
          * @type {number}
          * @memberOf FilterListRecord
@@ -23,7 +21,7 @@ namespace Citadel
 
         /**
          * The category name that this filter list represents or belongs to.
-         * 
+         *
          * @private
          * @type {string}
          * @memberOf FilterListRecord
@@ -32,7 +30,7 @@ namespace Citadel
 
         /**
          * The named type of this filter list.
-         * 
+         *
          * @private
          * @type {string}
          * @memberOf FilterListRecord
@@ -41,7 +39,7 @@ namespace Citadel
 
         /**
          * The namespace of this filter list.
-         * 
+         *
          * @private
          * @type {string}
          * @memberOf FilterListRecord
@@ -50,7 +48,7 @@ namespace Citadel
 
         /**
          * The total number of rules in this filter list.
-         * 
+         *
          * @private
          * @type {number}
          * @memberOf FilterListRecord
@@ -60,32 +58,27 @@ namespace Citadel
 
         /**
          * Gets the base API route from this record type.
-         * 
+         *
          * @readonly
          * @type {string}
          * @memberOf GroupRecord
          */
-        public get RecordRoute(): string
-        {
+        public get RecordRoute(): string {
             return 'api/admin/filterlists';
         }
 
-        protected get ValidationOptions(): JQueryValidation.ValidationOptions
-        {
-            let opt: JQueryValidation.ValidationOptions =
-                {
+        protected get ValidationOptions(): JQueryValidation.ValidationOptions {
+            let opt: JQueryValidation.ValidationOptions = {
 
-                };
+            };
             return opt;
         }
 
-        constructor()
-        {
+        constructor() {
             super();
         }
 
-        protected LoadFromObject(value: Object): void
-        {
+        protected LoadFromObject(value: Object): void {
             this.m_filterId = value['id'];
             this.m_filterCategoryName = value['category'];
             this.m_filterType = value['type'];
@@ -93,27 +86,23 @@ namespace Citadel
             this.m_numRuleEntries = value['num_entries'];
         }
 
-        protected LoadFromForm(): void
-        {
+        protected LoadFromForm(): void {
             // Do nothing. No editor for this.
         }
 
-        public ToObject(): Object
-        {
-            let obj =
-                {
-                    'id': this.m_filterId,
-                    'category': this.m_filterCategoryName,
-                    'type': this.m_filterType,
-                    'namespace': this.m_filterListNamespace,
-                    'num_entries': this.m_numRuleEntries
-                };
+        public ToObject(): Object {
+            let obj = {
+                'id': this.m_filterId,
+                'category': this.m_filterCategoryName,
+                'type': this.m_filterType,
+                'namespace': this.m_filterListNamespace,
+                'num_entries': this.m_numRuleEntries
+            };
 
             return obj;
         }
 
-        public StopEditing(): void
-        {
+        public StopEditing(): void {
 
         }
 
@@ -123,57 +112,46 @@ namespace Citadel
          * @param constrainToType Whether or not to constrain the deletion to those of the same type as well. For example, delete only triggers
          * in the same namespace, or filters, NLP, etc.
          */
-        public DeleteAllInNamespace(constrainToType: boolean): void
-        {
+        public DeleteAllInNamespace(constrainToType: boolean): void {
 
             this.m_progressWait.Show('Deleting Record', 'Deleting record from server.');
 
             let dataObject = this.ToObject();
 
-            let ajaxSettings: JQuery.UrlAjaxSettings =
-                {
-                    // PHP script expects post.
-                    method: "DELETE",
-                    timeout: 60000,
-                    url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'],
-                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                    {
-                        this.m_progressWait.Hide();
+            let ajaxSettings: JQuery.UrlAjaxSettings = {
+                // PHP script expects post.
+                method: "DELETE",
+                timeout: 60000,
+                url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'],
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                    this.m_progressWait.Hide();
 
-                        if (this.m_actionCompleteCallback != null)
-                        {
-                            this.m_actionCompleteCallback("Deleted");
-                        }
+                    if (this.m_actionCompleteCallback != null) {
+                        this.m_actionCompleteCallback("Deleted");
+                    }
 
-                        return false;
-                    },
+                    return false;
+                },
 
-                    // Callback if the call was a failure.
-                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                    {
-                        console.log(jqXHR.responseText);
+                // Callback if the call was a failure.
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(jqXHR.responseText);
 
-                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action. Check console for more information.');
+                    this.m_progressWait.Show('Action Failed', 'Error reported by the server during action. Check console for more information.');
 
-                        if (jqXHR.status > 399 && jqXHR.status < 500)
-                        {
-                            // Almost certainly auth related error. Redirect to login
-                            // by signalling for logout.
-                            //window.location.href = 'login.php?logout';
-                        }
-                        else
-                        {
-                            setTimeout(() => 
-                            {
-                                this.m_progressWait.Hide();
-                            }, 5000);
-                        }
+                    if (jqXHR.status > 399 && jqXHR.status < 500) {
+                        // Almost certainly auth related error. Redirect to login
+                        // by signalling for logout.
+                        //window.location.href = 'login.php?logout';
+                    } else {
+                        setTimeout(() => {
+                            this.m_progressWait.Hide();
+                        }, 5000);
                     }
                 }
+            }
 
-            // POST the auth request.
             $.ajax(ajaxSettings);
         }
-
     }
 }

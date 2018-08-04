@@ -103,17 +103,10 @@ var Citadel;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     $('#spiner_1').hide();
-                    console.log(jqXHR.responseText);
-                    console.log(errorThrown);
-                    console.log(textStatus);
                     _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
                     setTimeout(function () {
                         _this.m_progressWait.Hide();
                     }, 5000);
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                    }
-                    else {
-                    }
                 }
             };
             $.get(ajaxSettings);

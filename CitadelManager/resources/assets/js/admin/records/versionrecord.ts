@@ -5,18 +5,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 ///<reference path="../../progresswait.ts"/>
-namespace Citadel
-{
+namespace Citadel {
     /**
-     * 
-     * 
+     *
+     *
      * @class VersionRecord
      */
-    export class VersionRecord extends BaseRecord
-    {              
-         /**
-         * The div container that represents the entirety of our HTML UI. 
-         * 
+    export class VersionRecord extends BaseRecord {
+        /**
+         * The div container that represents the entirety of our HTML UI.
+         *
          * @private
          * @type {HTMLDivElement}
          * @memberOf ApplyToGroupOverlay
@@ -50,15 +48,13 @@ namespace Citadel
         private m_releaseDate: string;
         private m_active: number;
 
-        public get RecordRoute(): string
-        {
+        public get RecordRoute(): string {
             return 'api/admin/version';
         }
 
-        protected get ValidationOptions(): JQueryValidation.ValidationOptions
-        {
+        protected get ValidationOptions(): JQueryValidation.ValidationOptions {
             let validationRules: JQueryValidation.RulesDictionary = {};
-            
+
             validationRules[this.m_appNameInput.id] = {
                 required: true
             };
@@ -85,28 +81,25 @@ namespace Citadel
             validationErrorMessages[this.m_betaVersionInput.id] = 'Beta version is required.';
             validationErrorMessages[this.m_stableVersionInput.id] = 'Stable version is required.';
 
-            let validationOptions: JQueryValidation.ValidationOptions =
-                {
-                    rules: validationRules,
-                    errorPlacement: ((error: JQuery, element: JQuery): void =>
-                    {
-                        error.appendTo('#user_form_errors');
-                        $('#user_form_errors').append('<br/>');
-                    }),
-                    messages: validationErrorMessages
-                };
+            let validationOptions: JQueryValidation.ValidationOptions = {
+                rules: validationRules,
+                errorPlacement: ((error: JQuery, element: JQuery): void => {
+                    error.appendTo('#user_form_errors');
+                    $('#user_form_errors').append('<br/>');
+                }),
+                messages: validationErrorMessages
+            };
 
             return validationOptions;
         }
 
         /**
          * Creates an instance of AppVersion.
-         * 
-         * 
+         *
+         *
          * @memberOf AppVersion
          */
-        constructor() 
-        {
+        constructor() {
             super();
             $("#btn_cancel").hide();
             this.m_appName = "Cloud Veil";
@@ -114,14 +107,13 @@ namespace Citadel
             this.InitUIComponents();
         }
 
-        private InitUIComponents(): void
-        {            
+        private InitUIComponents(): void {
             this.m_addBtn = document.querySelector('#btn_add') as HTMLButtonElement;
-            
+
             this.m_closeBtn = document.querySelector('#system_version_close') as HTMLButtonElement;
             this.m_editorOverlay = document.querySelector('#overlay_system_version') as HTMLDivElement;
-            this.m_mainForm  = document.querySelector('#system_version_form') as HTMLFormElement;
-            this.m_versionTitle  = document.querySelector('#overlay_system_title') as HTMLHeadingElement;
+            this.m_mainForm = document.querySelector('#system_version_form') as HTMLFormElement;
+            this.m_versionTitle = document.querySelector('#overlay_system_title') as HTMLHeadingElement;
 
             this.m_platformOSInput = document.querySelector('#platform_os_name') as HTMLSelectElement;
             this.m_appNameInput = document.querySelector('#system_version_input_app_name') as HTMLInputElement;
@@ -132,20 +124,17 @@ namespace Citadel
             this.m_releaseDateInput = document.querySelector('#system_version_input_rdate') as HTMLInputElement;
             this.m_activeInput = document.querySelector('#system_version_default_version') as HTMLInputElement;
             this.m_changesInput = document.querySelector('#system_version_input_changes') as HTMLTextAreaElement;
-            
+
             this.InitButtonHandlers();
         }
 
-        private InitButtonHandlers(): void
-        {
-            this.m_closeBtn.onclick = ((e: MouseEvent): any =>
-            {
+        private InitButtonHandlers(): void {
+            this.m_closeBtn.onclick = ((e: MouseEvent): any => {
                 this.StopEditing();
             });
         }
 
-        protected LoadFromObject(data: Object): void
-        {
+        protected LoadFromObject(data: Object): void {
             this.m_versionId = data['id'] as number;
             this.m_platformId = data['platform_id'] as number;
             this.m_appName = data['app_name'] as string;
@@ -159,8 +148,7 @@ namespace Citadel
             this.m_active = data['active'] as number;
         }
 
-        protected LoadFromForm(): void
-        {
+        protected LoadFromForm(): void {
             let selectedPlatformOption = this.m_platformOSInput.options[this.m_platformOSInput.selectedIndex] as HTMLOptionElement;
             this.m_platformId = parseInt(selectedPlatformOption.value);
             this.m_appName = this.m_appNameInput.value;
@@ -174,16 +162,15 @@ namespace Citadel
             this.m_changes = this.m_changesInput.value;
         }
 
-        public StartEditing(rowData: Object = null): void
-        {
-            switch (rowData == null)
-            {
+        public StartEditing(rowData: Object = null): void {
+            switch (rowData == null) {
                 case true:
                     {
                         this.m_versionTitle.innerText = "Add New Version";
                         this.m_addBtn.innerText = "Add Version";
                         this.m_mainForm.reset();
-                        this,this.m_platformId = 0;
+                        this,
+                        this.m_platformId = 0;
                         this.loadPlatforms();
 
                         this.m_appNameInput.value = this.m_appName;
@@ -198,7 +185,7 @@ namespace Citadel
 
                         this.m_versionTitle.innerText = "Edit Version";
                         this.m_addBtn.innerText = "Save";
-                        
+
                         this.m_appNameInput.value = this.m_appName;
                         this.m_fileNameInput.value = this.m_fileName;
                         this.m_alphaVersionInput.value = this.m_alpha;
@@ -212,54 +199,47 @@ namespace Citadel
                     break;
             }
 
-            this.m_mainForm.onsubmit = ((e: Event): any =>
-            {
+            this.m_mainForm.onsubmit = ((e: Event): any => {
 
                 let validateOpts = this.ValidationOptions;
                 let validresult = $(this.m_mainForm).validate(validateOpts).form();
 
-                if ($(this.m_mainForm).validate(validateOpts).valid())
-                {
+                if ($(this.m_mainForm).validate(validateOpts).valid()) {
                     return this.OnFormSubmitClicked(e, rowData == null);
                 }
 
                 return false;
             });
-            
-            // Show the editor.
+
             $(this.m_editorOverlay).fadeIn(250);
         }
 
-        public StopEditing(): void
-        {
+        public StopEditing(): void {
             $(this.m_editorOverlay).fadeOut(200);
         }
 
-        private loadPlatforms(): void
-        {
-            let ajaxSettings: JQuery.UrlAjaxSettings =
-            {
+        private loadPlatforms(): void {
+            let ajaxSettings: JQuery.UrlAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
                 url: "api/admin/platforms",
                 data: {},
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                {                    
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
                     this._update_platforms(data.platforms);
                     return false;
                 },
-                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                {
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
                     console.log(textStatus);
                 }
             }
+
             $.get(ajaxSettings);
         }
 
         private _update_platforms(platforms: any[]): void {
             $('#platform_os_name').empty();
-            for( let item of platforms) {
-                if(this.m_platformId === item.id) {
+            for (let item of platforms) {
+                if (this.m_platformId === item.id) {
                     $('#platform_os_name').append("<option value=" + item.id + " selected>" + item.os_name + "</option>");
                 } else {
                     $('#platform_os_name').append("<option value=" + item.id + ">" + item.os_name + "</option>");
@@ -267,24 +247,21 @@ namespace Citadel
             }
         }
 
-        public ToObject(): Object
-        {
-            let obj =
-                {
-                    'id': this.m_versionId,
-                    'platform_id': this.m_platformId,
-                    'app_name': this.m_appName,
-                    'file_name': this.m_fileName,
-                    'version_number': this.m_stable,
-                    'changes': this.m_changes,
-                    'alpha': this.m_alpha,
-                    'beta': this.m_beta,
-                    'stable': this.m_stable,
-                    'release_date': this.m_releaseDate,
-                    'active': this.m_active,
-                };
+        public ToObject(): Object {
+            let obj = {
+                'id': this.m_versionId,
+                'platform_id': this.m_platformId,
+                'app_name': this.m_appName,
+                'file_name': this.m_fileName,
+                'version_number': this.m_stable,
+                'changes': this.m_changes,
+                'alpha': this.m_alpha,
+                'beta': this.m_beta,
+                'stable': this.m_stable,
+                'release_date': this.m_releaseDate,
+                'active': this.m_active,
+            };
             return obj;
         }
     }
-
 }

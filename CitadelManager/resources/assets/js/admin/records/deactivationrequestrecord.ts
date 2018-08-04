@@ -7,15 +7,13 @@
 
 ///<reference path="../../progresswait.ts"/>
 
-namespace Citadel
-{
-    export class DeactivationRequestRecord extends BaseRecord
-    {
+namespace Citadel {
+    export class DeactivationRequestRecord extends BaseRecord {
         //
         // ──────────────────────────────────────────────────────────────────────────────── I ──────────
         //   :::::: R E Q U E S T   D A T A   M E M B E R S : :  :   :    :     :        :          :
         // ──────────────────────────────────────────────────────────────────────────────────────────
-        //        
+        //
 
         private m_requestId: number;
 
@@ -31,19 +29,19 @@ namespace Citadel
         // ──────────────────────────────────────────────────────────────────────────────────────────
         //
 
-        private m_mainForm : HTMLFormElement;
+        private m_mainForm: HTMLFormElement;
 
         /**
          * The Div of the editing overlay. This houses all of the editor
          * contents and overlays everything else with a super high z-index.
-         * 
+         *
          * @private
          * @type {HTMLDivElement}
          * @memberOf GroupRecord
          */
         private m_editorOverlay: HTMLDivElement;
 
-        private m_editorTitle: HTMLHeadingElement;    
+        private m_editorTitle: HTMLHeadingElement;
 
         private m_userNameInput: HTMLInputElement;
 
@@ -55,58 +53,49 @@ namespace Citadel
 
         /**
          * Gets the base API route from this record type.
-         * 
+         *
          * @readonly
          * @type {string}
          * @memberOf GroupRecord
          */
-        public get RecordRoute(): string
-        {
+        public get RecordRoute(): string {
             return 'api/admin/deactivationreq';
         }
 
-        protected get ValidationOptions(): JQueryValidation.ValidationOptions
-        {
+        protected get ValidationOptions(): JQueryValidation.ValidationOptions {
             let validationRules: JQueryValidation.RulesDictionary = {};
 
-            let validationErrorMessages = {};            
+            let validationErrorMessages = {};
 
-            let validationOptions: JQueryValidation.ValidationOptions =
-                {
-                    rules: validationRules,
-                    errorPlacement: ((error: JQuery, element: JQuery): void =>
-                    {
-                        error.appendTo('#deactivation_request_form_errors');
-                        $('#deactivation_request_form_errors').append('<br/>');
-                    }),
-                    messages: validationErrorMessages
-                };
+            let validationOptions: JQueryValidation.ValidationOptions = {
+                rules: validationRules,
+                errorPlacement: ((error: JQuery, element: JQuery): void => {
+                    error.appendTo('#deactivation_request_form_errors');
+                    $('#deactivation_request_form_errors').append('<br/>');
+                }),
+                messages: validationErrorMessages
+            };
 
             return validationOptions;
         }
 
         /**
          * Creates an instance of GroupRecord.
-         * 
-         * 
+         *
+         *
          * @memberOf GroupRecord
          */
-        constructor()
-        {
+        constructor() {
             super();
             this.ConstructFormReferences();
         }
 
-        private ConstructFormReferences(): void
-        {
-            this.m_mainForm = document.querySelector('#editor_deactivation_request_form') as HTMLFormElement;            
+        private ConstructFormReferences(): void {
+            this.m_mainForm = document.querySelector('#editor_deactivation_request_form') as HTMLFormElement;
             this.m_editorTitle = document.querySelector('#deactivation_request_editing_title') as HTMLHeadingElement;
             this.m_editorOverlay = document.querySelector('#overlay_deactivation_request_editor') as HTMLDivElement;
 
             this.m_userNameInput = document.querySelector('#editor_deactivation_request_input_username') as HTMLInputElement;
-
-            // This field should not be editable at all. It's just there
-            // so that admin can see who is asking.
             this.m_userNameInput.disabled = true;
 
             this.m_requestGrantedInput = document.querySelector('#editor_deactivation_request_input_isgranted') as HTMLInputElement;
@@ -117,34 +106,28 @@ namespace Citadel
             this.InitButtonHandlers();
         }
 
-        private InitButtonHandlers(): void
-        {
-            this.m_cancelBtn.onclick = ((e: MouseEvent): any =>
-            {
+        private InitButtonHandlers(): void {
+            this.m_cancelBtn.onclick = ((e: MouseEvent): any => {
                 this.StopEditing();
             });
         }
 
-        protected LoadFromObject(data: Object): void
-        {
+        protected LoadFromObject(data: Object): void {
             this.m_requestId = data['id'] as number;
-            this.m_userName = data['user']['email'] as string;            
-            this.m_requestGranted = data['granted'];            
+            this.m_userName = data['user']['email'] as string;
+            this.m_requestGranted = data['granted'];
             this.m_dateRequested = data['time_first_requested'] as string;
         }
 
-        protected LoadFromForm(): void
-        {   
+        protected LoadFromForm(): void {
             this.m_requestGranted = this.m_requestGrantedInput.checked == true ? 1 : 0;
         }
 
-        public StartEditing(data: Object = null): void
-        {
-            switch (data == null)
-            {
+        public StartEditing(data: Object = null): void {
+            switch (data == null) {
                 case true:
                     {
-                        // Only app users can create deactivation requests.                        
+                        // Only app users can create deactivation requests.
                     }
                     break;
 
@@ -161,40 +144,33 @@ namespace Citadel
                     break;
             }
 
-            this.m_mainForm.onsubmit = ((e: Event): any =>
-            {
+            this.m_mainForm.onsubmit = ((e: Event): any => {
                 let validateOpts = this.ValidationOptions;
                 let validresult = $(this.m_mainForm).validate(validateOpts).form();
 
-                if ($(this.m_mainForm).validate(validateOpts).valid())
-                {
+                if ($(this.m_mainForm).validate(validateOpts).valid()) {
                     return this.OnFormSubmitClicked(e, data == null);
                 }
 
                 return false;
             });
 
-            // Show the editor.
             $(this.m_editorOverlay).fadeIn(250);
         }
 
-        public StopEditing(): void
-        {
+        public StopEditing(): void {
             $(this.m_editorOverlay).fadeOut(200);
         }
 
-        public ToObject(): Object
-        {
-            let obj =
-            {
-                'id' : this.m_requestId,
-                'user_name' : this.m_userName,
-                'granted' : this.m_requestGranted,                
-                'time_first_requested' : this.m_dateRequested
+        public ToObject(): Object {
+            let obj = {
+                'id': this.m_requestId,
+                'user_name': this.m_userName,
+                'granted': this.m_requestGranted,
+                'time_first_requested': this.m_dateRequested
             };
 
             return obj;
         }
     }
-
 }

@@ -80,10 +80,6 @@ var Citadel;
                     setTimeout(function () {
                         _this.m_progressWait.Hide();
                     }, 5000);
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                    }
-                    else {
-                    }
                 }
             };
             $.get(ajaxSettings);
@@ -102,7 +98,6 @@ var Citadel;
                     _this.m_applyButton.disabled = false;
                     _this.m_selectedGroups = [];
                     _this.m_unselectedGroups = [];
-                    console.log(data);
                     data.forEach(function (user_group) {
                         _this.m_selectedGroups.push(user_group.user_group_id);
                     });
@@ -122,10 +117,6 @@ var Citadel;
                     setTimeout(function () {
                         _this.m_progressWait.Hide();
                     }, 5000);
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                    }
-                    else {
-                    }
                 }
             };
             $.get(ajaxSettings);
@@ -210,13 +201,13 @@ var Citadel;
         };
         ApplyAppgroupToUsergroup.prototype.onApplyButtonClicked = function (e) {
             var _this = this;
-            $('#spiner_3').show();
             var url = "api/admin/apply_appgroup_to_usergroup";
             var sel_id = parseInt(this.m_appGroupNameList.selectedOptions[0].value);
             var dataObject = {
                 app_group_id: sel_id,
                 user_group_ids: this.m_selectedGroups
             };
+            $('#spiner_3').show();
             var ajaxSettings = {
                 method: "POST",
                 timeout: 60000,
@@ -231,10 +222,6 @@ var Citadel;
                     setTimeout(function () {
                         _this.m_progressWait.Hide();
                     }, 5000);
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                    }
-                    else {
-                    }
                 }
             };
             $.post(ajaxSettings);

@@ -111,11 +111,11 @@ var Citadel;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     _this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
-                    setTimeout(function () { _this.m_progressWait.Hide(); }, 5000);
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                    }
-                    else {
-                    }
+                    setTimeout(function () {
+                        _this.m_progressWait.Hide();
+                    }, 5000);
+                    if (jqXHR.status > 399 && jqXHR.status < 500) { }
+                    else { }
                 }
             };
             $.get(ajaxSettings);

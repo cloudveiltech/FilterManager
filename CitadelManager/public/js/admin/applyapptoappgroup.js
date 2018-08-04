@@ -81,10 +81,6 @@ var Citadel;
                     setTimeout(function () {
                         _this.m_progressWait.Hide();
                     }, 5000);
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                    }
-                    else {
-                    }
                 }
             };
             $.get(ajaxSettings);
@@ -122,10 +118,6 @@ var Citadel;
                     setTimeout(function () {
                         _this.m_progressWait.Hide();
                     }, 5000);
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                    }
-                    else {
-                    }
                 }
             };
             $.get(ajaxSettings);
@@ -210,13 +202,13 @@ var Citadel;
         };
         ApplyAppToAppGroup.prototype.onApplyButtonClicked = function (e) {
             var _this = this;
-            $('#spiner_2').show();
             var url = "api/admin/apply_app_to_app_group";
             var sel_id = parseInt(this.m_appNameList.selectedOptions[0].value);
             var dataObject = {
                 app_id: sel_id,
                 group_ids: this.m_selectedGroups
             };
+            $('#spiner_2').show();
             var ajaxSettings = {
                 method: "POST",
                 timeout: 60000,
@@ -231,10 +223,6 @@ var Citadel;
                     setTimeout(function () {
                         _this.m_progressWait.Hide();
                     }, 5000);
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                    }
-                    else {
-                    }
                 }
             };
             $.post(ajaxSettings);

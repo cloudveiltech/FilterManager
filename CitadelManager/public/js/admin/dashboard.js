@@ -106,8 +106,7 @@ var Citadel;
             var _this = this;
             var height = $("body").height();
             var userTableConstruction = (function () {
-                var userTableColumns = [
-                    {
+                var userTableColumns = [{
                         title: 'User Id',
                         data: 'id',
                         visible: false,
@@ -243,7 +242,10 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/users/update_field",
-                                data: { id: id_str, value: val },
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableUsers);
                                     return false;
@@ -263,8 +265,7 @@ var Citadel;
                 _this.m_tableUsers = $('#user_table').DataTable(usersTableSettings);
             });
             var groupTableConstruction = (function () {
-                var groupTableColumns = [
-                    {
+                var groupTableColumns = [{
                         title: 'Group Id',
                         data: 'id',
                         visible: false
@@ -426,7 +427,10 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/groups/update_field",
-                                data: { id: id_str, value: val },
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableGroups);
                                     return false;
@@ -446,8 +450,7 @@ var Citadel;
                 _this.m_tableGroups = $('#group_table').DataTable(groupTableSettings);
             });
             var filterTableConstruction = (function () {
-                var filterTableColumns = [
-                    {
+                var filterTableColumns = [{
                         title: 'ID',
                         data: 'id',
                         visible: false
@@ -540,8 +543,7 @@ var Citadel;
                 _this.m_tableFilterLists = $('#filter_table').DataTable(filterTableSettings);
             });
             var deactivationRequestConstruction = (function () {
-                var userDeactivationRequestTableColumns = [
-                    {
+                var userDeactivationRequestTableColumns = [{
                         title: 'ID',
                         data: 'id',
                         visible: false
@@ -630,7 +632,10 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/deactivationreq/update_field",
-                                data: { id: id_str, value: val },
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableUserDeactivationRequests);
                                     return false;
@@ -650,8 +655,7 @@ var Citadel;
                 _this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
             });
             var appListTableConstruction = (function () {
-                var appListTableColumns = [
-                    {
+                var appListTableColumns = [{
                         title: 'App Id',
                         data: 'id',
                         visible: false
@@ -716,8 +720,7 @@ var Citadel;
                 _this.m_tableAppLists = $('#app_table').DataTable(appListTableSettings);
             });
             var appGroupListTableConstruction = (function () {
-                var appGroupListTableColumns = [
-                    {
+                var appGroupListTableColumns = [{
                         title: 'App Group Id',
                         data: 'id',
                         visible: false
@@ -776,8 +779,7 @@ var Citadel;
                 _this.m_tableAppGroupLists = $('#app_group_table').DataTable(appGroupListTableSettings);
             });
             var appUserActivationTableConstruction = (function () {
-                var appUserActivationTableColumns = [
-                    {
+                var appUserActivationTableColumns = [{
                         title: 'Activation Id',
                         data: 'id',
                         visible: false
@@ -917,7 +919,10 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/activations/update_field",
-                                data: { id: id_str, value: val },
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableAppUserActivationTable);
                                     return false;
@@ -941,8 +946,7 @@ var Citadel;
                 });
             });
             var systemVersionTableConstruction = (function () {
-                var systemVersionTableColumns = [
-                    {
+                var systemVersionTableColumns = [{
                         title: 'Version Id',
                         data: 'id',
                         visible: false,
@@ -1163,7 +1167,9 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/versions/update_status",
-                                data: { id: id_str },
+                                data: {
+                                    id: id_str
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableSystemVersions);
                                     return false;
@@ -1252,6 +1258,7 @@ var Citadel;
                 _this.OnDeleteGroupClicked(e);
             });
             this.m_btnCloneGroup.onclick = (function (e) {
+                alert("123");
                 _this.OnCloneGroupClicked(e);
             });
             this.m_btnUploadFilterLists.onclick = (function (e) {
