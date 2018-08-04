@@ -106,8 +106,7 @@ var Citadel;
             var _this = this;
             var height = $("body").height();
             var userTableConstruction = (function () {
-                var userTableColumns = [
-                    {
+                var userTableColumns = [{
                         title: 'User Id',
                         data: 'id',
                         visible: false,
@@ -131,29 +130,25 @@ var Citadel;
                             }
                             return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + name + "</b>";
                         })
-                    },
-                    {
+                    }, {
                         title: 'Group Name',
                         data: 'group.name',
                         className: 'content-left',
                         defaultContent: 'Unassigned',
                         visible: true,
                         width: '220px'
-                    },
-                    {
+                    }, {
                         title: 'User Email',
                         data: 'email',
                         className: 'content-left',
                         visible: true
-                    },
-                    {
+                    }, {
                         title: 'Roles',
                         data: 'roles[, ].display_name',
                         className: 'content-left',
                         defaultContent: 'None',
                         width: '180px'
-                    },
-                    {
+                    }, {
                         title: '#Lic.Used / #Licenses',
                         data: 'activations_allowed',
                         className: 'content-center',
@@ -162,8 +157,7 @@ var Citadel;
                             return "<span class='license_used'>" + row.activations_used + "</span> / <span class='license_allowed'>" + data + "</span>";
                         }),
                         width: '250px'
-                    },
-                    {
+                    }, {
                         title: 'Report Level',
                         data: 'report_level',
                         visible: true,
@@ -174,8 +168,7 @@ var Citadel;
                         }),
                         className: 'content-center',
                         width: '150px'
-                    },
-                    {
+                    }, {
                         title: 'Status',
                         data: 'isactive',
                         className: 'content-center',
@@ -192,15 +185,13 @@ var Citadel;
                             }
                         }),
                         width: '100px'
-                    },
-                    {
+                    }, {
                         title: 'Date Registered',
                         data: 'created_at',
                         visible: true,
                         width: '180px',
                         className: 'updated_date'
-                    }
-                ];
+                    }];
                 var userTablesLoadFromAjaxSettings = {
                     url: "api/admin/users",
                     dataSrc: function (json) {
@@ -243,17 +234,16 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/users/update_field",
-                                data: { id: id_str, value: val },
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableUsers);
                                     return false;
                                 },
                                 error: function (jqXHR, textStatus, errorThrown) {
                                     console.log(errorThrown);
-                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                    }
-                                    else {
-                                    }
                                 }
                             };
                             $.post(checkAjaxSettings);
@@ -263,13 +253,11 @@ var Citadel;
                 _this.m_tableUsers = $('#user_table').DataTable(usersTableSettings);
             });
             var groupTableConstruction = (function () {
-                var groupTableColumns = [
-                    {
+                var groupTableColumns = [{
                         title: 'Group Id',
                         data: 'id',
                         visible: false
-                    },
-                    {
+                    }, {
                         title: 'Group Name',
                         data: 'name',
                         visible: true,
@@ -277,8 +265,7 @@ var Citadel;
                         render: (function (data, t, row, meta) {
                             return "<span class='mif-organization self-scale-group fg-green'></span> - <b title='" + row.user_count + " users are registered in this group.'>" + data + "</b> <span class='user_count'>(" + row.user_count + ")</span>";
                         })
-                    },
-                    {
+                    }, {
                         title: 'Primary DNS',
                         data: 'primary_dns',
                         visible: true,
@@ -293,8 +280,7 @@ var Citadel;
                         }),
                         className: 'content-left',
                         width: '190px'
-                    },
-                    {
+                    }, {
                         title: 'Secondary DNS',
                         data: 'secondary_dns',
                         visible: true,
@@ -309,8 +295,7 @@ var Citadel;
                         }),
                         className: 'content-left',
                         width: '190px'
-                    },
-                    {
+                    }, {
                         title: 'Terminate/Internet/Threshold',
                         data: 'terminate',
                         visible: true,
@@ -329,8 +314,7 @@ var Citadel;
                         }),
                         className: 'content-left',
                         width: '290px'
-                    },
-                    {
+                    }, {
                         title: 'Bypass',
                         data: 'bypass',
                         visible: true,
@@ -345,8 +329,7 @@ var Citadel;
                         }),
                         className: 'content-left',
                         width: '180px'
-                    },
-                    {
+                    }, {
                         title: 'Report Level',
                         data: 'report_level',
                         visible: true,
@@ -357,8 +340,7 @@ var Citadel;
                         }),
                         className: 'content-center',
                         width: '150px'
-                    },
-                    {
+                    }, {
                         title: 'Status',
                         data: 'isactive',
                         visible: true,
@@ -375,15 +357,13 @@ var Citadel;
                         }),
                         className: 'content-center',
                         width: '60px'
-                    },
-                    {
+                    }, {
                         title: 'Date Registered',
                         data: 'created_at',
                         visible: true,
                         width: '180px',
                         className: 'updated_date'
-                    }
-                ];
+                    }];
                 var groupTablesLoadFromAjaxSettings = {
                     url: "api/admin/groups",
                     dataSrc: function (json) {
@@ -426,17 +406,16 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/groups/update_field",
-                                data: { id: id_str, value: val },
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableGroups);
                                     return false;
                                 },
                                 error: function (jqXHR, textStatus, errorThrown) {
                                     console.log(errorThrown);
-                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                    }
-                                    else {
-                                    }
                                 }
                             };
                             $.post(checkAjaxSettings);
@@ -446,13 +425,11 @@ var Citadel;
                 _this.m_tableGroups = $('#group_table').DataTable(groupTableSettings);
             });
             var filterTableConstruction = (function () {
-                var filterTableColumns = [
-                    {
+                var filterTableColumns = [{
                         title: 'ID',
                         data: 'id',
                         visible: false
-                    },
-                    {
+                    }, {
                         title: 'Category Name',
                         data: 'category',
                         visible: true,
@@ -467,8 +444,7 @@ var Citadel;
                                 return "<span class='mif-warning fg-red'></span> " + data;
                             }
                         })
-                    },
-                    {
+                    }, {
                         title: 'List Group Name',
                         data: 'namespace',
                         visible: true,
@@ -478,8 +454,7 @@ var Citadel;
                             }
                             return data;
                         })
-                    },
-                    {
+                    }, {
                         title: 'Type',
                         data: 'type',
                         visible: true,
@@ -494,20 +469,17 @@ var Citadel;
                                 return "<span class='mif-warning fg-red'></span> " + data;
                             }
                         }),
-                    },
-                    {
+                    }, {
                         title: '# Entries',
                         data: 'entries_count',
                         visible: true
-                    },
-                    {
+                    }, {
                         title: 'Date Created',
                         data: 'created_at',
                         visible: true,
                         width: '180px',
                         className: 'updated_date'
-                    }
-                ];
+                    }];
                 var filterTablesLoadFromAjaxSettings = {
                     url: "api/admin/filterlists",
                     dataSrc: function (json) {
@@ -540,13 +512,11 @@ var Citadel;
                 _this.m_tableFilterLists = $('#filter_table').DataTable(filterTableSettings);
             });
             var deactivationRequestConstruction = (function () {
-                var userDeactivationRequestTableColumns = [
-                    {
+                var userDeactivationRequestTableColumns = [{
                         title: 'ID',
                         data: 'id',
                         visible: false
-                    },
-                    {
+                    }, {
                         title: 'User Full Name',
                         data: 'user.name',
                         visible: true,
@@ -554,19 +524,16 @@ var Citadel;
                             return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
                         }),
                         width: '240px'
-                    },
-                    {
+                    }, {
                         title: 'Username',
                         data: 'user.email',
                         visible: true,
                         width: '240px'
-                    },
-                    {
+                    }, {
                         title: 'Device Name',
                         data: 'device_id',
                         visible: true
-                    },
-                    {
+                    }, {
                         title: 'Granted',
                         data: 'granted',
                         visible: true,
@@ -579,15 +546,13 @@ var Citadel;
                             return str;
                         }),
                         width: '100px'
-                    },
-                    {
+                    }, {
                         title: 'Date Requested',
                         data: 'created_at',
                         visible: true,
                         width: '180px',
                         className: 'updated_date'
-                    }
-                ];
+                    }];
                 var userDeactivationRequestTablesLoadFromAjaxSettings = {
                     url: "api/admin/deactivationreq",
                     dataSrc: function (json) {
@@ -630,17 +595,16 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/deactivationreq/update_field",
-                                data: { id: id_str, value: val },
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableUserDeactivationRequests);
                                     return false;
                                 },
                                 error: function (jqXHR, textStatus, errorThrown) {
                                     console.log(errorThrown);
-                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                    }
-                                    else {
-                                    }
                                 }
                             };
                             $.post(checkAjaxSettings);
@@ -650,13 +614,11 @@ var Citadel;
                 _this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
             });
             var appListTableConstruction = (function () {
-                var appListTableColumns = [
-                    {
+                var appListTableColumns = [{
                         title: 'App Id',
                         data: 'id',
                         visible: false
-                    },
-                    {
+                    }, {
                         title: 'Application Name',
                         data: 'name',
                         visible: true,
@@ -664,26 +626,22 @@ var Citadel;
                         render: (function (data, t, row, meta) {
                             return "<span class='mif-file-binary self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
                         })
-                    },
-                    {
+                    }, {
                         title: 'Notes',
                         data: 'notes',
                         visible: true,
                         width: '240px'
-                    },
-                    {
+                    }, {
                         title: 'Linked Group',
                         data: 'group_name',
                         orderable: false,
                         visible: true
-                    },
-                    {
+                    }, {
                         title: 'Date Modified',
                         data: 'updated_at',
                         visible: true,
                         width: '220px'
-                    }
-                ];
+                    }];
                 var appListTablesLoadFromAjaxSettings = {
                     url: "api/admin/app",
                     dataSrc: function (json) {
@@ -694,8 +652,6 @@ var Citadel;
                     },
                     method: "GET",
                     error: (function (jqXHR, textStatus, errorThrown) {
-                        if (jqXHR.status > 399 && jqXHR.status < 500) {
-                        }
                     })
                 };
                 var appListTableSettings = {
@@ -716,13 +672,11 @@ var Citadel;
                 _this.m_tableAppLists = $('#app_table').DataTable(appListTableSettings);
             });
             var appGroupListTableConstruction = (function () {
-                var appGroupListTableColumns = [
-                    {
+                var appGroupListTableColumns = [{
                         title: 'App Group Id',
                         data: 'id',
                         visible: false
-                    },
-                    {
+                    }, {
                         title: 'App Group Name',
                         data: 'group_name',
                         visible: true,
@@ -730,20 +684,17 @@ var Citadel;
                         render: (function (data, t, row, meta) {
                             return "<span class='mif-file-folder self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
                         })
-                    },
-                    {
+                    }, {
                         title: 'Linked Apps',
                         data: 'app_names',
                         orderable: false,
                         visible: true
-                    },
-                    {
+                    }, {
                         title: 'Date Modified',
                         data: 'updated_at',
                         visible: true,
                         width: '230px'
-                    }
-                ];
+                    }];
                 var appGroupListTablesLoadFromAjaxSettings = {
                     url: "api/admin/app_group",
                     dataSrc: function (json) {
@@ -754,8 +705,6 @@ var Citadel;
                     },
                     method: "GET",
                     error: (function (jqXHR, textStatus, errorThrown) {
-                        if (jqXHR.status > 399 && jqXHR.status < 500) {
-                        }
                     })
                 };
                 var appGroupListTableSettings = {
@@ -776,13 +725,11 @@ var Citadel;
                 _this.m_tableAppGroupLists = $('#app_group_table').DataTable(appGroupListTableSettings);
             });
             var appUserActivationTableConstruction = (function () {
-                var appUserActivationTableColumns = [
-                    {
+                var appUserActivationTableColumns = [{
                         title: 'Activation Id',
                         data: 'id',
                         visible: false
-                    },
-                    {
+                    }, {
                         title: 'User',
                         data: 'name',
                         visible: true,
@@ -794,15 +741,13 @@ var Citadel;
                             return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + name + "</b>";
                         }),
                         width: '200px'
-                    },
-                    {
+                    }, {
                         title: 'Device Id',
                         data: 'device_id',
                         visible: true,
                         className: 'device_id',
                         width: '200px'
-                    },
-                    {
+                    }, {
                         title: 'IP Address',
                         data: 'ip_address',
                         visible: true,
@@ -822,8 +767,7 @@ var Citadel;
                             }
                             return user_ip + " <span title='" + data + "'>" + name + "</span>";
                         })
-                    },
-                    {
+                    }, {
                         title: '#Bypass Used/Quantity/Period',
                         data: 'bypass_quantity',
                         visible: true,
@@ -848,8 +792,7 @@ var Citadel;
                             bypass_duration += "<span class='unit_min'>mins</span>";
                             return bypass_used + bypass_permitted + bypass_duration;
                         })
-                    },
-                    {
+                    }, {
                         title: 'Report Level',
                         data: 'report_level',
                         visible: true,
@@ -859,22 +802,19 @@ var Citadel;
                             var chk_report = (data === 1) ? "checked" : "";
                             return "<label class='switch-original'><input type='checkbox' id='useractivation_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
                         }),
-                    },
-                    {
+                    }, {
                         title: 'Version',
                         data: 'app_version',
                         visible: true,
                         width: '110px',
                         className: 'content-center'
-                    },
-                    {
+                    }, {
                         title: 'Updated date',
                         data: 'updated_at',
                         visible: true,
                         width: '170px',
                         className: 'updated_date'
-                    }
-                ];
+                    }];
                 var appUserActivationTablesLoadFromAjaxSettings = {
                     url: "api/admin/activations",
                     dataSrc: function (json) {
@@ -885,8 +825,6 @@ var Citadel;
                     },
                     method: "GET",
                     error: (function (jqXHR, textStatus, errorThrown) {
-                        if (jqXHR.status > 399 && jqXHR.status < 500) {
-                        }
                     })
                 };
                 var appUserActivationTableSettings = {
@@ -917,7 +855,10 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/activations/update_field",
-                                data: { id: id_str, value: val },
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableAppUserActivationTable);
                                     return false;
@@ -935,19 +876,18 @@ var Citadel;
                     })
                 };
                 _this.m_tableAppUserActivationTable = $('#app_user_activations_table').DataTable(appUserActivationTableSettings);
-                $('<button id="refresh_user_activations"><span class="mif-loop2 "></span> Refresh</button>').appendTo('#app_user_activations_table_wrapper div.dataTables_filter');
+                $('<button id="refresh_user_activations"><span class="mif-loop2 "></span> Refresh</button>')
+                    .appendTo('#app_user_activations_table_wrapper div.dataTables_filter');
                 $("#refresh_user_activations").click(function () {
                     _this.ForceTableRedraw(_this.m_tableAppUserActivationTable);
                 });
             });
             var systemVersionTableConstruction = (function () {
-                var systemVersionTableColumns = [
-                    {
+                var systemVersionTableColumns = [{
                         title: 'Version Id',
                         data: 'id',
                         visible: false,
-                    },
-                    {
+                    }, {
                         title: 'Platform',
                         data: 'platform',
                         className: 'content-left',
@@ -976,8 +916,7 @@ var Citadel;
                                 return "<span class='inactive'>" + span + " &nbsp; <b>" + name + "</b></span>";
                             }
                         })
-                    },
-                    {
+                    }, {
                         title: 'App Name',
                         data: 'app_name',
                         orderable: false,
@@ -992,8 +931,7 @@ var Citadel;
                                 return "<span class='inactive'>" + data + "</span>";
                             }
                         })
-                    },
-                    {
+                    }, {
                         title: 'File Name',
                         data: 'file_name',
                         className: 'content-left',
@@ -1008,8 +946,7 @@ var Citadel;
                                 return "<span class='inactive'>" + data + "</span>";
                             }
                         })
-                    },
-                    {
+                    }, {
                         title: 'Version',
                         data: 'version_number',
                         orderable: false,
@@ -1024,8 +961,7 @@ var Citadel;
                                 return "<span class='inactive'>" + data + "</span>";
                             }
                         })
-                    },
-                    {
+                    }, {
                         title: 'Release Date',
                         data: 'release_date',
                         orderable: false,
@@ -1040,8 +976,7 @@ var Citadel;
                         }),
                         className: 'content-center version_date',
                         width: '180px'
-                    },
-                    {
+                    }, {
                         title: 'Alpha',
                         data: 'alpha',
                         orderable: false,
@@ -1056,8 +991,7 @@ var Citadel;
                                 return "<span class='inactive'>" + data + "</span>";
                             }
                         })
-                    },
-                    {
+                    }, {
                         title: 'Beta',
                         data: 'beta',
                         orderable: false,
@@ -1072,8 +1006,7 @@ var Citadel;
                                 return "<span class='inactive'>" + data + "</span>";
                             }
                         })
-                    },
-                    {
+                    }, {
                         title: 'Stable',
                         data: 'stable',
                         orderable: false,
@@ -1088,8 +1021,7 @@ var Citadel;
                                 return "<span class='inactive'>" + data + "</span>";
                             }
                         })
-                    },
-                    {
+                    }, {
                         title: 'Changes',
                         data: 'changes',
                         orderable: false,
@@ -1103,8 +1035,7 @@ var Citadel;
                                 return "<span class='inactive'>" + data + "</span>";
                             }
                         })
-                    },
-                    {
+                    }, {
                         title: 'Action',
                         data: 'active',
                         orderable: false,
@@ -1119,8 +1050,7 @@ var Citadel;
                         }),
                         className: 'content-left padding-left-10',
                         width: '60px'
-                    }
-                ];
+                    }];
                 var systemVersionTablesLoadFromAjaxSettings = {
                     url: "api/admin/versions",
                     dataSrc: function (json) {
@@ -1131,8 +1061,6 @@ var Citadel;
                     },
                     method: "GET",
                     error: (function (jqXHR, textStatus, errorThrown) {
-                        if (jqXHR.status > 399 && jqXHR.status < 500) {
-                        }
                     })
                 };
                 var systemVersionsTableSettings = {
@@ -1163,17 +1091,15 @@ var Citadel;
                                 method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/versions/update_status",
-                                data: { id: id_str },
+                                data: {
+                                    id: id_str
+                                },
                                 success: function (data, textStatus, jqXHR) {
                                     that.ForceTableRedraw(that.m_tableSystemVersions);
                                     return false;
                                 },
                                 error: function (jqXHR, textStatus, errorThrown) {
                                     console.log(errorThrown);
-                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                    }
-                                    else {
-                                    }
                                 }
                             };
                             $.post(checkAjaxSettings);

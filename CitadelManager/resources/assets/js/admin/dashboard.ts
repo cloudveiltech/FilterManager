@@ -15,15 +15,13 @@
 ///<reference path="records/appuseractivationrecord.ts"/>
 ///<reference path="records/versionrecord.ts"/>
 
-namespace Citadel
-{
+namespace Citadel {
     /**
      * An enum containing all valid view states for the administrator dashboard.
-     * 
+     *
      * @enum {number}
      */
-    enum DashboardViewStates
-    {
+    enum DashboardViewStates {
         UserListView,
         GroupListView,
         FilterListView,
@@ -40,11 +38,10 @@ namespace Citadel
      * user accounts, create and manage group policies, assign users to group
      * policies, create and manage filtering lists and other filtering data and
      * assign them to group policies.
-     * 
+     *
      * @class Dashboard
      */
-    export class Dashboard
-    {
+    export class Dashboard {
 
         //
         // ────────────────────────────────────────────────────────────────────────────────────────── I ──────────
@@ -55,7 +52,7 @@ namespace Citadel
         /**
          * Clickable main menu tab that hosts all menu action buttons for user
          * management.
-         * 
+         *
          * @private
          * @type {HTMLDivElement}
          * @memberOf Dashboard
@@ -70,7 +67,7 @@ namespace Citadel
 
         /**
          * Buttons in User Management View
-         * 
+         *
          * @private
          * @type {HTMLButtonElement}
          * @memberOf DashboardMenu
@@ -82,7 +79,7 @@ namespace Citadel
 
         /**
          * Buttons in Group Management View
-         * 
+         *
          * @private
          * @type {HTMLButtonElement}
          * @memberOf DashboardMenu
@@ -90,12 +87,12 @@ namespace Citadel
         private m_btnCreateGroup: HTMLButtonElement;
         private m_btnDeleteGroup: HTMLButtonElement;
         private m_btnCloneGroup: HTMLButtonElement;
-        
+
         /// Filter list/data management tab elements.
 
         /**
          * Buttons in Filter Management View
-         * 
+         *
          * @private
          * @type {HTMLButtonElement}
          * @memberOf Dashboard
@@ -106,9 +103,9 @@ namespace Citadel
         private m_btnDeleteFilterListTypeInNamespace: HTMLButtonElement;
 
         /**
-         * Button to initiate the process of deleting an existing, selected 
+         * Button to initiate the process of deleting an existing, selected
          * filter list.
-         * 
+         *
          * @private
          * @type {HTMLButtonElement}
          * @memberOf Dashboard
@@ -120,7 +117,7 @@ namespace Citadel
 
         /**
          * Button to initiate the process of Add a new item to list.
-         * 
+         *
          * @private
          * @type {HTMLButtonElement}
          * @memberOf DashboardMenu
@@ -130,7 +127,7 @@ namespace Citadel
         private m_btnApplyToGroup: HTMLButtonElement;
         /**
          * RadioButton to indicate AppList
-         * 
+         *
          * @private
          * @type {HTMLInputElement}
          * @memberOf DashboardMenu
@@ -141,15 +138,15 @@ namespace Citadel
         /**
          * Button to initiate the process of removing item an existing, selected
          * item.
-         * 
+         *
          * @private
          * @type {HTMLButtonElement}
          * @memberOf DashboardMenu
          */
         private m_btnDeleteAppUserActivation: HTMLButtonElement;
         private m_btnBlockAppUserActivation: HTMLButtonElement;
-        
-        
+
+
         //
         // ──────────────────────────────────────────────────────────────────────────────────────── II ──────────
         //   :::::: T O P   M E N U   B A R   U I   E L E M E N T S : :  :   :    :     :        :          :
@@ -158,15 +155,15 @@ namespace Citadel
 
         /**
          * Represents the sign out button.
-         * 
+         *
          * @private
-         * 
+         *
          * @memberOf Dashboard
          */
         private m_btnSignOut;
         /**
          * Buttons in User Management View
-         * 
+         *
          * @private
          * @type {HTMLButtonElement}
          * @memberOf DashboardMenu
@@ -182,7 +179,7 @@ namespace Citadel
 
         /**
          * Host container where user related data is displayed.
-         * 
+         *
          * @private
          * @type {HTMLDivElement}
          * @memberOf Dashboard
@@ -203,12 +200,12 @@ namespace Citadel
 
         /**
          * DataTables.
-         * 
+         *
          * @private
          * @type {DataTables.Api}
          * @memberOf Dashboard
          */
-        
+
         private m_tableUsers: DataTables.Api;
         private m_tableGroups: DataTables.Api;
         private m_tableFilterLists: DataTables.Api;
@@ -224,7 +221,7 @@ namespace Citadel
          * incorporate functionality that enforces the validity of various view
          * states by synchronizing visual elements and data as required for each
          * different state.
-         * 
+         *
          * @private
          * @type {DashboardViewStates}
          * @memberOf Dashboard
@@ -233,7 +230,7 @@ namespace Citadel
 
         /**
          * Modal overlay for handling filter list uploading.
-         * 
+         *
          * @private
          * @type {ListUploadOverlay}
          * @memberOf Dashboard
@@ -242,7 +239,7 @@ namespace Citadel
 
         /**
          * Dragula, we use to allow editing of a groups assigned filters.
-         * 
+         *
          * @private
          * @type {dragula.Drake}
          * @memberOf Dashboard
@@ -254,12 +251,11 @@ namespace Citadel
 
         /**
          * Creates an instance of Dashboard.
-         * 
-         * 
+         *
+         *
          * @memberOf Dashboard
          */
-        constructor()
-        {
+        constructor() {
             // Setup nav.
             this.ConstructNavigation();
             this.loadAllFilters();
@@ -270,15 +266,13 @@ namespace Citadel
             this.m_filterListUploadController = new ListUploadOverlay();
 
             // Force table redraw any time an upload of new lists fails or succeeds.
-            this.m_filterListUploadController.UploadCompleteCallback = (():void =>
-            {
+            this.m_filterListUploadController.UploadCompleteCallback = ((): void => {
                 this.ForceTableRedraw(this.m_tableFilterLists);
                 this.ForceTableRedraw(this.m_tableGroups);
                 this.m_filterListUploadController.Hide();
                 this.loadAllFilters();
             });
-            this.m_filterListUploadController.UploadFailedCallback = (():void =>
-            {
+            this.m_filterListUploadController.UploadFailedCallback = ((): void => {
                 this.ForceTableRedraw(this.m_tableFilterLists);
                 this.ForceTableRedraw(this.m_tableGroups);
                 this.m_filterListUploadController.Hide();
@@ -287,7 +281,7 @@ namespace Citadel
 
         private loadAllFilters(): void {
             let ajaxSettings: JQuery.UrlAjaxSettings = {
-                method:"GET",
+                method: "GET",
                 timeout: 60000,
                 url: "api/admin/filterlist/all",
                 success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
@@ -303,7 +297,7 @@ namespace Citadel
 
         private loadAllGroups(): void {
             let ajaxSettings: JQuery.UrlAjaxSettings = {
-                method:"GET",
+                method: "GET",
                 timeout: 60000,
                 url: "api/admin/group/all",
                 success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
@@ -317,9 +311,8 @@ namespace Citadel
             $.post(ajaxSettings);
         }
 
-        
-        private ConstructManagementViews(): void
-        {
+
+        private ConstructManagementViews(): void {
             // Grab main view container references.
             this.m_viewUserManagement = document.getElementById('view_user_management') as HTMLDivElement;
             this.m_viewGroupManagement = document.getElementById('view_group_management') as HTMLDivElement;
@@ -338,8 +331,7 @@ namespace Citadel
             this.ViewState = DashboardViewStates.UserListView;
         }
 
-        private ConstructDragula(): void
-        {
+        private ConstructDragula(): void {
             let c: Element[] = [
                 document.getElementById('group_blacklist_filters'),
                 document.getElementById('group_whitelist_filters'),
@@ -348,27 +340,24 @@ namespace Citadel
             ];
 
             let d: dragula.DragulaOptions = {
-                containers: c,                
+                containers: c,
                 revertOnSpill: true,
                 removeOnSpill: false,
                 direction: 'vertical',
                 copy: false,
                 delay: false,
                 mirrorContainer: document.body,
-                isContainer: ((element: Element) : any =>
-                {
+                isContainer: ((element: Element): any => {
                     // Easy way to make dragula containers. Just add the class below.
                     return element.classList.contains('dragula-container');
                 }),
-                accepts: ((el?: Element, target?: Element, source?: Element, sibling?: Element): boolean =>
-                {
+                accepts: ((el ? : Element, target ? : Element, source ? : Element, sibling ? : Element): boolean => {
                     // Don't allow NLP filters to be anything but blacklist. NLP is not
                     // designed to function any other way.
                     //
                     // Same goes for triggers. They're blacklist-specific as well.
                     var attr = el.getAttribute('citadel-filter-list-type');
-                    if((attr.toLowerCase() === 'nlp' || attr.toLowerCase() === 'trigger') && (target.id != 'group_blacklist_filters' && target.id != 'group_unassigned_filters'))
-                    {
+                    if ((attr.toLowerCase() === 'nlp' || attr.toLowerCase() === 'trigger') && (target.id != 'group_blacklist_filters' && target.id != 'group_unassigned_filters')) {
                         return false;
                     }
 
@@ -383,156 +372,133 @@ namespace Citadel
 
         /**
          * Runs the DataTables initialization on all tables we have to present.
-         * 
+         *
          * @private
-         * 
+         *
          * @memberOf Dashboard
          */
-        private ConstructTables(): void
-        {
+        private ConstructTables(): void {
             let height = $("body").height();
-            
-            let userTableConstruction = (() =>
-            {  
-                
-                let userTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'User Id',
-                            data: 'id',
-                            visible: false,                            
-                        },
-                        {
-                            // This field belongs to a different table, so it
-                            // needs to be included on the server side!
-                            title: 'Group Id',
-                            data: 'group.id',
-                            defaultContent: 'Unassigned',                            
-                            visible: false
-                        },
-                        {
-                            title: 'User Name',
-                            data: 'name',
-                            className: 'content-left',
-                            visible: true,
-                            width: '200px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {       
-                                var name = data;        
-                                if(data.length > 15) {
-                                    name = data.substring(0,11) + "...";
-                                }
-                                return "<span class='mif-user self-scale-group fg-green'></span>  <b title='"+data+"'>" + name + "</b>";
-                            })
-                        },
-                        {
-                            // This field belongs to a different table, so it
-                            // needs to be included on the server side!
-                            title: 'Group Name',
-                            data: 'group.name',
-                            className: 'content-left',
-                            defaultContent: 'Unassigned',
-                            visible: true,
-                            width: '220px'
-                        },
-                        {
-                            title: 'User Email',
-                            data: 'email',
-                            className: 'content-left',
-                            visible: true
-                        },
-                        {
-                            title: 'Roles',                            
-                            data: 'roles[, ].display_name',
-                            className: 'content-left',
-                            defaultContent: 'None',
-                            width: '180px'
-                        },
-                        {
-                            // This field belongs to a different database, so it
-                            // needs to be included on the server side!
-                            title: '#Lic.Used / #Licenses',
-                            data: 'activations_allowed',
-                            className: 'content-center',
-                            visible: true,                            
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                return "<span class='license_used'>"+row.activations_used+"</span> / <span class='license_allowed'>"+data+"</span>";
-                            }),
-                            width: '250px'
-                        },
-                        {
-                            title: 'Report Level',
-                            data: 'report_level',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                var chk_report = (data === 1) ? "checked":"";
-                                var str = "<label class='switch-original'><input type='checkbox' id='user_report_"+row.id+"' "+chk_report+" /><span class='check'></span></label>";
-                                return str;
-                            }),
-                            className: 'content-center',
-                            width: '150px'
-                        },
-                        {
-                            title: 'Status',
-                            data: 'isactive',
-                            className: 'content-center',
-                            visible: true,                            
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data == null)
-                                {
-                                    return "";
-                                }
 
-                                if(data == 1)
-                                {
-                                    return "<span class='active-s status'>Active</span>";
-                                }
-                                else
-                                {
-                                    return "<span class='inactive-s status'>Inactive</span>";
-                                }
-                            }),
-                            width: '100px'
-                        },
-                        {
-                            title: 'Date Registered',
-                            data: 'created_at',
-                            visible: true,
-                            width: '180px',
-                            className:'updated_date'
+            let userTableConstruction = (() => {
+
+                let userTableColumns: DataTables.ColumnSettings[] = [{
+                    title: 'User Id',
+                    data: 'id',
+                    visible: false,
+                },
+                {
+                    // This field belongs to a different table, so it
+                    // needs to be included on the server side!
+                    title: 'Group Id',
+                    data: 'group.id',
+                    defaultContent: 'Unassigned',
+                    visible: false
+                },
+                {
+                    title: 'User Name',
+                    data: 'name',
+                    className: 'content-left',
+                    visible: true,
+                    width: '200px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        var name = data;
+                        if (data.length > 15) {
+                            name = data.substring(0, 11) + "...";
                         }
-                    ];
+                        return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + name + "</b>";
+                    })
+                }, {
+                    // This field belongs to a different table, so it
+                    // needs to be included on the server side!
+                    title: 'Group Name',
+                    data: 'group.name',
+                    className: 'content-left',
+                    defaultContent: 'Unassigned',
+                    visible: true,
+                    width: '220px'
+                }, {
+                    title: 'User Email',
+                    data: 'email',
+                    className: 'content-left',
+                    visible: true
+                }, {
+                    title: 'Roles',
+                    data: 'roles[, ].display_name',
+                    className: 'content-left',
+                    defaultContent: 'None',
+                    width: '180px'
+                }, {
+                    // This field belongs to a different database, so it
+                    // needs to be included on the server side!
+                    title: '#Lic.Used / #Licenses',
+                    data: 'activations_allowed',
+                    className: 'content-center',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        return "<span class='license_used'>" + row.activations_used + "</span> / <span class='license_allowed'>" + data + "</span>";
+                    }),
+                    width: '250px'
+                }, {
+                    title: 'Report Level',
+                    data: 'report_level',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        var chk_report = (data === 1) ? "checked" : "";
+                        var str = "<label class='switch-original'><input type='checkbox' id='user_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                        return str;
+                    }),
+                    className: 'content-center',
+                    width: '150px'
+                }, {
+                    title: 'Status',
+                    data: 'isactive',
+                    className: 'content-center',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        if (data == null) {
+                            return "";
+                        }
+
+                        if (data == 1) {
+                            return "<span class='active-s status'>Active</span>";
+                        } else {
+                            return "<span class='inactive-s status'>Inactive</span>";
+                        }
+                    }),
+                    width: '100px'
+                }, {
+                    title: 'Date Registered',
+                    data: 'created_at',
+                    visible: true,
+                    width: '180px',
+                    className: 'updated_date'
+                }];
 
                 // Set our table's loading AJAX settings to call the admin
                 // control API with the appropriate arguments.
-                let userTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
-                    {
-                        url: "api/admin/users",
-                        dataSrc: function ( json ) {
-                            return json.data;
-                        },                        
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                ////window.location.href = 'login.php?logout';
-                            }
-                        })
-                    };
+                let userTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: "api/admin/users",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                            // Almost certainly auth related error. Redirect to login
+                            // by signalling for logout.
+                            ////window.location.href = 'login.php?logout';
+                        }
+                    })
+                };
 
                 // Define user table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-               
+
                 let usersTableSettings: DataTables.Settings = {
-                    scrollY: ''+ (height - 470) + 'px',
+                    scrollY: '' + (height - 470) + 'px',
                     scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
@@ -542,28 +508,698 @@ namespace Citadel
                     deferLoading: 0,
                     columns: userTableColumns,
                     ajax: userTablesLoadFromAjaxSettings,
-                    rowCallback: ((row: Node, data: any[] | Object): void =>
-                    {
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
                         this.OnTableRowCreated(row, data);
                     }),
-                    drawCallback: (( settings ): void =>
-                    {
+                    drawCallback: ((settings): void => {
                         let that = this;
+
                         $("#user_table").off("change", "input[type='checkbox']");
                         $("#user_table").on("change", "input[type='checkbox']", function () {
                             let id_str = this.id;
                             let val = 0;
-                            var checkObj = <HTMLInputElement> this;
+                            var checkObj = < HTMLInputElement > this;
                             if (checkObj.checked) {
                                 val = 1;
                             }
                             let checkAjaxSettings: JQuery.UrlAjaxSettings = {
-                                method:"POST",
+                                method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/users/update_field",
-                                data: {id: id_str, value: val},
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
                                 success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
                                     that.ForceTableRedraw(that.m_tableUsers);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                }
+                            }
+
+                            $.post(checkAjaxSettings);
+                        });
+                    })
+                };
+                this.m_tableUsers = $('#user_table').DataTable(usersTableSettings);
+            });
+
+            let groupTableConstruction = (() => {
+                let groupTableColumns: DataTables.ColumnSettings[] = [{
+                    title: 'Group Id',
+                    data: 'id',
+                    visible: false
+                }, {
+                    title: 'Group Name',
+                    data: 'name',
+                    visible: true,
+                    className: 'content-left',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        return "<span class='mif-organization self-scale-group fg-green'></span> - <b title='" + row.user_count + " users are registered in this group.'>" + data + "</b> <span class='user_count'>(" + row.user_count + ")</span>";
+                    })
+                }, {
+                    title: 'Primary DNS',
+                    data: 'primary_dns',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        var str = "";
+                        if (data === null || data === "") {
+
+                        } else {
+
+                            str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
+                        }
+                        return str;
+                    }),
+                    className: 'content-left',
+                    width: '190px'
+                }, {
+                    title: 'Secondary DNS',
+                    data: 'secondary_dns',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        var str = "";
+                        if (data === null || data === "") {
+
+                        } else {
+
+                            str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
+                        }
+                        return str;
+                    }),
+                    className: 'content-left',
+                    width: '190px'
+                }, {
+                    title: 'Terminate/Internet/Threshold',
+                    data: 'terminate',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        if (data === null || data === "") {
+                            return "";
+                        }
+                        var app_cfg = JSON.parse(row.app_cfg);
+                        var chk_terminate = app_cfg.CannotTerminate ? "checked" : "";
+                        var chk_internet = app_cfg.BlockInternet ? "checked" : "";
+                        var chk_threshold = app_cfg.UseThreshold ? "checked" : "";
+                        //var str = "<label class='"+chk_terminate+"'></label>";
+                        var str = "<label class='switch-original'><input type='checkbox' id='group_terminate_" + row.id + "' " + chk_terminate + " /><span class='check'></span></label>";
+                        str += "<label class='switch-original'><input type='checkbox' id='group_internet_" + row.id + "' " + chk_internet + " /><span class='check'></span></label>";
+                        str += "<label class='switch-original'><input type='checkbox' id='group_threshold_" + row.id + "' " + chk_threshold + " /><span class='check'></span></label>";
+                        return str;
+                    }),
+                    className: 'content-left',
+                    width: '290px'
+                }, {
+                    title: 'Bypass',
+                    data: 'bypass',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        if (data === null || data === "") {
+                            return "";
+                        }
+                        var app_cfg = JSON.parse(row.app_cfg);
+                        var bypass_permitted = app_cfg['BypassesPermitted'] === null || app_cfg['BypassesPermitted'] === 0 ? "" : "<span class='mif-clipboard self-scale-4 fg-cyan'></span> " + app_cfg['BypassesPermitted'] + "<span class='unit_day'>/day</span>";
+                        var bypass_duration = app_cfg['BypassDuration'] === null || app_cfg['BypassDuration'] === 0 ? "" : " <span class='mif-alarm-on self-scale-5 fg-pink'></span> " + app_cfg['BypassDuration'] + "<span class='unit_min'>mins</span>";
+                        return bypass_permitted + bypass_duration;
+                    }),
+                    className: 'content-left',
+                    width: '180px'
+                }, {
+                    title: 'Report Level',
+                    data: 'report_level',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        //console.log(row.id, data);
+                        var app_cfg = JSON.parse(row.app_cfg);
+
+                        var chk_report = (app_cfg.ReportLevel == 1) ? "checked" : "";
+                        //return app_cfg.ReportLevel;
+                        return "<label class='switch-original'><input type='checkbox' id='group_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                    }),
+                    className: 'content-center',
+                    width: '150px'
+                }, {
+                    title: 'Status',
+                    data: 'isactive',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        if (data == null) {
+                            return "";
+                        }
+
+                        if (data == 1) {
+                            return "<span class='active-s status'>Active</span>";
+                        } else {
+                            return "<span class='inactive-s status'>Inactive</span>";
+                        }
+                    }),
+                    className: 'content-center',
+                    width: '60px'
+                }, {
+                    title: 'Date Registered',
+                    data: 'created_at',
+                    visible: true,
+                    width: '180px',
+                    className: 'updated_date'
+                }];
+
+                let groupTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: "api/admin/groups",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                            // Almost certainly auth related error. Redirect to login
+                            // by signalling for logout.
+                            //////window.location.href = 'login.php?logout';
+                        }
+                    })
+                };
+
+                let groupTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: groupTableColumns,
+                    ajax: groupTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: ((settings): void => {
+                        let that = this;
+
+                        $("#group_table").off("change", "input[type='checkbox']");
+                        $("#group_table").on("change", "input[type='checkbox']", function () {
+                            let id_str = this.id;
+                            let val = 0;
+                            var checkObj = < HTMLInputElement > this;
+                            if (checkObj.checked) {
+                                val = 1;
+                            }
+                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: "api/admin/groups/update_field",
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
+                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                    that.ForceTableRedraw(that.m_tableGroups);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                }
+                            }
+
+                            $.post(checkAjaxSettings);
+                        });
+                    })
+                };
+
+                this.m_tableGroups = $('#group_table').DataTable(groupTableSettings);
+            });
+
+            let filterTableConstruction = (() => {
+                let filterTableColumns: DataTables.ColumnSettings[] = [{
+                    title: 'ID',
+                    data: 'id',
+                    visible: false
+                }, {
+                    title: 'Category Name',
+                    data: 'category',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        if (data == null) {
+                            return "";
+                        }
+
+                        if (row.type === "Filters") {
+                            return "<span class='mif-filter fg-green'></span> " + data;
+                        } else {
+                            return "<span class='mif-warning fg-red'></span> " + data;
+                        }
+                    })
+                }, {
+                    title: 'List Group Name',
+                    data: 'namespace',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        if (data == null) {
+                            return "";
+                        }
+                        return data;
+                    })
+                }, {
+                    title: 'Type',
+                    data: 'type',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        if (data == null) {
+                            return "";
+                        }
+
+                        if (data === "Filters") {
+                            return "<span class='mif-filter fg-green'></span> " + data;
+                        } else {
+                            return "<span class='mif-warning fg-red'></span> " + data;
+                        }
+                    }),
+                }, {
+                    title: '# Entries',
+                    data: 'entries_count',
+                    visible: true
+                }, {
+                    title: 'Date Created',
+                    data: 'created_at',
+                    visible: true,
+                    width: '180px',
+                    className: 'updated_date'
+                }];
+
+                let filterTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: "api/admin/filterlists",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+
+                        }
+                    })
+                };
+
+                let filterTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: filterTableColumns,
+                    ajax: filterTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    })
+                };
+
+                this.m_tableFilterLists = $('#filter_table').DataTable(filterTableSettings);
+            });
+
+            let deactivationRequestConstruction = (() => {
+                let userDeactivationRequestTableColumns: DataTables.ColumnSettings[] = [{
+                    title: 'ID',
+                    data: 'id',
+                    visible: false
+                }, {
+                    title: 'User Full Name',
+                    data: 'user.name',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>"
+                    }),
+                    width: '240px'
+                }, {
+                    title: 'Username',
+                    data: 'user.email',
+                    visible: true,
+                    width: '240px'
+                }, {
+                    title: 'Device Name',
+                    data: 'device_id',
+                    visible: true
+                }, {
+                    title: 'Granted',
+                    data: 'granted',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        if (data == null) {
+                            return "";
+                        }
+
+                        var chk_report = (data === 1) ? "checked" : "";
+                        var str = "<label class='switch-original'><input type='checkbox' id='deactivatereq_enabled_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                        return str;
+                    }),
+                    width: '100px'
+                }, {
+                    title: 'Date Requested',
+                    data: 'created_at',
+                    visible: true,
+                    width: '180px',
+                    className: 'updated_date'
+                }];
+
+                let userDeactivationRequestTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: "api/admin/deactivationreq",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        if (jqXHR.status > 399 && jqXHR.status < 500) {
+                            // Almost certainly auth related error. Redirect to login
+                            // by signalling for logout.
+                            //////window.location.href = 'login.php?logout';
+                        }
+                    })
+                };
+
+                let userDeactivationRequestTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: userDeactivationRequestTableColumns,
+                    ajax: userDeactivationRequestTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: ((settings): void => {
+                        let that = this;
+
+                        $("#user_deactivation_request_table").off("change", "input[type='checkbox']");
+                        $("#user_deactivation_request_table").on("change", "input[type='checkbox']", function () {
+                            let id_str = this.id;
+                            let val = 0;
+                            var checkObj = < HTMLInputElement > this;
+                            if (checkObj.checked) {
+                                val = 1;
+                            }
+                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: "api/admin/deactivationreq/update_field",
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
+                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                    that.ForceTableRedraw(that.m_tableUserDeactivationRequests);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                }
+                            }
+
+                            $.post(checkAjaxSettings);
+                        });
+                    })
+                };
+
+                this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
+            });
+
+            let appListTableConstruction = (() => {
+                let appListTableColumns: DataTables.ColumnSettings[] = [{
+                    title: 'App Id',
+                    data: 'id',
+                    visible: false
+                }, {
+                    title: 'Application Name',
+                    data: 'name',
+                    visible: true,
+                    width: '200px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        return "<span class='mif-file-binary self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
+                    })
+                }, {
+                    title: 'Notes',
+                    data: 'notes',
+                    visible: true,
+                    width: '240px'
+                }, {
+                    title: 'Linked Group',
+                    data: 'group_name',
+                    orderable: false,
+                    visible: true
+                }, {
+                    title: 'Date Modified',
+                    data: 'updated_at',
+                    visible: true,
+                    width: '220px'
+                }];
+
+                let appListTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: "api/admin/app",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    })
+                };
+
+                let appListTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: appListTableColumns,
+                    ajax: appListTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    })
+                };
+
+                this.m_tableAppLists = $('#app_table').DataTable(appListTableSettings);
+            });
+
+            let appGroupListTableConstruction = (() => {
+                let appGroupListTableColumns: DataTables.ColumnSettings[] = [{
+                    title: 'App Group Id',
+                    data: 'id',
+                    visible: false
+                }, {
+                    title: 'App Group Name',
+                    data: 'group_name',
+                    visible: true,
+                    width: '200px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        return "<span class='mif-file-folder self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
+                    })
+                }, {
+                    title: 'Linked Apps',
+                    data: 'app_names',
+                    orderable: false,
+                    visible: true
+                }, {
+                    title: 'Date Modified',
+                    data: 'updated_at',
+                    visible: true,
+                    width: '230px'
+                }];
+
+                let appGroupListTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: "api/admin/app_group",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+
+                    })
+                };
+
+                let appGroupListTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: appGroupListTableColumns,
+                    ajax: appGroupListTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    })
+                };
+
+                this.m_tableAppGroupLists = $('#app_group_table').DataTable(appGroupListTableSettings);
+            });
+
+            let appUserActivationTableConstruction = (() => {
+                let appUserActivationTableColumns: DataTables.ColumnSettings[] = [{
+                    title: 'Activation Id',
+                    data: 'id',
+                    visible: false
+                }, {
+                    title: 'User',
+                    data: 'name',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        var name = data;
+                        if (data.length > 17) {
+                            name = data.substring(0, 14) + "...";
+                        }
+                        return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + name + "</b>";
+                    }),
+                    width: '200px'
+                }, {
+                    title: 'Device Id',
+                    data: 'device_id',
+                    visible: true,
+                    className: 'device_id',
+                    width: '200px'
+                }, {
+                    title: 'IP Address',
+                    data: 'ip_address',
+                    visible: true,
+                    width: '200px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        var user_ip = "<span class='mif-flow-tree self-scale-3'></span>";
+                        var name = data;
+                        if (data === null || data === undefined) {
+                            name = "-";
+                            data = "*";
+                            return "";
+                        } else {
+
+                            if (data.length > 20) {
+                                name = data.substring(0, 15) + "...";
+                            }
+                        }
+                        return user_ip + " <span title='" + data + "'>" + name + "</span>";
+                    })
+                }, {
+                    title: '#Bypass Used/Quantity/Period',
+                    data: 'bypass_quantity',
+                    visible: true,
+                    width: '210px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        var bypass_used = "";
+                        if (row.bypass_used === null || row.bypass_used === 0)
+                            bypass_used = "<span class='mif-info self-scale-2 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
+                        else
+                            bypass_used = "<span class='mif-info self-scale-2 fg-cyan'></span> " + row.bypass_used + " ";
+
+                        var bypass_permitted = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                        if (data === null || data === 0)
+                            bypass_permitted += "<span class='mif-clipboard self-scale-1 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
+                        else
+                            bypass_permitted += "<span class='mif-clipboard self-scale-1 fg-cyan'></span> " + data + " ";
+                        bypass_permitted += "<span class='unit_day'>/day</span>";
+
+                        var bypass_duration = "";
+                        if (row.bypass_period === null || row.bypass_period === 0)
+                            bypass_duration += "<span class='mif-alarm-on self-scale unset_value_color'></span> <span class='unset_value_color'>-</span> ";
+                        else
+                            bypass_duration += "<span class='mif-alarm-on self-scale fg-pink'></span> " + row.bypass_period + " ";
+                        bypass_duration += "<span class='unit_min'>mins</span>";
+                        return bypass_used + bypass_permitted + bypass_duration;
+                    })
+                }, {
+                    title: 'Report Level',
+                    data: 'report_level',
+                    visible: true,
+                    width: '140px',
+                    className: 'content-center',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        var chk_report = (data === 1) ? "checked" : "";
+                        return "<label class='switch-original'><input type='checkbox' id='useractivation_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                    }),
+                }, {
+                    title: 'Version',
+                    data: 'app_version',
+                    visible: true,
+                    width: '110px',
+                    className: 'content-center'
+                }, {
+                    title: 'Updated date',
+                    data: 'updated_at',
+                    visible: true,
+                    width: '170px',
+                    className: 'updated_date'
+                }];
+
+                let appUserActivationTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: "api/admin/activations",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+
+                    })
+                };
+
+                // Define AppList table settings, ENSURE TO INCLUDE AJAX SETTINGS!
+                let appUserActivationTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: appUserActivationTableColumns,
+                    ajax: appUserActivationTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: ((settings): void => {
+                        let that = this;
+                        $("#app_user_activations_table").off("change", "input[type='checkbox']");
+                        $("#app_user_activations_table").on("change", "input[type='checkbox']", function () {
+                            let id_str = this.id;
+                            let val = 0;
+                            var checkObj = < HTMLInputElement > this;
+                            if (checkObj.checked) {
+                                val = 1;
+                            }
+                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: "api/admin/activations/update_field",
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
+                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                    that.ForceTableRedraw(that.m_tableAppUserActivationTable);
                                     return false;
                                 },
                                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
@@ -573,1111 +1209,209 @@ namespace Citadel
                                         // by signalling for logout.
                                         //window.location.href = 'login.php?logout';
                                     } else {
-                                        
+
                                     }
                                 }
                             }
-                
+
                             $.post(checkAjaxSettings);
                         });
                     })
                 };
-                this.m_tableUsers = $('#user_table').DataTable(usersTableSettings);
-            });
-
-            let groupTableConstruction = (() =>
-            {
-                let groupTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'Group Id',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'Group Name',
-                            data: 'name',
-                            visible: true,
-                            className: 'content-left',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {               
-                                return "<span class='mif-organization self-scale-group fg-green'></span> - <b title='" + row.user_count+ " users are registered in this group.'>" + data + "</b> <span class='user_count'>("+row.user_count+")</span>";
-                            })
-                        },
-                        {
-                            title: 'Primary DNS',
-                            data: 'primary_dns',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                var str = "";
-                                if(data===null || data==="") {
-                                    
-                                } else {
-
-                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
-                                }
-                                return str;
-                            }),
-                            className: 'content-left',
-                            width: '190px'
-                        },
-                        {
-                            title: 'Secondary DNS',
-                            data: 'secondary_dns',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                var str = "";
-                                if(data===null ||data==="") {
-                                    
-                                } else {
-
-                                    str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
-                                }
-                                return str;
-                            }),
-                            className: 'content-left',
-                            width: '190px'
-                        },
-                        {
-                            title: 'Terminate/Internet/Threshold',
-                            data: 'terminate',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data === null || data === "")
-                                {
-                                    return "";
-                                }
-                                var app_cfg = JSON.parse(row.app_cfg);
-                                var chk_terminate = app_cfg.CannotTerminate ? "checked":"";
-                                var chk_internet = app_cfg.BlockInternet ? "checked":"";
-                                var chk_threshold = app_cfg.UseThreshold ? "checked":"";
-                                //var str = "<label class='"+chk_terminate+"'></label>";
-                                var str = "<label class='switch-original'><input type='checkbox' id='group_terminate_"+row.id+"' "+chk_terminate+" /><span class='check'></span></label>";
-                                str += "<label class='switch-original'><input type='checkbox' id='group_internet_"+row.id+"' "+chk_internet+" /><span class='check'></span></label>";
-                                str += "<label class='switch-original'><input type='checkbox' id='group_threshold_"+row.id+"' "+chk_threshold+" /><span class='check'></span></label>";
-                                return str;
-                            }),
-                            className: 'content-left',
-                            width: '290px'
-                        },
-                        {
-                            title: 'Bypass',
-                            data: 'bypass',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data === null || data === "")
-                                {
-                                    return "";
-                                }
-                                var app_cfg = JSON.parse(row.app_cfg);
-                                var bypass_permitted = app_cfg['BypassesPermitted']===null || app_cfg['BypassesPermitted']===0 ? "": "<span class='mif-clipboard self-scale-4 fg-cyan'></span> " + app_cfg['BypassesPermitted'] + "<span class='unit_day'>/day</span>";
-                                var bypass_duration = app_cfg['BypassDuration']===null || app_cfg['BypassDuration']===0?"":" <span class='mif-alarm-on self-scale-5 fg-pink'></span> " + app_cfg['BypassDuration'] + "<span class='unit_min'>mins</span>";
-                                return bypass_permitted + bypass_duration;
-                            }),
-                            className: 'content-left',
-                            width: '180px'
-                        },
-                        {
-                            title: 'Report Level',
-                            data: 'report_level',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                //console.log(row.id, data);
-                                var app_cfg = JSON.parse(row.app_cfg);
-                                
-                                var chk_report = (app_cfg.ReportLevel == 1) ? "checked":"";
-                                //return app_cfg.ReportLevel;
-                                return "<label class='switch-original'><input type='checkbox' id='group_report_"+row.id+"' "+chk_report+" /><span class='check'></span></label>";
-                            }),
-                            className: 'content-center',
-                            width: '150px'
-                        },
-                        {
-                            title: 'Status',
-                            data: 'isactive',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data == null)
-                                {
-                                    return "";
-                                }
-
-                                if(data == 1)
-                                {
-                                    return "<span class='active-s status'>Active</span>";
-                                }
-                                else
-                                {
-                                    return "<span class='inactive-s status'>Inactive</span>";
-                                }
-                            }),
-                            className: 'content-center',
-                            width: '60px'
-                        },
-                        {
-                            title: 'Date Registered',
-                            data: 'created_at',
-                            visible: true,
-                            width: '180px',
-                            className:'updated_date'
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let groupTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
-                    {
-                        url: "api/admin/groups",
-                        dataSrc: function ( json ) {
-                            return json.data;
-                        },
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
-                            }
-                        })
-                    };
-
-                // Define group table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let groupTableSettings: DataTables.Settings =
-                    {
-                        scrollY: ''+ (height - 470) + 'px',
-                        scrollCollapse: true,
-                        autoWidth: true,
-                        stateSave: true,
-                        processing: true,
-                        serverSide: true,
-                        responsive: true,
-                        deferLoading: 0,
-                        columns: groupTableColumns,
-                        ajax: groupTablesLoadFromAjaxSettings,
-
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        }),
-                        drawCallback: (( settings ) :void =>
-                        {
-                            let that = this;
-                            $("#group_table").off("change", "input[type='checkbox']");
-                            $("#group_table").on("change", "input[type='checkbox']", function () {
-                                let id_str = this.id;
-                                let val = 0;
-                                var checkObj = <HTMLInputElement>this;
-                                if (checkObj.checked) {
-                                    val = 1;
-                                }
-                                let checkAjaxSettings: JQuery.UrlAjaxSettings = {
-                                    method:"POST",
-                                    timeout: 60000,
-                                    url: "api/admin/groups/update_field",
-                                    data: {id: id_str, value: val},
-                                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
-                                        that.ForceTableRedraw(that.m_tableGroups);
-                                        return false;
-                                    },
-                                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                                        console.log(errorThrown);
-                                        if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                            // Almost certainly auth related error. Redirect to login
-                                            // by signalling for logout.
-                                            //window.location.href = 'login.php?logout';
-                                        } else {
-                                            
-                                        }
-                                    }
-                                }
-                    
-                                $.post(checkAjaxSettings);
-                            });
-                        })
-                    };
-
-                this.m_tableGroups = $('#group_table').DataTable(groupTableSettings);
-            });
-
-            let filterTableConstruction = (() =>
-            {
-                let filterTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'ID',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'Category Name',
-                            data: 'category',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data == null)
-                                {
-                                    return "";
-                                }
-
-                                if(row.type === "Filters")
-                                {
-                                    return "<span class='mif-filter fg-green'></span> " + data;
-                                }
-                                else
-                                {
-                                    return "<span class='mif-warning fg-red'></span> " + data;
-                                }
-                            })
-                        },
-                        {
-                            title: 'List Group Name',
-                            data: 'namespace',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data == null)
-                                {
-                                    return "";
-                                }
-                                return data;
-                            })
-                        },
-                        {
-                            title: 'Type',
-                            data: 'type',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data == null)
-                                {
-                                    return "";
-                                }
-
-                                if(data === "Filters")
-                                {
-                                    return "<span class='mif-filter fg-green'></span> " + data;
-                                }
-                                else
-                                {
-                                    return "<span class='mif-warning fg-red'></span> " + data;
-                                }
-                            }),
-                        },
-                        {
-                            title: '# Entries',
-                            data: 'entries_count',
-                            visible: true
-                        },
-                        {
-                            title: 'Date Created',
-                            data: 'created_at',
-                            visible: true,
-                            width: '180px',
-                            className:'updated_date'
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let filterTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
-                    {
-                        url: "api/admin/filterlists",
-                        dataSrc: function ( json ) {
-                            return json.data;
-                        },
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
-                            }
-                        })
-                    };
-
-                // Define filter table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let filterTableSettings: DataTables.Settings =
-                    {
-                        scrollY: ''+ (height - 470) + 'px',
-                        scrollCollapse: true,
-                        autoWidth: true,
-                        stateSave: true,
-                        processing: true,
-                        serverSide: true,
-                        responsive: true,
-                        deferLoading: 0,
-                        columns: filterTableColumns,
-                        ajax: filterTablesLoadFromAjaxSettings,
-
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        })
-                    };
-
-                this.m_tableFilterLists = $('#filter_table').DataTable(filterTableSettings);
-
-            });
-
-            let deactivationRequestConstruction = (() =>
-            {
-                let userDeactivationRequestTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'ID',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'User Full Name',
-                            data: 'user.name',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                return "<span class='mif-user self-scale-group fg-green'></span>  <b title='"+data+"'>" + data + "</b>"
-                            }),
-                            width: '240px'
-                        },
-                        {
-                            title: 'Username',
-                            data: 'user.email',
-                            visible: true,
-                            width: '240px'
-                        },
-                        {
-                            title: 'Device Name',
-                            data: 'device_id',
-                            visible: true
-                        },
-                        {
-                            title: 'Granted',
-                            data: 'granted',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data == null)
-                                {
-                                    return "";
-                                }
-
-                                var chk_report = (data === 1) ? "checked":"";
-                                var str = "<label class='switch-original'><input type='checkbox' id='deactivatereq_enabled_"+row.id+"' "+chk_report+" /><span class='check'></span></label>";
-                                return str;
-                            }),
-                            width: '100px'
-                        },
-                        {
-                            title: 'Date Requested',
-                            data: 'created_at',
-                            visible: true,
-                            width: '180px',
-                            className:'updated_date'
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let userDeactivationRequestTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
-                    {
-                        url: "api/admin/deactivationreq",
-                        dataSrc: function ( json ) {
-                            return json.data;
-                        },
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
-                            }
-                        })
-                    };
-
-                // Define filter table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let userDeactivationRequestTableSettings: DataTables.Settings =
-                    {
-                        scrollY: ''+ (height - 470) + 'px',
-                        scrollCollapse: true,
-                        autoWidth: true,
-                        stateSave: true,
-                        processing: true,
-                        serverSide: true,
-                        responsive: true,
-                        deferLoading: 0,
-                        columns: userDeactivationRequestTableColumns,
-                        ajax: userDeactivationRequestTablesLoadFromAjaxSettings,
-
-                        // We grap the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        }),
-                        drawCallback: (( settings ) :void =>
-                        {
-                            let that = this;
-                            $("#user_deactivation_request_table").off("change", "input[type='checkbox']");
-                            $("#user_deactivation_request_table").on("change", "input[type='checkbox']", function () {
-                                let id_str = this.id;
-                                let val = 0;
-                                var checkObj = <HTMLInputElement>this;
-                                if (checkObj.checked) {
-                                    val = 1;
-                                }
-                                let checkAjaxSettings: JQuery.UrlAjaxSettings = {
-                                    method:"POST",
-                                    timeout: 60000,
-                                    url: "api/admin/deactivationreq/update_field",
-                                    data: {id: id_str, value: val},
-                                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
-                                        that.ForceTableRedraw(that.m_tableUserDeactivationRequests);
-                                        return false;
-                                    },
-                                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                                        console.log(errorThrown);
-                                        if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                            // Almost certainly auth related error. Redirect to login
-                                            // by signalling for logout.
-                                            //window.location.href = 'login.php?logout';
-                                        } else {
-                                            
-                                        }
-                                    }
-                                }
-                    
-                                $.post(checkAjaxSettings);
-                            });
-                        })
-                    };
-
-                this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
-            });
-
-            let appListTableConstruction = (() =>
-            {
-                let appListTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'App Id',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'Application Name',
-                            data: 'name',
-                            visible: true,
-                            width: '200px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                return "<span class='mif-file-binary self-scale-group fg-green'></span>  <b title='"+data+"'>" + data + "</b>";
-                            })
-                        },
-                        {
-                            title: 'Notes',
-                            data: 'notes',
-                            visible: true,
-                            width: '240px'
-                        },
-                        {
-                            title: 'Linked Group',
-                            data: 'group_name',
-                            orderable: false,
-                            visible: true
-                        },
-                        {
-                            title: 'Date Modified',
-                            data: 'updated_at',
-                            visible: true,
-                            width: '220px'
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let appListTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
-                    {
-                        url: "api/admin/app",
-                        dataSrc: function ( json ) {
-                            return json.data;
-                        },
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
-                            }
-                        })
-                    };
-
-                // Define AppList table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let appListTableSettings: DataTables.Settings =
-                    {
-                        scrollY: ''+ (height - 470) + 'px',
-                        scrollCollapse: true,
-                        autoWidth: true,
-                        stateSave: true,
-                        processing: true,
-                        serverSide: true,
-                        responsive: true,
-                        deferLoading: 0,
-                        columns: appListTableColumns,
-                        ajax: appListTablesLoadFromAjaxSettings,
-
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        })
-                    };
-
-                this.m_tableAppLists = $('#app_table').DataTable(appListTableSettings);
-            });
-            let appGroupListTableConstruction = (() =>
-            {
-                let appGroupListTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'App Group Id',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'App Group Name',
-                            data: 'group_name',
-                            visible: true,
-                            width: '200px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                return "<span class='mif-file-folder self-scale-group fg-green'></span>  <b title='"+data+"'>" + data + "</b>";
-                            })
-                        },
-                        {
-                            title: 'Linked Apps',
-                            data: 'app_names',
-                            orderable: false,
-                            visible: true
-                        },
-                        {
-                            title: 'Date Modified',
-                            data: 'updated_at',
-                            visible: true,
-                            width: '230px'
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let appGroupListTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
-                    {
-                        url: "api/admin/app_group",
-                        dataSrc: function ( json ) {
-                            return json.data;
-                        },
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
-                            }
-                        })
-                    };
-
-                // Define AppList table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let appGroupListTableSettings: DataTables.Settings =
-                    {
-                        scrollY: ''+ (height - 470) + 'px',
-                        scrollCollapse: true,
-                        autoWidth: true,
-                        stateSave: true,
-                        processing: true,
-                        serverSide: true,
-                        responsive: true,
-                        deferLoading: 0,
-                        columns: appGroupListTableColumns,
-                        ajax: appGroupListTablesLoadFromAjaxSettings,
-
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        })
-                    };
-
-                this.m_tableAppGroupLists = $('#app_group_table').DataTable(appGroupListTableSettings);
-            });
-
-            let appUserActivationTableConstruction = (() =>
-            {
-                let appUserActivationTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'Activation Id',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'User',
-                            data: 'name',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                var name = data;        
-                                if(data.length > 17) {
-                                    name = data.substring(0,14) + "...";
-                                }
-                                return "<span class='mif-user self-scale-group fg-green'></span>  <b title='"+data+"'>" + name + "</b>";
-                            }),
-                            width: '200px'
-                        },
-                        {
-                            title: 'Device Id',
-                            data: 'device_id',
-                            visible: true,
-                            className: 'device_id',
-                            width: '200px'
-                        },
-                        {
-                            title: 'IP Address',
-                            data: 'ip_address',
-                            visible: true,
-                            width: '200px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                var user_ip = "<span class='mif-flow-tree self-scale-3'></span>";
-                                var name = data;
-                                if(data === null || data === undefined) {
-                                    name = "-";
-                                    data = "*";
-                                    return "";
-                                } else {
-
-                                    if(data.length > 20) {
-                                        name = data.substring(0,15) + "...";
-                                    }
-                                }
-                                return user_ip + " <span title='"+data+"'>"+name+"</span>";
-                            })
-                        },
-                        {
-                            title: '#Bypass Used/Quantity/Period',
-                            data: 'bypass_quantity',
-                            visible: true,
-                            width: '210px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                var bypass_used = "";
-                                if(row.bypass_used===null || row.bypass_used===0 )
-                                    bypass_used = "<span class='mif-info self-scale-2 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
-                                else
-                                    bypass_used = "<span class='mif-info self-scale-2 fg-cyan'></span> " + row.bypass_used + " ";
-                                
-                                var bypass_permitted = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-                                if(data===null || data===0 )
-                                    bypass_permitted += "<span class='mif-clipboard self-scale-1 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
-                                else
-                                    bypass_permitted += "<span class='mif-clipboard self-scale-1 fg-cyan'></span> " + data + " ";
-                                bypass_permitted += "<span class='unit_day'>/day</span>";
-                                
-                                var bypass_duration = "";
-                                if(row.bypass_period===null || row.bypass_period===0 )
-                                    bypass_duration += "<span class='mif-alarm-on self-scale unset_value_color'></span> <span class='unset_value_color'>-</span> ";
-                                else
-                                    bypass_duration += "<span class='mif-alarm-on self-scale fg-pink'></span> " + row.bypass_period + " ";
-                                bypass_duration += "<span class='unit_min'>mins</span>";
-                                return bypass_used + bypass_permitted + bypass_duration;
-                            })
-                        },
-                        {
-                            title: 'Report Level',
-                            data: 'report_level',
-                            visible: true,
-                            width: '140px',
-                            className: 'content-center',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                //var chk_report = (data === 1) ? "checked-alone":"unchecked-alone";
-                                //return "<label class='"+chk_report+"'></label>";
-                                var chk_report = (data === 1) ? "checked":"";
-                                //return app_cfg.ReportLevel;
-                                return "<label class='switch-original'><input type='checkbox' id='useractivation_report_"+row.id+"' "+chk_report+" /><span class='check'></span></label>";
-                            }),
-                        },
-                        {
-                            title: 'Version',
-                            data: 'app_version',
-                            visible: true,
-                            width: '110px',
-                            className: 'content-center'
-                        },
-                        {
-                            title: 'Updated date',
-                            data: 'updated_at',
-                            visible: true,
-                            width: '170px',
-                            className: 'updated_date'
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let appUserActivationTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
-                    {
-                        url: "api/admin/activations",
-                        dataSrc: function ( json ) {
-                            return json.data;
-                        },
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
-                            }
-                        })
-                    };
-
-                // Define AppList table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let appUserActivationTableSettings: DataTables.Settings =
-                    {
-                        scrollY: ''+ (height - 470) + 'px',
-                        scrollCollapse: true,
-                        autoWidth: true,
-                        stateSave: true,
-                        processing: true,
-                        serverSide: true,
-                        responsive: true,
-                        deferLoading: 0,
-                        columns: appUserActivationTableColumns,
-                        ajax: appUserActivationTablesLoadFromAjaxSettings,
-
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        }),
-                        drawCallback: (( settings ) :void =>
-                        {
-                            let that = this;
-                            $("#app_user_activations_table").off("change", "input[type='checkbox']");
-                            $("#app_user_activations_table").on("change", "input[type='checkbox']", function () {
-                                let id_str = this.id;
-                                let val = 0;
-                                var checkObj = <HTMLInputElement> this;
-                                if (checkObj.checked) {
-                                    val = 1;
-                                }
-                                let checkAjaxSettings: JQuery.UrlAjaxSettings = {
-                                    method:"POST",
-                                    timeout: 60000,
-                                    url: "api/admin/activations/update_field",
-                                    data: {id: id_str, value: val},
-                                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
-                                        that.ForceTableRedraw(that.m_tableAppUserActivationTable);
-                                        return false;
-                                    },
-                                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                                        console.log(errorThrown);
-                                        if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                            // Almost certainly auth related error. Redirect to login
-                                            // by signalling for logout.
-                                            //window.location.href = 'login.php?logout';
-                                        } else {
-                                            
-                                        }
-                                    }
-                                }
-                    
-                                $.post(checkAjaxSettings);
-                            });
-                        })
-                    };
 
                 this.m_tableAppUserActivationTable = $('#app_user_activations_table').DataTable(appUserActivationTableSettings);
-                $('<button id="refresh_user_activations"><span class="mif-loop2 "></span> Refresh</button>').appendTo('#app_user_activations_table_wrapper div.dataTables_filter');
+
+                $('<button id="refresh_user_activations"><span class="mif-loop2 "></span> Refresh</button>')
+                    .appendTo('#app_user_activations_table_wrapper div.dataTables_filter');
                 $("#refresh_user_activations").click(() => {
                     this.ForceTableRedraw(this.m_tableAppUserActivationTable);
                 })
             });
-            let systemVersionTableConstruction = (() =>
-            {  
-                
-                let systemVersionTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'Version Id',
-                            data: 'id',
-                            visible: false,                            
-                        },
-                        {
-                            title: 'Platform',
-                            data: 'platform',
-                            className: 'content-left',
-                            orderable: false,
-                            visible: true,
-                            width: '200px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {       
-                                var name = row.os_name;        
-                                var span = "";
-                                if(data ==="WIN")
-                                {
-                                    span = "<span class='mif-windows os_win'></span>";
-                                } else if(data ==="OSX") {
-                                    span = "<span class='mif-apple os_mac'></span>";
-                                } else if(data ==="LINUX") {
-                                    span = "<span class='mif-linux os_linux'></span>";
-                                } else {
-                                    span = "<span class='mif-notification os_mac'></span>";
-                                }
-                                if( row.active === 1) {
-                                    return span+ " &nbsp; <b>" + name + "</b>";
-                                } else {
-                                    return "<span class='inactive'>" + span+ " &nbsp; <b>" + name + "</b></span>";
-                                }                                
-                            })
-                        },
-                        {
-                            // This field belongs to a different table, so it
-                            // needs to be included on the server side!
-                            title: 'App Name',
-                            data: 'app_name',
-                            orderable: false,
-                            className: 'content-left',
-                            visible: true,
-                            width: '140px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {       
-                                
-                                if( row.active === 1) {
-                                    return data;
-                                } else {
-                                    return "<span class='inactive'>" + data + "</span>";
-                                }                                
-                            })
-                        },
-                        {
-                            title: 'File Name',
-                            data: 'file_name',
-                            className: 'content-left',
-                            orderable: false,
-                            visible: true,
-                            width: '140px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {       
-                                
-                                if( row.active === 1) {
-                                    return data;
-                                } else {
-                                    return "<span class='inactive'>" + data + "</span>";
-                                }                                
-                            })
-                        },
-                        {
-                            title: 'Version',                            
-                            data: 'version_number',
-                            orderable: false,
-                            className: 'content-left version_number',
-                            defaultContent: 'None',
-                            width: '100px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {       
-                                
-                                if( row.active === 1) {
-                                    return data;
-                                } else {
-                                    return "<span class='inactive'>" + data + "</span>";
-                                }                                
-                            })
-                        },
-                        {
-                            title: 'Release Date',
-                            data: 'release_date',
-                            orderable: false,
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if( row.active === 1) {
-                                    return data;
-                                } else {
-                                    return "<span class='inactive'>" + data + "</span>";
-                                }  
-                            }),
-                            className: 'content-center version_date',
-                            width: '180px'
-                        },
-                        {
-                            title: 'Alpha',
-                            data: 'alpha',
-                            orderable: false,
-                            className: 'content-center sub_version_number',
-                            visible: true, 
-                            width: '100px',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {       
-                                
-                                if( row.active === 1) {
-                                    return data;
-                                } else {
-                                    return "<span class='inactive'>" + data + "</span>";
-                                }                                
-                            })
-                        },
-                        {
-                            title: 'Beta',
-                            data: 'beta',
-                            orderable: false,
-                            visible: true,
-                            width: '100px',
-                            className:'content-center sub_version_number',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {       
-                                
-                                if( row.active === 1) {
-                                    return data;
-                                } else {
-                                    return "<span class='inactive'>" + data + "</span>";
-                                }                                
-                            })
-                        },
-                        {
-                            title: 'Stable',
-                            data: 'stable',
-                            orderable: false,
-                            visible: true,
-                            width: '100px',
-                            className:'content-center sub_version_number',
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {       
-                                
-                                if( row.active === 1) {
-                                    return data;
-                                } else {
-                                    return "<span class='inactive'>" + data + "</span>";
-                                }                                
-                            })
-                        },
-                        {
-                            // This field belongs to a different database, so it
-                            // needs to be included on the server side!
-                            title: 'Changes',
-                            data: 'changes',
-                            orderable: false,
-                            className: 'content-left',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {       
-                                
-                                if( row.active === 1) {
-                                    return data;
-                                } else {
-                                    return "<span class='inactive'>" + data + "</span>";
-                                }                                
-                            })
-                        },
-                        {
-                            title: 'Action',
-                            data: 'active',
-                            orderable: false,
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                
-                                if( data === 1) {
-                                    return "<label class='checked-alone'></label>";
-                                } else {
-                                    return "<label class='switch-original'><input type='checkbox' id='versions_"+row.id+"' /><span class='check'></span></label>";
-                                }
-                            }),
-                            className: 'content-left padding-left-10',
-                            width: '60px'
-                        }
-                    ];
 
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let systemVersionTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
-                    {
-                        url: "api/admin/versions",
-                        dataSrc: function ( json ) {
-                            return json.data;
-                        },                        
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                ////window.location.href = 'login.php?logout';
-                            }
-                        })
-                    };
+            let systemVersionTableConstruction = (() => {
+
+                let systemVersionTableColumns: DataTables.ColumnSettings[] = [{
+                    title: 'Version Id',
+                    data: 'id',
+                    visible: false,
+                }, {
+                    title: 'Platform',
+                    data: 'platform',
+                    className: 'content-left',
+                    orderable: false,
+                    visible: true,
+                    width: '200px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        var name = row.os_name;
+                        var span = "";
+                        if (data === "WIN") {
+                            span = "<span class='mif-windows os_win'></span>";
+                        } else if (data === "OSX") {
+                            span = "<span class='mif-apple os_mac'></span>";
+                        } else if (data === "LINUX") {
+                            span = "<span class='mif-linux os_linux'></span>";
+                        } else {
+                            span = "<span class='mif-notification os_mac'></span>";
+                        }
+                        if (row.active === 1) {
+                            return span + " &nbsp; <b>" + name + "</b>";
+                        } else {
+                            return "<span class='inactive'>" + span + " &nbsp; <b>" + name + "</b></span>";
+                        }
+                    })
+                }, {
+                    title: 'App Name',
+                    data: 'app_name',
+                    orderable: false,
+                    className: 'content-left',
+                    visible: true,
+                    width: '140px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+
+                        if (row.active === 1) {
+                            return data;
+                        } else {
+                            return "<span class='inactive'>" + data + "</span>";
+                        }
+                    })
+                }, {
+                    title: 'File Name',
+                    data: 'file_name',
+                    className: 'content-left',
+                    orderable: false,
+                    visible: true,
+                    width: '140px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+
+                        if (row.active === 1) {
+                            return data;
+                        } else {
+                            return "<span class='inactive'>" + data + "</span>";
+                        }
+                    })
+                }, {
+                    title: 'Version',
+                    data: 'version_number',
+                    orderable: false,
+                    className: 'content-left version_number',
+                    defaultContent: 'None',
+                    width: '100px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+
+                        if (row.active === 1) {
+                            return data;
+                        } else {
+                            return "<span class='inactive'>" + data + "</span>";
+                        }
+                    })
+                }, {
+                    title: 'Release Date',
+                    data: 'release_date',
+                    orderable: false,
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                        if (row.active === 1) {
+                            return data;
+                        } else {
+                            return "<span class='inactive'>" + data + "</span>";
+                        }
+                    }),
+                    className: 'content-center version_date',
+                    width: '180px'
+                }, {
+                    title: 'Alpha',
+                    data: 'alpha',
+                    orderable: false,
+                    className: 'content-center sub_version_number',
+                    visible: true,
+                    width: '100px',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+
+                        if (row.active === 1) {
+                            return data;
+                        } else {
+                            return "<span class='inactive'>" + data + "</span>";
+                        }
+                    })
+                }, {
+                    title: 'Beta',
+                    data: 'beta',
+                    orderable: false,
+                    visible: true,
+                    width: '100px',
+                    className: 'content-center sub_version_number',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+
+                        if (row.active === 1) {
+                            return data;
+                        } else {
+                            return "<span class='inactive'>" + data + "</span>";
+                        }
+                    })
+                }, {
+                    title: 'Stable',
+                    data: 'stable',
+                    orderable: false,
+                    visible: true,
+                    width: '100px',
+                    className: 'content-center sub_version_number',
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+
+                        if (row.active === 1) {
+                            return data;
+                        } else {
+                            return "<span class='inactive'>" + data + "</span>";
+                        }
+                    })
+                }, {
+                    title: 'Changes',
+                    data: 'changes',
+                    orderable: false,
+                    className: 'content-left',
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+
+                        if (row.active === 1) {
+                            return data;
+                        } else {
+                            return "<span class='inactive'>" + data + "</span>";
+                        }
+                    })
+                }, {
+                    title: 'Action',
+                    data: 'active',
+                    orderable: false,
+                    visible: true,
+                    render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+
+                        if (data === 1) {
+                            return "<label class='checked-alone'></label>";
+                        } else {
+                            return "<label class='switch-original'><input type='checkbox' id='versions_" + row.id + "' /><span class='check'></span></label>";
+                        }
+                    }),
+                    className: 'content-left padding-left-10',
+                    width: '60px'
+                }];
+
+                let systemVersionTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: "api/admin/versions",
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+
+                    })
+                };
 
                 // Define user table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-               
+
                 let systemVersionsTableSettings: DataTables.Settings = {
-                    scrollY: ''+ (height - 470) + 'px',
+                    scrollY: '' + (height - 470) + 'px',
                     scrollCollapse: true,
                     autoWidth: true,
                     stateSave: true,
@@ -1687,47 +1421,40 @@ namespace Citadel
                     deferLoading: 0,
                     columns: systemVersionTableColumns,
                     ajax: systemVersionTablesLoadFromAjaxSettings,
-                    rowCallback: ((row: Node, data: any[] | Object): void =>
-                    {
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
                         this.OnTableRowCreated(row, data);
                     }),
-                    drawCallback: (( settings ): void =>
-                    {
+                    drawCallback: ((settings): void => {
                         let that = this;
+
                         $("#system_versions_table").off("change", "input[type='checkbox']");
                         $("#system_versions_table").on("change", "input[type='checkbox']", function () {
-                            
-                            if(!confirm("Do you want to set this version as default version?"))
-                            {
-                                var objCheck = <HTMLInputElement> this;
+
+                            if (!confirm("Do you want to set this version as default version?")) {
+                                var objCheck = < HTMLInputElement > this;
                                 objCheck.checked = false;
                                 return;
                             }
-                                
+
                             let id_str = this.id;
                             let checkAjaxSettings: JQuery.UrlAjaxSettings = {
-                                method:"POST",
+                                method: "POST",
                                 timeout: 60000,
                                 url: "api/admin/versions/update_status",
-                                data: {id: id_str},
+                                data: {
+                                    id: id_str
+                                },
                                 success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
                                     that.ForceTableRedraw(that.m_tableSystemVersions);
                                     return false;
                                 },
                                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
                                     console.log(errorThrown);
-                                    if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                        // Almost certainly auth related error. Redirect to login
-                                        // by signalling for logout.
-                                        //window.location.href = 'login.php?logout';
-                                    } else {
-                                        
-                                    }
                                 }
                             }
-                
+
                             $.post(checkAjaxSettings);
-                        }); 
+                        });
                     })
                 };
                 this.m_tableSystemVersions = $('#system_versions_table').DataTable(systemVersionsTableSettings);
@@ -1744,11 +1471,10 @@ namespace Citadel
 
         }
 
-        private ConstructNavigation(): void
-        {
-            // Get references to the top level menu buttons.            
+        private ConstructNavigation(): void {
+            // Get references to the top level menu buttons.
             this.m_btnSignOut = document.getElementById('btn_sign_out') as HTMLLIElement;
-            
+
             // Get reference to the main menu tab buttons.
             this.m_tabBtnUsers = document.querySelector('a[href="#tab_users"]') as HTMLLinkElement;
             this.m_tabBtnGroups = document.querySelector('a[href="#tab_groups"]') as HTMLLinkElement;
@@ -1771,9 +1497,9 @@ namespace Citadel
             // Delete button & Clone button cannot be enabled until a group is selected.
             this.m_btnDeleteGroup.disabled = true;
             this.m_btnCloneGroup.disabled = true;
-            
-            // Init Filter List/Data management button references.          
-            this.m_btnUploadFilterLists = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;  
+
+            // Init Filter List/Data management button references.
+            this.m_btnUploadFilterLists = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;
             this.m_btnDeleteFilterList = document.getElementById('btn_delete_filter_list') as HTMLButtonElement;
             this.m_btnDeleteFilterListInNamespace = document.getElementById('btn_delete_filter_list_namespace') as HTMLButtonElement;
             this.m_btnDeleteFilterListTypeInNamespace = document.getElementById('btn_delete_filter_list_type_namespace') as HTMLButtonElement;
@@ -1786,7 +1512,7 @@ namespace Citadel
             // Init user deactivation request.
             this.m_btnDeleteUserDeactivationRequest = document.getElementById('btn_delete_user_deactivation_request') as HTMLButtonElement;
             this.m_btnDeleteUserDeactivationRequest.disabled = true;
-            
+
             this.m_btnRefreshUserDeactivationRequests = document.getElementById('btn_refresh_user_deactivation_request_list') as HTMLButtonElement;
 
             // Init Global White/Black List buttons
@@ -1810,200 +1536,168 @@ namespace Citadel
             this.InitButtonHandlers();
         }
 
-        
+
         /**
          * Initializes click handlers for our UI buttons. Grabs the events with
          * a fat arrow so that our this context is preserved, meaning that this
          * will represent this class. The events are then passed to member
          * functions for cleanliness.
-         * 
+         *
          * @private
-         * 
+         *
          * @memberOf Dashboard
          */
-        private InitButtonHandlers(): void
-        {
-            this.m_btnSignOut.onclick = ((e: MouseEvent) =>
-            {
+        private InitButtonHandlers(): void {
+            this.m_btnSignOut.onclick = ((e: MouseEvent) => {
                 this.OnSignOutClicked(e);
             });
 
-            this.m_btnCreateUser.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnCreateUser.onclick = ((e: MouseEvent) => {
                 this.OnCreateUserClicked(e);
             });
 
-            this.m_btnDeleteUser.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteUser.onclick = ((e: MouseEvent) => {
                 this.OnDeleteUserClicked(e);
             });
 
-            this.m_btnCreateGroup.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnCreateGroup.onclick = ((e: MouseEvent) => {
                 this.OnCreateGroupClicked(e);
             });
 
-            this.m_btnDeleteGroup.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteGroup.onclick = ((e: MouseEvent) => {
                 this.OnDeleteGroupClicked(e);
             });
 
-            this.m_btnCloneGroup.onclick = ((e: MouseEvent) =>
-            {
-               this.OnCloneGroupClicked(e); 
+            this.m_btnCloneGroup.onclick = ((e: MouseEvent) => {
+                this.OnCloneGroupClicked(e);
             });
-            this.m_btnUploadFilterLists.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnUploadFilterLists.onclick = ((e: MouseEvent) => {
                 this.m_filterListUploadController.Show(this.m_tableFilterLists.data());
             });
 
-            this.m_btnDeleteFilterList.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteFilterList.onclick = ((e: MouseEvent) => {
                 this.OnDeleteFilterListClicked(e);
             });
 
-            this.m_btnDeleteFilterListInNamespace.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteFilterListInNamespace.onclick = ((e: MouseEvent) => {
                 this.OnDeleteFilterListInNamespaceClicked(e, false);
             });
 
-            this.m_btnDeleteFilterListTypeInNamespace.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteFilterListTypeInNamespace.onclick = ((e: MouseEvent) => {
                 this.OnDeleteFilterListInNamespaceClicked(e, true);
             });
 
-            this.m_btnDeleteUserDeactivationRequest.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteUserDeactivationRequest.onclick = ((e: MouseEvent) => {
                 this.OnDeleteUserDeactivationRequestClicked(e);
             });
 
-            this.m_btnRefreshUserDeactivationRequests.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnRefreshUserDeactivationRequests.onclick = ((e: MouseEvent) => {
                 this.ForceTableRedraw(this.m_tableUserDeactivationRequests);
             });
-            
-            this.m_btnCreateVersion.onclick = ((e: MouseEvent) =>
-            {
+
+            this.m_btnCreateVersion.onclick = ((e: MouseEvent) => {
                 this.OnClickAddVersion(e);
             });
 
-            this.m_btnDeleteVersion.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteVersion.onclick = ((e: MouseEvent) => {
                 this.OnClickDeleteVersion(e);
             });
-            
-            this.m_btnSystemPlatform.onclick = ((e: MouseEvent) =>
-            {
+
+            this.m_btnSystemPlatform.onclick = ((e: MouseEvent) => {
                 this.OnClickPlatform(e);
             });
+
             // In our main menu tab click handlers, all we need to do is
             // synchronize the view state, so we just call the setter from
             // within.
-            this.m_tabBtnUsers.onclick = ((e: MouseEvent) =>
-            {
+            this.m_tabBtnUsers.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.UserListView;
             });
 
-            this.m_tabBtnGroups.onclick = ((e: MouseEvent) =>
-            {
+            this.m_tabBtnGroups.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.GroupListView;
             });
 
-            this.m_tabBtnFilterLists.onclick = ((e: MouseEvent) =>
-            {
+            this.m_tabBtnFilterLists.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.FilterListView;
             });
 
-            this.m_tabBtnUserRequest.onclick = ((e: MouseEvent) =>
-            {
+            this.m_tabBtnUserRequest.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.DeactivationRequestListView;
             });
 
-            
-            this.m_tabBtnSystemVersion.onclick = ((e: MouseEvent) =>
-            {
+
+            this.m_tabBtnSystemVersion.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.SystemVersionView;
             });
 
 
-            this.m_tabBtnAppGroup.onclick = ((e: MouseEvent) =>
-            {
-                if(this.m_btnApp.checked) {
+            this.m_tabBtnAppGroup.onclick = ((e: MouseEvent) => {
+                if (this.m_btnApp.checked) {
                     this.ViewState = DashboardViewStates.AppView;
                 } else {
                     this.ViewState = DashboardViewStates.AppGroupView;
                 }
             });
-            this.m_btnApp.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnApp.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.AppView;
-                let itemIsActuallySelected = $("#app_table").children().next().find(".selected").length > 0?true:false;
-                this.m_btnRemoveItem.disabled  = itemIsActuallySelected;
+                let itemIsActuallySelected = $("#app_table").children().next().find(".selected").length > 0 ? true : false;
+                this.m_btnRemoveItem.disabled = itemIsActuallySelected;
                 this.m_btnAddItem.innerHTML = '<span class="icon mif-stack"></span>Add <br /> Application';
                 this.m_btnRemoveItem.innerHTML = '<span class="mif-cancel"></span>Remove <br /> Application';
                 this.m_btnApplyToGroup.innerHTML = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To App Group'
             });
 
-            this.m_btnAppGroup.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnAppGroup.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.AppGroupView;
-                let itemIsActuallySelected = $("#app_group_table").children().next().find(".selected").length > 0?true:false;
-                this.m_btnRemoveItem.disabled  = itemIsActuallySelected;
+                let itemIsActuallySelected = $("#app_group_table").children().next().find(".selected").length > 0 ? true : false;
+                this.m_btnRemoveItem.disabled = itemIsActuallySelected;
                 this.m_btnAddItem.innerHTML = '<span class="icon mif-stack"></span>Add <br /> Application <br /> Group';
                 this.m_btnRemoveItem.innerHTML = '<span class="mif-cancel"></span>Remove <br /> Application <br /> Group';
                 this.m_btnApplyToGroup.innerHTML = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To User Group'
             });
-            this.m_btnAddItem.onclick = ((e: MouseEvent) => 
-            {
+            this.m_btnAddItem.onclick = ((e: MouseEvent) => {
                 this.OnAddApplicationClicked(e);
             });
-            this.m_btnRemoveItem.onclick = ((e: MouseEvent) =>
-            {
-               this.onRemoveApplicationClicked(e); 
+            this.m_btnRemoveItem.onclick = ((e: MouseEvent) => {
+                this.onRemoveApplicationClicked(e);
             });
-            this.m_btnApplyToGroup.onclick = ((e: MouseEvent) =>
-            {
-                this.onApplyToGroupClicked(e);        
+            this.m_btnApplyToGroup.onclick = ((e: MouseEvent) => {
+                this.onApplyToGroupClicked(e);
             });
 
-            this.m_tabBtnAppUserActivation.onclick = ((e: MouseEvent) =>
-            {
+            this.m_tabBtnAppUserActivation.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.AppUserActivationView;
             });
 
-            this.m_btnDeleteAppUserActivation.onclick = ((e: MouseEvent) =>
-            {
-                this.onDeleteAppUserActivationClicked(e); 
+            this.m_btnDeleteAppUserActivation.onclick = ((e: MouseEvent) => {
+                this.onDeleteAppUserActivationClicked(e);
             });
 
-            this.m_btnBlockAppUserActivation.onclick = ((e: MouseEvent) =>
-            {
-                this.onBlockAppUserActivationClicked(e); 
+            this.m_btnBlockAppUserActivation.onclick = ((e: MouseEvent) => {
+                this.onBlockAppUserActivationClicked(e);
             });
 
-        }   
+        }
 
         /**
          * Called whenever a table row is created in any table. All we want to
          * do here is add a click handler with a fat arrow so we can keep the
          * context of these events class local.
-         * 
+         *
          * @private
          * @param {Node} row
          * @param {(any[] | Object)} data
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnTableRowCreated(row: Node, data: any[] | Object): void
-        {
+        private OnTableRowCreated(row: Node, data: any[] | Object): void {
             let tableRow = row as HTMLTableRowElement;
-            tableRow.onclick = ((e: MouseEvent) =>
-            {
+            tableRow.onclick = ((e: MouseEvent) => {
                 this.OnTableRowClicked(e, data);
             });
 
-            tableRow.ondblclick = ((e: MouseEvent) =>
-            {
+            tableRow.ondblclick = ((e: MouseEvent) => {
                 this.OnTableRowDoubleClicked(e, data);
             });
         }
@@ -2014,14 +1708,13 @@ namespace Citadel
          * and clear this class from all siblings. This way, in other logic, we
          * can just query the table for the row that has the selected class in
          * order to react to user actions.
-         * 
+         *
          * @private
          * @param {JQueryEventObject} eventObject
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnTableRowClicked(e: MouseEvent, data: any[] | Object): void
-        {
+        private OnTableRowClicked(e: MouseEvent, data: any[] | Object): void {
             // Here we have to stop the propagation of the event, otherwise it will end up
             // triggering on the table cells. We only want rows selectable.
             e.stopImmediatePropagation();
@@ -2030,8 +1723,7 @@ namespace Citadel
 
             // If this is a valid table row entry, give it the "selected" class,
             // while removing that class from all its siblings.
-            if (!$(e.currentTarget).hasClass('dataTables_empty')) 
-            {
+            if (!$(e.currentTarget).hasClass('dataTables_empty')) {
                 $(e.currentTarget).toggleClass('selected').siblings().removeClass('selected');
             }
 
@@ -2043,8 +1735,7 @@ namespace Citadel
             // table the row belongs to.
             let itemIsActuallySelected = $(e.currentTarget).hasClass('selected');
 
-            switch (parentTable.id)
-            {
+            switch (parentTable.id) {
                 case 'user_table':
                     {
                         this.m_btnDeleteUser.disabled = !itemIsActuallySelected;
@@ -2066,7 +1757,7 @@ namespace Citadel
                     }
                     break;
 
-                    case 'user_deactivation_request_table':
+                case 'user_deactivation_request_table':
                     {
                         this.m_btnDeleteUserDeactivationRequest.disabled = !itemIsActuallySelected;
                     }
@@ -2082,7 +1773,7 @@ namespace Citadel
                     {
                         this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
                     }
-                    break;  
+                    break;
                 case 'app_user_activations_table':
                     {
                         this.m_btnDeleteAppUserActivation.disabled = !itemIsActuallySelected;
@@ -2094,22 +1785,21 @@ namespace Citadel
                         this.m_btnDeleteVersion.disabled = !itemIsActuallySelected;
                     }
                     break;
-            }   
+            }
         }
 
         /**
          * Called whenever a row in any of our data tables is double clicked.
          * This is considered an action by the user to start the process of
          * editing the data in the double-clicked row.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @param {(any[] | Object)} data
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnTableRowDoubleClicked(e: MouseEvent, data: any[] | Object): void
-        {
+        private OnTableRowDoubleClicked(e: MouseEvent, data: any[] | Object): void {
             // Stop the event so it doesn't go anywhere else. We're handling it here.
             e.stopImmediatePropagation();
             e.stopPropagation();
@@ -2121,14 +1811,12 @@ namespace Citadel
 
             // Switch the unique ID on the parent table to figure out which type of
             // element we're going to start editing.
-            switch (parentTable.id)
-            {
+            switch (parentTable.id) {
                 case 'user_table':
                     {
                         let userRecord = new UserRecord();
 
-                        userRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
+                        userRecord.ActionCompleteCallback = ((action: string): void => {
 
                             userRecord.StopEditing();
 
@@ -2152,8 +1840,7 @@ namespace Citadel
                         // filters can be laid out for editing.
                         groupRecord.StartEditing(this.m_allFilters, data);
 
-                        groupRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
+                        groupRecord.ActionCompleteCallback = ((action: string): void => {
 
                             groupRecord.StopEditing();
 
@@ -2184,8 +1871,7 @@ namespace Citadel
                         // filters can be laid out for editing.
                         deactivationRequestRecord.StartEditing(data);
 
-                        deactivationRequestRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
+                        deactivationRequestRecord.ActionCompleteCallback = ((action: string): void => {
 
                             deactivationRequestRecord.StopEditing();
 
@@ -2199,9 +1885,8 @@ namespace Citadel
                 case 'app_table':
                     {
                         let appRecord = new AppRecord();
-                        
-                        appRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
+
+                        appRecord.ActionCompleteCallback = ((action: string): void => {
 
                             appRecord.StopEditing();
 
@@ -2220,9 +1905,8 @@ namespace Citadel
                 case 'app_group_table':
                     {
                         let appGroupRecord = new AppGroupRecord();
-                        
-                        appGroupRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
+
+                        appGroupRecord.ActionCompleteCallback = ((action: string): void => {
 
                             appGroupRecord.StopEditing();
 
@@ -2240,47 +1924,43 @@ namespace Citadel
                 case 'app_user_activations_table':
                     {
                         let appUserActivationRecord = new AppUserActivationRecord();
-                        
-                        appUserActivationRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
+
+                        appUserActivationRecord.ActionCompleteCallback = ((action: string): void => {
                             appUserActivationRecord.StopEditing();
                             this.ForceTableRedraw(this.m_tableAppUserActivationTable);
                         });
                         appUserActivationRecord.StartEditing(data);
                     }
                     break;
-                    
+
                 case 'system_versions_table':
                     {
                         let versionRecord = new VersionRecord();
-                        
-                        versionRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
+
+                        versionRecord.ActionCompleteCallback = ((action: string): void => {
                             versionRecord.StopEditing();
                             this.ForceTableRedraw(this.m_tableSystemVersions);
                         });
                         versionRecord.StartEditing(data);
                     }
-                    break;  
+                    break;
             }
         }
 
         /**
          * Gets the selected item in a table, if any. Return will be null if no current selected item.
-         * 
+         *
          * @private
          * @param {DataTables.Api} table
          * @returns {DataTables.RowMethods}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private GetSelectedRowForTable(table: DataTables.Api): DataTables.RowMethods
-        {
+        private GetSelectedRowForTable(table: DataTables.Api): DataTables.RowMethods {
 
             let selectedRow = $(table).find('tr .selected').first();
 
-            if (selectedRow == null)
-            {
+            if (selectedRow == null) {
                 return null;
             }
 
@@ -2289,48 +1969,43 @@ namespace Citadel
 
         /**
          * Clears any and all selected item(s) in the given table.
-         * 
+         *
          * @private
          * @param {DataTables.Api} table
-         * 
+         *
          * @memberOf Dashboard
          */
-        private ClearSelectedItemsInTable(table: DataTables.Api): void
-        {
+        private ClearSelectedItemsInTable(table: DataTables.Api): void {
             $(table).children().removeClass('selected');
         }
 
         /**
          * Forces the given table to re-render itself.
-         * 
+         *
          * @private
          * @param {DataTables.Api} table
          * @param {boolean} [resetPagination=false]
-         * 
+         *
          * @memberOf Dashboard
          */
-        public ForceTableRedraw(table: DataTables.Api, resetPagination: boolean = false): void
-        {
+        public ForceTableRedraw(table: DataTables.Api, resetPagination: boolean = false): void {
             table.ajax.reload();
         }
-        
+
         /**
          * Called whenever the user clicks the sign out button.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnSignOutClicked(e: MouseEvent): any
-        {
-            if (confirm("Are you sure you'd like to sign out?"))
-            {
+        private OnSignOutClicked(e: MouseEvent): any {
+            if (confirm("Are you sure you'd like to sign out?")) {
                 $.post(
                     'logout',
-                    (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                    {
+                    (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
                         location.reload();
                     }
                 )
@@ -2342,24 +2017,22 @@ namespace Citadel
          * Then, we'll present the appropriate input view which itself will
          * handle input validation, as well as POSTing appropriate commands to
          * the server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnCreateUserClicked(e: MouseEvent): any
-        {
+        private OnCreateUserClicked(e: MouseEvent): any {
             let newUser = new UserRecord();
 
             // We supply everything in the groups table so that the user's group
             // can be changed to any available group.
             var usergoup_data = this.m_tableGroups.data();
-            newUser.StartEditing( this.m_allGroups , this.m_tableUsers.data()['all_user_roles']);
+            newUser.StartEditing(this.m_allGroups, this.m_tableUsers.data()['all_user_roles']);
 
-            newUser.ActionCompleteCallback = ((action: string): void =>
-            {
+            newUser.ActionCompleteCallback = ((action: string): void => {
 
                 newUser.StopEditing();
 
@@ -2377,39 +2050,32 @@ namespace Citadel
 
         private OnClickAddVersion(e: MouseEvent): any {
             let appVersion = new VersionRecord();
-            appVersion.ActionCompleteCallback = ((action: string): void =>
-            {
+            appVersion.ActionCompleteCallback = ((action: string): void => {
                 appVersion.StopEditing();
                 this.ForceTableRedraw(this.m_tableSystemVersions);
             });
-            
+
             appVersion.StartEditing();
         }
 
         private OnClickDeleteVersion(e: MouseEvent): any {
             let selectedItem = this.m_tableSystemVersions.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var versionObject: VersionRecord;
 
-                try 
-                {
+                try {
                     versionObject = BaseRecord.CreateFromObject(VersionRecord, selectedItem);
 
                     // We want to update the table after a delete.
-                    versionObject.ActionCompleteCallback = ((action: string): void =>
-                    {
+                    versionObject.ActionCompleteCallback = ((action: string): void => {
                         this.ForceTableRedraw(this.m_tableSystemVersions);
                     });
 
-                    if (confirm("Really delete user? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm("Really delete user? THIS CANNOT BE UNDONE!!!")) {
                         versionObject.Delete();
                     }
-                }
-                catch (e)
-                {
+                } catch (e) {
                     console.log('Failed to load user record from table selection.');
                     console.log(e);
                 }
@@ -2420,38 +2086,31 @@ namespace Citadel
          * we'll validate that the current state is correct for this action, and
          * then initiate the process of POSTing this action as a command to the
          * server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnDeleteUserClicked(e: MouseEvent): any 
-        {
+        private OnDeleteUserClicked(e: MouseEvent): any {
             let selectedItem = this.m_tableUsers.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var userObject: UserRecord;
 
-                try 
-                {
+                try {
                     userObject = BaseRecord.CreateFromObject(UserRecord, selectedItem);
 
                     // We want to update the table after a delete.
-                    userObject.ActionCompleteCallback = ((action: string): void =>
-                    {
+                    userObject.ActionCompleteCallback = ((action: string): void => {
                         this.ForceTableRedraw(this.m_tableUsers);
                     });
 
-                    if (confirm("Really delete user? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm("Really delete user? THIS CANNOT BE UNDONE!!!")) {
                         userObject.Delete();
                     }
-                }
-                catch (e)
-                {
+                } catch (e) {
                     console.log('Failed to load user record from table selection.');
                     console.log(e);
                 }
@@ -2464,19 +2123,17 @@ namespace Citadel
          * Then, we'll present the appropriate input view which itself will
          * handle input validation, as well as POSTing appropriate commands to
          * the server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnCreateGroupClicked(e: MouseEvent): any
-        {
+        private OnCreateGroupClicked(e: MouseEvent): any {
             let groupRecord = new GroupRecord();
 
-            groupRecord.ActionCompleteCallback = ((action: string): void =>
-            {
+            groupRecord.ActionCompleteCallback = ((action: string): void => {
 
                 groupRecord.StopEditing();
 
@@ -2486,7 +2143,7 @@ namespace Citadel
                 this.ForceTableRedraw(this.m_tableGroups);
             });
 
-            // We supply everything in the filter lists table so that assigned 
+            // We supply everything in the filter lists table so that assigned
             // filters can be laid out for editing.
             groupRecord.StartEditing(this.m_tableFilterLists.data());
         }
@@ -2496,39 +2153,32 @@ namespace Citadel
          * we'll validate that the current state is correct for this action, and
          * then initiate the process of POSTing this action as a command to the
          * server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnDeleteGroupClicked(e: MouseEvent): any
-        {
+        private OnDeleteGroupClicked(e: MouseEvent): any {
             let selectedItem = this.m_tableGroups.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var groupObject: GroupRecord;
 
-                try 
-                {
+                try {
                     groupObject = BaseRecord.CreateFromObject(GroupRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    groupObject.ActionCompleteCallback = ((action: string): void =>
-                    {
+                    groupObject.ActionCompleteCallback = ((action: string): void => {
                         this.ForceTableRedraw(this.m_tableUsers);
                         this.ForceTableRedraw(this.m_tableGroups);
                     });
 
-                    if (confirm("Really delete group? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm("Really delete group? THIS CANNOT BE UNDONE!!!")) {
                         groupObject.Delete();
                     }
-                }
-                catch (e)
-                {
+                } catch (e) {
                     console.log('Failed to load group record from table selection.');
                 }
             }
@@ -2539,22 +2189,19 @@ namespace Citadel
          * we'll validate that the current state is correct for this action, and
          * then initiate the process of POSTing this action as a command to the
          * server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnCloneGroupClicked(e: MouseEvent): any
-        {
+        private OnCloneGroupClicked(e: MouseEvent): any {
             let selectedItem = this.m_tableGroups.row('.selected').data();
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 let groupRecord = new GroupRecord();
                 groupRecord.StartEditing(this.m_tableFilterLists.data(), null, selectedItem);
-                groupRecord.ActionCompleteCallback = ((action: string): void =>
-                {
+                groupRecord.ActionCompleteCallback = ((action: string): void => {
                     groupRecord.StopEditing();
                     this.ForceTableRedraw(this.m_tableGroups);
                     this.ForceTableRedraw(this.m_tableUsers);
@@ -2567,39 +2214,32 @@ namespace Citadel
          * Internally we'll validate that the current state is correct for this
          * action, and then initiate the process of POSTing this action as a
          * command to the server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnDeleteFilterListClicked(e: MouseEvent): any
-        {
+        private OnDeleteFilterListClicked(e: MouseEvent): any {
             let selectedItem = this.m_tableFilterLists.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var filterListObject: FilterListRecord;
 
-                try 
-                {
+                try {
                     filterListObject = BaseRecord.CreateFromObject(FilterListRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    filterListObject.ActionCompleteCallback = ((action: string): void =>
-                    {   
+                    filterListObject.ActionCompleteCallback = ((action: string): void => {
                         this.loadAllFilters();
                         this.ForceTableRedraw(this.m_tableFilterLists);
                     });
 
-                    if (confirm("Really delete filter list? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm("Really delete filter list? THIS CANNOT BE UNDONE!!!")) {
                         filterListObject.Delete();
                     }
-                }
-                catch (e)
-                {
+                } catch (e) {
                     console.log('Failed to load filter list record from table selection.');
                 }
             }
@@ -2610,71 +2250,57 @@ namespace Citadel
          * Internally we'll validate that the current state is correct for this
          * action, and then initiate the process of POSTing this action as a
          * command to the server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnDeleteFilterListInNamespaceClicked(e: MouseEvent, constraintToType: boolean): any
-        {
+        private OnDeleteFilterListInNamespaceClicked(e: MouseEvent, constraintToType: boolean): any {
             let selectedItem = this.m_tableFilterLists.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var filterListObject: FilterListRecord;
 
-                try 
-                {
+                try {
                     filterListObject = BaseRecord.CreateFromObject(FilterListRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    filterListObject.ActionCompleteCallback = ((action: string): void =>
-                    {
+                    filterListObject.ActionCompleteCallback = ((action: string): void => {
                         this.loadAllFilters();
                         this.ForceTableRedraw(this.m_tableFilterLists);
                     });
-                    
+
                     let confirmMsg = constraintToType == true ? "Really delete all filters with the same type in this lists' namespace? THIS CANNOT BE UNDONE!!!" : "Really delete all filters in this lists' namespace? THIS CANNOT BE UNDONE!!!";
 
-                    if (confirm("Really delete all filters in this lists' namespace? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm("Really delete all filters in this lists' namespace? THIS CANNOT BE UNDONE!!!")) {
                         filterListObject.DeleteAllInNamespace(constraintToType);
                     }
-                }
-                catch (e)
-                {
+                } catch (e) {
                     console.log('Failed to load filter list record from table selection.');
                 }
             }
         }
 
-        private OnDeleteUserDeactivationRequestClicked(e: MouseEvent): any
-        {
+        private OnDeleteUserDeactivationRequestClicked(e: MouseEvent): any {
             let selectedItem = this.m_tableUserDeactivationRequests.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var deactivationRequestObject: DeactivationRequestRecord;
 
-                try 
-                {
+                try {
                     deactivationRequestObject = BaseRecord.CreateFromObject(DeactivationRequestRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    deactivationRequestObject.ActionCompleteCallback = ((action: string): void =>
-                    {
+                    deactivationRequestObject.ActionCompleteCallback = ((action: string): void => {
                         this.ForceTableRedraw(this.m_tableUserDeactivationRequests);
                     });
 
-                    if (confirm("Really delete user deactivation request? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm("Really delete user deactivation request? THIS CANNOT BE UNDONE!!!")) {
                         deactivationRequestObject.Delete();
                     }
-                }
-                catch (e)
-                {
+                } catch (e) {
                     console.log('Failed to load filter list record from table selection.');
                 }
             }
@@ -2687,23 +2313,21 @@ namespace Citadel
          * Then, we'll present the appropriate input view which itself will
          * handle input validation, as well as POSTing appropriate commands to
          * the server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private OnAddApplicationClicked(e: MouseEvent): any
-        {
-            if(this.m_btnApp.checked) {
+        private OnAddApplicationClicked(e: MouseEvent): any {
+            if (this.m_btnApp.checked) {
                 let newApp = new AppRecord();
 
                 // We supply everything in the groups table so that the user's group
-                // can be changed to any available group.            
-                newApp.StartEditing( );
-                newApp.ActionCompleteCallback = ((action: string): void =>
-                {
+                // can be changed to any available group.
+                newApp.StartEditing();
+                newApp.ActionCompleteCallback = ((action: string): void => {
 
                     newApp.StopEditing();
 
@@ -2715,10 +2339,9 @@ namespace Citadel
             } else {
                 let newAppGroup = new AppGroupRecord();
                 // We supply everything in the groups table so that the user's group
-                // can be changed to any available group.            
-                newAppGroup.StartEditing( );
-                newAppGroup.ActionCompleteCallback = ((action: string): void =>
-                {
+                // can be changed to any available group.
+                newAppGroup.StartEditing();
+                newAppGroup.ActionCompleteCallback = ((action: string): void => {
 
                     newAppGroup.StopEditing();
 
@@ -2735,66 +2358,53 @@ namespace Citadel
          * Then, we'll present the appropriate input view which itself will
          * handle input validation, as well as POSTing appropriate commands to
          * the server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private onRemoveApplicationClicked(e: MouseEvent): any
-        {
+        private onRemoveApplicationClicked(e: MouseEvent): any {
             this.m_btnRemoveItem.disabled = true;
-            if(this.m_btnApp.checked) {
+            if (this.m_btnApp.checked) {
                 let selectedItem = this.m_tableAppLists.row('.selected').data();
-                if (selectedItem != null)
-                {
+                if (selectedItem != null) {
                     var appObj: AppRecord;
-    
-                    try 
-                    {
+
+                    try {
                         appObj = BaseRecord.CreateFromObject(AppRecord, selectedItem);
-    
+
                         // We want to update both users and groups after delete.
-                        appObj.ActionCompleteCallback = ((action: string): void =>
-                        {
+                        appObj.ActionCompleteCallback = ((action: string): void => {
                             this.ForceTableRedraw(this.m_tableAppLists);
                         });
-    
-                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!"))
-                        {
+
+                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!")) {
                             appObj.Delete();
                         }
-                    }
-                    catch (e)
-                    {
+                    } catch (e) {
                         this.m_btnRemoveItem.disabled = false;
                         console.log('Failed to load application record from table selection.');
                     }
                 }
             } else {
                 let selectedItem = this.m_tableAppGroupLists.row('.selected').data();
-                if (selectedItem != null)
-                {
+                if (selectedItem != null) {
                     var appGroupObj: AppGroupRecord;
-    
-                    try 
-                    {
+
+                    try {
                         appGroupObj = BaseRecord.CreateFromObject(AppGroupRecord, selectedItem);
-    
+
                         // We want to update both users and groups after delete.
-                        appGroupObj.ActionCompleteCallback = ((action: string): void =>
-                        {
+                        appGroupObj.ActionCompleteCallback = ((action: string): void => {
                             this.ForceTableRedraw(this.m_tableAppGroupLists);
                         });
-    
-                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!"))
-                        {
+
+                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!")) {
                             appGroupObj.Delete();
                         }
-                    }
-                    catch (e)
-                    {
+                    } catch (e) {
                         this.m_btnRemoveItem.disabled = false;
                         console.log('Failed to load application record from table selection.');
                     }
@@ -2807,15 +2417,14 @@ namespace Citadel
          * Then, we'll present the appropriate input view which itself will
          * handle input validation, as well as POSTing appropriate commands to
          * the server.
-         * 
+         *
          * @private
          * @param {MouseEvent} e
          * @returns {*}
-         * 
+         *
          * @memberOf Dashboard
          */
-        private onApplyToGroupClicked(e: MouseEvent): any
-        {
+        private onApplyToGroupClicked(e: MouseEvent): any {
             if (this.m_btnApp.checked) {
                 let apply_app_to_app_group_overlay = new ApplyAppToAppGroup(this);
                 apply_app_to_app_group_overlay.Show();
@@ -2825,60 +2434,46 @@ namespace Citadel
             }
         }
 
-        private onDeleteAppUserActivationClicked(e: MouseEvent): any
-        {
+        private onDeleteAppUserActivationClicked(e: MouseEvent): any {
             let selectedItem = this.m_tableAppUserActivationTable.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var appUserActivationObject: AppUserActivationRecord;
 
-                try 
-                {
+                try {
                     appUserActivationObject = BaseRecord.CreateFromObject(AppUserActivationRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    appUserActivationObject.ActionCompleteCallback = ((action: string): void =>
-                    {
+                    appUserActivationObject.ActionCompleteCallback = ((action: string): void => {
                         this.ForceTableRedraw(this.m_tableAppUserActivationTable);
                     });
 
-                    if (confirm("Really delete app user activation? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm("Really delete app user activation? THIS CANNOT BE UNDONE!!!")) {
                         appUserActivationObject.Delete();
                     }
-                }
-                catch (e)
-                {
+                } catch (e) {
                     console.log('Failed to load filter list record from table selection.');
                 }
             }
         }
 
-        private onBlockAppUserActivationClicked(e: MouseEvent): any
-        {
+        private onBlockAppUserActivationClicked(e: MouseEvent): any {
             let selectedItem = this.m_tableAppUserActivationTable.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var appUserActivationObject: AppUserActivationRecord;
-                try 
-                {
+                try {
                     appUserActivationObject = BaseRecord.CreateFromObject(AppUserActivationRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    appUserActivationObject.ActionCompleteCallback = ((action: string): void =>
-                    {
+                    appUserActivationObject.ActionCompleteCallback = ((action: string): void => {
                         this.ForceTableRedraw(this.m_tableAppUserActivationTable);
                     });
 
-                    if (confirm("Really delete app user activation? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm("Really delete app user activation? THIS CANNOT BE UNDONE!!!")) {
                         appUserActivationObject.Block();
                     }
-                }
-                catch (e)
-                {
+                } catch (e) {
                     console.log('Failed to load filter list record from table selection.');
                 }
             }
@@ -2887,13 +2482,12 @@ namespace Citadel
          * Sets the current view state. This will enforce that visual elements
          * and data are synchronized as they should be for the specified view
          * state.
-         * 
+         *
          * @private
-         * 
+         *
          * @memberOf Dashboard
          */
-        private set ViewState(value: DashboardViewStates)
-        {
+        private set ViewState(value: DashboardViewStates) {
             // Every time the view state is changed, we're going to
             // force all of the tables to redraw. The reason for this
             // is that, due to network delay, it's not possible to
@@ -2908,9 +2502,8 @@ namespace Citadel
             this.m_viewAppGroupManagement.style.display = "none";
             this.m_viewAppUserActivationManagement.style.display = "none";
             this.m_viewSystemVersionManagement.style.display = "none";
-          
-            switch (value)
-            {
+
+            switch (value) {
                 case DashboardViewStates.UserListView:
                     {
                         this.ForceTableRedraw(this.m_tableUsers);
@@ -2971,13 +2564,12 @@ namespace Citadel
 
         /**
          * Gets the current view state.
-         * 
+         *
          * @private
          * @type {DashboardViewStates}
          * @memberOf Dashboard
          */
-        private get ViewState(): DashboardViewStates
-        {
+        private get ViewState(): DashboardViewStates {
             return this.m_currentViewState;
         }
     }
@@ -2986,18 +2578,16 @@ namespace Citadel
     let citadelDashboard: Dashboard;
 
     // Create new instance of the dashboard class on page load.
-    document.onreadystatechange = (event: ProgressEvent) =>
-    {
-        if (document.readyState.toUpperCase() == "complete".toUpperCase())
-        {
-            $.ajaxPrefilter(function(options, originalOptions, xhr) { // this will run before each request
+    document.onreadystatechange = (event: ProgressEvent) => {
+        if (document.readyState.toUpperCase() == "complete".toUpperCase()) {
+            $.ajaxPrefilter(function (options, originalOptions, xhr) { // this will run before each request
                 var token = $('meta[name="csrf-token"]').attr('content'); // or _token, whichever you are using
 
                 if (token) {
                     return xhr.setRequestHeader('X-CSRF-TOKEN', token); // adds directly to the XmlHttpRequest Object
                 }
             });
-            
+
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
