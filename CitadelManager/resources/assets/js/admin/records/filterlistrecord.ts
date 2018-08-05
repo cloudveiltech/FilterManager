@@ -26,11 +26,11 @@ namespace Citadel {
         // ──────────────────────────────────────────────────────────
         //   :::::: F I L T E R L I S T       M E M B E R S ::::::
         // ──────────────────────────────────────────────────────────
-        private m_filterId : string;
-        private m_filterCategoryName: string;
-        private m_filterType: string;
-        private m_filterListNamespace: string;
-        private m_numRuleEntries: number;
+        private m_filterId              : string;
+        private m_filterCategoryName    : string;
+        private m_filterType            : string;
+        private m_filterListNamespace   : string;
+        private m_numRuleEntries        : number;
 
         public get RecordRoute(): string {
             return this.URL_ROUTE;
