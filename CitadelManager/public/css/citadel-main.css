@@ -945,11 +945,11 @@ td.ip_address {
 
 .dataTables_processing {
     background: rgba(127, 127, 127, 0.35) !important;
-    top: 100px;
+    top: 105px;
     left: 0px;
     right: 0px;
     text-align: center;
-    padding-top: calc(50vh - 270px);
+    padding-top: calc(50vh - 240px);
     height: calc(100vh - 470px);
     position: absolute;
     z-index: 998;
@@ -959,7 +959,7 @@ td.ip_address {
 .dataTables_processing:before {
     content: "Processing...";
     background: rgba(255, 255, 255, 1) !important;
-    top: calc(50vh - 270px);
+    top: calc(50vh - 240px);
     left: 40%;
     right: 40%;
     line-height: 40px;

@@ -41,10 +41,9 @@
     <script src="{{ asset('plugins/datetimepicker-2.2.4/jquery.datetimepicker.js') }}"></script>
 
     <script>
-        window.Laravel = {!!json_encode([
-                'csrfToken' => csrf_token(),
-            ]) !!
-        };
+        window.Laravel = <?php echo json_encode([
+            'csrfToken' => csrf_token(),
+        ]); ?>;
     </script>
 
     <script>
