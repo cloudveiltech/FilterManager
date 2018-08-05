@@ -10,71 +10,76 @@
 namespace Citadel {
 
     export class AppRecord extends BaseRecord {
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        ERROR_MESSAGE_APP_NAME = 'Application name is required.';
+
+        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+
+        TITLE_ACTION_FAILED = 'Action Failed';
+        TITLE_NEW_APP = 'Add Application';
+        TITLE_EDIT_APP = 'Edit Application';
+
+        BTN_LABEL_ADD_APP = 'Add';
+        BTN_LABEL_EDIT_APP = 'Save';
+
+        ERROR_MESSAGE_DELAY_TIME = 5000;
+        FADE_IN_DELAY_TIME = 200;
+
+        URL_ROUTE = 'api/admin/app';
+        URL_APPGROUP_DATA = 'api/admin/get_appgroup_data'
+
+        // ─────────────────────────────────────────────────────────
+        //   :::::: A P P    R E C O R D     M E M B E R S ::::::
+        // ─────────────────────────────────────────────────────────
+        private m_appId             : number;
+        private m_appName           : string;
+        private m_appNotes          : string;
+        private m_registeredAt      : string;
+
+        private m_appGroups         : any[];
+        private m_selectedGroups    : any[];
+        private m_unselectedGroups  : any[];
+
         //
-        // ────────────────────────────────────────────────────────────────────────── I ──────────
-        //   :::::: U S E R   D A T A   M E M B E R S : :  :   :    :     :        :          :
-        // ────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────
+        //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
+        // ─────────────────────────────────────────────────────────
         //
 
-        private m_appId: number;
-        private m_appName: string;
-        private m_appNotes: string;
-        private m_dateRegistered: string;
+        private m_mainForm          : HTMLFormElement;
 
-        //
-        // ──────────────────────────────────────────────────────────────────────────────── II ──────────
-        //   :::::: E D I T O R   H T M L   E L E M E N T S : :  :   :    :     :        :          :
-        // ──────────────────────────────────────────────────────────────────────────────────────────
-        //
+        private m_editorOverlay     : HTMLDivElement;
+        private m_editorTitle       : HTMLHeadingElement;
 
-        private m_mainForm: HTMLFormElement;
+        private m_inputAppName      : HTMLInputElement;
+        private m_inputAppNotes     : HTMLInputElement;
 
-        /**
-         * The Div of the editing overlay. This houses all of the editor
-         * contents and overlays everything else with a super high z-index.
-         *
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf AppRecord
-         */
-        private m_editorOverlay: HTMLDivElement;
-        private m_editorTitle: HTMLHeadingElement;
-        private m_applicationNameInput: HTMLInputElement;
-        private m_applicationNotesInput: HTMLInputElement;
-        private m_leftSelect: HTMLSelectElement;
-        private m_rightSelect: HTMLSelectElement;
-        private m_btnMoveRightAll: HTMLButtonElement;
-        private m_btnMoveRight: HTMLButtonElement;
-        private m_btnMoveLeft: HTMLButtonElement;
-        private m_btnMoveLeftAll: HTMLButtonElement;
+        private m_selectLeft        : HTMLSelectElement;
+        private m_selectRight       : HTMLSelectElement;
 
-        private m_submitBtn: HTMLButtonElement;
-        private m_cancelBtn: HTMLButtonElement;
+        private m_btn_L_R_All       : HTMLButtonElement;
+        private m_btn_L_R_One       : HTMLButtonElement;
+        private m_btn_R_L_One       : HTMLButtonElement;
+        private m_btn_R_L_All       : HTMLButtonElement;
 
+        private m_btnSubmit         : HTMLButtonElement;
+        private m_btnCancel         : HTMLButtonElement;
 
-        private m_appGroups: any[];
-        private m_selectedGroups: any[];
-        private m_unselectedGroups: any[];
-        /**
-         * Gets the base API route from this record type.
-         *
-         * @readonly
-         * @type {string}
-         * @memberOf AppRecord
-         */
         public get RecordRoute(): string {
-            return 'api/admin/app';
+            return this.URL_ROUTE;
         }
 
         protected get ValidationOptions(): JQueryValidation.ValidationOptions {
             let validationRules: JQueryValidation.RulesDictionary = {};
 
-            validationRules[this.m_applicationNameInput.id] = {
+            validationRules[this.m_inputAppName.id] = {
                 required: true
             };
 
             let validationErrorMessages = {};
-            validationErrorMessages[this.m_applicationNameInput.id] = 'Application name is required.';
+            validationErrorMessages[this.m_inputAppName.id] = this.ERROR_MESSAGE_APP_NAME;
 
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
@@ -104,30 +109,30 @@ namespace Citadel {
             this.m_editorTitle = document.querySelector('#application_editing_title') as HTMLHeadingElement;
             this.m_editorOverlay = document.querySelector('#overlay_application_editor') as HTMLDivElement;
 
-            this.m_applicationNameInput = document.querySelector('#editor_application_name') as HTMLInputElement;
-            this.m_applicationNotesInput = document.querySelector('#editor_application_notes') as HTMLInputElement;
-            this.m_leftSelect = document.querySelector("#editor_application_source_list") as HTMLSelectElement;
-            this.m_rightSelect = document.querySelector("#editor_application_target_list") as HTMLSelectElement;
+            this.m_inputAppName = document.querySelector('#editor_application_name') as HTMLInputElement;
+            this.m_inputAppNotes = document.querySelector('#editor_application_notes') as HTMLInputElement;
+            this.m_selectLeft = document.querySelector("#editor_application_source_list") as HTMLSelectElement;
+            this.m_selectRight = document.querySelector("#editor_application_target_list") as HTMLSelectElement;
 
-            this.m_btnMoveRightAll = document.querySelector("#editor_application_right_all_btn") as HTMLButtonElement;
-            this.m_btnMoveRight = document.querySelector("#editor_application_right_btn") as HTMLButtonElement;
-            this.m_btnMoveLeft = document.querySelector("#editor_application_left_btn") as HTMLButtonElement;
-            this.m_btnMoveLeftAll = document.querySelector("#editor_application_left_all_btn") as HTMLButtonElement;
+            this.m_btn_L_R_All = document.querySelector("#editor_application_right_all_btn") as HTMLButtonElement;
+            this.m_btn_L_R_One = document.querySelector("#editor_application_right_btn") as HTMLButtonElement;
+            this.m_btn_R_L_One = document.querySelector("#editor_application_left_btn") as HTMLButtonElement;
+            this.m_btn_R_L_All = document.querySelector("#editor_application_left_all_btn") as HTMLButtonElement;
 
-            this.m_submitBtn = document.querySelector('#application_editor_submit') as HTMLButtonElement;
-            this.m_cancelBtn = document.querySelector('#application_editor_cancel') as HTMLButtonElement;
+            this.m_btnSubmit = document.querySelector('#application_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel = document.querySelector('#application_editor_cancel') as HTMLButtonElement;
             this.InitButtonHandlers();
         }
 
-        private getRetrieveData(flag: boolean) {
-            let url = 'api/admin/get_appgroup_data';
+        private _getAppGroupData(flag: boolean) {
+            let url = this.URL_APPGROUP_DATA;
             if (flag) {
                 url += '/' + this.m_appId;
             }
 
             $("#spiner_5").show();
 
-            this.m_submitBtn.disabled = true;
+            this.m_btnSubmit.disabled = true;
             let ajaxSettings: JQuery.UrlAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
@@ -166,17 +171,15 @@ namespace Citadel {
                     this.drawRightGroups();
 
                     $("#spiner_5").hide();
-                    this.m_submitBtn.disabled = false;
+                    this.m_btnSubmit.disabled = false;
 
                     return false;
                 },
                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                    this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                    this.m_progressWait.Show(this.TITLE_ACTION_FAILED, this.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
                     setTimeout(() => {
                         this.m_progressWait.Hide();
-                    }, 5000);
-
-                    if (jqXHR.status > 399 && jqXHR.status < 500) {} else {}
+                    }, this.ERROR_MESSAGE_DELAY_TIME);
                 }
             }
 
@@ -185,22 +188,22 @@ namespace Citadel {
 
         private InitButtonHandlers(): void {
 
-            this.m_btnMoveRightAll.onclick = ((e: MouseEvent) => {
+            this.m_btn_L_R_All.onclick = ((e: MouseEvent) => {
                 this.onMoveRightAllClicked(e);
             });
 
-            this.m_btnMoveRight.onclick = ((e: MouseEvent) => {
+            this.m_btn_L_R_One.onclick = ((e: MouseEvent) => {
                 this.onMoveRightClicked(e);
             });
 
-            this.m_btnMoveLeft.onclick = ((e: MouseEvent) => {
+            this.m_btn_R_L_One.onclick = ((e: MouseEvent) => {
                 this.onMoveLeftClicked(e);
             });
 
-            this.m_btnMoveLeftAll.onclick = ((e: MouseEvent) => {
+            this.m_btn_R_L_All.onclick = ((e: MouseEvent) => {
                 this.onMoveLeftAllClicked(e);
             });
-            this.m_cancelBtn.onclick = ((e: MouseEvent): any => {
+            this.m_btnCancel.onclick = ((e: MouseEvent): any => {
                 this.StopEditing();
             });
         }
@@ -226,10 +229,10 @@ namespace Citadel {
         }
 
         public onMoveRightClicked(e: MouseEvent): void {
-            if (this.m_leftSelect.selectedIndex == -1) return;
+            if (this.m_selectLeft.selectedIndex == -1) return;
 
-            for (var i = 0; i < this.m_leftSelect.selectedOptions.length; i++) {
-                let sel_id = parseInt(this.m_leftSelect.selectedOptions[i].value);
+            for (var i = 0; i < this.m_selectLeft.selectedOptions.length; i++) {
+                let sel_id = parseInt(this.m_selectLeft.selectedOptions[i].value);
                 let sel_seq_idx = this.m_unselectedGroups.indexOf(sel_id);
                 this.m_unselectedGroups.splice(sel_seq_idx, 1);
                 this.m_selectedGroups.push(sel_id);
@@ -240,10 +243,10 @@ namespace Citadel {
         }
 
         public onMoveLeftClicked(e: MouseEvent): void {
-            if (this.m_rightSelect.selectedIndex == -1) return;
+            if (this.m_selectRight.selectedIndex == -1) return;
 
-            for (var i = 0; i < this.m_rightSelect.selectedOptions.length; i++) {
-                let sel_id = parseInt(this.m_rightSelect.selectedOptions[i].value);
+            for (var i = 0; i < this.m_selectRight.selectedOptions.length; i++) {
+                let sel_id = parseInt(this.m_selectRight.selectedOptions[i].value);
                 let sel_seq_idx = this.m_selectedGroups.indexOf(sel_id);
                 this.m_selectedGroups.splice(sel_seq_idx, 1);
                 this.m_unselectedGroups.push(sel_id);
@@ -267,39 +270,39 @@ namespace Citadel {
         }
 
         private drawLeftGroups() {
-            $(this.m_leftSelect).empty();
+            $(this.m_selectLeft).empty();
 
             this.m_unselectedGroups.forEach((group_id): void => {
                 var newOption = document.createElement("option");
                 var item = this.getGroupItem(group_id);
                 newOption.text = item.group_name;
                 newOption.value = item.id;
-                this.m_leftSelect.add(newOption);
+                this.m_selectLeft.add(newOption);
             });
         }
 
         private drawRightGroups() {
-            $(this.m_rightSelect).empty();
+            $(this.m_selectRight).empty();
 
             this.m_selectedGroups.forEach((group_id): void => {
                 var newOption = document.createElement("option");
                 var item = this.getGroupItem(group_id);
                 newOption.text = item.group_name;
                 newOption.value = item.id;
-                this.m_rightSelect.add(newOption);
+                this.m_selectRight.add(newOption);
             });
         }
 
         protected LoadFromObject(data: Object): void {
-            this.m_appId = data['id'] as number;
-            this.m_appName = data['name'] as string;
-            this.m_appNotes = data['notes'] as string;
-            this.m_dateRegistered = data['dt'] as string;
+            this.m_appId            = data['id'] as number;
+            this.m_appName          = data['name'] as string;
+            this.m_appNotes         = data['notes'] as string;
+            this.m_registeredAt     = data['dt'] as string;
         }
 
         protected LoadFromForm(): void {
-            this.m_appName = this.m_applicationNameInput.value;
-            this.m_appNotes = this.m_applicationNotesInput.value;
+            this.m_appName          = this.m_inputAppName.value;
+            this.m_appNotes         = this.m_inputAppNotes.value;
         }
 
         public StartEditing(userData: Object = null): void {
@@ -307,10 +310,10 @@ namespace Citadel {
                 case true:
                     {
                         // Creating a new object here.
-                        this.m_editorTitle.innerText = "Add Application";
-                        this.m_submitBtn.innerText = "Add";
+                        this.m_editorTitle.innerText = this.TITLE_NEW_APP;
+                        this.m_btnSubmit.innerText = this.BTN_LABEL_ADD_APP;
                         this.m_mainForm.reset();
-                        this.getRetrieveData(false);
+                        this._getAppGroupData(false);
                     }
                     break;
 
@@ -319,11 +322,11 @@ namespace Citadel {
                         // Editing an existing object here.
                         this.LoadFromObject(userData);
 
-                        this.m_editorTitle.innerText = "Edit Application";
-                        this.m_submitBtn.innerText = "Save";
-                        this.m_applicationNameInput.value = this.m_appName;
-                        this.m_applicationNotesInput.value = this.m_appNotes;
-                        this.getRetrieveData(true);
+                        this.m_editorTitle.innerText = this.TITLE_EDIT_APP;
+                        this.m_btnSubmit.innerText = this.BTN_LABEL_EDIT_APP;
+                        this.m_inputAppName.value = this.m_appName;
+                        this.m_inputAppNotes.value = this.m_appNotes;
+                        this._getAppGroupData(true);
                     }
                     break;
             }
@@ -341,20 +344,20 @@ namespace Citadel {
             });
 
             // Show the editor.
-            $(this.m_editorOverlay).fadeIn(250);
+            $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
 
         public StopEditing(): void {
-            $(this.m_editorOverlay).fadeOut(200);
+            $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }
 
         public ToObject(): Object {
             let obj = {
-                'id': this.m_appId,
-                'name': this.m_appName,
-                'notes': this.m_appNotes,
-                'dt': this.m_dateRegistered,
-                'assigned_appgroup': this.m_selectedGroups
+                'id'                : this.m_appId,
+                'name'              : this.m_appName,
+                'notes'             : this.m_appNotes,
+                'dt'                : this.m_registeredAt,
+                'assigned_appgroup' : this.m_selectedGroups
             };
 
             return obj;

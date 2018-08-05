@@ -9,7 +9,6 @@
 
 namespace Citadel {
     export class GroupRecord extends BaseRecord {
-
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
@@ -35,9 +34,9 @@ namespace Citadel {
         URL_ROUTE = 'api/admin/groups';
         URL_GET_APP_DATA = 'api/admin/get_app_data';
 
-        // ────────────────────────────────────────────────────────────────────────── I ──────────
-        //   :::::: G R O U P   D A T A   M E M B E R S : :  :   :    :     :        :          :
-        // ────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────
+        //   :::::: G R O U P   D A T A   M E M B E R S ::::::
+        // ─────────────────────────────────────────────────────
 
         private m_groupId               : number;
         private m_groupName             : string;

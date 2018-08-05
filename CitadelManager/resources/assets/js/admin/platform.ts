@@ -20,7 +20,7 @@ namespace Citadel {
          * @memberOf ApplyToGroupOverlay
          */
         private m_closeBtn: HTMLButtonElement;
-        private m_cancelBtn: HTMLButtonElement;
+        private m_btnCancel: HTMLButtonElement;
         private m_addBtn: HTMLButtonElement;
         private m_editorOverlay: HTMLDivElement;
 
@@ -37,7 +37,7 @@ namespace Citadel {
 
         private InitUIComponents(): void {
             this.m_addBtn = document.querySelector('#btn_platform_add') as HTMLButtonElement;
-            this.m_cancelBtn = document.querySelector('#btn_platform_cancel') as HTMLButtonElement;
+            this.m_btnCancel = document.querySelector('#btn_platform_cancel') as HTMLButtonElement;
             this.m_closeBtn = document.querySelector('#btn_platform_close') as HTMLButtonElement;
             this.m_editorOverlay = document.querySelector('#overlay_platform') as HTMLDivElement;
             this.InitButtonHandlers();
@@ -49,7 +49,7 @@ namespace Citadel {
                 this.StopEditing();
             });
 
-            this.m_cancelBtn.onclick = ((e: MouseEvent): any => {
+            this.m_btnCancel.onclick = ((e: MouseEvent): any => {
                 $("#platform_type").val("WIN");
                 $("#platform_input_os_name").val("");
                 $("#platform_id").val("0");
