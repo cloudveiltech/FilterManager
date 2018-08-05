@@ -10,124 +10,233 @@
 namespace Citadel {
 
     export class UserRecord extends BaseRecord {
-        //
-        // ────────────────────────────────────────────────────────────────────────── I ──────────
-        //   :::::: U S E R   D A T A   M E M B E R S : :  :   :    :     :        :          :
-        // ────────────────────────────────────────────────────────────────────────────────────
-        //
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        ERROR_MESSAGE_EMAIL = 'A valid email address is required.';
+        ERROR_MESSAGE_PASSWORD = 'Password must be specified and match the password confirmation field.';
+        ERROR_MESSAGE_CONFIRM_PASSWORD = 'Password confirmation must be specified and match the password field.';
+        ERROR_MESSAGE_ACTIVATION = 'Total number of permitted activations must be specified.';
 
-        private m_userId: number;
+        ERROR_MESSAGE_DELAY_TIME = 5000;
+        FADE_IN_DELAY_TIME = 200;
 
-        private m_userFullName: string;
+        MESSAGE_BLOCK_ACTIVATION_CONFIRM = 'Are you sure you want to delete this activation and block the token?  The user will need to sign in again.';
+        MESSAGE_DELETE_ACTIVATION_CONFIRM = 'Are you sure you want to delete this activation?';
+        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        private m_userEmail: string;
+        TITLE_ACTION_FAILED = 'Action Failed';
 
-        private m_userPassword ? : string;
+        URL_ROUTE = 'api/admin/users';
+        URL_UPDATE_ALERT = 'api/admin/activations/update_alert';
+        URL_UPDATE_CHECK_IN_DAYS = 'api/admin/activations/update_check_in_days';
+        URL_DELETE_ACTIVATION = 'api/admin/user_activations/delete';
+        URL_BLOCK_ACTIVATION = 'api/admin/user_activations/block';
 
-        private m_groupId: number;
 
-        private m_roleId: number;
+        // ───────────────────────────────────────────────────
+        //   :::::: U S E R   D A T A   M E M B E R S ::::::
+        // ───────────────────────────────────────────────────
+        private m_id                : number;
+        private m_fullName          : string;
+        private m_email             : string;
+        private m_password ?        : string;
+        private m_groupId           : number;
+        private m_roleId            : number;
+        private m_numActivations    : number;
+        private m_customerId        : number;
+        private m_isActive          : number;
+        private m_reportLevel       : number;
+        private m_registeredAt      : string;
 
-        private m_numActivations: number;
+        // ─────────────────────────────────────────────────────────
+        //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
+        // ─────────────────────────────────────────────────────────
+        private m_mainForm          : HTMLFormElement;
 
-        private m_customerId: number;
-        private m_isActive: number;
-        private m_reportLevel: number;
-        private m_dateRegistered: string;
+        private m_editorOverlay     : HTMLDivElement;
+        private m_editorTitle       : HTMLHeadingElement;
 
-        //
-        // ──────────────────────────────────────────────────────────────────────────────── II ──────────
-        //   :::::: E D I T O R   H T M L   E L E M E N T S : :  :   :    :     :        :          :
-        // ──────────────────────────────────────────────────────────────────────────────────────────
-        //
+        // ─────────────────────────────────────────────
+        //   ::::: I N P U T    E L E M E N T S ::::::
+        // ─────────────────────────────────────────────
+        private m_inputFullName         : HTMLInputElement;
+        private m_inputEmail            : HTMLInputElement;
+        private m_inputPassword         : HTMLInputElement;
+        private m_inputPasswordConfirm  : HTMLInputElement;
+        private m_inputActivationCount  : HTMLInputElement;
+        private m_inputCustomerId       : HTMLInputElement;
+        private m_inputIsActive         : HTMLInputElement;
+        private m_inputReportLevel      : HTMLInputElement;
 
-        private m_mainForm: HTMLFormElement;
+        // ───────────────────────────────────────────────
+        //   ::::: S E L E C T    E L E M E N T S ::::::
+        // ───────────────────────────────────────────────
+        private m_selectGroup       : HTMLSelectElement;
+        private m_selectRole        : HTMLSelectElement;
 
-        /**
-         * The Div of the editing overlay. This houses all of the editor
-         * contents and overlays everything else with a super high z-index.
-         *
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf UserRecord
-         */
-        private m_editorOverlay: HTMLDivElement;
+        // ───────────────────────────────────────────────
+        //   ::::: B U T T O N    E L E M E N T S ::::::
+        // ───────────────────────────────────────────────
+        private m_btnSubmit         : HTMLButtonElement;
+        private m_btnCancel         : HTMLButtonElement;
 
-        private m_editorTitle: HTMLHeadingElement;
-
-        private m_fullNameInput: HTMLInputElement;
-
-        private m_emailInput: HTMLInputElement;
-
-        private m_passwordInput: HTMLInputElement;
-
-        private m_passwordConfirmInput: HTMLInputElement;
-
-        private m_numActivationsInput: HTMLInputElement;
-
-        private m_groupIdInput: HTMLSelectElement;
-
-        private m_customerIdInput: HTMLInputElement;
-
-        private m_roleInput: HTMLSelectElement;
-
-        private m_isActiveInput: HTMLInputElement;
-
-        private m_reportLevelInput: HTMLInputElement;
-
-        private m_submitBtn: HTMLButtonElement;
-
-        private m_cancelBtn: HTMLButtonElement;
         private jsonData: any[];
+
+        // ─────────────────────────────────────────────────
+        //   ::::: A C T I V A T I O N    T A B L E ::::::
+        // ─────────────────────────────────────────────────
         private m_tableSettings: DataTables.Settings;
         private m_tableColumns: DataTables.ColumnSettings[];
-        /**
-         * User Activation DataTable.
-         *
-         * @private
-         * @type {DataTables.Api}
-         * @memberOf Dashboard
-         */
         private m_ActivationTables: DataTables.Api;
-        /**
-         * Gets the base API route from this record type.
-         *
-         * @readonly
-         * @type {string}
-         * @memberOf GroupRecord
-         */
+
+        // ─────────────────────────────────────────────────
+        //   ::::: M E M B E R     F U N C T I O N S ::::::
+        // ─────────────────────────────────────────────────
+
+        constructor() {
+            super();
+            this.ConstructFormReferences();
+        }
+
+        private ConstructFormReferences(): void {
+            this.m_mainForm = document.querySelector('#editor_user_form') as HTMLFormElement;
+            this.m_editorTitle = document.querySelector('#user_editing_title') as HTMLHeadingElement;
+            this.m_editorOverlay = document.querySelector('#overlay_user_editor') as HTMLDivElement;
+
+            this.m_inputEmail = document.querySelector('#editor_user_input_username') as HTMLInputElement;
+            this.m_inputFullName = document.querySelector('#editor_user_input_user_full_name') as HTMLInputElement;
+            this.m_inputPassword = document.querySelector('#editor_user_input_password') as HTMLInputElement;
+            this.m_inputPasswordConfirm = document.querySelector('#editor_user_input_password_confirm') as HTMLInputElement;
+            this.m_inputActivationCount = document.querySelector('#editor_user_input_num_activations') as HTMLInputElement;
+            this.m_selectGroup = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
+            this.m_selectRole = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
+            this.m_inputIsActive = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
+            this.m_inputCustomerId = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
+            this.m_inputReportLevel = document.querySelector('#editor_user_report_level') as HTMLInputElement;
+            this.m_btnSubmit = document.querySelector('#user_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
+
+            this.InitButtonHandlers();
+        }
+
         public get RecordRoute(): string {
-            return 'api/admin/users';
+            return this.URL_ROUTE;
+        }
+
+        // ─────────────────────────────────────────────────────────
+        //   ::::: G E T / R E M O V E     F U N C T I O N S ::::::
+        // ─────────────────────────────────────────────────────────
+        private getIdFromElementId(element_id: string): number {
+            // styled <ID>_<NUMBER>
+            var arr_id = element_id.split('_');
+
+            return arr_id.length > 1 ? parseInt(arr_id[1]) : -1;
+        }
+
+        private getValueFromSelect(selectBox: HTMLSelectElement): number {
+            let val = -1;
+            if (selectBox.selectedIndex != -1) {
+                let option = selectBox.options[selectBox.selectedIndex] as HTMLOptionElement;
+                val = parseInt(option.value);
+            }
+
+            return val;
+        }
+
+        private removeActivationById(id: number): void {
+            var index = -1;
+            for (var i = 0; i < this.jsonData.length; i++) {
+                if (this.jsonData[i].id == id) {
+                    index = i;
+                    break;
+                }
+            }
+            if(index >= 0) {
+                this.jsonData.splice(index, 1);
+            }
+        }
+
+        // ────────────────────────────────────────────────────
+        //   ::::: C O N V E R T     F U N C T I O N S ::::::
+        // ────────────────────────────────────────────────────
+        protected LoadFromObject(data: Object): void {
+            this.m_id               = data['id'] as number;
+            this.m_fullName         = data['name'] as string;
+            this.m_email            = data['email'] as string;
+            this.m_password         = data['password'] as string;
+            this.m_groupId          = data['group_id'] as number;
+            this.m_customerId       = data['customer_id'] as number;
+            this.m_roleId           = data['roles'][0]['id'];
+            this.m_numActivations   = data['activations_allowed'];
+            this.m_isActive         = data['isactive'];
+            this.m_registeredAt     = data['dt'] as string;
+            this.m_reportLevel      = data['report_level'] as number;
+            this.jsonData           = data['activations'];
+        }
+
+        protected LoadFromForm(): void {
+            this.m_fullName         = this.m_inputFullName.value;
+            this.m_email            = this.m_inputEmail.value;
+            this.m_password         = this.m_inputPassword.value;
+            this.m_groupId          = this.getValueFromSelect(this.m_selectGroup);
+            this.m_roleId           = this.getValueFromSelect(this.m_selectRole);
+            this.m_customerId       = this.m_inputCustomerId.value == "" ? null:this.m_inputCustomerId.valueAsNumber;
+            this.m_numActivations   = this.m_inputActivationCount.valueAsNumber;
+            this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
+            this.m_reportLevel      = this.m_inputReportLevel.checked == true ? 1 : 0;
+        }
+
+        public ToObject(): Object {
+            let obj = {
+                'id': this.m_id,
+                'name': this.m_fullName,
+                'email': this.m_email,
+                'group_id': this.m_groupId,
+                'role_id': this.m_roleId,
+                'customer_id': this.m_customerId,
+                'activations_allowed': this.m_numActivations,
+                'isactive': this.m_isActive,
+                'dt': this.m_registeredAt,
+                'report_level': this.m_reportLevel,
+            };
+
+            if (this.m_password != null && this.m_password.length > 0 && (this.m_password != Array(30).join("x"))) {
+                obj['password'] = this.m_password;
+                obj['password_verify'] = this.m_inputPasswordConfirm.value;
+            }
+
+            return obj;
         }
 
         protected get ValidationOptions(): JQueryValidation.ValidationOptions {
             let validationRules: JQueryValidation.RulesDictionary = {};
 
-            validationRules[this.m_emailInput.id] = {
+            validationRules[this.m_inputEmail.id] = {
                 required: true,
                 email: true
             };
 
-            validationRules[this.m_passwordInput.id] = {
+            validationRules[this.m_inputPassword.id] = {
                 required: true,
-                equalTo: '#' + this.m_passwordConfirmInput.id
+                equalTo: '#' + this.m_inputPasswordConfirm.id
             };
 
-            validationRules[this.m_passwordConfirmInput.id] = {
+            validationRules[this.m_inputPasswordConfirm.id] = {
                 required: true,
-                equalTo: '#' + this.m_passwordInput.id
+                equalTo: '#' + this.m_inputPassword.id
             };
 
-            validationRules[this.m_numActivationsInput.id] = {
+            validationRules[this.m_inputActivationCount.id] = {
                 required: true,
                 number: true
             };
 
             let validationErrorMessages = {};
-            validationErrorMessages[this.m_emailInput.id] = 'A valid email address is required.';
-            validationErrorMessages[this.m_passwordInput.id] = 'Password must be specified and match the password confirmation field.';
-            validationErrorMessages[this.m_passwordConfirmInput.id] = 'Password confirmation must be specified and match the password field.';
-            validationErrorMessages[this.m_numActivationsInput.id] = 'Total number of permitted activations must be specified.';
+            validationErrorMessages[this.m_inputEmail.id] = this.ERROR_MESSAGE_EMAIL;
+            validationErrorMessages[this.m_inputPassword.id] = this.ERROR_MESSAGE_PASSWORD;
+            validationErrorMessages[this.m_inputPasswordConfirm.id] = this.ERROR_MESSAGE_CONFIRM_PASSWORD;
+            validationErrorMessages[this.m_inputActivationCount.id] = this.ERROR_MESSAGE_ACTIVATION;
 
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
@@ -141,42 +250,12 @@ namespace Citadel {
             return validationOptions;
         }
 
-        /**
-         * Creates an instance of UserRecord.
-         *
-         *
-         * @memberOf UserRecord
-         */
-        constructor() {
-            super();
-            this.ConstructFormReferences();
-        }
-
-        private ConstructFormReferences(): void {
-            this.m_mainForm = document.querySelector('#editor_user_form') as HTMLFormElement;
-            this.m_editorTitle = document.querySelector('#user_editing_title') as HTMLHeadingElement;
-            this.m_editorOverlay = document.querySelector('#overlay_user_editor') as HTMLDivElement;
-
-            this.m_emailInput = document.querySelector('#editor_user_input_username') as HTMLInputElement;
-            this.m_fullNameInput = document.querySelector('#editor_user_input_user_full_name') as HTMLInputElement;
-            this.m_passwordInput = document.querySelector('#editor_user_input_password') as HTMLInputElement;
-            this.m_passwordConfirmInput = document.querySelector('#editor_user_input_password_confirm') as HTMLInputElement;
-            this.m_numActivationsInput = document.querySelector('#editor_user_input_num_activations') as HTMLInputElement;
-            this.m_groupIdInput = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
-            this.m_roleInput = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
-            this.m_isActiveInput = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
-            this.m_customerIdInput = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
-            this.m_reportLevelInput = document.querySelector('#editor_user_report_level') as HTMLInputElement;
-            this.m_submitBtn = document.querySelector('#user_editor_submit') as HTMLButtonElement;
-            this.m_cancelBtn = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
-
-
-            this.InitButtonHandlers();
-        }
-
+        // ───────────────────────────────────────────────
+        //   ::::: C L A S S      H A N D L E R S ::::::
+        // ───────────────────────────────────────────────
         private InitUserActivationTables() {
             let that = this;
-            let id = (this.m_userId === undefined) ? 0: this.m_userId;
+            let id = (this.m_id === undefined) ? 0 : this.m_id;
 
             this.m_tableColumns = [{
                     title: 'Action Id',
@@ -228,15 +307,24 @@ namespace Citadel {
                     width: "100px",
                     render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
                         var chk_report = (data === 1) ? "checked" : "";
-                        var str = "<label class='switch-original'><input type='checkbox' data-id='" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
-                        return str;
 
+                        var str = "";
+                        str += "<label class='switch-original'>";
+                        str += "    <input type='checkbox' data-id='" + row.id + "' " + chk_report + " />";
+                        str += "    <span class='check'></span>";
+                        str += "</label>";
+
+                        return str;
                     })
                 },
                 {
                     width: "300px",
                     render: function (data, type, row) {
-                        return "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> <button id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
+                        var strButtons = "";
+                        strButtons += "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
+                        strButtons += "<button id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
+
+                        return strButtons;
                     }
                 }
             ];
@@ -249,7 +337,7 @@ namespace Citadel {
                 data: this.jsonData,
                 destroy: true,
                 rowCallback: ((row: Node, data: any[] | Object): void => {
-                    //this.OnTableRowCreated(row, data);
+
                 }),
                 drawCallback: ((settings): void => {
                     let that = this;
@@ -258,14 +346,13 @@ namespace Citadel {
                     $("#user_activation_table").on("change", "input[type='checkbox']", function () {
                         let id = $(this).attr("data-id");
                         let val = 0;
-                        var objCheck = < HTMLInputElement > this;
-                        if (objCheck.checked) {
-                            val = 1;
-                        }
+                        var objCheck = <HTMLInputElement> this;
+                        if (objCheck.checked) val = 1;
+
                         let checkAjaxSettings: JQuery.UrlAjaxSettings = {
                             method: "POST",
                             timeout: 60000,
-                            url: "api/admin/activations/update_alert",
+                            url: that.URL_UPDATE_ALERT,
                             data: {
                                 id: id,
                                 value: val
@@ -291,24 +378,16 @@ namespace Citadel {
                         let checkAjaxSettings: JQuery.UrlAjaxSettings = {
                             method: "POST",
                             timeout: 60000,
-                            url: "api/admin/activations/update_check_in_days",
+                            url: that.URL_UPDATE_CHECK_IN_DAYS,
                             data: {
                                 id: id,
                                 value: val
                             },
                             success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
-                                //that.ForceTableRedraw(that.m_tableUsers);
                                 return false;
                             },
                             error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
                                 console.log(errorThrown);
-                                if (jqXHR.status > 399 && jqXHR.status < 500) {
-                                    // Almost certainly auth related error. Redirect to login
-                                    // by signalling for logout.
-                                    //window.location.href = 'login.php?logout';
-                                } else {
-
-                                }
                             }
                         }
 
@@ -318,35 +397,27 @@ namespace Citadel {
                     $("#user_activation_table").off("click", "button.btn-delete");
                     $("#user_activation_table").on('click', 'button.btn-delete', function (e) {
                         e.preventDefault();
-                        if (confirm("Are you sure you want to delete this activation?")) {
+                        if (confirm(that.MESSAGE_DELETE_ACTIVATION_CONFIRM)) {
                             let dataObject = {};
-                            let id_str = e.target.id;
-                            let id = id_str.split("_")[1];
+                            let id = that.getIdFromElementId(e.target.id);
+
                             let ajaxSettings: JQuery.UrlAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
-                                url: 'api/admin/user_activations/delete/' + id,
+                                url: that.URL_DELETE_ACTIVATION + '/' + id,
                                 data: dataObject,
                                 success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
-                                    var index = -1;
-                                    for (var i = 0; i < that.jsonData.length; i++) {
-                                        if (that.jsonData[i].id == id) {
-                                            index = i;
-                                            break;
-                                        }
-                                    }
-                                    that.jsonData.splice(i, 1);
+                                    that.removeActivationById(id);
                                     that.InitUserActivationTables();
+
                                     return false;
                                 },
                                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                                    console.log(jqXHR.responseText);
-                                    console.log(errorThrown);
-                                    console.log(textStatus);
-                                    that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                    that.m_progressWait.Show(that.TITLE_ACTION_FAILED, that.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
+
                                     setTimeout(() => {
                                         that.m_progressWait.Hide();
-                                    }, 5000);
+                                    }, that.ERROR_MESSAGE_DELAY_TIME);
                                 }
                             }
 
@@ -357,35 +428,26 @@ namespace Citadel {
                     $("#user_activation_table").off("click", "button.btn-block");
                     $("#user_activation_table").on('click', 'button.btn-block', function (e) {
                         e.preventDefault();
-                        if (confirm("Are you sure you want to delete this activation and block the token?  The user will need to sign in again.")) {
+                        if (confirm(that.MESSAGE_BLOCK_ACTIVATION_CONFIRM)) {
                             let dataObject = {};
-                            let id_str = e.target.id;
-                            let id = id_str.split("_")[1];
+                            let id = that.getIdFromElementId(e.target.id);
+
                             let ajaxSettings: JQuery.UrlAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
-                                url: 'api/admin/user_activations/block/' + id,
+                                url: that.URL_BLOCK_ACTIVATION + '/' + id,
                                 data: dataObject,
                                 success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
-                                    var index = -1;
-                                    for (var i = 0; i < that.jsonData.length; i++) {
-                                        if (that.jsonData[i].id == id) {
-                                            index = i;
-                                            break;
-                                        }
-                                    }
-                                    that.jsonData.splice(i, 1);
+                                    that.removeActivationById(id);
                                     that.InitUserActivationTables();
                                     return false;
                                 },
                                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                                    console.log(jqXHR.responseText);
-                                    console.log(errorThrown);
-                                    console.log(textStatus);
-                                    that.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                                    that.m_progressWait.Show(that.TITLE_ACTION_FAILED, that.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
+
                                     setTimeout(() => {
                                         that.m_progressWait.Hide();
-                                    }, 5000);
+                                    }, that.ERROR_MESSAGE_DELAY_TIME);
                                 }
                             }
 
@@ -396,11 +458,10 @@ namespace Citadel {
             };
 
             this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
-
         }
 
         private InitButtonHandlers(): void {
-            this.m_cancelBtn.onclick = ((e: MouseEvent): any => {
+            this.m_btnCancel.onclick = ((e: MouseEvent): any => {
                 if (this.m_actionCompleteCallback != null) {
                     this.m_actionCompleteCallback("Cancel");
                 } else {
@@ -409,53 +470,10 @@ namespace Citadel {
             });
         }
 
-        protected LoadFromObject(data: Object): void {
-            this.m_userId = data['id'] as number;
-            this.m_userFullName = data['name'] as string;
-            this.m_userEmail = data['email'] as string;
-            this.m_userPassword = data['password'] as string;
-            this.m_groupId = data['group_id'] as number;
-            this.m_customerId = data['customer_id'] as number;
-            this.m_roleId = data['roles'][0]['id'];
-            this.m_numActivations = data['activations_allowed'];
-            this.m_isActive = data['isactive'];
-            this.m_dateRegistered = data['dt'] as string;
-            this.m_reportLevel = data['report_level'] as number;
-            this.jsonData = data['activations'];
-        }
-
-        protected LoadFromForm(): void {
-            this.m_userFullName = this.m_fullNameInput.value;
-            this.m_userEmail = this.m_emailInput.value;
-            this.m_userPassword = this.m_passwordInput.value;
-            this.m_groupId = -1;
-            this.m_roleId = -1;
-
-            // Check if a group has been selected and update our value to match it.
-            if (this.m_groupIdInput.selectedIndex != -1) {
-                let selectedGroupOption = this.m_groupIdInput.options[this.m_groupIdInput.selectedIndex] as HTMLOptionElement;
-                this.m_groupId = parseInt(selectedGroupOption.value);
-            }
-
-            // Check if a role has been assigned and update our value to match it.
-            if (this.m_roleInput.selectedIndex != -1) {
-                let selectedRoleOption = this.m_roleInput.options[this.m_roleInput.selectedIndex] as HTMLOptionElement;
-                this.m_roleId = parseInt(selectedRoleOption.value);
-            }
-            if (this.m_customerIdInput.value == "") {
-                this.m_customerId = null;
-            } else {
-                this.m_customerId = this.m_customerIdInput.valueAsNumber;
-            }
-            this.m_numActivations = this.m_numActivationsInput.valueAsNumber;
-            this.m_isActive = this.m_isActiveInput.checked == true ? 1 : 0;
-            this.m_reportLevel = this.m_reportLevelInput.checked == true ? 1 : 0;
-        }
-
         public StartEditing(allGroups, userData: Object = null): void {
 
-            if (this.m_groupIdInput.options != null) {
-                this.m_groupIdInput.options.length = 0;
+            if (this.m_selectGroup.options != null) {
+                this.m_selectGroup.options.length = 0;
             }
 
             // Populate group options with what we have available.
@@ -463,7 +481,7 @@ namespace Citadel {
                 let option = document.createElement('option') as HTMLOptionElement;
                 option.text = elm['name'];
                 option.value = elm['id'];
-                this.m_groupIdInput.options.add(option);
+                this.m_selectGroup.options.add(option);
             }
 
             switch (userData == null) {
@@ -471,19 +489,19 @@ namespace Citadel {
                 case true:
                     {
                         this.m_editorTitle.innerText = "Create New User";
-                        this.m_submitBtn.innerText = "Create User";
+                        this.m_btnSubmit.innerText = "Create User";
 
                         this.m_mainForm.reset();
-                        if (this.m_groupIdInput.options != null && this.m_groupIdInput.options.length > 0) {
-                            this.m_groupIdInput.selectedIndex = 0;
+                        if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
+                            this.m_selectGroup.selectedIndex = 0;
                         } else {
-                            this.m_groupIdInput.selectedIndex = -1;
+                            this.m_selectGroup.selectedIndex = -1;
                         }
 
-                        if (this.m_roleInput.options != null && this.m_roleInput.options.length > 0) {
-                            this.m_roleInput.selectedIndex = 0;
+                        if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
+                            this.m_selectRole.selectedIndex = 0;
                         } else {
-                            this.m_roleInput.selectedIndex = -1;
+                            this.m_selectRole.selectedIndex = -1;
                         }
                     }
                     break;
@@ -494,54 +512,53 @@ namespace Citadel {
                         this.LoadFromObject(userData);
 
                         this.m_editorTitle.innerText = "Edit User";
-                        this.m_submitBtn.innerText = "Save";
+                        this.m_btnSubmit.innerText = "Save";
 
-                        this.m_fullNameInput.value = this.m_userFullName;
-                        this.m_emailInput.value = this.m_userEmail;
+                        this.m_inputFullName.value = this.m_fullName;
+                        this.m_inputEmail.value = this.m_email;
                         if (this.m_customerId == null) {
-                            this.m_customerIdInput.value = "";
+                            this.m_inputCustomerId.value = "";
                         } else {
-                            this.m_customerIdInput.value = this.m_customerId.toString();
+                            this.m_inputCustomerId.value = this.m_customerId.toString();
                         }
-                        this.m_passwordInput.value = new Array(30).join("x");
-                        this.m_passwordConfirmInput.value = new Array(30).join("x");
+                        this.m_inputPassword.value = new Array(30).join("x");
+                        this.m_inputPasswordConfirm.value = new Array(30).join("x");
 
-                        this.m_numActivationsInput.value = this.m_numActivations.toString();
+                        this.m_inputActivationCount.value = this.m_numActivations.toString();
 
                         if (this.m_groupId != -1) {
-                            let optionInList = this.m_groupIdInput.querySelector('option[value="' + this.m_groupId.toString() + '"]') as HTMLOptionElement;
+                            let optionInList = this.m_selectGroup.querySelector('option[value="' + this.m_groupId.toString() + '"]') as HTMLOptionElement;
                             if (optionInList != null) {
-                                this.m_groupIdInput.selectedIndex = optionInList.index;
+                                this.m_selectGroup.selectedIndex = optionInList.index;
                             }
                         } else {
-                            if (this.m_groupIdInput.options != null && this.m_groupIdInput.options.length > 0) {
-                                this.m_groupIdInput.selectedIndex = 0;
+                            if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
+                                this.m_selectGroup.selectedIndex = 0;
                             } else {
-                                this.m_groupIdInput.selectedIndex = -1;
+                                this.m_selectGroup.selectedIndex = -1;
                             }
                         }
 
                         if (this.m_roleId != -1) {
-                            let optionInList = this.m_roleInput.querySelector('option[value="' + this.m_roleId.toString() + '"]') as HTMLOptionElement;
+                            let optionInList = this.m_selectRole.querySelector('option[value="' + this.m_roleId.toString() + '"]') as HTMLOptionElement;
                             if (optionInList != null) {
-                                this.m_roleInput.selectedIndex = optionInList.index;
+                                this.m_selectRole.selectedIndex = optionInList.index;
                             }
                         } else {
-                            if (this.m_roleInput.options != null && this.m_roleInput.options.length > 0) {
-                                this.m_roleInput.selectedIndex = 0;
+                            if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
+                                this.m_selectRole.selectedIndex = 0;
                             } else {
-                                this.m_roleInput.selectedIndex = -1;
+                                this.m_selectRole.selectedIndex = -1;
                             }
                         }
 
-                        this.m_isActiveInput.checked = this.m_isActive != 0;
-                        this.m_reportLevelInput.checked = this.m_reportLevel != 0;
+                        this.m_inputIsActive.checked = this.m_isActive != 0;
+                        this.m_inputReportLevel.checked = this.m_reportLevel != 0;
                     }
                     break;
             }
 
             this.m_mainForm.onsubmit = ((e: Event): any => {
-
                 let validateOpts = this.ValidationOptions;
                 let validresult = $(this.m_mainForm).validate(validateOpts).form();
 
@@ -553,42 +570,17 @@ namespace Citadel {
             });
 
             if (userData != null) {
-                this.m_userId = userData['id'];
+                this.m_id = userData['id'];
                 this.InitUserActivationTables();
-
             } else {
-
                 this.InitUserActivationTables();
-
             }
 
             $(this.m_editorOverlay).fadeIn(250);
         }
 
         public StopEditing(): void {
-            $(this.m_editorOverlay).fadeOut(200);
-        }
-
-        public ToObject(): Object {
-            let obj = {
-                'id': this.m_userId,
-                'name': this.m_userFullName,
-                'email': this.m_userEmail,
-                'group_id': this.m_groupId,
-                'role_id': this.m_roleId,
-                'customer_id': this.m_customerId,
-                'activations_allowed': this.m_numActivations,
-                'isactive': this.m_isActive,
-                'dt': this.m_dateRegistered,
-                'report_level': this.m_reportLevel,
-            };
-
-            if (this.m_userPassword != null && this.m_userPassword.length > 0 && (this.m_userPassword != Array(30).join("x"))) {
-                obj['password'] = this.m_userPassword;
-                obj['password_verify'] = this.m_passwordConfirmInput.value;
-            }
-
-            return obj;
+            $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }
     }
 }
