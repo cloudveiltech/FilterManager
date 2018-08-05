@@ -25,8 +25,8 @@ namespace Citadel {
         TITLE_CLONE_GROUP = 'Clone Group';
         TITLE_EDIT_GROUP = 'Edit Group';
 
-        BTN_LABEL_CREATE_GROUP = 'Create Group';
-        BTN_LABEL_CLONE_GROUP = 'Create Group';
+        BTN_LABEL_CREATE_GROUP = 'Create';
+        BTN_LABEL_CLONE_GROUP = 'Clone';
         BTN_LABEL_EDIT_GROUP = 'Save';
 
         ERROR_MESSAGE_DELAY_TIME = 5000;
