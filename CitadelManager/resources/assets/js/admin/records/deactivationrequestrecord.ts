@@ -9,19 +9,26 @@
 
 namespace Citadel {
     export class DeactivationRequestRecord extends BaseRecord {
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        FADE_IN_DELAY_TIME = 200;
+
+        TITLE_EDIT_DEACTIVATION = 'Edit Deactivation Request';
+
+        BTN_LABEL_SAVE = 'Save';
+
+        URL_ROUTE = 'api/admin/deactivationreq';
         //
         // ──────────────────────────────────────────────────────────────────────────────── I ──────────
         //   :::::: R E Q U E S T   D A T A   M E M B E R S : :  :   :    :     :        :          :
         // ──────────────────────────────────────────────────────────────────────────────────────────
         //
 
-        private m_requestId: number;
-
-        private m_userName: string;
-
-        private m_requestGranted: number;
-
-        private m_dateRequested: string;
+        private m_requestId         : number;
+        private m_userName          : string;
+        private m_requestGranted    : number;
+        private m_dateRequested     : string;
 
         //
         // ──────────────────────────────────────────────────────────────────────────────── II ──────────
@@ -29,37 +36,19 @@ namespace Citadel {
         // ──────────────────────────────────────────────────────────────────────────────────────────
         //
 
-        private m_mainForm: HTMLFormElement;
+        private m_mainForm              : HTMLFormElement;
 
-        /**
-         * The Div of the editing overlay. This houses all of the editor
-         * contents and overlays everything else with a super high z-index.
-         *
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf GroupRecord
-         */
-        private m_editorOverlay: HTMLDivElement;
+        private m_editorOverlay         : HTMLDivElement;
+        private m_editorTitle           : HTMLHeadingElement;
 
-        private m_editorTitle: HTMLHeadingElement;
+        private m_inputUserName         : HTMLInputElement;
+        private m_inputRequestGranted   : HTMLInputElement;
 
-        private m_userNameInput: HTMLInputElement;
+        private m_btnSubmit             : HTMLButtonElement;
+        private m_btnCancel             : HTMLButtonElement;
 
-        private m_requestGrantedInput: HTMLInputElement;
-
-        private m_submitBtn: HTMLButtonElement;
-
-        private m_cancelBtn: HTMLButtonElement;
-
-        /**
-         * Gets the base API route from this record type.
-         *
-         * @readonly
-         * @type {string}
-         * @memberOf GroupRecord
-         */
         public get RecordRoute(): string {
-            return 'api/admin/deactivationreq';
+            return this.URL_ROUTE;
         }
 
         protected get ValidationOptions(): JQueryValidation.ValidationOptions {
@@ -79,12 +68,6 @@ namespace Citadel {
             return validationOptions;
         }
 
-        /**
-         * Creates an instance of GroupRecord.
-         *
-         *
-         * @memberOf GroupRecord
-         */
         constructor() {
             super();
             this.ConstructFormReferences();
@@ -95,32 +78,43 @@ namespace Citadel {
             this.m_editorTitle = document.querySelector('#deactivation_request_editing_title') as HTMLHeadingElement;
             this.m_editorOverlay = document.querySelector('#overlay_deactivation_request_editor') as HTMLDivElement;
 
-            this.m_userNameInput = document.querySelector('#editor_deactivation_request_input_username') as HTMLInputElement;
-            this.m_userNameInput.disabled = true;
+            this.m_inputUserName = document.querySelector('#editor_deactivation_request_input_username') as HTMLInputElement;
+            this.m_inputUserName.disabled = true;
 
-            this.m_requestGrantedInput = document.querySelector('#editor_deactivation_request_input_isgranted') as HTMLInputElement;
+            this.m_inputRequestGranted = document.querySelector('#editor_deactivation_request_input_isgranted') as HTMLInputElement;
 
-            this.m_submitBtn = document.querySelector('#deactivation_request_editor_submit') as HTMLButtonElement;
-            this.m_cancelBtn = document.querySelector('#deactivation_request_editor_cancel') as HTMLButtonElement;
+            this.m_btnSubmit = document.querySelector('#deactivation_request_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel = document.querySelector('#deactivation_request_editor_cancel') as HTMLButtonElement;
 
             this.InitButtonHandlers();
         }
 
         private InitButtonHandlers(): void {
-            this.m_cancelBtn.onclick = ((e: MouseEvent): any => {
+            this.m_btnCancel.onclick = ((e: MouseEvent): any => {
                 this.StopEditing();
             });
         }
 
         protected LoadFromObject(data: Object): void {
-            this.m_requestId = data['id'] as number;
-            this.m_userName = data['user']['email'] as string;
-            this.m_requestGranted = data['granted'];
-            this.m_dateRequested = data['time_first_requested'] as string;
+            this.m_requestId            = data['id'] as number;
+            this.m_userName             = data['user']['email'] as string;
+            this.m_requestGranted       = data['granted'];
+            this.m_dateRequested        = data['time_first_requested'] as string;
         }
 
         protected LoadFromForm(): void {
-            this.m_requestGranted = this.m_requestGrantedInput.checked == true ? 1 : 0;
+            this.m_requestGranted       = this.m_inputRequestGranted.checked == true ? 1 : 0;
+        }
+
+        public ToObject(): Object {
+            let obj = {
+                'id'                    : this.m_requestId,
+                'user_name'             : this.m_userName,
+                'granted'               : this.m_requestGranted,
+                'time_first_requested'  : this.m_dateRequested
+            };
+
+            return obj;
         }
 
         public StartEditing(data: Object = null): void {
@@ -133,13 +127,12 @@ namespace Citadel {
 
                 case false:
                     {
-                        // Loading and editing existing item here.
                         this.LoadFromObject(data);
-                        this.m_editorTitle.innerText = "Edit Deactivation Request";
-                        this.m_submitBtn.innerText = "Save";
+                        this.m_editorTitle.innerText = this.TITLE_EDIT_DEACTIVATION;
+                        this.m_btnSubmit.innerText = this.BTN_LABEL_SAVE;
 
-                        this.m_userNameInput.value = this.m_userName;
-                        this.m_requestGrantedInput.checked = this.m_requestGranted != 0;
+                        this.m_inputUserName.value = this.m_userName;
+                        this.m_inputRequestGranted.checked = this.m_requestGranted != 0;
                     }
                     break;
             }
@@ -155,22 +148,12 @@ namespace Citadel {
                 return false;
             });
 
-            $(this.m_editorOverlay).fadeIn(250);
+            $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
 
         public StopEditing(): void {
-            $(this.m_editorOverlay).fadeOut(200);
+            $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }
 
-        public ToObject(): Object {
-            let obj = {
-                'id': this.m_requestId,
-                'user_name': this.m_userName,
-                'granted': this.m_requestGranted,
-                'time_first_requested': this.m_dateRequested
-            };
-
-            return obj;
-        }
     }
 }
