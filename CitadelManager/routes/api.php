@@ -107,7 +107,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
     Route::post('/platform/update/{id}', 'SystemVersionController@updatePlatform');
     Route::post('/platform/delete', 'SystemVersionController@deletePlatform');
     Route::resource('version', 'SystemVersionController');
-    Route::get('/time', 'UserController@getTime');
 
 });
 
@@ -120,6 +119,7 @@ Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin
     Route::post('/me/data/check', 'UserController@checkUserData');
     Route::post('/me/data/get', 'UserController@getUserData');
     Route::post('/me/terms', 'UserController@getUserTerms');
+    Route::get('/time', 'UserController@getTime');
 
 });
 
@@ -137,7 +137,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api']],
     Route::post('/me/revoketoken', 'UserController@revokeUserToken');
     Route::post('/me/bypass', 'AppUserActivationController@bypass');
     Route::post('/me/accountability', 'AccountabilityController@index');
-
+    Route::get('/time', 'UserController@getTime');
     Route::get('/me/user', function (Request $request) {
         return $request->user();
     });
@@ -230,7 +230,6 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:a
     Route::post('/platform/update/{id}', 'SystemVersionController@updatePlatform');
     Route::post('/platform/delete', 'SystemVersionController@deletePlatform');
     Route::resource('version', 'SystemVersionController');
-    Route::get('/time', 'UserController@getTime');
     /*End API Auth Routes*/
 });
 
