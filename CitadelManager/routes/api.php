@@ -107,6 +107,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
     Route::post('/platform/update/{id}', 'SystemVersionController@updatePlatform');
     Route::post('/platform/delete', 'SystemVersionController@deletePlatform');
     Route::resource('version', 'SystemVersionController');
+    Route::get('/time', 'UserController@getTime');
 
 });
 
@@ -229,6 +230,7 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:a
     Route::post('/platform/update/{id}', 'SystemVersionController@updatePlatform');
     Route::post('/platform/delete', 'SystemVersionController@deletePlatform');
     Route::resource('version', 'SystemVersionController');
+    Route::get('/time', 'UserController@getTime');
     /*End API Auth Routes*/
 });
 

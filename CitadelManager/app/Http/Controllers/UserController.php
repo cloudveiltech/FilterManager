@@ -542,4 +542,15 @@ class UserController extends Controller
     {
         return AppUserActivation::where('user_id', $id)->get();
     }
+
+    /**
+     * response server time
+     * @return [ server_time => '2018-07-24T18:58:04Z' ]
+     */
+    public function getTime() {
+        $time = [
+            "server_time" => date('Y-m-d\Th:i:s\Z')
+        ];
+        return response($time, 200);
+    }
 }
