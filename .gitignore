@@ -296,6 +296,8 @@ __pycache__/
 /vendor
 /.idea
 /.vagrant
+CitadelManager/public/js/admin
+CitadelManager/public/js/admin/*
 Homestead.json
 Homestead.yaml
 npm-debug.log
