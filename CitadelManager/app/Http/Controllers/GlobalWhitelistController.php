@@ -1,15 +1,17 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\GlobalWhitelist;
 use Illuminate\Http\Request;
 
 class GlobalWhitelistController extends Controller
 {
-    public function __construct() {
-        
+    public function __construct()
+    {
+
     }
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -26,16 +28,16 @@ class GlobalWhitelistController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $this->validate($request, [
-            'name' => 'required'
+            'name' => 'required',
         ]);
 
         $input = $request->only(['name', 'isactive']);
-        $whitelist = GlobalWhitelist::create($input); 
+        $whitelist = GlobalWhitelist::create($input);
         return response('', 204);
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -43,8 +45,9 @@ class GlobalWhitelistController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id) {
-        
+    public function destroy($id)
+    {
+
         $whitelist = GlobalWhitelist::where('id', $id)->first();
         if (!is_null($whitelist)) {
             $whitelist->delete();
@@ -53,12 +56,8 @@ class GlobalWhitelistController extends Controller
         return response('', 204);
     }
 
-    public function update(Request $request, $id) {
-        
-        // The javascript side/admin UI will not send
-        // password or password_verify unless they are
-        // intentionally trying to change a user's password.
-    
+    public function update(Request $request, $id)
+    {
         $input = $request->only(['name', 'isactive']);
         GlobalWhitelist::where('id', $id)->update($input);
 

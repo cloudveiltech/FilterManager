@@ -16,16 +16,16 @@ class GroupFilterAssignment extends Model
 {
     // Enables mass insert, and insert-ignore, insert-update etc.
     use InsertOnDuplicateKey;
-    
+
     public $timestamps = true;
-    
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'group_id', 'filter_list_id', 'as_blacklist', 'as_whitelist', 'as_bypass'
+        'group_id', 'filter_list_id', 'as_blacklist', 'as_whitelist', 'as_bypass',
     ];
 
 }

@@ -27,7 +27,7 @@ class AccountabilityController extends Controller {
      */
     public function index(Request $request) {
         $thisUser = \Auth::user();
-	Log::info($request);
+	    Log::info($request);
     }
 
 }

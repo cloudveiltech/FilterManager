@@ -14,6 +14,6 @@ class GlobalBlacklist extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'isactive', 'data_sha1'
+        'name', 'isactive', 'data_sha1',
     ];
 }

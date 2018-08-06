@@ -1,15 +1,17 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\GlobalBlacklist;
 use Illuminate\Http\Request;
-use Log;
+
 class GlobalBlacklistController extends Controller
 {
-    public function __construct() {
-        
+    public function __construct()
+    {
+
     }
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -26,16 +28,16 @@ class GlobalBlacklistController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $this->validate($request, [
-            'name' => 'required'
+            'name' => 'required',
         ]);
 
         $input = $request->only(['name', 'isactive']);
-        $blacklist = GlobalBlacklist::create($input); 
+        $blacklist = GlobalBlacklist::create($input);
         return response('', 204);
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -43,8 +45,9 @@ class GlobalBlacklistController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id) {
-        
+    public function destroy($id)
+    {
+
         $blacklist = GlobalBlacklist::where('id', $id)->first();
         if (!is_null($blacklist)) {
             $blacklist->delete();
@@ -53,15 +56,16 @@ class GlobalBlacklistController extends Controller
         return response('', 204);
     }
 
-    public function update(Request $request, $id) {
-        
+    public function update(Request $request, $id)
+    {
+
         // The javascript side/admin UI will not send
         // password or password_verify unless they are
         // intentionally trying to change a user's password.
-    
+
         $input = $request->only(['name', 'isactive']);
         GlobalBlacklist::where('id', $id)->update($input);
-     
+
         return response('', 204);
     }
 }
