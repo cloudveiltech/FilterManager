@@ -334,6 +334,18 @@ th.updated_date {
     width: 100% !important;
 }
 
+.dataTable tbody td.user-name {
+    white-space: nowrap;
+}
+
+.color-gray {
+    color: #999;
+}
+
+.dataTable tbody td.user-email {
+    white-space: nowrap;
+}
+
 .option-label {
     width: 100px;
     display: inline-block;

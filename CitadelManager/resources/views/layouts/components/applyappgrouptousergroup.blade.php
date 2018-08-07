@@ -26,7 +26,7 @@
                 </div>
                 <div class="cell colspan1" id="apply_app_group_to_user_group_actions">
                     <br />
-                    <div id="spiner">&nbsp;
+                    <div id="spiner">
                         <img id="spiner_3" src="{{asset('img/loading7_navy_blue.gif')}}" width="40px" />
                     </div>
                     <button class="button primary" type="button" id="apply_app_group_to_user_group_right_all_btn"> &gt;&gt; </button>
