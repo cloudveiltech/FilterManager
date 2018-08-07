@@ -613,10 +613,10 @@ namespace Citadel {
             this.m_inputPrimaryDNS.value = '';
             this.m_inputSecondaryDNS.value = '';
 
-            $('ul.tabs > li').removeClass('active');
-            $('ul.tabs > li').first().addClass('active');
-            $('div.frames > div.frame').hide();
-            $('div.frames > div.frame').first().show();
+            $('#overlay_group_editor ul.tabs > li').removeClass('active');
+            $('#overlay_group_editor ul.tabs > li').first().addClass('active');
+            $('#overlay_group_editor div.frames > div.frame').hide();
+            $('#overlay_group_editor div.frames > div.frame').first().show();
 
             // Try to load existing assigned filters, if we're editing.
             let allAssignedFilters = new Array < Object > ();

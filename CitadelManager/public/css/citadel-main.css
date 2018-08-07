@@ -45,6 +45,10 @@ body {
     background-color: #d9534f;
 }
 
+.tabcontrol .frames .frame {
+    background-color: #1d1d1d !important;
+}
+
 .active-s {
     background-image: linear-gradient(to bottom, #5cb85c 0, #419641 100%);
     border-color: #3e8f3e;
@@ -555,10 +559,6 @@ Main admin page.
 
 .dataTables_info {
     background: #fff !important;
-}
-
-.dataTable.border {
-    border-bottom: none !important;
 }
 
 #spiner {
@@ -1112,12 +1112,25 @@ User editor.
 }
 
 #activation_list {
-    margin-top: -30px;
-    margin-bottom: 60px;
+    margin-bottom: 20px;
 }
 
 #user_activation_table .odd {
     background: transparent !important;
+}
+
+.tabcontrol .tabs li a:hover {
+    background-color: RGBA(27, 161, 226, 0.3) !important;
+}
+
+.tabcontrol .tabs li.active a:hover {
+    background-color: RGBA(27, 161, 226, 1) !important;
+}
+
+#user_activation_table .button {
+    height: 1.5rem !important;
+    margin-top: -10px;
+    margin-bottom: -10px;
 }
 
 #user_activation_table_info {

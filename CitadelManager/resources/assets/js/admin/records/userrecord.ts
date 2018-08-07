@@ -25,7 +25,12 @@ namespace Citadel {
         MESSAGE_DELETE_ACTIVATION_CONFIRM = 'Are you sure you want to delete this activation?';
         MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
+        TITLE_NEW_USER = 'Create New User';
+        TITLE_EDIT_USER = 'Edit User';
         TITLE_ACTION_FAILED = 'Action Failed';
+
+        BTN_NEW_USER = 'Create';
+        BTN_EDIT_USER = 'Save';
 
         URL_ROUTE = 'api/admin/users';
         URL_UPDATE_ALERT = 'api/admin/activations/update_alert';
@@ -304,15 +309,15 @@ namespace Citadel {
                     title: 'Alert Partner',
                     data: 'alert_partner',
                     visible: true,
-                    width: "100px",
+                    width: "90px",
                     render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                        var chk_report = (data === 1) ? "checked" : "";
+                        var chk_report = (data === 1) ? 'checked' : '';
 
-                        var str = "";
-                        str += "<label class='switch-original'>";
-                        str += "    <input type='checkbox' data-id='" + row.id + "' " + chk_report + " />";
-                        str += "    <span class='check'></span>";
-                        str += "</label>";
+                        var str = '';
+                        str += '<label class=\'switch-original\'>';
+                        str += '    <input type=\'checkbox\' data-id=\'' + row.id + '\'' + chk_report + ' />';
+                        str += '    <span class=\'check\'></span>';
+                        str += '</label>';
 
                         return str;
                     })
@@ -322,7 +327,7 @@ namespace Citadel {
                     render: function (data, type, row) {
                         var strButtons = "";
                         strButtons += "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
-                        strButtons += "<button id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
+                        strButtons += " &nbsp;<button id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
 
                         return strButtons;
                     }
@@ -476,7 +481,6 @@ namespace Citadel {
                 this.m_selectGroup.options.length = 0;
             }
 
-            // Populate group options with what we have available.
             for (var elm of allGroups) {
                 let option = document.createElement('option') as HTMLOptionElement;
                 option.text = elm['name'];
@@ -488,8 +492,8 @@ namespace Citadel {
 
                 case true:
                     {
-                        this.m_editorTitle.innerText = "Create New User";
-                        this.m_btnSubmit.innerText = "Create User";
+                        this.m_editorTitle.innerText = this.TITLE_NEW_USER;
+                        this.m_btnSubmit.innerText = this.BTN_NEW_USER;
 
                         this.m_mainForm.reset();
                         if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
@@ -508,19 +512,15 @@ namespace Citadel {
 
                 case false:
                     {
-                        // Editing an existing object here.
                         this.LoadFromObject(userData);
 
-                        this.m_editorTitle.innerText = "Edit User";
-                        this.m_btnSubmit.innerText = "Save";
+                        this.m_editorTitle.innerText = this.TITLE_EDIT_USER;
+                        this.m_btnSubmit.innerText = this.BTN_EDIT_USER;
 
                         this.m_inputFullName.value = this.m_fullName;
                         this.m_inputEmail.value = this.m_email;
-                        if (this.m_customerId == null) {
-                            this.m_inputCustomerId.value = "";
-                        } else {
-                            this.m_inputCustomerId.value = this.m_customerId.toString();
-                        }
+                        this.m_inputCustomerId.value = (this.m_customerId == null) ? '':this.m_customerId.toString();
+
                         this.m_inputPassword.value = new Array(30).join("x");
                         this.m_inputPasswordConfirm.value = new Array(30).join("x");
 
@@ -573,10 +573,12 @@ namespace Citadel {
                 this.m_id = userData['id'];
                 this.InitUserActivationTables();
             } else {
+                this.m_id = 0;
+                this.jsonData = [];
                 this.InitUserActivationTables();
             }
 
-            $(this.m_editorOverlay).fadeIn(250);
+            $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
 
         public StopEditing(): void {

@@ -14,7 +14,7 @@
 
             <!-- Tab definitions. -->
             <ul class="tabs">
-                <li>
+                <li class="active">
                     <a href="#settings_tab">Settings</a>
                 </li>
                 <li>
