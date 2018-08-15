@@ -58,7 +58,7 @@ class UpdateController extends Controller {
               'version_number'=>$version->stable
             ]
           ];
-          $arr_data['date'] = $version->release_date;
+          $arr_data['date'] = Carbon::createFromFormat('Y-m-d H:i:s',$version->release_date)->toRfc7231String();
         } else {
           $arr_data['app_name'] = "unavailable";
           $arr_data['file_name'] = "unavailable";

@@ -168,6 +168,7 @@ class UserController extends Controller {
             "success" => true
         ]);
     }
+    
     /**
      * Update the specified resource in storage.
      *
@@ -295,34 +296,7 @@ class UserController extends Controller {
     public function checkUserData(Request $request) {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
-        // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
-        // If the identifier doesn't exist in the system we create a new activation.
-        if ($request->has('identifier')) {
-            $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
-            if($activation) {
-                $activation->updated_at = Carbon::now()->timestamp;
-                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';
-                $activation->ip_address = $request->ip();
-                if ($token) {
-                    $activation->token_id = $token->id;
-                }
-                $activation->save();
-                //Log::debug('Activation Exists.  Saved'); 
-            } else {
-                $activation = new AppUserActivation;
-                $activation->updated_at = Carbon::now()->timestamp;
-                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';                
-                $activation->user_id = $thisUser->id;
-                $activation->device_id = $request->input('device_id');
-                $activation->identifier = $request->input('identifier');
-                $activation->ip_address = $request->ip();
-                if ($token) {
-                    $activation->token_id = $token->id;
-                }
-                $activation->bypass_used = 0;
-                $activation->save();                
-            }
-        }
+        $activation = $this->getActivation($thisUser, $request, $token);
         $userGroup = $thisUser->group()->first();
         if (!is_null($userGroup)) {
             if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
@@ -334,19 +308,96 @@ class UserController extends Controller {
 
     /**
      * Request the current user data. This includes filter rules and
-     * configuration data.
+     * configuration data.  This is for versions <=1.6.  Version 1.7
+     * changes the way configuration is handled.
      *
      * @return \Illuminate\Http\Response
      */
     public function getUserData(Request $request) {
+        $this->validate($request, [
+            'identifier' => 'required',
+            'device_id' => 'required'
+        ]);
         $thisUser = \Auth::user();
         //Log::debug($request);
+        $token = $thisUser->token();
+        $activation = $this->getActivation($thisUser, $request, $token);
         $userGroup = $thisUser->group()->first();
         if (!is_null($userGroup)) {
             $groupDataPayloadPath = $userGroup->getGroupDataPayloadPath();
             if (file_exists($groupDataPayloadPath) && filesize($groupDataPayloadPath) > 0) {
                 return response()->download($groupDataPayloadPath);
             }
+        }
+
+        return response('', 204);
+    }
+
+    /**
+     * Request the current activation configuration.  
+     * This is for versions >=1.7.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getConfig(Request $request) {
+        $this->validate($request, [
+            'identifier' => 'required',
+            'device_id' => 'required'
+        ]);
+        $thisUser = \Auth::user();
+        //Log::debug($request);
+        $token = $thisUser->token();
+        $activation = $this->getActivation($thisUser, $request, $token);
+        $userGroup = $thisUser->group()->first();
+        if (!is_null($userGroup)) {
+            Log::debug($activation);
+            Log::debug($thisUser);
+            $configuration = $userGroup->config_cache;
+
+            if ($thisUser->config_override) {
+                $configuration = array_merge(json_decode($configuration, true), json_decode($thisUser->config_override, true));
+            }
+            if ($activation->config_override) {
+                $configuration = array_merge(json_decode($configuration, true), json_decode($activation->config_override, true));
+            }
+
+            return $configuration;
+        }
+
+        return response('', 204);
+    }
+
+    /**
+     * Request the checksum for current activation configuration.  
+     * This is for versions >=1.7.  
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function checkConfig(Request $request) {
+        $this->validate($request, [
+            'identifier' => 'required',
+            'device_id' => 'required'
+        ]);
+        $thisUser = \Auth::user();
+        //Log::debug($request);
+        $token = $thisUser->token();
+        $activation = $this->getActivation($thisUser, $request, $token);
+        $userGroup = $thisUser->group()->first();
+        if (!is_null($userGroup)) {
+            Log::debug($activation);
+            Log::debug($thisUser);
+            $configuration = $userGroup->config_cache;
+
+            if ($thisUser->config_override) {
+                $configuration = array_merge(json_decode($configuration, true), json_decode($thisUser->config_override, true));
+            }
+            if ($activation->config_override) {
+                $configuration = array_merge(json_decode($configuration, true), json_decode($activation->config_override, true));
+            }
+
+            return [
+                'sha1' => sha1(json_encode($configuration))
+            ];
         }
 
         return response('', 204);
@@ -526,4 +577,37 @@ class UserController extends Controller {
     public function activation_data(Request $request, $id) {
         return AppUserActivation::where('user_id', $id)->get();
     }
+
+    private function getActivation(User $user, Request $request, $token) {
+        // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
+        // If the identifier doesn't exist in the system we create a new activation.
+        if ($request->has('identifier')) {
+            $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
+            if($activation) {
+                $activation->updated_at = Carbon::now()->timestamp;
+                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';
+                $activation->ip_address = $request->ip();
+                if ($token) {
+                    $activation->token_id = $token->id;
+                }
+                $activation->save();
+                //Log::debug('Activation Exists.  Saved'); 
+            } else {
+                $activation = new AppUserActivation;
+                $activation->updated_at = Carbon::now()->timestamp;
+                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';                
+                $activation->user_id = $user->id;
+                $activation->device_id = $request->input('device_id');
+                $activation->identifier = $request->input('identifier');
+                $activation->ip_address = $request->ip();
+                if ($token) {
+                    $activation->token_id = $token->id;
+                }
+                $activation->bypass_used = 0;
+                $activation->save();                
+            }
+            return $activation;
+        }
+    }
+
 }
