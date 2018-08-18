@@ -13,22 +13,22 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
-        ERROR_MESSAGE_APP_NAME = 'Application name is required.';
+        ERROR_MESSAGE_APP_NAME      = 'Application name is required.';
 
-        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        MESSAGE_ACTION_FAILED       = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        TITLE_ACTION_FAILED = 'Action Failed';
-        TITLE_NEW_APP = 'Add Application';
-        TITLE_EDIT_APP = 'Edit Application';
+        TITLE_ACTION_FAILED         = 'Action Failed';
+        TITLE_NEW_APP               = 'Add Application';
+        TITLE_EDIT_APP              = 'Edit Application';
 
-        BTN_LABEL_ADD_APP = 'Add';
-        BTN_LABEL_EDIT_APP = 'Save';
+        BTN_LABEL_ADD_APP           = 'Add';
+        BTN_LABEL_EDIT_APP          = 'Save';
 
-        ERROR_MESSAGE_DELAY_TIME = 5000;
-        FADE_IN_DELAY_TIME = 200;
+        ERROR_MESSAGE_DELAY_TIME    = 5000;
+        FADE_IN_DELAY_TIME          = 200;
 
-        URL_ROUTE = 'api/admin/app';
-        URL_APPGROUP_DATA = 'api/admin/get_appgroup_data'
+        URL_ROUTE                   = 'api/admin/app';
+        URL_APPGROUP_DATA           = 'api/admin/get_appgroup_data'
 
         // ─────────────────────────────────────────────────────────
         //   :::::: A P P    R E C O R D     M E M B E R S ::::::
@@ -105,22 +105,22 @@ namespace Citadel {
         }
 
         private ConstructFormReferences(): void {
-            this.m_mainForm = document.querySelector('#editor_application_form') as HTMLFormElement;
-            this.m_editorTitle = document.querySelector('#application_editing_title') as HTMLHeadingElement;
-            this.m_editorOverlay = document.querySelector('#overlay_application_editor') as HTMLDivElement;
+            this.m_mainForm                 = document.querySelector('#editor_application_form') as HTMLFormElement;
+            this.m_editorTitle              = document.querySelector('#application_editing_title') as HTMLHeadingElement;
+            this.m_editorOverlay            = document.querySelector('#overlay_application_editor') as HTMLDivElement;
 
-            this.m_inputAppName = document.querySelector('#editor_application_name') as HTMLInputElement;
-            this.m_inputAppNotes = document.querySelector('#editor_application_notes') as HTMLInputElement;
-            this.m_selectLeft = document.querySelector("#editor_application_source_list") as HTMLSelectElement;
-            this.m_selectRight = document.querySelector("#editor_application_target_list") as HTMLSelectElement;
+            this.m_inputAppName             = document.querySelector('#editor_application_name') as HTMLInputElement;
+            this.m_inputAppNotes            = document.querySelector('#editor_application_notes') as HTMLInputElement;
+            this.m_selectLeft               = document.querySelector("#editor_application_source_list") as HTMLSelectElement;
+            this.m_selectRight              = document.querySelector("#editor_application_target_list") as HTMLSelectElement;
 
-            this.m_btn_L_R_All = document.querySelector("#editor_application_right_all_btn") as HTMLButtonElement;
-            this.m_btn_L_R_One = document.querySelector("#editor_application_right_btn") as HTMLButtonElement;
-            this.m_btn_R_L_One = document.querySelector("#editor_application_left_btn") as HTMLButtonElement;
-            this.m_btn_R_L_All = document.querySelector("#editor_application_left_all_btn") as HTMLButtonElement;
+            this.m_btn_L_R_All              = document.querySelector("#editor_application_right_all_btn") as HTMLButtonElement;
+            this.m_btn_L_R_One              = document.querySelector("#editor_application_right_btn") as HTMLButtonElement;
+            this.m_btn_R_L_One              = document.querySelector("#editor_application_left_btn") as HTMLButtonElement;
+            this.m_btn_R_L_All              = document.querySelector("#editor_application_left_all_btn") as HTMLButtonElement;
 
-            this.m_btnSubmit = document.querySelector('#application_editor_submit') as HTMLButtonElement;
-            this.m_btnCancel = document.querySelector('#application_editor_cancel') as HTMLButtonElement;
+            this.m_btnSubmit                = document.querySelector('#application_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel                = document.querySelector('#application_editor_cancel') as HTMLButtonElement;
             this.InitButtonHandlers();
         }
 
@@ -133,12 +133,12 @@ namespace Citadel {
             $("#spiner_5").show();
 
             this.m_btnSubmit.disabled = true;
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
                 url: url,
                 data: {},
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                success: (data: any): any => {
                     this.m_appGroups = data.app_groups;
 
                     if (flag) {
@@ -183,7 +183,7 @@ namespace Citadel {
                 }
             }
 
-            $.get(ajaxSettings);
+            $.ajax(ajaxSettings);
         }
 
         private InitButtonHandlers(): void {

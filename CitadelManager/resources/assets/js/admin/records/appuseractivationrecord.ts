@@ -13,34 +13,34 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
-        ERROR_MESSAGE_APP_NAME = 'Application name is required.';
+        ERROR_MESSAGE_APP_NAME      = 'Application name is required.';
 
-        MESSAGE_REPORT_LABEL = 'Report blocked sites back to server';
-        MESSAGE_NO_REPORT_LABEL = 'No reporting back to server';
+        MESSAGE_REPORT_LABEL        = 'Report blocked sites back to server';
+        MESSAGE_NO_REPORT_LABEL     = 'No reporting back to server';
 
-        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
-        MESSAGE_ACTION_BLOCK = 'Blocking record to server.';
+        MESSAGE_ACTION_FAILED       = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        MESSAGE_ACTION_BLOCK        = 'Blocking record to server.';
 
-        TITLE_ACTION_FAILED = 'Action Failed';
-        TITLE_ACTION_BLOCK = 'Block Record';
+        TITLE_ACTION_FAILED         = 'Action Failed';
+        TITLE_ACTION_BLOCK          = 'Block Record';
 
-        ERROR_MESSAGE_DELAY_TIME = 5000;
-        FADE_IN_DELAY_TIME = 200;
+        ERROR_MESSAGE_DELAY_TIME    = 5000;
+        FADE_IN_DELAY_TIME          = 200;
 
-        URL_ROUTE = 'api/admin/user_activations';
+        URL_ROUTE                   = 'api/admin/user_activations';
 
         // ──────────────────────────────────────────────────────
         //   :::::: APP USER ACTIVATION   M E M B E R S ::::::
         // ──────────────────────────────────────────────────────
-        private m_activationId      : number;
-        private m_userName          : string;
-        private m_identifier        : string;
-        private m_deviceId          : string;
-        private m_ipAddress         : string;
-        private m_bypassQuantity    : number;
-        private m_bypassPeriod      : number;
-        private m_bypassUsed        : number;
-        private m_reportLevel       : number;
+        private m_activationId              : number;
+        private m_userName                  : string;
+        private m_identifier                : string;
+        private m_deviceId                  : string;
+        private m_ipAddress                 : string;
+        private m_bypassQuantity            : number;
+        private m_bypassPeriod              : number;
+        private m_bypassUsed                : number;
+        private m_reportLevel               : number;
 
         // ──────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -91,21 +91,21 @@ namespace Citadel {
         }
 
         private ConstructFormReferences(): void {
-            this.m_mainForm = document.querySelector('#editor_activation_form') as HTMLFormElement;
-            this.m_editorOverlay = document.querySelector('#overlay_activation_editor') as HTMLDivElement;
-            this.m_inputUserName = document.querySelector('#editor_activation_input_user_full_name') as HTMLInputElement;
-            this.m_inputIdentifier = document.querySelector('#editor_activation_input_identifier') as HTMLInputElement;
-            this.m_inputDeviceId = document.querySelector('#editor_activation_input_device_id') as HTMLInputElement;
-            this.m_inputIPAddress = document.querySelector('#editor_activation_input_ip_address') as HTMLInputElement;
-            this.m_inputReportLevel = document.querySelector('#editor_activation_report_level') as HTMLInputElement;
-            this.m_labelReportLevel = document.querySelector('#editor_activation_report_level_text') as HTMLLabelElement;
+            this.m_mainForm             = document.querySelector('#editor_activation_form') as HTMLFormElement;
+            this.m_editorOverlay        = document.querySelector('#overlay_activation_editor') as HTMLDivElement;
+            this.m_inputUserName        = document.querySelector('#editor_activation_input_user_full_name') as HTMLInputElement;
+            this.m_inputIdentifier      = document.querySelector('#editor_activation_input_identifier') as HTMLInputElement;
+            this.m_inputDeviceId        = document.querySelector('#editor_activation_input_device_id') as HTMLInputElement;
+            this.m_inputIPAddress       = document.querySelector('#editor_activation_input_ip_address') as HTMLInputElement;
+            this.m_inputReportLevel     = document.querySelector('#editor_activation_report_level') as HTMLInputElement;
+            this.m_labelReportLevel     = document.querySelector('#editor_activation_report_level_text') as HTMLLabelElement;
 
-            this.m_inputBPQuantity = document.querySelector('#editor_activation_input_bypass_quantity') as HTMLInputElement;
-            this.m_inputBPPeriod = document.querySelector('#editor_activation_input_bypass_period') as HTMLInputElement;
-            this.m_inputBPUsed = document.querySelector('#editor_activation_input_bypass_used') as HTMLInputElement;
+            this.m_inputBPQuantity      = document.querySelector('#editor_activation_input_bypass_quantity') as HTMLInputElement;
+            this.m_inputBPPeriod        = document.querySelector('#editor_activation_input_bypass_period') as HTMLInputElement;
+            this.m_inputBPUsed          = document.querySelector('#editor_activation_input_bypass_used') as HTMLInputElement;
 
-            this.m_btnSubmit = document.querySelector('#activation_editor_submit') as HTMLButtonElement;
-            this.m_btnCancel = document.querySelector('#activation_editor_cancel') as HTMLButtonElement;
+            this.m_btnSubmit            = document.querySelector('#activation_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel            = document.querySelector('#activation_editor_cancel') as HTMLButtonElement;
 
             this.InitButtonHandlers();
         }
@@ -189,7 +189,7 @@ namespace Citadel {
 
             this.m_progressWait.Show(this.TITLE_ACTION_BLOCK, this.MESSAGE_ACTION_BLOCK);
 
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "POST",
                 timeout: 60000,
                 url: this.RecordRoute + '/block/' + this.m_activationId,

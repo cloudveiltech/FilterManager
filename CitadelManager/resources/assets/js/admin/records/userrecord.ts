@@ -13,54 +13,54 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
-        ERROR_MESSAGE_EMAIL = 'A valid email address is required.';
-        ERROR_MESSAGE_PASSWORD = 'Password must be specified and match the password confirmation field.';
-        ERROR_MESSAGE_CONFIRM_PASSWORD = 'Password confirmation must be specified and match the password field.';
-        ERROR_MESSAGE_ACTIVATION = 'Total number of permitted activations must be specified.';
+        ERROR_MESSAGE_EMAIL                 = 'A valid email address is required.';
+        ERROR_MESSAGE_PASSWORD              = 'Password must be specified and match the password confirmation field.';
+        ERROR_MESSAGE_CONFIRM_PASSWORD      = 'Password confirmation must be specified and match the password field.';
+        ERROR_MESSAGE_ACTIVATION            = 'Total number of permitted activations must be specified.';
 
-        ERROR_MESSAGE_DELAY_TIME = 5000;
-        FADE_IN_DELAY_TIME = 200;
+        ERROR_MESSAGE_DELAY_TIME            = 5000;
+        FADE_IN_DELAY_TIME                  = 200;
 
-        MESSAGE_BLOCK_ACTIVATION_CONFIRM = 'Are you sure you want to delete this activation and block the token?  The user will need to sign in again.';
-        MESSAGE_DELETE_ACTIVATION_CONFIRM = 'Are you sure you want to delete this activation?';
-        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        MESSAGE_BLOCK_ACTIVATION_CONFIRM    = 'Are you sure you want to delete this activation and block the token?  The user will need to sign in again.';
+        MESSAGE_DELETE_ACTIVATION_CONFIRM   = 'Are you sure you want to delete this activation?';
+        MESSAGE_ACTION_FAILED               = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        TITLE_NEW_USER = 'Create New User';
-        TITLE_EDIT_USER = 'Edit User';
-        TITLE_ACTION_FAILED = 'Action Failed';
+        TITLE_NEW_USER                      = 'Create New User';
+        TITLE_EDIT_USER                     = 'Edit User';
+        TITLE_ACTION_FAILED                 = 'Action Failed';
 
-        BTN_NEW_USER = 'Create';
-        BTN_EDIT_USER = 'Save';
+        BTN_NEW_USER                        = 'Create';
+        BTN_EDIT_USER                       = 'Save';
 
-        URL_ROUTE = 'api/admin/users';
-        URL_UPDATE_ALERT = 'api/admin/activations/update_alert';
-        URL_UPDATE_CHECK_IN_DAYS = 'api/admin/activations/update_check_in_days';
-        URL_DELETE_ACTIVATION = 'api/admin/user_activations/delete';
-        URL_BLOCK_ACTIVATION = 'api/admin/user_activations/block';
+        URL_ROUTE                           = 'api/admin/users';
+        URL_UPDATE_ALERT                    = 'api/admin/activations/update_alert';
+        URL_UPDATE_CHECK_IN_DAYS            = 'api/admin/activations/update_check_in_days';
+        URL_DELETE_ACTIVATION               = 'api/admin/user_activations/delete';
+        URL_BLOCK_ACTIVATION                = 'api/admin/user_activations/block';
 
 
         // ───────────────────────────────────────────────────
         //   :::::: U S E R   D A T A   M E M B E R S ::::::
         // ───────────────────────────────────────────────────
-        private m_id                : number;
-        private m_fullName          : string;
-        private m_email             : string;
-        private m_password ?        : string;
-        private m_groupId           : number;
-        private m_roleId            : number;
-        private m_numActivations    : number;
-        private m_customerId        : number;
-        private m_isActive          : number;
-        private m_reportLevel       : number;
-        private m_registeredAt      : string;
+        private m_id                    : number;
+        private m_fullName              : string;
+        private m_email                 : string;
+        private m_password ?            : string;
+        private m_groupId               : number;
+        private m_roleId                : number;
+        private m_numActivations        : number;
+        private m_customerId            : number;
+        private m_isActive              : number;
+        private m_reportLevel           : number;
+        private m_registeredAt          : string;
 
         // ─────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
         // ─────────────────────────────────────────────────────────
-        private m_mainForm          : HTMLFormElement;
+        private m_mainForm              : HTMLFormElement;
 
-        private m_editorOverlay     : HTMLDivElement;
-        private m_editorTitle       : HTMLHeadingElement;
+        private m_editorOverlay         : HTMLDivElement;
+        private m_editorTitle           : HTMLHeadingElement;
 
         // ─────────────────────────────────────────────
         //   ::::: I N P U T    E L E M E N T S ::::::
@@ -77,23 +77,23 @@ namespace Citadel {
         // ───────────────────────────────────────────────
         //   ::::: S E L E C T    E L E M E N T S ::::::
         // ───────────────────────────────────────────────
-        private m_selectGroup       : HTMLSelectElement;
-        private m_selectRole        : HTMLSelectElement;
+        private m_selectGroup           : HTMLSelectElement;
+        private m_selectRole            : HTMLSelectElement;
 
         // ───────────────────────────────────────────────
         //   ::::: B U T T O N    E L E M E N T S ::::::
         // ───────────────────────────────────────────────
-        private m_btnSubmit         : HTMLButtonElement;
-        private m_btnCancel         : HTMLButtonElement;
+        private m_btnSubmit             : HTMLButtonElement;
+        private m_btnCancel             : HTMLButtonElement;
 
-        private jsonData: any[];
+        private jsonData                : any[];
 
         // ─────────────────────────────────────────────────
         //   ::::: A C T I V A T I O N    T A B L E ::::::
         // ─────────────────────────────────────────────────
-        private m_tableSettings: DataTables.Settings;
-        private m_tableColumns: DataTables.ColumnSettings[];
-        private m_ActivationTables: DataTables.Api;
+        private m_tableSettings         : DataTables.Settings;
+        private m_tableColumns          : DataTables.ColumnSettings[];
+        private m_ActivationTables      : DataTables.Api;
 
         // ─────────────────────────────────────────────────
         //   ::::: M E M B E R     F U N C T I O N S ::::::
@@ -105,22 +105,22 @@ namespace Citadel {
         }
 
         private ConstructFormReferences(): void {
-            this.m_mainForm = document.querySelector('#editor_user_form') as HTMLFormElement;
-            this.m_editorTitle = document.querySelector('#user_editing_title') as HTMLHeadingElement;
-            this.m_editorOverlay = document.querySelector('#overlay_user_editor') as HTMLDivElement;
+            this.m_mainForm         = document.querySelector('#editor_user_form') as HTMLFormElement;
+            this.m_editorTitle      = document.querySelector('#user_editing_title') as HTMLHeadingElement;
+            this.m_editorOverlay    = document.querySelector('#overlay_user_editor') as HTMLDivElement;
 
-            this.m_inputEmail = document.querySelector('#editor_user_input_username') as HTMLInputElement;
-            this.m_inputFullName = document.querySelector('#editor_user_input_user_full_name') as HTMLInputElement;
-            this.m_inputPassword = document.querySelector('#editor_user_input_password') as HTMLInputElement;
+            this.m_inputEmail       = document.querySelector('#editor_user_input_username') as HTMLInputElement;
+            this.m_inputFullName    = document.querySelector('#editor_user_input_user_full_name') as HTMLInputElement;
+            this.m_inputPassword    = document.querySelector('#editor_user_input_password') as HTMLInputElement;
             this.m_inputPasswordConfirm = document.querySelector('#editor_user_input_password_confirm') as HTMLInputElement;
             this.m_inputActivationCount = document.querySelector('#editor_user_input_num_activations') as HTMLInputElement;
-            this.m_selectGroup = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
-            this.m_selectRole = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
-            this.m_inputIsActive = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
-            this.m_inputCustomerId = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
+            this.m_selectGroup      = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
+            this.m_selectRole       = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
+            this.m_inputIsActive    = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
+            this.m_inputCustomerId  = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
             this.m_inputReportLevel = document.querySelector('#editor_user_report_level') as HTMLInputElement;
-            this.m_btnSubmit = document.querySelector('#user_editor_submit') as HTMLButtonElement;
-            this.m_btnCancel = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
+            this.m_btnSubmit        = document.querySelector('#user_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel        = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
 
             this.InitButtonHandlers();
         }
@@ -351,10 +351,9 @@ namespace Citadel {
                     $("#user_activation_table").on("change", "input[type='checkbox']", function () {
                         let id = $(this).attr("data-id");
                         let val = 0;
-                        var objCheck = <HTMLInputElement> this;
-                        if (objCheck.checked) val = 1;
+                        if (this['checked']) val = 1;
 
-                        let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                        let checkAjaxSettings: JQueryAjaxSettings = {
                             method: "POST",
                             timeout: 60000,
                             url: that.URL_UPDATE_ALERT,
@@ -362,7 +361,7 @@ namespace Citadel {
                                 id: id,
                                 value: val
                             },
-                            success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                            success: (data: any): any => {
                                 return false;
                             },
                             error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
@@ -371,16 +370,15 @@ namespace Citadel {
                             }
                         }
 
-                        $.post(checkAjaxSettings);
+                        $.ajax(checkAjaxSettings);
                     });
 
                     $("#user_activation_table").off("blur", "input[type='number']");
                     $("#user_activation_table").on("blur", "input[type='number']", function () {
                         let id = $(this).attr("data-id");
-                        var objInput = < HTMLInputElement > this;
-                        let val = objInput.value;
+                        let val = $(this).val();
 
-                        let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                        let checkAjaxSettings: JQueryAjaxSettings = {
                             method: "POST",
                             timeout: 60000,
                             url: that.URL_UPDATE_CHECK_IN_DAYS,
@@ -388,7 +386,7 @@ namespace Citadel {
                                 id: id,
                                 value: val
                             },
-                            success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                            success: (data: any): any => {
                                 return false;
                             },
                             error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
@@ -396,7 +394,7 @@ namespace Citadel {
                             }
                         }
 
-                        $.post(checkAjaxSettings);
+                        $.ajax(checkAjaxSettings);
                     });
 
                     $("#user_activation_table").off("click", "button.btn-delete");
@@ -406,12 +404,12 @@ namespace Citadel {
                             let dataObject = {};
                             let id = that.getIdFromElementId(e.target.id);
 
-                            let ajaxSettings: JQuery.UrlAjaxSettings = {
+                            let ajaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
                                 url: that.URL_DELETE_ACTIVATION + '/' + id,
                                 data: dataObject,
-                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                success: (data: any): any => {
                                     that.removeActivationById(id);
                                     that.InitUserActivationTables();
 
@@ -426,7 +424,7 @@ namespace Citadel {
                                 }
                             }
 
-                            $.post(ajaxSettings);
+                            $.ajax(ajaxSettings);
                         }
                     });
 
@@ -437,12 +435,12 @@ namespace Citadel {
                             let dataObject = {};
                             let id = that.getIdFromElementId(e.target.id);
 
-                            let ajaxSettings: JQuery.UrlAjaxSettings = {
+                            let ajaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
                                 url: that.URL_BLOCK_ACTIVATION + '/' + id,
                                 data: dataObject,
-                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                success: (data: any): any => {
                                     that.removeActivationById(id);
                                     that.InitUserActivationTables();
                                     return false;
@@ -456,7 +454,7 @@ namespace Citadel {
                                 }
                             }
 
-                            $.post(ajaxSettings);
+                            $.ajax(ajaxSettings);
                         }
                     });
                 })

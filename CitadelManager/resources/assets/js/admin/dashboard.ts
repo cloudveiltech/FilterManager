@@ -80,10 +80,10 @@ namespace Citadel {
         ICON_WARNING                        = '<span class=\'mif-warning fg-red\'></span>';
         SPAN_ACTIVE                         = '<span class=\'active-s status\'>Active</span>';
         SPAN_INACTIVE                       = '<span class=\'inactive-s status\'>Inactive</span>';
+
         // ───────────────────────────────────────────────────────────────────
         //   :::::: M A I N   M E N U   B U T T O N   E L E M E N T S ::::::
         // ───────────────────────────────────────────────────────────────────
-
         private m_tabBtnUsers                   : HTMLLinkElement;
         private m_tabBtnGroups                  : HTMLLinkElement;
         private m_tabBtnFilterLists             : HTMLLinkElement;
@@ -96,7 +96,7 @@ namespace Citadel {
         private m_viewUser                      : HTMLDivElement;
         private m_viewGroup                     : HTMLDivElement;
         private m_viewFilter                    : HTMLDivElement;
-        private m_viewDeactivationReq       : HTMLDivElement;
+        private m_viewDeactivationReq           : HTMLDivElement;
         private m_viewApplication               : HTMLDivElement;
         private m_viewAppGroup                  : HTMLDivElement;
         private m_viewActivation                : HTMLDivElement;

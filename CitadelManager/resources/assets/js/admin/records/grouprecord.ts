@@ -12,27 +12,27 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
-        ERROR_MESSAGE_EMAIL = 'A valid group name is required.';
+        ERROR_MESSAGE_EMAIL         = 'A valid group name is required.';
 
-        MESSAGE_PLACE_HOLDER = 'Type To Filter Selection';
-        MESSAGE_REPORT_LABEL = 'Report blocked sites back to server';
-        MESSAGE_NO_REPORT_LABEL = 'No reporting back to server';
-        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        MESSAGE_PLACE_HOLDER        = 'Type To Filter Selection';
+        MESSAGE_REPORT_LABEL        = 'Report blocked sites back to server';
+        MESSAGE_NO_REPORT_LABEL     = 'No reporting back to server';
+        MESSAGE_ACTION_FAILED       = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        TITLE_ACTION_FAILED = 'Action Failed';
-        TITLE_NEW_GROUP = 'Create New Group';
-        TITLE_CLONE_GROUP = 'Clone Group';
-        TITLE_EDIT_GROUP = 'Edit Group';
+        TITLE_ACTION_FAILED         = 'Action Failed';
+        TITLE_NEW_GROUP             = 'Create New Group';
+        TITLE_CLONE_GROUP           = 'Clone Group';
+        TITLE_EDIT_GROUP            = 'Edit Group';
 
-        BTN_LABEL_CREATE_GROUP = 'Create';
-        BTN_LABEL_CLONE_GROUP = 'Clone';
-        BTN_LABEL_EDIT_GROUP = 'Save';
+        BTN_LABEL_CREATE_GROUP      = 'Create';
+        BTN_LABEL_CLONE_GROUP       = 'Clone';
+        BTN_LABEL_EDIT_GROUP        = 'Save';
 
-        ERROR_MESSAGE_DELAY_TIME = 5000;
-        FADE_IN_DELAY_TIME = 200;
+        ERROR_MESSAGE_DELAY_TIME    = 5000;
+        FADE_IN_DELAY_TIME          = 200;
 
-        URL_ROUTE = 'api/admin/groups';
-        URL_GET_APP_DATA = 'api/admin/get_app_data';
+        URL_ROUTE                   = 'api/admin/groups';
+        URL_GET_APP_DATA            = 'api/admin/get_app_data';
 
         // ─────────────────────────────────────────────────────
         //   :::::: G R O U P   D A T A   M E M B E R S ::::::
@@ -162,17 +162,18 @@ namespace Citadel {
         }
 
         private ConstructFormReferences(): void {
-            this.m_mainForm = document.querySelector('#editor_group_form') as HTMLFormElement;
-            this.m_editorTitle = document.querySelector('#group_editing_title') as HTMLHeadingElement;
-            this.m_editorOverlay = document.querySelector('#overlay_group_editor') as HTMLDivElement;
+            this.m_mainForm             = document.querySelector('#editor_group_form') as HTMLFormElement;
+            this.m_editorTitle          = document.querySelector('#group_editing_title') as HTMLHeadingElement;
+            this.m_editorOverlay        = document.querySelector('#overlay_group_editor') as HTMLDivElement;
 
-            this.m_inputGroupName = document.querySelector('#editor_group_input_groupname') as HTMLInputElement;
-            this.m_inputFrequency = document.querySelector('#editor_cfg_update_frequency_input') as HTMLInputElement;
+            this.m_inputGroupName       = document.querySelector('#editor_group_input_groupname') as HTMLInputElement;
+            this.m_inputFrequency       = document.querySelector('#editor_cfg_update_frequency_input') as HTMLInputElement;
 
-            this.m_inputPrimaryDNS = document.querySelector('#editor_cfg_primary_dns_input') as HTMLInputElement;
-            this.m_inputSecondaryDNS = document.querySelector('#editor_cfg_secondary_dns_input') as HTMLInputElement;
-            this.m_inputReportLevel = document.querySelector('#editor_group_report_level') as HTMLInputElement;
-            this.m_labelReportLevel = document.querySelector('#report_level_text') as HTMLLabelElement;
+            this.m_inputPrimaryDNS      = document.querySelector('#editor_cfg_primary_dns_input') as HTMLInputElement;
+            this.m_inputSecondaryDNS    = document.querySelector('#editor_cfg_secondary_dns_input') as HTMLInputElement;
+            this.m_inputReportLevel     = document.querySelector('#editor_group_report_level') as HTMLInputElement;
+            this.m_labelReportLevel     = document.querySelector('#report_level_text') as HTMLLabelElement;
+
             let ipv4andv6OnlyFilter = (e: KeyboardEvent) => {
                 let inputBox = e.target as HTMLInputElement;
                 inputBox.value = inputBox.value.replace(/[^0-9\\.:]/g, '');
@@ -181,20 +182,20 @@ namespace Citadel {
             this.m_inputPrimaryDNS.onkeyup = ipv4andv6OnlyFilter;
             this.m_inputSecondaryDNS.onkeyup = ipv4andv6OnlyFilter;
 
-            this.m_inputIsActive = document.querySelector('#editor_group_input_isactive') as HTMLInputElement;
+            this.m_inputIsActive                    = document.querySelector('#editor_group_input_isactive') as HTMLInputElement;
 
-            this.m_input_AT_NoTerminate = document.querySelector('#editor_cfg_no_terminate_input') as HTMLInputElement;
-            this.m_input_AT_DisableInternet = document.querySelector('#editor_cfg_disable_internet_input') as HTMLInputElement;
-            this.m_input_AT_UseThreshold = document.querySelector('#editor_cfg_use_threshold_input') as HTMLInputElement;
-            this.m_input_AT_ThresholdCount = document.querySelector('#editor_cfg_threshold_count_input') as HTMLInputElement;
-            this.m_input_AT_ThresholdTimeout = document.querySelector('#editor_cfg_threshold_period_input') as HTMLInputElement;
-            this.m_input_AT_ThresholdTriggerPeriod = document.querySelector('#editor_cfg_threshold_timeout_input') as HTMLInputElement;
-            this.m_input_AT_BypassesPerDay = document.querySelector('#editor_cfg_bypasses_allowed_input') as HTMLInputElement;
-            this.m_input_AT_BypassDuration = document.querySelector('#editor_cfg_bypass_duration_input') as HTMLInputElement;
+            this.m_input_AT_NoTerminate             = document.querySelector('#editor_cfg_no_terminate_input') as HTMLInputElement;
+            this.m_input_AT_DisableInternet         = document.querySelector('#editor_cfg_disable_internet_input') as HTMLInputElement;
+            this.m_input_AT_UseThreshold            = document.querySelector('#editor_cfg_use_threshold_input') as HTMLInputElement;
+            this.m_input_AT_ThresholdCount          = document.querySelector('#editor_cfg_threshold_count_input') as HTMLInputElement;
+            this.m_input_AT_ThresholdTimeout        = document.querySelector('#editor_cfg_threshold_period_input') as HTMLInputElement;
+            this.m_input_AT_ThresholdTriggerPeriod  = document.querySelector('#editor_cfg_threshold_timeout_input') as HTMLInputElement;
+            this.m_input_AT_BypassesPerDay          = document.querySelector('#editor_cfg_bypasses_allowed_input') as HTMLInputElement;
+            this.m_input_AT_BypassDuration          = document.querySelector('#editor_cfg_bypass_duration_input') as HTMLInputElement;
 
-            this.m_inputNlpThreshold = document.querySelector('#editor_cfg_nlp_threshold_input') as HTMLInputElement;
-            this.m_inputTrigerMaxsize = document.querySelector('#editor_cfg_trigger_max_size_input') as HTMLInputElement;
-            this.m_selectChannel = document.querySelector('#editor_cfg_update_channel_input') as HTMLSelectElement;
+            this.m_inputNlpThreshold                = document.querySelector('#editor_cfg_nlp_threshold_input') as HTMLInputElement;
+            this.m_inputTrigerMaxsize               = document.querySelector('#editor_cfg_trigger_max_size_input') as HTMLInputElement;
+            this.m_selectChannel                    = document.querySelector('#editor_cfg_update_channel_input') as HTMLSelectElement;
 
             this.m_inputNlpThreshold.onkeyup = (e: KeyboardEvent) => {
                 let inputBox = e.target as HTMLInputElement;
@@ -209,34 +210,34 @@ namespace Citadel {
                 }
             };
 
-            this.m_inputBlacklist = document.querySelector('#group_filteredapps_radio_blacklist') as HTMLInputElement;
-            this.m_inputWhitelist = document.querySelector('#group_filteredapps_radio_whitelist') as HTMLInputElement;
+            this.m_inputBlacklist               = document.querySelector('#group_filteredapps_radio_blacklist') as HTMLInputElement;
+            this.m_inputWhitelist               = document.querySelector('#group_filteredapps_radio_whitelist') as HTMLInputElement;
 
-            this.m_select_AG_Source = document.querySelector('#appgroup_source_list') as HTMLSelectElement;
-            this.m_select_AG_Target = document.querySelector('#appgroup_target_list') as HTMLSelectElement;
-            this.m_btn_AG_S_To_T_All = document.querySelector('#appgroups_source_to_target') as HTMLButtonElement;
-            this.m_btn_AG_S_To_T_One = document.querySelector('#appgroup_source_to_target') as HTMLButtonElement;
-            this.m_btn_AG_T_To_S_One = document.querySelector('#appgroup_target_to_source') as HTMLButtonElement;
-            this.m_btn_AG_T_To_S_All = document.querySelector('#appgroups_target_to_source') as HTMLButtonElement;
+            this.m_select_AG_Source             = document.querySelector('#appgroup_source_list') as HTMLSelectElement;
+            this.m_select_AG_Target             = document.querySelector('#appgroup_target_list') as HTMLSelectElement;
+            this.m_btn_AG_S_To_T_All            = document.querySelector('#appgroups_source_to_target') as HTMLButtonElement;
+            this.m_btn_AG_S_To_T_One            = document.querySelector('#appgroup_source_to_target') as HTMLButtonElement;
+            this.m_btn_AG_T_To_S_One            = document.querySelector('#appgroup_target_to_source') as HTMLButtonElement;
+            this.m_btn_AG_T_To_S_All            = document.querySelector('#appgroups_target_to_source') as HTMLButtonElement;
 
-            this.m_btnSubmit = document.querySelector('#group_editor_submit') as HTMLButtonElement;
-            this.m_btnCancel = document.querySelector('#group_editor_cancel') as HTMLButtonElement;
+            this.m_btnSubmit                    = document.querySelector('#group_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel                    = document.querySelector('#group_editor_cancel') as HTMLButtonElement;
 
             this.InitButtonHandlers();
         }
 
         private ConstructFilterAssignmentArea(): void {
-            this.m_input_BL_FiltersSearch = document.querySelector('#group_blacklist_filters_search_input') as HTMLInputElement;
-            this.m_input_BL_FiltersSearchPlaceholder = document.querySelector('#group_blacklist_filters_search_input_placeholder') as HTMLInputElement;
+            this.m_input_BL_FiltersSearch               = document.querySelector('#group_blacklist_filters_search_input') as HTMLInputElement;
+            this.m_input_BL_FiltersSearchPlaceholder    = document.querySelector('#group_blacklist_filters_search_input_placeholder') as HTMLInputElement;
 
-            this.m_input_WL_FiltersSearch = document.querySelector('#group_whitelist_filters_search_input') as HTMLInputElement;
-            this.m_input_WL_FiltersSearchPlaceholder = document.querySelector('#group_whitelist_filters_search_input_placeholder') as HTMLInputElement;
+            this.m_input_WL_FiltersSearch               = document.querySelector('#group_whitelist_filters_search_input') as HTMLInputElement;
+            this.m_input_WL_FiltersSearchPlaceholder    = document.querySelector('#group_whitelist_filters_search_input_placeholder') as HTMLInputElement;
 
-            this.m_input_BP_FiltersSearch = document.querySelector('#group_bypass_filters_search_input') as HTMLInputElement;
-            this.m_input_BP_FiltersSearchPlaceholder = document.querySelector('#group_bypass_filters_search_input_placeholder') as HTMLInputElement;
+            this.m_input_BP_FiltersSearch               = document.querySelector('#group_bypass_filters_search_input') as HTMLInputElement;
+            this.m_input_BP_FiltersSearchPlaceholder    = document.querySelector('#group_bypass_filters_search_input_placeholder') as HTMLInputElement;
 
-            this.m_input_UA_FiltersSearchPlaceholder = document.querySelector('#group_unassigned_filters_search_input_placeholder') as HTMLInputElement;
-            this.m_input_UA_FiltersSearch = document.querySelector('#group_unassigned_filters_search_input') as HTMLInputElement;
+            this.m_input_UA_FiltersSearchPlaceholder    = document.querySelector('#group_unassigned_filters_search_input_placeholder') as HTMLInputElement;
+            this.m_input_UA_FiltersSearch               = document.querySelector('#group_unassigned_filters_search_input') as HTMLInputElement;
 
             this.m_input_BL_FiltersSearch.onkeyup = ((e: KeyboardEvent): any => {
                 this.OnSearchFieldInput(this.m_input_BL_FiltersSearch, this.m_container_Blacklist, e);
@@ -282,10 +283,10 @@ namespace Citadel {
             setupSearchBoxFocus(this.m_input_BP_FiltersSearch, this.m_input_BP_FiltersSearchPlaceholder);
             setupSearchBoxFocus(this.m_input_UA_FiltersSearch, this.m_input_UA_FiltersSearchPlaceholder);
 
-            this.m_container_Blacklist = document.querySelector('#group_blacklist_filters') as HTMLDivElement;
-            this.m_container_Whitelist = document.querySelector('#group_whitelist_filters') as HTMLDivElement;
-            this.m_container_ByPass = document.querySelector('#group_bypass_filters') as HTMLDivElement;
-            this.m_container_Unassigned = document.querySelector('#group_unassigned_filters') as HTMLDivElement;
+            this.m_container_Blacklist      = document.querySelector('#group_blacklist_filters') as HTMLDivElement;
+            this.m_container_Whitelist      = document.querySelector('#group_whitelist_filters') as HTMLDivElement;
+            this.m_container_ByPass         = document.querySelector('#group_bypass_filters') as HTMLDivElement;
+            this.m_container_Unassigned     = document.querySelector('#group_unassigned_filters') as HTMLDivElement;
         }
 
         private ResetSearchBoxes(): void {
@@ -519,7 +520,7 @@ namespace Citadel {
             if (flag) {
                 url += '/' + this.m_groupId;
             }
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
                 url: url,
@@ -572,7 +573,7 @@ namespace Citadel {
                 }
             }
 
-            $.get(ajaxSettings);
+            $.ajax(ajaxSettings);
         }
 
         public StartEditing(allFilters: DataTables.Api, data: Object = null, cloneData: Object = null): void {

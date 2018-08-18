@@ -12,16 +12,16 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
-        ERROR_MESSAGE_DELAY_TIME = 5000;
-        FADE_IN_DELAY_TIME = 200;
+        ERROR_MESSAGE_DELAY_TIME        = 5000;
+        FADE_IN_DELAY_TIME              = 200;
 
-        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n Check console for more information.';
-        MESSAGE_ACTION_DELETING = 'Deleting record from server.';
+        MESSAGE_ACTION_FAILED           = 'Error reported by the server during action.\n Check console for more information.';
+        MESSAGE_ACTION_DELETING         = 'Deleting record from server.';
 
-        TITLE_ACTION_FAILED = 'Action Failed';
-        TITLE_ACTION_DELETING = 'Deleting Record';
+        TITLE_ACTION_FAILED             = 'Action Failed';
+        TITLE_ACTION_DELETING           = 'Deleting Record';
 
-        URL_ROUTE = 'api/admin/filterlists';
+        URL_ROUTE                       = 'api/admin/filterlists';
 
         // ──────────────────────────────────────────────────────────
         //   :::::: F I L T E R L I S T       M E M B E R S ::::::
@@ -81,11 +81,11 @@ namespace Citadel {
 
             let dataObject = this.ToObject();
 
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "DELETE",
                 timeout: 60000,
                 url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'],
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                success: (data: any): any => {
                     this.m_progressWait.Hide();
 
                     if (this.m_actionCompleteCallback != null) {

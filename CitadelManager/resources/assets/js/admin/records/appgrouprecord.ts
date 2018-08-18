@@ -13,33 +13,33 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
-        ERROR_MESSAGE_GROUP_NAME = 'App group name is required.';
+        ERROR_MESSAGE_GROUP_NAME        = 'App group name is required.';
 
-        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        MESSAGE_ACTION_FAILED           = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        TITLE_ACTION_FAILED = 'Action Failed';
-        TITLE_NEW_APP_GROUP = 'Add Application Group';
-        TITLE_EDIT_APP_GROUP = 'Edit Application Group';
+        TITLE_ACTION_FAILED             = 'Action Failed';
+        TITLE_NEW_APP_GROUP             = 'Add Application Group';
+        TITLE_EDIT_APP_GROUP            = 'Edit Application Group';
 
-        BTN_LABEL_CREATE_APP_GROUP = 'Create';
-        BTN_LABEL_EDIT_APP_GROUP = 'Save';
+        BTN_LABEL_CREATE_APP_GROUP      = 'Create';
+        BTN_LABEL_EDIT_APP_GROUP        = 'Save';
 
-        ERROR_MESSAGE_DELAY_TIME = 5000;
-        FADE_IN_DELAY_TIME = 200;
+        ERROR_MESSAGE_DELAY_TIME        = 5000;
+        FADE_IN_DELAY_TIME              = 200;
 
-        URL_ROUTE = 'api/admin/app_group';
-        URL_APPLICATIONS = 'api/admin/applications';
+        URL_ROUTE                       = 'api/admin/app_group';
+        URL_APPLICATIONS                = 'api/admin/applications';
         // ────────────────────────────────────────────────────
         //   :::::: A P P G R O U P     M E M B E R S  ::::::
         // ────────────────────────────────────────────────────
-        private m_appGroupId        : number;
-        private m_appGroupName      : string;
-        private m_selectedApps      : string;
-        private m_registeredAt      : string;
-        private m_leftApps          : any[];
-        private m_rightApps         : any[];
+        private m_appGroupId            : number;
+        private m_appGroupName          : string;
+        private m_selectedApps          : string;
+        private m_registeredAt          : string;
+        private m_leftApps              : any[];
+        private m_rightApps             : any[];
 
-        private m_groupApp          : any;
+        private m_groupApp              : any;
 
         // ─────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -95,25 +95,26 @@ namespace Citadel {
         }
 
         private ConstructFormReferences(): void {
-            this.m_mainForm = document.querySelector('#editor_appgroup_form') as HTMLFormElement;
-            this.m_editorTitle = document.querySelector('#appgroup_editing_title') as HTMLHeadingElement;
-            this.m_editorOverlay = document.querySelector('#overlay_appgroup_editor') as HTMLDivElement;
+            this.m_mainForm             = document.querySelector('#editor_appgroup_form') as HTMLFormElement;
+            this.m_editorTitle          = document.querySelector('#appgroup_editing_title') as HTMLHeadingElement;
+            this.m_editorOverlay        = document.querySelector('#overlay_appgroup_editor') as HTMLDivElement;
 
-            this.m_inputGroupName = document.querySelector('#editor_appgroup_name') as HTMLInputElement;
-            this.m_selectSource = document.querySelector('#app_source_list') as HTMLSelectElement;
-            this.m_selectTarget = document.querySelector('#app_target_list') as HTMLSelectElement;
+            this.m_inputGroupName       = document.querySelector('#editor_appgroup_name') as HTMLInputElement;
+            this.m_selectSource         = document.querySelector('#app_source_list') as HTMLSelectElement;
+            this.m_selectTarget         = document.querySelector('#app_target_list') as HTMLSelectElement;
 
-            this.m_btn_S_T_All = document.querySelector('#apps_source_to_target') as HTMLButtonElement;
-            this.m_btn_S_T_One = document.querySelector('#app_source_to_target') as HTMLButtonElement;
-            this.m_btn_T_S_One = document.querySelector('#app_target_to_source') as HTMLButtonElement;
-            this.m_btn_T_S_All = document.querySelector('#apps_target_to_source') as HTMLButtonElement;
+            this.m_btn_S_T_All          = document.querySelector('#apps_source_to_target') as HTMLButtonElement;
+            this.m_btn_S_T_One          = document.querySelector('#app_source_to_target') as HTMLButtonElement;
+            this.m_btn_T_S_One          = document.querySelector('#app_target_to_source') as HTMLButtonElement;
+            this.m_btn_T_S_All          = document.querySelector('#apps_target_to_source') as HTMLButtonElement;
 
-            this.m_btnSubmit = document.querySelector('#appgroup_editor_submit') as HTMLButtonElement;
-            this.m_btnCancel = document.querySelector('#appgroup_editor_cancel') as HTMLButtonElement;
+            this.m_btnSubmit            = document.querySelector('#appgroup_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel            = document.querySelector('#appgroup_editor_cancel') as HTMLButtonElement;
             this.m_btnSubmit.disabled = true;
-            this.m_leftApps = [];
-            this.m_rightApps = [];
-            this.m_groupApp = {};
+            this.m_leftApps             = [];
+            this.m_rightApps            = [];
+            this.m_groupApp             = {};
+
             $(this.m_selectSource).empty();
             $(this.m_selectTarget).empty();
 
@@ -126,7 +127,7 @@ namespace Citadel {
 
             $('#spiner_1').show();
 
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
                 url: this.URL_APPLICATIONS,
@@ -169,7 +170,7 @@ namespace Citadel {
                 }
             }
 
-            $.get(ajaxSettings);
+            $.ajax(ajaxSettings);
         }
 
         private _getSelectedAppIds(): string {

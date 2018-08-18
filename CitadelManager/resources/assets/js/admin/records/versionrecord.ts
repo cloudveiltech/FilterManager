@@ -15,41 +15,41 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
-        ERROR_MESSAGE_APP_NAME = 'A valid application name is required.';
-        ERROR_MESSAGE_FILE_NAME = 'A valid file name is required.';
-        ERROR_MESSAGE_VERSION_ALPHA = 'Alpha version is required.';
-        ERROR_MESSAGE_VERSION_BETA = 'Beta version is required.';
-        ERROR_MESSAGE_BERSION_STABLE = 'Stable is required.';
+        ERROR_MESSAGE_APP_NAME              = 'A valid application name is required.';
+        ERROR_MESSAGE_FILE_NAME             = 'A valid file name is required.';
+        ERROR_MESSAGE_VERSION_ALPHA         = 'Alpha version is required.';
+        ERROR_MESSAGE_VERSION_BETA          = 'Beta version is required.';
+        ERROR_MESSAGE_BERSION_STABLE        = 'Stable is required.';
 
-        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        MESSAGE_ACTION_FAILED               = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        TITLE_ACTION_FAILED = 'Action Failed';
-        TITLE_NEW_VERSION = 'Add New Version';
-        TITLE_EDIT_VERSION = 'Edit Version';
+        TITLE_ACTION_FAILED                 = 'Action Failed';
+        TITLE_NEW_VERSION                   = 'Add New Version';
+        TITLE_EDIT_VERSION                  = 'Edit Version';
 
-        BTN_LABEL_NEW_VERSION = 'Add';
-        BTN_LABEL_EDIT_GROUP = 'Save';
+        BTN_LABEL_NEW_VERSION               = 'Add';
+        BTN_LABEL_EDIT_GROUP                = 'Save';
 
-        ERROR_MESSAGE_DELAY_TIME = 5000;
-        FADE_IN_DELAY_TIME = 200;
+        ERROR_MESSAGE_DELAY_TIME            = 5000;
+        FADE_IN_DELAY_TIME                  = 200;
 
-        URL_ROUTE = 'api/admin/version';
-        URL_PLATFORMS = 'api/admin/platforms';
+        URL_ROUTE                           = 'api/admin/version';
+        URL_PLATFORMS                       = 'api/admin/platforms';
 
         // ──────────────────────────────────────────────────────────────
         //   :::::: V E R S I O N    R E C O R D   M E M B E R S ::::::
         // ──────────────────────────────────────────────────────────────
-        private m_versionId         : number;
-        private m_platformId        : number;
-        private m_appName           : string;
-        private m_fileName          : string;
-        private m_versionNumber     : string;
-        private m_changes           : string;
-        private m_alpha             : string;
-        private m_beta              : string;
-        private m_stable            : string;
-        private m_releaseDate       : string;
-        private m_active            : number;
+        private m_versionId             : number;
+        private m_platformId            : number;
+        private m_appName               : string;
+        private m_fileName              : string;
+        private m_versionNumber         : string;
+        private m_changes               : string;
+        private m_alpha                 : string;
+        private m_beta                  : string;
+        private m_stable                : string;
+        private m_releaseDate           : string;
+        private m_active                : number;
 
         // ──────────────────────────────────────────────
         //   :::::: H T M L      E L E M E N T S ::::::
@@ -128,22 +128,22 @@ namespace Citadel {
         }
 
         private InitUIComponents(): void {
-            this.m_btnAdd = document.querySelector('#btn_add') as HTMLButtonElement;
+            this.m_btnAdd               = document.querySelector('#btn_add') as HTMLButtonElement;
+            this.m_btnClose             = document.querySelector('#system_version_close') as HTMLButtonElement;
 
-            this.m_btnClose = document.querySelector('#system_version_close') as HTMLButtonElement;
-            this.m_editorOverlay = document.querySelector('#overlay_system_version') as HTMLDivElement;
-            this.m_mainForm = document.querySelector('#system_version_form') as HTMLFormElement;
-            this.m_h1_Version = document.querySelector('#overlay_system_title') as HTMLHeadingElement;
+            this.m_editorOverlay        = document.querySelector('#overlay_system_version') as HTMLDivElement;
+            this.m_mainForm             = document.querySelector('#system_version_form') as HTMLFormElement;
+            this.m_h1_Version           = document.querySelector('#overlay_system_title') as HTMLHeadingElement;
 
-            this.m_inputOS = document.querySelector('#platform_os_name') as HTMLSelectElement;
-            this.m_inputAppName = document.querySelector('#system_version_input_app_name') as HTMLInputElement;
-            this.m_inputFileName = document.querySelector('#system_version_input_file_name') as HTMLInputElement;
-            this.m_inputAlphaVersion = document.querySelector('#system_version_input_alpha_version') as HTMLInputElement;
-            this.m_inputBetaVersion = document.querySelector('#system_version_input_beta_version') as HTMLInputElement;
-            this.m_inputStableVersion = document.querySelector('#system_version_input_stable_version') as HTMLInputElement;
-            this.m_inpuReleaseDate = document.querySelector('#system_version_input_rdate') as HTMLInputElement;
-            this.m_inputIsActive = document.querySelector('#system_version_default_version') as HTMLInputElement;
-            this.m_inputChange = document.querySelector('#system_version_input_changes') as HTMLTextAreaElement;
+            this.m_inputOS              = document.querySelector('#platform_os_name') as HTMLSelectElement;
+            this.m_inputAppName         = document.querySelector('#system_version_input_app_name') as HTMLInputElement;
+            this.m_inputFileName        = document.querySelector('#system_version_input_file_name') as HTMLInputElement;
+            this.m_inputAlphaVersion    = document.querySelector('#system_version_input_alpha_version') as HTMLInputElement;
+            this.m_inputBetaVersion     = document.querySelector('#system_version_input_beta_version') as HTMLInputElement;
+            this.m_inputStableVersion   = document.querySelector('#system_version_input_stable_version') as HTMLInputElement;
+            this.m_inpuReleaseDate      = document.querySelector('#system_version_input_rdate') as HTMLInputElement;
+            this.m_inputIsActive        = document.querySelector('#system_version_default_version') as HTMLInputElement;
+            this.m_inputChange          = document.querySelector('#system_version_input_changes') as HTMLTextAreaElement;
 
             this.InitButtonHandlers();
         }
@@ -239,12 +239,12 @@ namespace Citadel {
         }
 
         private loadPlatforms(): void {
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
                 url: this.URL_PLATFORMS,
                 data: {},
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                success: (data: any): any => {
                     this._update_platforms(data.platforms);
                     return false;
                 },
@@ -253,7 +253,7 @@ namespace Citadel {
                 }
             }
 
-            $.get(ajaxSettings);
+            $.ajax(ajaxSettings);
         }
 
         private _update_platforms(platforms: any[]): void {
