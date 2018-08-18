@@ -3,13 +3,9 @@
 namespace App\Listeners;
 
 use App\Events\DeactivationRequestGranted;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Mail\DeactivationRequestGrantedMail;
-use Illuminate\Support\Facades\Mail;
-use Log;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Mail;
 
 class SendDeactivationRequestGrantedNotification
 {
@@ -35,7 +31,7 @@ class SendDeactivationRequestGrantedNotification
         //Log::info("Logging an object: " . print_r($event, true));
         $user = \App\User::find($event->deactivationRequest->user_id);
         Mail::to($user->email)
-          ->send(new DeactivationRequestGrantedMail($event->deactivationRequest, $user));
+            ->send(new DeactivationRequestGrantedMail($event->deactivationRequest, $user));
         $data = [];
         $data['user'] = $user;
         $data['deactivationRequest'] = $event->deactivationRequest;
@@ -47,8 +43,8 @@ class SendDeactivationRequestGrantedNotification
                 'email' => $user->email,
                 'message' => $contents->render(),
                 'subject' => 'CloudVeil For Windows Deactivation Request Granted',
-                'alert' => ''
-            ]
+                'alert' => '',
+            ],
         ]);
     }
 }

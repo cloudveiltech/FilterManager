@@ -1,19 +1,21 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\App;
 use App\AppGroup;
 use App\AppGroupToApp;
-use Illuminate\Http\Request;
 use App\Group;
 use App\UserGroupToAppGroup;
-use Log;
+use Illuminate\Http\Request;
+
 class ApplicationController extends Controller
 {
-    public function __construct() {
-        
+    public function __construct()
+    {
+
     }
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -28,38 +30,38 @@ class ApplicationController extends Controller
         $order = $request->input('order')[0]['column'];
         $order_name = $request->input('columns')[intval($order)]['data'] ? $request->input('columns')[intval($order)]['data'] : 'email';
         $order_str = $request->input('order')[0]['dir'] ? $request->input('order')[0]['dir'] : 'ASC';
-        
+
         $recordsTotal = App::count();
         $query = App::with(['group'])
             ->select('apps.*')
-            ->when($search, function($query) use($search) {
-                return $query->where('name', 'like',"%$search%");
+            ->when($search, function ($query) use ($search) {
+                return $query->where('name', 'like', "%$search%");
             })
             ->when(($order_name == 'bypass_quantity'), function ($query) use ($order_str, $order_name) {
                 return $query->orderBy("bypass_used", $order_str)
                     ->orderBy("bypass_quantity", $order_str)
                     ->orderBy("bypass_period", $order_str);
-                
+
             }, function ($query) use ($order_str, $order_name) {
                 return $query->orderBy($order_name, $order_str);
             });
 
         $recordsFilterTotal = $query->count();
-        
+
         $applications = $query->offset($start)
             ->limit($length)
             ->get();
-            
-        foreach($applications as $app) {
+
+        foreach ($applications as $app) {
             $arr_group_id = array();
-            foreach($app->group as $group_item) {
+            foreach ($app->group as $group_item) {
                 $arr_group_id[] = $group_item->app_group_id;
             }
             $app_group = AppGroup::whereIn('id', $arr_group_id)->get();
             $str = '';
-            foreach($app_group as $group_item) {
-                if(strlen($str) > 0) {
-                    $str .= ", ".$group_item->group_name;
+            foreach ($app_group as $group_item) {
+                if (strlen($str) > 0) {
+                    $str .= ", " . $group_item->group_name;
                 } else {
                     $str = $group_item->group_name;
                 }
@@ -74,42 +76,48 @@ class ApplicationController extends Controller
             "draw" => intval($draw),
             "recordsTotal" => $recordsTotal,
             "recordsFiltered" => $recordsFilterTotal,
-            "data" => $applications
+            "data" => $applications,
         ]);
     }
 
-    public function get_application() {
+    public function get_application()
+    {
         return App::get();
     }
+
     /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
+
         $this->validate($request, [
-            'name' => 'required'
+            'name' => 'required',
         ]);
 
-        $input = $request->only(['name', 'notes']);        
+        $input = $request->only(['name', 'notes']);
+
         $app = App::create($input);
+
         $assigned_groups = $request->only('assigned_appgroup');
-        
-        if(is_array($assigned_groups['assigned_appgroup'])) {
+
+        if (is_array($assigned_groups['assigned_appgroup'])) {
             $arr_assigned_groups = array();
-            foreach($assigned_groups['assigned_appgroup'] as $group_id) {
+
+            foreach ($assigned_groups['assigned_appgroup'] as $group_id) {
                 array_push($arr_assigned_groups, array(
                     'app_id' => $app->id,
-                    'app_group_id'=> $group_id
+                    'app_group_id' => $group_id,
                 ));
             }
+
             AppGroupToApp::insert($arr_assigned_groups);
         }
-        Log::debug($assigned_groups);
         return response('', 204);
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -117,8 +125,10 @@ class ApplicationController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id) {
+    public function destroy($id)
+    {
         AppGroupToApp::where('app_id', $id)->delete();
+
         $application = App::where('id', $id)->first();
         if (!is_null($application)) {
             $application->delete();
@@ -127,82 +137,91 @@ class ApplicationController extends Controller
         return response('', 204);
     }
 
-    public function update(Request $request, $id) {
-        
+    public function update(Request $request, $id)
+    {
+
         // The javascript side/admin UI will not send
         // password or password_verify unless they are
         // intentionally trying to change a user's password.
-    
+
         $input = $request->only(['name', 'notes']);
         App::where('id', $id)->update($input);
-        
+
         $assigned_groups = $request->only('assigned_appgroup');
         AppGroupToApp::where('app_id', $id)->delete();
-        if(is_array($assigned_groups['assigned_appgroup'])) {
+
+        if (is_array($assigned_groups['assigned_appgroup'])) {
             $arr_assigned_groups = array();
-            foreach($assigned_groups['assigned_appgroup'] as $group_id) {
+            foreach ($assigned_groups['assigned_appgroup'] as $group_id) {
                 array_push($arr_assigned_groups, array(
                     'app_id' => $id,
-                    'app_group_id'=> $group_id
+                    'app_group_id' => $group_id,
                 ));
             }
-            Log::debug($arr_assigned_groups);
+
             AppGroupToApp::insert($arr_assigned_groups);
         }
+
         return response('', 204);
     }
 
-    public function getApps() {
+    public function getApps()
+    {
         $groups = Group::get();
         $arr = [];
         foreach ($groups as $group) {
             $app_cfg = json_decode($group->app_cfg);
             $apps_arr = [];
-            if(isset ($app_cfg->WhitelistedApplications)){
+            if (isset($app_cfg->WhitelistedApplications)) {
                 $apps_arr = $app_cfg->WhitelistedApplications;
             }
-            if(isset ($app_cfg->BlacklistedApplications)){
+            if (isset($app_cfg->BlacklistedApplications)) {
                 $apps_str = $app_cfg->BlacklistedApplications;
             }
-            //$apps_arr = explode(",", $apps_string);
-            //var_dump($apps_arr);
-            foreach($apps_arr as $app) {
-                if(array_search($app, $arr) === false) 
-                {
+            foreach ($apps_arr as $app) {
+                if (array_search($app, $arr) === false) {
                     $arr[] = $app;
                 }
             }
         }
+
         asort($arr);
-        foreach($arr as $key=>$value) {
-            App::Create(['name'=>$value, 'notes'=>'']);
+
+        foreach ($arr as $key => $value) {
+            App::Create(['name' => $value, 'notes' => '']);
         }
+
         return response()->json($arr);
     }
+
     public function get_appgroup_data()
     {
         $app_groups = AppGroup::get();
-        return response()->json([ 'app_groups'=>$app_groups]);
+        return response()->json(['app_groups' => $app_groups]);
     }
-    public function get_appgroup_data_with_app_id($id) {
+
+    public function get_appgroup_data_with_app_id($id)
+    {
         $app_groups = AppGroup::get();
         $selected_app_groups = AppGroupToApp::where('app_id', $id)->get();
         return response()->json([
-            'app_groups'=>$app_groups,
-            'selected_app_groups'=>$selected_app_groups]);
+            'app_groups' => $app_groups,
+            'selected_app_groups' => $selected_app_groups,
+        ]);
     }
-    
-    private function rebuildGroupDataByApp($app_id) {
+
+    private function rebuildGroupDataByApp($app_id)
+    {
         $appGroupLists = AppGroupToApp::where('app_id', '=', $app_id)->get();
-        if($appGroupLists->count() > 0) {
+        if ($appGroupLists->count() > 0) {
             $arr_group_id = [];
-            foreach($appGroupLists as $app_group)  {
+            foreach ($appGroupLists as $app_group) {
                 $arr_group_id[] = $app_group->app_group_id;
             }
 
             $userGroupLists = UserGroupToAppGroup::whereIn('app_group_id', $arr_group_id)->get();
-            if($userGroupLists->count() > 0) {
-                foreach($userGroupLists as $user_group) {
+            if ($userGroupLists->count() > 0) {
+                foreach ($userGroupLists as $user_group) {
                     Group::where('id', '=', $user_group->user_group_id)->rebuiltGroupData();
                 }
             }

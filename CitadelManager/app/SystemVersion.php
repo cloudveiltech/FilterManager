@@ -15,6 +15,7 @@ class SystemVersion extends Model
      */
     protected $table = 'system_versions';
     protected $fillable = [
-        'id', 'platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active', 'created_at', 'updated_at'
+        'id', 'platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha',
+        'beta', 'stable', 'release_date', 'active', 'created_at', 'updated_at',
     ];
 }

@@ -15,10 +15,10 @@ use Illuminate\Database\Eloquent\Model;
  * Description of DeactivationRequest
  *
  */
-class DeactivationRequest extends Model 
+class DeactivationRequest extends Model
 {
     public $timestamps = true;
-    
+
     /**
      * The attributes that are mass assignable.
      *
@@ -27,14 +27,14 @@ class DeactivationRequest extends Model
     protected $fillable = [
         'user_id', 'identifier', 'device_id', 'granted',
     ];
-    
+
     public function user()
     {
         return $this->belongsTo('App\User');
     }
 
     public function activation()
-    { 
+    {
         return $this->belongsTo('App\AppUserActivation', 'identifier', 'identifier');
     }
 }

@@ -15,15 +15,16 @@ use Illuminate\Database\Eloquent\Model;
  * Description of FilterList
  *
  */
-class FilterList extends Model {
+class FilterList extends Model
+{
 
     public $timestamps = true;
 
     /**
-    * The accessors to append to the model's array form.
-    *
-    * @var array
-    */
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
     protected $appends = ['entries_count'];
 
     /**
@@ -32,37 +33,36 @@ class FilterList extends Model {
      * @var array
      */
     protected $fillable = [
-        'namespace', 'category', 'type', 'created_at', 'updated_at'
+        'namespace', 'category', 'type', 'created_at', 'updated_at',
     ];
 
     /**
      * Gets all text rule entries for this filter list.
      * @return type
      */
-    public function textRulesCountRelation() {
+    public function textRulesCountRelation()
+    {
         return $this->hasOne('App\TextFilteringRule')->selectRaw('filter_list_id, count(*) as count')->groupBy('filter_list_id');
     }
-    
+
     /**
      * Gets the number of rule entries for this filter list.
      * @return type
      */
-    public function getEntriesCountAttribute() {
+    public function getEntriesCountAttribute()
+    {
         $sum = 0;
         $textRelation = $this->textRulesCountRelation()->first();
-        
-        if(!is_null($textRelation))
-        {
+
+        if (!is_null($textRelation)) {
             $sum = $textRelation->count;
-        }
-        else            
-        {
+        } else {
             // For list like NLP and Visual models, we'll just
             // return a count of 1, since there is no line
             // count or rule count per-se.
             $sum = 1;
         }
-        
+
         return $sum;
     }
 
@@ -70,7 +70,8 @@ class FilterList extends Model {
      * Gets the groups that have this filter list assigned.
      * @return type
      */
-    public function group() {
+    public function group()
+    {
         return $this->belongsToMany('App\Group');
     }
 

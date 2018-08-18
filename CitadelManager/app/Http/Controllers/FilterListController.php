@@ -12,25 +12,26 @@ namespace App\Http\Controllers;
 use App\FilterList;
 use App\Group;
 use App\GroupFilterAssignment;
-use App\TextFilteringRule;
-use App\NlpFilteringRule;
 use App\ImageFilteringRule;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Illuminate\Http\Request;
+use App\NlpFilteringRule;
+use App\TextFilteringRule;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-use Log;
-class FilterListController extends Controller {
+class FilterListController extends Controller
+{
 
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $draw = $request->input('draw');
         $start = $request->input('start');
-        $length = $request->input('length')? $request->input('length') : 10;
+        $length = $request->input('length') ? $request->input('length') : 10;
         $search = $request->input('search')['value'];
 
         $order = $request->input('order')[0]['column'];
@@ -40,16 +41,16 @@ class FilterListController extends Controller {
         $recordsTotal = FilterList::count();
 
         $query = FilterList::select('filter_lists.*')
-            ->when($search, function($query) use($search) {
-                return $query->where('filter_lists.category', 'like',"%$search%");
+            ->when($search, function ($query) use ($search) {
+                return $query->where('filter_lists.category', 'like', "%$search%");
             })
             ->when(($order_name != 'entries_count'), function ($query) use ($order_str, $order_name) {
                 return $query->orderBy($order_name, $order_str);
             }, function ($query) use ($order_str, $order_name) {
-                
+
             });
-        
-        if($order_name != "entries_count") {
+
+        if ($order_name != "entries_count") {
             $recordsFilterTotal = $query->count();
             $rows = $query->offset($start)
                 ->limit($length)
@@ -57,51 +58,56 @@ class FilterListController extends Controller {
         } else {
             $rows = $query->get();
             $filter_rows = [];
-            foreach($rows as $key => $filter_item) {
-                
+            foreach ($rows as $key => $filter_item) {
+
                 $filter_rows[] = array(
-                    "id"=>$filter_item->id,
-                    "namespace"=>$filter_item->namespace,
-                    "category"=>$filter_item->category,
-                    "entries_count"=>$filter_item->entries_count,
-                    "type"=>$filter_item->type,
-                    "created_at"=>$filter_item->created_at->toDateTimeString()
+                    "id" => $filter_item->id,
+                    "namespace" => $filter_item->namespace,
+                    "category" => $filter_item->category,
+                    "entries_count" => $filter_item->entries_count,
+                    "type" => $filter_item->type,
+                    "created_at" => $filter_item->created_at->toDateTimeString(),
                 );
             }
-            $sortArray = array(); 
-                
-            foreach($filter_rows as $filter){ 
-                foreach($filter as $key=>$value){ 
-                    if(!isset($sortArray[$key])){ 
-                        $sortArray[$key] = array(); 
-                    } 
-                    $sortArray[$key][] = $value; 
-                } 
-            } 
-            if($order_str == "desc") {
-                array_multisort($sortArray[$order_name],SORT_DESC,$filter_rows);
-            } else {
-                array_multisort($sortArray[$order_name],SORT_ASC,$filter_rows);
+            $sortArray = array();
+
+            foreach ($filter_rows as $filter) {
+                foreach ($filter as $key => $value) {
+                    if (!isset($sortArray[$key])) {
+                        $sortArray[$key] = array();
+                    }
+                    $sortArray[$key][] = $value;
+                }
             }
-            $rows = array_slice($filter_rows,$start,$length,false);
+            if ($order_str == "desc") {
+                array_multisort($sortArray[$order_name], SORT_DESC, $filter_rows);
+            } else {
+                array_multisort($sortArray[$order_name], SORT_ASC, $filter_rows);
+            }
+            $rows = array_slice($filter_rows, $start, $length, false);
             $recordsFilterTotal = count($filter_rows);
         }
+
         return response()->json([
             "draw" => intval($draw),
             "recordsTotal" => $recordsTotal,
             "recordsFiltered" => $recordsFilterTotal,
-            "data" => $rows
+            "data" => $rows,
         ]);
     }
-    public function get_filters() {
-        return FilterList::all(); 
+
+    public function get_filters()
+    {
+        return FilterList::all();
     }
+
     /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function create() {
+    public function create()
+    {
         // No forms here kids.
         return response('', 405);
     }
@@ -112,7 +118,8 @@ class FilterListController extends Controller {
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         // Right now, creation/update/storage is done simply by upload of raw
         // rules.
         return response('', 405);
@@ -124,7 +131,8 @@ class FilterListController extends Controller {
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id) {
+    public function show($id)
+    {
         // No forms here kids.
         return response('', 405);
     }
@@ -135,7 +143,8 @@ class FilterListController extends Controller {
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id) {
+    public function edit($id)
+    {
         // No forms here kids.
         return response('', 405);
     }
@@ -147,7 +156,8 @@ class FilterListController extends Controller {
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         // Right now, creation/update/storage is done simply by upload of raw
         // rules.
         return response('', 405);
@@ -159,7 +169,8 @@ class FilterListController extends Controller {
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id) {
+    public function destroy($id)
+    {
 
         $affectedGroups = array();
 
@@ -176,7 +187,7 @@ class FilterListController extends Controller {
             switch ($existingList->type) {
                 // For NLP and Visual models, we have to delete all entries.
                 case 'VISUAL':
-                case 'NLP': {
+                case 'NLP':{
                         $existingSiblingLists = FilterList::where(['namespace' => $existingList->namespace, 'type' => $existingList->type])->get();
                         if (!is_null($existingSiblingLists)) {
                             foreach ($existingSiblingLists as $existingSibling) {
@@ -193,7 +204,7 @@ class FilterListController extends Controller {
                     }
                     break;
 
-                default: {
+                default:{
                         // It was only a text list, so just delete this entry.
                         $existingList->delete();
                     }
@@ -208,7 +219,8 @@ class FilterListController extends Controller {
         return response('', 204);
     }
 
-    private function getGroupsAttachedToFilterId(int $filterId): array {
+    private function getGroupsAttachedToFilterId(int $filterId): array
+    {
         $ret = array();
         // Pull group assignment of this filter, if any.
         foreach (GroupFilterAssignment::where('filter_list_id', $filterId)->get() as $affectedList) {
@@ -218,7 +230,8 @@ class FilterListController extends Controller {
         return $ret;
     }
 
-    private function forceRebuildOnGroups(array $arrOfGroupIds) {
+    private function forceRebuildOnGroups(array $arrOfGroupIds)
+    {
         foreach ($arrOfGroupIds as $groupId) {
             $thisGroup = Group::where('id', $groupId)->first();
 
@@ -235,10 +248,11 @@ class FilterListController extends Controller {
      * @param Request $request
      * @return type
      */
-    public function processUploadedFilterLists(Request $request) {
+    public function processUploadedFilterLists(Request $request)
+    {
         $this->validate($request, [
             'overwrite' => 'required|boolean',
-            'namespace' => 'required|string|min:1|max:64'
+            'namespace' => 'required|string|min:1|max:64',
         ]);
 
         //error_log($file->getClientOriginalName());
@@ -253,24 +267,24 @@ class FilterListController extends Controller {
 
         foreach ($listFile as $file) {
             switch (strtolower($file->getClientOriginalExtension())) {
-                case 'zip': {
+                case 'zip':{
 
                         $success = $this->processTextFilterArchive($listNamespace, $file, $shouldOverwrite);
                     }
                     break;
 
-                case 'model': {
+                case 'model':{
 
                         $success = $this->processNlpModel($listNamespace, $file, $shouldOverwrite);
                     }
                     break;
 
-                case 'vv': {
+                case 'vv':{
                         $success = $this->processVisualModel($listNamespace, $file, $shouldOverwrite);
                     }
                     break;
 
-                default: {
+                default:{
                         return response('Uploaded file type not supported.', 400);
                     }
             }
@@ -290,7 +304,8 @@ class FilterListController extends Controller {
      * @param type $type        The type of filter list to constrain the mass deletion to. Optional.
      * @return type             Void
      */
-    public function deleteAllListsInNamespace($namespace, $type = null) {
+    public function deleteAllListsInNamespace($namespace, $type = null)
+    {
 
         $affectedGroups = array();
 
@@ -333,7 +348,8 @@ class FilterListController extends Controller {
      * @param UploadedFile $file    The uploaded archive.
      * @param bool $overwrite       Whether or not to overwrite.
      */
-    private function processTextFilterArchive(string $namespace, UploadedFile $file, bool $overwrite) {
+    private function processTextFilterArchive(string $namespace, UploadedFile $file, bool $overwrite)
+    {
 
         $affectedGroups = array();
 
@@ -349,7 +365,7 @@ class FilterListController extends Controller {
         $storageDir = storage_path();
         $tmpArchiveLoc = $storageDir . DIRECTORY_SEPARATOR . basename($file->getPathname()) . '.' . $file->getClientOriginalExtension();
         move_uploaded_file($file->getPathname(), $tmpArchiveLoc);
-        
+
         // Sometimes, a category can have more than one file that is treated
         // the same. domains and urls files will both get pushed into a list
         // of type Filters. If we run the delete op in our foreach here,
@@ -360,27 +376,25 @@ class FilterListController extends Controller {
         // This is not necessary for other types of filter data, such as NLP
         // models, because there can only be 1 per category.
         $purgedCategories = array();
-        
+
         $pharIterator = new \RecursiveIteratorIterator(new \PharData($tmpArchiveLoc), \RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($pharIterator as $pharFileInfo) {
             if (!$pharFileInfo->isDir()) {
                 $categoryName = strtolower(basename(dirname($pharFileInfo->getPathname())));
 
-                if($categoryName == '/' || $categoryName == '\\' || $categoryName == '.' || $categoryName == '..')
-                {
+                if ($categoryName == '/' || $categoryName == '\\' || $categoryName == '.' || $categoryName == '..') {
                     // This is an improperly formatted zip.
                     // This is a file inside the root directory.
                     continue;
                 }
-                
-                if(strcasecmp($categoryName, basename($tmpArchiveLoc)) == 0)
-                {
+
+                if (strcasecmp($categoryName, basename($tmpArchiveLoc)) == 0) {
                     // This is an improperly formatted zip. This means that we have
                     // filter/trigger/nlp model stuff in the root of the zip structure
                     // and this cannot be allowed.
                     continue;
                 }
-                
+
                 // We have to limit the length of our string to the max length
                 // constraint of our DB field.
                 if (strlen($categoryName) > 64) {
@@ -398,7 +412,7 @@ class FilterListController extends Controller {
                     case 'domains':
                     case 'domains.txt':
                     case 'urls':
-                    case 'urls.txt': {
+                    case 'urls.txt':{
                             // These rules get converted to ABP filters.
                             $finalListType = 'Filters';
                             $convertToAbp = true;
@@ -406,7 +420,7 @@ class FilterListController extends Controller {
                         break;
 
                     case 'triggers':
-                    case 'triggers.txt': {
+                    case 'triggers.txt':{
                             // These rules are untouched.
                             $finalListType = 'Triggers';
                         }
@@ -415,7 +429,7 @@ class FilterListController extends Controller {
                     case 'rules':
                     case 'filters':
                     case 'filters.txt':
-                    case 'rules.txt': {
+                    case 'rules.txt':{
                             // These rules are untouched. Assumed to already
                             // be in ABP filter format.
                             $finalListType = 'Filters';
@@ -423,21 +437,20 @@ class FilterListController extends Controller {
                         break;
                 }
 
-                if(is_null($finalListType))
-                {
+                if (is_null($finalListType)) {
                     // Invalid/improperly named/unrecognized file.
                     continue;
                 }
-                
+
                 // Delete existing if overwrite is true.
                 if ($overwrite) {
-                    
+
                     $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
                     if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
                         TextFilteringRule::where('filter_list_id', '=', $existingList->id)->forceDelete();
 
                         array_push($purgedCategories, $existingList->id);
-                        
+
                         // DON'T DELETE THIS ACTUAL FILTER LIST ENTRY!!
                         // If we do that, then we have to manually rebuild
                         // filter list assignments. Leave it the same. Only
@@ -445,18 +458,16 @@ class FilterListController extends Controller {
                     }
                 }
 
-                
                 $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
 
                 // We have to do this for the event where the user selects overwrite on the upload,
                 // yet one or more of the lists didn't exist already. Otherwise, same problem will
                 // arise as described in the comments above purgedCategories var creation above.
-                if($overwrite && $newFilterListEntry->wasRecentlyCreated)
-                {
+                if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
                     array_push($purgedCategories, $newFilterListEntry->id);
                 }
-                
-                // In case this is existing, pull group assignment of this filter.                
+
+                // In case this is existing, pull group assignment of this filter.
                 $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
 
                 $this->processTextFilterFile($pharFileInfo->openFile('r'), $convertToAbp, $newFilterListEntry->id);
@@ -467,22 +478,21 @@ class FilterListController extends Controller {
                 // This means that the list is a raw list of domains/urls.
                 // We will also convert these to triggers.
                 if ($convertToAbp == true) {
-                    
+
                     $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => 'Triggers']);
 
                     // We have to do this for the event where the user selects overwrite on the upload,
                     // yet one or more of the lists didn't exist already. Otherwise, same problem will
                     // arise as described in the comments above purgedCategories var creation above.
-                    if($overwrite && $newFilterListEntry->wasRecentlyCreated)
-                    {
+                    if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
                         array_push($purgedCategories, $newFilterListEntry->id);
                     }
-                    
+
                     if ($overwrite) {
                         if (!is_null($newFilterListEntry) && !in_array($newFilterListEntry->id, $purgedCategories)) {
-                            
+
                             TextFilteringRule::where('filter_list_id', '=', $newFilterListEntry->id)->forceDelete();
-                            
+
                             array_push($purgedCategories, $newFilterListEntry->id);
                             // DON'T DELETE THIS ACTUAL FILTER LIST ENTRY!!
                             // If we do that, then we have to manually rebuild
@@ -490,8 +500,8 @@ class FilterListController extends Controller {
                             // delete actual text lines for it.
                         }
                     }
-                    
-                    // In case this is existing, pull group assignment of this filter.                
+
+                    // In case this is existing, pull group assignment of this filter.
                     $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
 
                     $this->processTextFilterFile($pharFileInfo->openFile('r'), false, $newFilterListEntry->id);
@@ -505,30 +515,31 @@ class FilterListController extends Controller {
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
         $this->forceRebuildOnGroups($affectedGroups);
-        
+
         unlink($tmpArchiveLoc);
     }
 
     /**
      * Processes the supplied text file line by line, according to its type,
      * generates rules from those lines and stores them.
-     * @param \SplFileObject $file  The source text file.     
+     * @param \SplFileObject $file  The source text file.
      * @param bool $convertToAbp    Whether or not to format the rule lines as ABP filters.
      * @param int $parentListId     The DB ID of the parent filter list.
      */
-    private function processTextFilterFile(\SplFileObject $file, bool $convertToAbp, int $parentListId) {
+    private function processTextFilterFile(\SplFileObject $file, bool $convertToAbp, int $parentListId)
+    {
         $lineFeedFunc = null;
 
         switch ($convertToAbp) {
-            case true: {
-                    $lineFeedFunc = function(string $in): string {
+            case true:{
+                    $lineFeedFunc = function (string $in): string {
                         return $this->formatStringAsAbpFilter(trim($in));
                     };
                 }
                 break;
 
-            case false: {
-                    $lineFeedFunc = function(string $in): string {
+            case false:{
+                    $lineFeedFunc = function (string $in): string {
                         return trim($in);
                     };
                 }
@@ -540,17 +551,16 @@ class FilterListController extends Controller {
         $updatedAt = Carbon::now();
 
         $count = 0;
-        
+
         foreach ($file as $lineNumber => $content) {
-            
+
             $content = $lineFeedFunc($content);
-            
-            if(strlen($content) > 0)
-            {
+
+            if (strlen($content) > 0) {
                 array_push($fillArr, ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt]);
                 $count++;
             }
-            
+
             // Doing a mass insert of 5K at a time seems to be best.
             if ($count > 4999) {
                 TextFilteringRule::insertIgnore($fillArr);
@@ -567,18 +577,18 @@ class FilterListController extends Controller {
     }
 
     /**
-     * Assuming that the input is a URL or just plain domain name, we convert 
+     * Assuming that the input is a URL or just plain domain name, we convert
      * this string into an ABP formatted rule with an anchored domain.
-     * 
+     *
      * @param string $input
      * @return string
      */
-    private function formatStringAsAbpFilter(string $input): string {
-        if(strlen($input) <= 0)
-        {
+    private function formatStringAsAbpFilter(string $input): string
+    {
+        if (strlen($input) <= 0) {
             return $input;
         }
-        
+
         return '||' . str_replace('/', '^', $input);
     }
 
@@ -588,7 +598,8 @@ class FilterListController extends Controller {
      * @param UploadedFile $file
      * @param bool $overwrite
      */
-    private function processNlpModel(string $namespace, UploadedFile $file, bool $overwrite) {
+    private function processNlpModel(string $namespace, UploadedFile $file, bool $overwrite)
+    {
 
         $affectedGroups = array();
 
@@ -610,7 +621,7 @@ class FilterListController extends Controller {
 
         // So, we have to do something a little strange here with model files
         // like NLP. Because it's just a single binary model, but with multiple
-        // nested categories, we need to create a new list entry for each 
+        // nested categories, we need to create a new list entry for each
         // category, but only inject/store the model once.
         //
         // Basically, no matter what categories a person selects, all categories
@@ -663,13 +674,13 @@ class FilterListController extends Controller {
         $updatedAt = Carbon::now();
 
         NlpFilteringRule::insertIgnore(
-                [
-                    'filter_list_id' => $firstId,
-                    'sha1' => $hash,
-                    'data' => $opened->fread($opened->getSize()),
-                    'created_at' => $createdAt,
-                    'updated_at' => $updatedAt
-        ]);
+            [
+                'filter_list_id' => $firstId,
+                'sha1' => $hash,
+                'data' => $opened->fread($opened->getSize()),
+                'created_at' => $createdAt,
+                'updated_at' => $updatedAt,
+            ]);
 
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
@@ -682,7 +693,8 @@ class FilterListController extends Controller {
      * @param UploadedFile $file
      * @param bool $overwrite
      */
-    private function processVisualModel(string $namespace, UploadedFile $file, bool $overwrite) {
+    private function processVisualModel(string $namespace, UploadedFile $file, bool $overwrite)
+    {
         // Delete existing if overwrite is true.
         if ($overwrite) {
             $existingLists = ImageFilteringRule::where(['namespace' => $namespace, 'type' => 'VISUAL'])->get();
@@ -709,13 +721,12 @@ class FilterListController extends Controller {
         $newFilterListEntry->touch();
 
         ImageFilteringRule::insertIgnore(
-                [
-                    'filter_list_id' => $newFilterListEntry->id,
-                    'sha1' => $hash,
-                    'data' => $opened->fread($opened->getSize()),
-                    'created_at' => $createdAt,
-                    'updated_at' => $updatedAt
-        ]);
+            [
+                'filter_list_id' => $newFilterListEntry->id,
+                'sha1' => $hash,
+                'data' => $opened->fread($opened->getSize()),
+                'created_at' => $createdAt,
+                'updated_at' => $updatedAt,
+            ]);
     }
-
 }

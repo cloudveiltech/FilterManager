@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class GroupContact
- * 
+ *
  * @property int $group_id
  * @property int $contact_id
- * 
+ *
  * @property \App\AppGroup $app_group
  * @property \App\App $app
  *
@@ -22,25 +22,25 @@ use Illuminate\Database\Eloquent\Model;
  */
 class AppGroupToApp extends Model
 {
-	
-	public $incrementing = false;
-	public $timestamps = false;
 
-	protected $casts = [
-		'app_group_id' => 'int',
-		'app_id' => 'int'
-	];
-	protected $fillable = [
-		'app_group_id',
-		'app_id'
-	];
-	public function app_group()
-	{
-		return $this->belongsTo(\App\AppGroup::class);
-	}
+    public $incrementing = false;
+    public $timestamps = false;
 
-	public function app()
-	{
-		return $this->belongsTo(\App\App::class);
-	}
+    protected $casts = [
+        'app_group_id' => 'int',
+        'app_id' => 'int',
+    ];
+    protected $fillable = [
+        'app_group_id',
+        'app_id',
+    ];
+    public function app_group()
+    {
+        return $this->belongsTo(\App\AppGroup::class);
+    }
+
+    public function app()
+    {
+        return $this->belongsTo(\App\App::class);
+    }
 }
