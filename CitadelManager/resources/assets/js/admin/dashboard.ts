@@ -412,10 +412,9 @@ namespace Citadel {
                         let that = this;
                         $("#user_table").off("change", "input[type='checkbox']");
                         $("#user_table").on("change", "input[type='checkbox']", function () {
-                            let id_str = this.id;
+                            let id_str = this['id'];    // get id from checkbox element
                             let val = 0;
-                            var checkObj = <HTMLInputElement> this;
-                            if (checkObj.checked) {
+                            if (this['checked']) {
                                 val = 1;
                             }
 
@@ -532,15 +531,7 @@ namespace Citadel {
                         data: 'isactive',
                         visible: true,
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            if (data == null) {
-                                return "";
-                            }
-
-                            if (data == 1) {
-                                return "<span class='active-s status'>Active</span>";
-                            } else {
-                                return "<span class='inactive-s status'>Inactive</span>";
-                            }
+                            return data == null? '': data == 1? this.SPAN_ACTIVE : this.SPAN_INACTIVE;
                         }),
                         className: 'content-center',
                         width: '60px'
@@ -583,10 +574,10 @@ namespace Citadel {
                         let that = this;
                         $("#group_table").off("change", "input[type='checkbox']");
                         $("#group_table").on("change", "input[type='checkbox']", function () {
-                            let id_str = this.id;
+                            let id_str = this['id'];
                             let val = 0;
-                            var checkObj = < HTMLInputElement > this;
-                            if (checkObj.checked) {
+
+                            if (this['checked']) {
                                 val = 1;
                             }
 
@@ -769,10 +760,10 @@ namespace Citadel {
                         let that = this;
                         $("#user_deactivation_request_table").off("change", "input[type='checkbox']");
                         $("#user_deactivation_request_table").on("change", "input[type='checkbox']", function () {
-                            let id_str = this.id;
+                            let id_str = this['id'];
                             let val = 0;
-                            var checkObj = < HTMLInputElement > this;
-                            if (checkObj.checked) {
+
+                            if (this['checked']) {
                                 val = 1;
                             }
 
@@ -1059,10 +1050,10 @@ namespace Citadel {
                         let that = this;
                         $("#app_user_activations_table").off("change", "input[type='checkbox']");
                         $("#app_user_activations_table").on("change", "input[type='checkbox']", function () {
-                            let id_str = this.id;
+                            let id_str = this['id'];
                             let val = 0;
-                            var checkObj = < HTMLInputElement > this;
-                            if (checkObj.checked) {
+
+                            if (this['checked']) {
                                 val = 1;
                             }
 
@@ -1151,12 +1142,7 @@ namespace Citadel {
                         visible: true,
                         width: '140px',
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-
-                            if (row.active === 1) {
-                                return data;
-                            } else {
-                                return "<span class='inactive'>" + data + "</span>";
-                            }
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
                         })
                     },
                     {
@@ -1167,12 +1153,7 @@ namespace Citadel {
                         defaultContent: 'None',
                         width: '100px',
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-
-                            if (row.active === 1) {
-                                return data;
-                            } else {
-                                return "<span class='inactive'>" + data + "</span>";
-                            }
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
                         })
                     },
                     {
@@ -1181,11 +1162,7 @@ namespace Citadel {
                         orderable: false,
                         visible: true,
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            if (row.active === 1) {
-                                return data;
-                            } else {
-                                return "<span class='inactive'>" + data + "</span>";
-                            }
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
                         }),
                         className: 'content-center version_date',
                         width: '180px'
@@ -1198,12 +1175,7 @@ namespace Citadel {
                         visible: true,
                         width: '100px',
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-
-                            if (row.active === 1) {
-                                return data;
-                            } else {
-                                return "<span class='inactive'>" + data + "</span>";
-                            }
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
                         })
                     },
                     {
@@ -1214,12 +1186,7 @@ namespace Citadel {
                         width: '100px',
                         className: 'content-center sub_version_number',
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-
-                            if (row.active === 1) {
-                                return data;
-                            } else {
-                                return "<span class='inactive'>" + data + "</span>";
-                            }
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
                         })
                     },
                     {
@@ -1230,12 +1197,7 @@ namespace Citadel {
                         width: '100px',
                         className: 'content-center sub_version_number',
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-
-                            if (row.active === 1) {
-                                return data;
-                            } else {
-                                return "<span class='inactive'>" + data + "</span>";
-                            }
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
                         })
                     },
                     {
@@ -1245,12 +1207,7 @@ namespace Citadel {
                         className: 'content-left',
                         visible: true,
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-
-                            if (row.active === 1) {
-                                return data;
-                            } else {
-                                return "<span class='inactive'>" + data + "</span>";
-                            }
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
                         })
                     },
                     {
@@ -1259,7 +1216,6 @@ namespace Citadel {
                         orderable: false,
                         visible: true,
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-
                             if (data === 1) {
                                 return "<label class='checked-alone'></label>";
                             } else {
@@ -1302,8 +1258,8 @@ namespace Citadel {
                         $("#system_versions_table").on("change", "input[type='checkbox']", function () {
 
                             if (!confirm(that.MESSAGE_VERSION_SET_DEFAULT)) {
-                                var objCheck = < HTMLInputElement > this;
-                                objCheck.checked = false;
+                                // var objCheck = < HTMLInputElement > this;
+                                this['checked'] = false;
                                 return;
                             }
 
