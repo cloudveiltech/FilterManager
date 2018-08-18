@@ -50,7 +50,8 @@ namespace Citadel {
         MESSAGE_CONFIRM_ACTIVATION_DELETE       = 'Really delete app user activation? THIS CANNOT BE UNDONE!!!';
         MESSAGE_CONFIRM_ACTIVATION_BLOCK        = 'Really block app user activation? THIS CANNOT BE UNDONE!!!';
 
-        MESSAGE_ACTION_FAILED = this.MESSAGE_ACTION_FAILED;
+        MESSAGE_LOAD_FAIL                       = 'Failed to load group record from table selection.';
+        MESSAGE_ACTION_FAILED                   = 'Error reported by the server during action. console for more information.';
 
         URL_FETCH_FILTERLIST                = 'api/admin/filterlist/all';
         URL_FETCH_GROUP                     = 'api/admin/group/all';
@@ -70,10 +71,15 @@ namespace Citadel {
         URL_UPDATE_ACTIVATION_FIELD         = 'api/admin/activations/update_field';
         URL_UPDATE_VERSION_STATUS           = 'api/admin/versions/update_status';
 
-        ICON_USER   = '<span class=\'mif-user self-scale-group fg-green\'></span>';
-        ICON_EMAIL   = '<span class=\'mif-mail self-scale-group color-gray\'></span>';
-        ICON_GROUP = '<span class=\'mif-organization self-scale-group fg-green\'></span>';
-        ICON_GROUP_DETACTIVE = '<span class=\'mif-organization self-scale-group color-gray\'></span>';
+        ICON_USER                           = '<span class=\'mif-user self-scale-group fg-green\'></span>';
+        ICON_EMAIL                          = '<span class=\'mif-mail self-scale-group color-gray\'></span>';
+        ICON_GROUP                          = '<span class=\'mif-organization self-scale-group fg-green\'></span>';
+        ICON_GROUP_DETACTIVE                = '<span class=\'mif-organization self-scale-group color-gray\'></span>';
+        ICON_IP                             = '<span class=\'mif-flow-tree self-scale-3\'></span>';
+        ICON_FILTER                         = '<span class=\'mif-filter fg-green\'></span>';
+        ICON_WARNING                        = '<span class=\'mif-warning fg-red\'></span>';
+        SPAN_ACTIVE                         = '<span class=\'active-s status\'>Active</span>';
+        SPAN_INACTIVE                       = '<span class=\'inactive-s status\'>Inactive</span>';
         // ───────────────────────────────────────────────────────────────────
         //   :::::: M A I N   M E N U   B U T T O N   E L E M E N T S ::::::
         // ───────────────────────────────────────────────────────────────────
@@ -90,7 +96,7 @@ namespace Citadel {
         private m_viewUser                      : HTMLDivElement;
         private m_viewGroup                     : HTMLDivElement;
         private m_viewFilter                    : HTMLDivElement;
-        private m_viewDeactivationRequest       : HTMLDivElement;
+        private m_viewDeactivationReq       : HTMLDivElement;
         private m_viewApplication               : HTMLDivElement;
         private m_viewAppGroup                  : HTMLDivElement;
         private m_viewActivation                : HTMLDivElement;
@@ -188,11 +194,11 @@ namespace Citadel {
         }
 
         private loadAllFilters(): void {
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
                 url: this.URL_FETCH_FILTERLIST,
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                success: (data: any): any => {
                     this.m_allFilters = data;
                 },
                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
@@ -200,15 +206,15 @@ namespace Citadel {
                 }
             }
 
-            $.post(ajaxSettings);
+            $.ajax(ajaxSettings);
         }
 
         private loadAllGroups(): void {
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
                 url: this.URL_FETCH_GROUP,
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                success: (data: any): any => {
                     this.m_allGroups = data;
                 },
                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
@@ -216,7 +222,7 @@ namespace Citadel {
                 }
             }
 
-            $.post(ajaxSettings);
+            $.ajax(ajaxSettings);
         }
 
 
@@ -225,7 +231,7 @@ namespace Citadel {
             this.m_viewUser             = document.getElementById('view_user_management') as HTMLDivElement;
             this.m_viewGroup            = document.getElementById('view_group_management') as HTMLDivElement;
             this.m_viewFilter           = document.getElementById('view_filter_management') as HTMLDivElement;
-            this.m_viewDeactivationRequest = document.getElementById('view_user_deactivation_request_management') as HTMLDivElement;
+            this.m_viewDeactivationReq  = document.getElementById('view_user_deactivation_request_management') as HTMLDivElement;
             this.m_viewApplication      = document.getElementById('view_app_management') as HTMLDivElement;
             this.m_viewAppGroup         = document.getElementById('view_app_group_management') as HTMLDivElement;
             this.m_viewActivation       = document.getElementById('view_app_user_activations_management') as HTMLDivElement;
@@ -254,12 +260,15 @@ namespace Citadel {
                 copy: false,
                 delay: false,
                 mirrorContainer: document.body,
+
                 isContainer: ((element: Element): any => {
                     return element.classList.contains('dragula-container');
                 }),
+
                 accepts: ((el ? : Element, target ? : Element, source ? : Element, sibling ? : Element): boolean => {
                     var attr = el.getAttribute('citadel-filter-list-type');
-                    if ((attr.toLowerCase() === 'nlp' || attr.toLowerCase() === 'trigger') && (target.id != 'group_blacklist_filters' && target.id != 'group_unassigned_filters')) {
+                    if ((attr.toLowerCase() === 'nlp' || attr.toLowerCase() === 'trigger') &&
+                        (target.id != 'group_blacklist_filters' && target.id != 'group_unassigned_filters')) {
                         return false;
                     }
 
@@ -361,7 +370,7 @@ namespace Citadel {
                         visible: true,
                         render: ((data: number): any => {
                             if (data == null) return '';
-                            return (data == 1) ? '<span class=\'active-s status\'>Active</span>':'<span class=\'inactive-s status\'>Inactive</span>';
+                            return (data == 1) ? this.SPAN_ACTIVE:this.SPAN_INACTIVE;
                         }),
                         width: '90px'
                     },
@@ -410,7 +419,7 @@ namespace Citadel {
                                 val = 1;
                             }
 
-                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                            let checkAjaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
                                 url: that.URL_UPDATE_USER_FIELD,
@@ -418,7 +427,7 @@ namespace Citadel {
                                     id: id_str,
                                     value: val
                                 },
-                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                success: (data: any): any => {
                                     that.ForceTableRedraw(that.m_tableUsers);
                                     return false;
                                 },
@@ -427,7 +436,7 @@ namespace Citadel {
                                 }
                             }
 
-                            $.post(checkAjaxSettings);
+                            $.ajax(checkAjaxSettings);
                         });
                     })
                 };
@@ -446,22 +455,15 @@ namespace Citadel {
                         visible: true,
                         className: 'content-left',
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            return "<span class='mif-organization self-scale-group fg-green'></span> - <b title='" + row.user_count + " users are registered in this group.'>" + data + "</b> <span class='user_count'>(" + row.user_count + ")</span>";
+                            return this.ICON_GROUP + '- <b title=\'' + row.user_count + ' users are registered to this group.\'>' + data + '</b> <span class=\'user_count\'>(' + row.user_count + ')</span>';
                         })
                     },
                     {
                         title: 'Primary DNS',
                         data: 'primary_dns',
                         visible: true,
-                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            var str = "";
-                            if (data === null || data === "") {
-
-                            } else {
-
-                                str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
-                            }
-                            return str;
+                        render: ((data: string): any => {
+                            return (data === null || data === '')? '': this.ICON_IP + ' ' + data;
                         }),
                         className: 'content-left',
                         width: '190px'
@@ -470,15 +472,8 @@ namespace Citadel {
                         title: 'Secondary DNS',
                         data: 'secondary_dns',
                         visible: true,
-                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            var str = "";
-                            if (data === null || data === "") {
-
-                            } else {
-
-                                str = "<span class='mif-flow-tree self-scale-3'></span> " + data;
-                            }
-                            return str;
+                        render: ((data: string): any => {
+                            return (data === null || data === '')? '': this.ICON_IP + ' ' + data;
                         }),
                         className: 'content-left',
                         width: '190px'
@@ -488,16 +483,16 @@ namespace Citadel {
                         data: 'terminate',
                         visible: true,
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            if (data === null || data === "") {
-                                return "";
+                            if (data === null || data === '') {
+                                return '';
                             }
                             var app_cfg = JSON.parse(row.app_cfg);
-                            var chk_terminate = app_cfg.CannotTerminate ? "checked" : "";
-                            var chk_internet = app_cfg.BlockInternet ? "checked" : "";
-                            var chk_threshold = app_cfg.UseThreshold ? "checked" : "";
-                            var str = "<label class='switch-original'><input type='checkbox' id='group_terminate_" + row.id + "' " + chk_terminate + " /><span class='check'></span></label>";
-                            str += "<label class='switch-original'><input type='checkbox' id='group_internet_" + row.id + "' " + chk_internet + " /><span class='check'></span></label>";
-                            str += "<label class='switch-original'><input type='checkbox' id='group_threshold_" + row.id + "' " + chk_threshold + " /><span class='check'></span></label>";
+                            var chk_terminate = app_cfg.CannotTerminate ? 'checked' : '';
+                            var chk_internet = app_cfg.BlockInternet ? 'checked' : '';
+                            var chk_threshold = app_cfg.UseThreshold ? 'checked' : '';
+                            var str = '<label class=\'switch-original\'><input type=\'checkbox\' id=\'group_terminate_' + row.id + '\'' + chk_terminate + ' /><span class=\'check\'></span></label>';
+                            str += '<label class=\'switch-original\'><input type=\'checkbox\' id=\'group_internet_' + row.id + '\' ' + chk_internet + ' /><span class=\'check\'></span></label>';
+                            str += '<label class=\'switch-original\'><input type=\'checkbox\' id=\'group_threshold_' + row.id + '\' ' + chk_threshold + ' /><span class=\'check\'></span></label>';
                             return str;
                         }),
                         className: 'content-left',
@@ -508,8 +503,8 @@ namespace Citadel {
                         data: 'bypass',
                         visible: true,
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            if (data === null || data === "") {
-                                return "";
+                            if (data === null || data === '') {
+                                return '';
                             }
                             var app_cfg = JSON.parse(row.app_cfg);
                             var bypass_permitted = app_cfg['BypassesPermitted'] === null || app_cfg['BypassesPermitted'] === 0 ? "" : "<span class='mif-clipboard self-scale-4 fg-cyan'></span> " + app_cfg['BypassesPermitted'] + "<span class='unit_day'>/day</span>";
@@ -595,7 +590,7 @@ namespace Citadel {
                                 val = 1;
                             }
 
-                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                            let checkAjaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
                                 url: that.URL_UPDATE_GROUP_FIELD,
@@ -603,7 +598,7 @@ namespace Citadel {
                                     id: id_str,
                                     value: val
                                 },
-                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                success: (data: any): any => {
                                     that.ForceTableRedraw(that.m_tableGroups);
                                     return false;
                                 },
@@ -612,7 +607,7 @@ namespace Citadel {
                                 }
                             }
 
-                            $.post(checkAjaxSettings);
+                            $.ajax(checkAjaxSettings);
                         });
                     })
                 };
@@ -631,42 +626,23 @@ namespace Citadel {
                         data: 'category',
                         visible: true,
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            if (data == null) {
-                                return "";
-                            }
-
-                            if (row.type === "Filters") {
-                                return "<span class='mif-filter fg-green'></span> " + data;
-                            } else {
-                                return "<span class='mif-warning fg-red'></span> " + data;
-                            }
+                            return (data == null)? '':row.type === 'Filters'?this.ICON_FILTER + ' ' + data:this.ICON_WARNING + ' ' + data;
                         })
                     },
                     {
                         title: 'List Group Name',
                         data: 'namespace',
                         visible: true,
-                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            if (data == null) {
-                                return "";
-                            }
-                            return data;
+                        render: ((data: string): any => {
+                            return (data == null)?'':data;
                         })
                     },
                     {
                         title: 'Type',
                         data: 'type',
                         visible: true,
-                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            if (data == null) {
-                                return "";
-                            }
-
-                            if (data === "Filters") {
-                                return "<span class='mif-filter fg-green'></span> " + data;
-                            } else {
-                                return "<span class='mif-warning fg-red'></span> " + data;
-                            }
+                        render: ((data: string): any => {
+                            return (data == null)? '': data === 'Filters'?this.ICON_FILTER + ' ' + data:this.ICON_WARNING + ' ' + data;
                         }),
                     },
                     {
@@ -800,7 +776,7 @@ namespace Citadel {
                                 val = 1;
                             }
 
-                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                            let checkAjaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
                                 url: that.URL_UPDATE_DEACTIVATION_FIELD,
@@ -808,7 +784,7 @@ namespace Citadel {
                                     id: id_str,
                                     value: val
                                 },
-                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                success: (data: any): any => {
                                     that.ForceTableRedraw(that.m_tableDeactivationRequests);
                                     return false;
                                 },
@@ -817,7 +793,7 @@ namespace Citadel {
                                 }
                             }
 
-                            $.post(checkAjaxSettings);
+                            $.ajax(checkAjaxSettings);
                         });
                     })
                 };
@@ -1090,7 +1066,7 @@ namespace Citadel {
                                 val = 1;
                             }
 
-                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                            let checkAjaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
                                 url: that.URL_UPDATE_ACTIVATION_FIELD,
@@ -1098,7 +1074,7 @@ namespace Citadel {
                                     id: id_str,
                                     value: val
                                 },
-                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                success: (data: any): any => {
                                     that.ForceTableRedraw(that.m_tableActivation);
                                     return false;
                                 },
@@ -1107,7 +1083,7 @@ namespace Citadel {
                                 }
                             }
 
-                            $.post(checkAjaxSettings);
+                            $.ajax(checkAjaxSettings);
                         });
                     })
                 };
@@ -1332,14 +1308,14 @@ namespace Citadel {
                             }
 
                             let id_str = this.id;
-                            let checkAjaxSettings: JQuery.UrlAjaxSettings = {
+                            let checkAjaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
                                 url: that.URL_UPDATE_VERSION_STATUS,
                                 data: {
                                     id: id_str
                                 },
-                                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                                success: (data: any): any => {
                                     that.ForceTableRedraw(that.m_tableVersions);
                                     return false;
                                 },
@@ -1348,7 +1324,7 @@ namespace Citadel {
                                 }
                             }
 
-                            $.post(checkAjaxSettings);
+                            $.ajax(checkAjaxSettings);
                         });
                     })
                 };
@@ -1363,70 +1339,63 @@ namespace Citadel {
             appGroupListTableConstruction();
             appUserActivationTableConstruction();
             systemVersionTableConstruction();
-
         }
 
         private ConstructNavigation(): void {
-            // Get references to the top level menu buttons.
-            this.m_btnSignOut = document.getElementById('btn_sign_out') as HTMLLIElement;
 
-            // Get reference to the main menu tab buttons.
-            this.m_tabBtnUsers = document.querySelector('a[href="#tab_users"]') as HTMLLinkElement;
-            this.m_tabBtnGroups = document.querySelector('a[href="#tab_groups"]') as HTMLLinkElement;
-            this.m_tabBtnFilterLists = document.querySelector('a[href="#tab_filter_lists"]') as HTMLLinkElement;
-            this.m_tabBtnUserRequest = document.querySelector('a[href="#tab_user_deactivation_requests"]') as HTMLLinkElement;
-            this.m_tabBtnAppGroup = document.querySelector('a[href="#tab_app_groups"]') as HTMLLinkElement;
-            this.m_tabBtnActivation = document.querySelector('a[href="#tab_app_user_activations"]') as HTMLLinkElement;
-            this.m_tabBtnVersion = document.querySelector('a[href="#tab_system_versions"]') as HTMLLinkElement;
+            this.m_btnSignOut           = document.getElementById('btn_sign_out') as HTMLLIElement;
+
+            this.m_tabBtnUsers          = document.querySelector('a[href="#tab_users"]') as HTMLLinkElement;
+            this.m_tabBtnGroups         = document.querySelector('a[href="#tab_groups"]') as HTMLLinkElement;
+            this.m_tabBtnFilterLists    = document.querySelector('a[href="#tab_filter_lists"]') as HTMLLinkElement;
+            this.m_tabBtnUserRequest    = document.querySelector('a[href="#tab_user_deactivation_requests"]') as HTMLLinkElement;
+            this.m_tabBtnAppGroup       = document.querySelector('a[href="#tab_app_groups"]') as HTMLLinkElement;
+            this.m_tabBtnActivation     = document.querySelector('a[href="#tab_app_user_activations"]') as HTMLLinkElement;
+            this.m_tabBtnVersion        = document.querySelector('a[href="#tab_system_versions"]') as HTMLLinkElement;
             // Init user management button references.
-            this.m_btnCreateUser = document.getElementById('btn_user_add') as HTMLButtonElement;
-            this.m_btnDeleteUser = document.getElementById('btn_user_delete') as HTMLButtonElement;
-
-            // These buttons cannot be enabled until a user is selected.
+            this.m_btnCreateUser        = document.getElementById('btn_user_add') as HTMLButtonElement;
+            this.m_btnDeleteUser        = document.getElementById('btn_user_delete') as HTMLButtonElement;
             this.m_btnDeleteUser.disabled = true;
 
             // Init group management button references.
-            this.m_btnCreateGroup = document.getElementById('btn_group_add') as HTMLButtonElement;
-            this.m_btnDeleteGroup = document.getElementById('btn_group_delete') as HTMLButtonElement;
-            this.m_btnCloneGroup = document.getElementById('btn_group_clone') as HTMLButtonElement;
-            // Delete button & Clone button cannot be enabled until a group is selected.
+            this.m_btnCreateGroup       = document.getElementById('btn_group_add') as HTMLButtonElement;
+            this.m_btnDeleteGroup       = document.getElementById('btn_group_delete') as HTMLButtonElement;
+            this.m_btnCloneGroup        = document.getElementById('btn_group_clone') as HTMLButtonElement;
             this.m_btnDeleteGroup.disabled = true;
             this.m_btnCloneGroup.disabled = true;
 
             // Init Filter List/Data management button references.
-            this.m_btnUploadFL = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;
-            this.m_btnDeleteFL = document.getElementById('btn_delete_filter_list') as HTMLButtonElement;
-            this.m_btnDeleteFLInNamespace = document.getElementById('btn_delete_filter_list_namespace') as HTMLButtonElement;
-            this.m_btnDeleteFLTypeInNamespace = document.getElementById('btn_delete_filter_list_type_namespace') as HTMLButtonElement;
-
-            // Delete button cannot be enabled until a list is selected.
+            this.m_btnUploadFL          = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;
+            this.m_btnDeleteFL          = document.getElementById('btn_delete_filter_list') as HTMLButtonElement;
+            this.m_btnDeleteFLInNamespace       = document.getElementById('btn_delete_filter_list_namespace') as HTMLButtonElement;
+            this.m_btnDeleteFLTypeInNamespace   = document.getElementById('btn_delete_filter_list_type_namespace') as HTMLButtonElement;
             this.m_btnDeleteFL.disabled = true;
             this.m_btnDeleteFLInNamespace.disabled = true;
             this.m_btnDeleteFLTypeInNamespace.disabled = true;
 
             // Init user deactivation request.
-            this.m_btnDeleteDR = document.getElementById('btn_delete_user_deactivation_request') as HTMLButtonElement;
+            this.m_btnDeleteDR          = document.getElementById('btn_delete_user_deactivation_request') as HTMLButtonElement;
             this.m_btnDeleteDR.disabled = true;
 
-            this.m_btnRefreshDR = document.getElementById('btn_refresh_user_deactivation_request_list') as HTMLButtonElement;
+            this.m_btnRefreshDR         = document.getElementById('btn_refresh_user_deactivation_request_list') as HTMLButtonElement;
 
-            this.m_btnApp = document.getElementById('global_radio_app') as HTMLInputElement;
-            this.m_btnAppGroup = document.getElementById('global_radio_app_group') as HTMLInputElement;
-            this.m_btnAddApplication = document.getElementById('btn_application_add') as HTMLButtonElement;
+            this.m_btnApp               = document.getElementById('global_radio_app') as HTMLInputElement;
+            this.m_btnAppGroup          = document.getElementById('global_radio_app_group') as HTMLInputElement;
+            this.m_btnAddApplication    = document.getElementById('btn_application_add') as HTMLButtonElement;
             this.m_btnRemoveApplication = document.getElementById('btn_application_remove') as HTMLButtonElement;
             this.m_btnRemoveApplication.disabled = true;
-            this.m_btnApplyToGroup = document.getElementById('btn_apply_group') as HTMLButtonElement;
+            this.m_btnApplyToGroup      = document.getElementById('btn_apply_group') as HTMLButtonElement;
 
-            this.m_btnDeleteActivation = document.getElementById('btn_delete_activation') as HTMLButtonElement;
-            this.m_btnBlockActivation = document.getElementById('btn_block_activations') as HTMLButtonElement;
+            this.m_btnDeleteActivation  = document.getElementById('btn_delete_activation') as HTMLButtonElement;
+            this.m_btnBlockActivation   = document.getElementById('btn_block_activations') as HTMLButtonElement;
             this.m_btnDeleteActivation.disabled = true;
             this.m_btnBlockActivation.disabled = true;
 
-            this.m_btnCreateVersion = document.getElementById('btn_version_add') as HTMLButtonElement;
-            this.m_btnDeleteVersion = document.getElementById('btn_version_delete') as HTMLButtonElement;
+            this.m_btnCreateVersion     = document.getElementById('btn_version_add') as HTMLButtonElement;
+            this.m_btnDeleteVersion     = document.getElementById('btn_version_delete') as HTMLButtonElement;
             this.m_btnDeleteVersion.disabled = true;
-            this.m_btnSystemPlatform = document.getElementById('btn_sysem_platform') as HTMLButtonElement;
-            // Get handlers setup for all input.
+            this.m_btnSystemPlatform    = document.getElementById('btn_sysem_platform') as HTMLButtonElement;
+
             this.InitButtonHandlers();
         }
 
@@ -1490,9 +1459,6 @@ namespace Citadel {
                 this.OnClickPlatform(e);
             });
 
-            // In our main menu tab click handlers, all we need to do is
-            // synchronize the view state, so we just call the setter from
-            // within.
             this.m_tabBtnUsers.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.UserListView;
             });
@@ -1514,7 +1480,6 @@ namespace Citadel {
                 this.ViewState = DashboardViewStates.SystemVersionView;
             });
 
-
             this.m_tabBtnAppGroup.onclick = ((e: MouseEvent) => {
                 if (this.m_btnApp.checked) {
                     this.ViewState = DashboardViewStates.AppView;
@@ -1522,29 +1487,33 @@ namespace Citadel {
                     this.ViewState = DashboardViewStates.AppGroupView;
                 }
             });
+
             this.m_btnApp.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.AppView;
-                let itemIsActuallySelected = $("#app_table").children().next().find(".selected").length > 0 ? true : false;
-                this.m_btnRemoveApplication.disabled = true;
-                this.m_btnAddApplication.innerHTML = '<span class="icon mif-stack"></span>Add <br /> Application';
-                this.m_btnRemoveApplication.innerHTML = '<span class="mif-cancel"></span>Remove <br /> Application';
-                this.m_btnApplyToGroup.innerHTML = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To App Group'
+                let itemIsActuallySelected              = $("#app_table").children().next().find(".selected").length > 0 ? true : false;
+                this.m_btnRemoveApplication.disabled    = true;
+                this.m_btnAddApplication.innerHTML      = '<span class="icon mif-stack"></span>Add <br /> Application';
+                this.m_btnRemoveApplication.innerHTML   = '<span class="mif-cancel"></span>Remove <br /> Application';
+                this.m_btnApplyToGroup.innerHTML        = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To App Group'
             });
 
             this.m_btnAppGroup.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.AppGroupView;
-                let itemIsActuallySelected = $("#app_group_table").children().next().find(".selected").length > 0 ? true : false;
-                this.m_btnRemoveApplication.disabled = true;
-                this.m_btnAddApplication.innerHTML = '<span class="icon mif-stack"></span>Add <br /> Application <br /> Group';
-                this.m_btnRemoveApplication.innerHTML = '<span class="mif-cancel"></span>Remove <br /> Application <br /> Group';
-                this.m_btnApplyToGroup.innerHTML = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To User Group'
+                let itemIsActuallySelected              = $("#app_group_table").children().next().find(".selected").length > 0 ? true : false;
+                this.m_btnRemoveApplication.disabled    = true;
+                this.m_btnAddApplication.innerHTML      = '<span class="icon mif-stack"></span>Add <br /> Application <br /> Group';
+                this.m_btnRemoveApplication.innerHTML   = '<span class="mif-cancel"></span>Remove <br /> Application <br /> Group';
+                this.m_btnApplyToGroup.innerHTML        = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To User Group'
             });
+
             this.m_btnAddApplication.onclick = ((e: MouseEvent) => {
                 this.OnAddApplicationClicked(e);
             });
+
             this.m_btnRemoveApplication.onclick = ((e: MouseEvent) => {
                 this.onRemoveApplicationClicked(e);
             });
+
             this.m_btnApplyToGroup.onclick = ((e: MouseEvent) => {
                 this.onApplyToGroupClicked(e);
             });
@@ -1560,7 +1529,6 @@ namespace Citadel {
             this.m_btnBlockActivation.onclick = ((e: MouseEvent) => {
                 this.onBlockAppUserActivationClicked(e);
             });
-
         }
 
         private OnTableRowCreated(row: Node, data: any[] | Object): void {
@@ -1638,46 +1606,23 @@ namespace Citadel {
             }
         }
 
-        /**
-         * Called whenever a row in any of our data tables is double clicked.
-         * This is considered an action by the user to start the process of
-         * editing the data in the double-clicked row.
-         *
-         * @private
-         * @param {MouseEvent} e
-         * @param {(any[] | Object)} data
-         *
-         * @memberOf Dashboard
-         */
         private OnTableRowDoubleClicked(e: MouseEvent, data: any[] | Object): void {
-            // Stop the event so it doesn't go anywhere else. We're handling it here.
             e.stopImmediatePropagation();
             e.stopPropagation();
-            // Get a typed instanced of the selected row.
-            let selectedRow = e.currentTarget as HTMLTableRowElement;
 
-            // Get the parent HTML table element.
+            let selectedRow = e.currentTarget as HTMLTableRowElement;
             let parentTable = $(selectedRow).closest('table')[0];
 
-            // Switch the unique ID on the parent table to figure out which type of
-            // element we're going to start editing.
             switch (parentTable.id) {
                 case 'user_table':
                     {
                         let userRecord = new UserRecord();
 
                         userRecord.ActionCompleteCallback = ((action: string): void => {
-
                             userRecord.StopEditing();
-
-                            // Whenever we do any action on a user record
-                            // successfully, we want to simply redraw the user
-                            // table to get the updated data showing.
                             this.ForceTableRedraw(this.m_tableUsers);
                         });
 
-                        // We supply everything in the groups table so that the user's group
-                        // can be changed to any available group.
                         userRecord.StartEditing(this.m_allGroups, data);
                     }
                     break;
@@ -1686,22 +1631,12 @@ namespace Citadel {
                     {
                         let groupRecord = new GroupRecord();
 
-                        // We supply everything in the filter lists table so that assigned
-                        // filters can be laid out for editing.
                         groupRecord.StartEditing(this.m_allFilters, data);
 
                         groupRecord.ActionCompleteCallback = ((action: string): void => {
-
                             groupRecord.StopEditing();
 
-                            // Whenever we do any action on a group record
-                            // successfully, we want to simply redraw the group
-                            // table to get the updated data showing.
                             this.ForceTableRedraw(this.m_tableGroups);
-
-                            // We're also going to force redraw the user table, because
-                            // group table data is shown in there, and the user might have
-                            // changed a group name or something.
                             this.ForceTableRedraw(this.m_tableUsers);
                         });
                     }
@@ -1717,17 +1652,10 @@ namespace Citadel {
                     {
                         let deactivationRequestRecord = new DeactivationRequestRecord();
 
-                        // We supply everything in the filter lists table so that assigned
-                        // filters can be laid out for editing.
                         deactivationRequestRecord.StartEditing(data);
 
                         deactivationRequestRecord.ActionCompleteCallback = ((action: string): void => {
-
                             deactivationRequestRecord.StopEditing();
-
-                            // Whenever we do any action on a group record
-                            // successfully, we want to simply redraw the group
-                            // table to get the updated data showing.
                             this.ForceTableRedraw(this.m_tableDeactivationRequests);
                         });
                     }
@@ -1737,17 +1665,10 @@ namespace Citadel {
                         let appRecord = new AppRecord();
 
                         appRecord.ActionCompleteCallback = ((action: string): void => {
-
                             appRecord.StopEditing();
-
-                            // Whenever we do any action on a user record
-                            // successfully, we want to simply redraw the user
-                            // table to get the updated data showing.
                             this.ForceTableRedraw(this.m_tableAppLists);
                         });
 
-                        // We supply everything in the groups table so that the user's group
-                        // can be changed to any available group.
                         appRecord.StartEditing(data);
                     }
                     break;
@@ -1757,17 +1678,10 @@ namespace Citadel {
                         let appGroupRecord = new AppGroupRecord();
 
                         appGroupRecord.ActionCompleteCallback = ((action: string): void => {
-
                             appGroupRecord.StopEditing();
-
-                            // Whenever we do any action on a user record
-                            // successfully, we want to simply redraw the user
-                            // table to get the updated data showing.
                             this.ForceTableRedraw(this.m_tableAppGroupLists);
                         });
 
-                        // We supply everything in the groups table so that the user's group
-                        // can be changed to any available group.
                         appGroupRecord.StartEditing(data);
                     }
                     break;
@@ -1863,7 +1777,6 @@ namespace Citadel {
                 try {
                     versionObject = BaseRecord.CreateFromObject(VersionRecord, selectedItem);
 
-                    // We want to update the table after a delete.
                     versionObject.ActionCompleteCallback = ((action: string): void => {
                         this.ForceTableRedraw(this.m_tableVersions);
                     });
@@ -1933,7 +1846,7 @@ namespace Citadel {
                         groupObject.Delete();
                     }
                 } catch (e) {
-                    console.log('Failed to load group record from table selection.');
+                    console.log(this.MESSAGE_LOAD_FAIL);
                 }
             }
         }
@@ -2064,7 +1977,7 @@ namespace Citadel {
                         }
                     } catch (e) {
                         this.m_btnRemoveApplication.disabled = false;
-                        console.log('Failed to load application record from table selection.');
+                        console.log(this.MESSAGE_LOAD_FAIL);
                     }
                 }
             } else {
@@ -2075,7 +1988,6 @@ namespace Citadel {
                     try {
                         appGroupObj = BaseRecord.CreateFromObject(AppGroupRecord, selectedItem);
 
-                        // We want to update both users and groups after delete.
                         appGroupObj.ActionCompleteCallback = ((action: string): void => {
                             this.ForceTableRedraw(this.m_tableAppGroupLists);
                         });
@@ -2085,7 +1997,7 @@ namespace Citadel {
                         }
                     } catch (e) {
                         this.m_btnRemoveApplication.disabled = false;
-                        console.log('Failed to load application record from table selection.');
+                        console.log(this.MESSAGE_LOAD_FAIL);
                     }
                 }
             }
@@ -2147,14 +2059,14 @@ namespace Citadel {
 
         private set ViewState(value: DashboardViewStates) {
 
-            this.m_viewUser.style.display = "none";
-            this.m_viewGroup.style.display = "none";
-            this.m_viewFilter.style.display = "none";
-            this.m_viewDeactivationRequest.style.display = "none";
-            this.m_viewApplication.style.display = "none";
-            this.m_viewAppGroup.style.display = "none";
-            this.m_viewActivation.style.display = "none";
-            this.m_viewVersion.style.display = "none";
+            this.m_viewUser.style.display                   = "none";
+            this.m_viewGroup.style.display                  = "none";
+            this.m_viewFilter.style.display                 = "none";
+            this.m_viewDeactivationReq.style.display        = "none";
+            this.m_viewApplication.style.display            = "none";
+            this.m_viewAppGroup.style.display               = "none";
+            this.m_viewActivation.style.display             = "none";
+            this.m_viewVersion.style.display                = "none";
 
             switch (value) {
                 case DashboardViewStates.UserListView:
@@ -2187,7 +2099,7 @@ namespace Citadel {
                 case DashboardViewStates.DeactivationRequestListView:
                     {
                         this.ForceTableRedraw(this.m_tableDeactivationRequests);
-                        this.m_viewDeactivationRequest.style.display = "block";
+                        this.m_viewDeactivationReq.style.display = "block";
                         this.m_btnDeleteDR.disabled = true;
                     }
                     break;
@@ -2232,15 +2144,12 @@ namespace Citadel {
         }
     }
 
-    // Our Dashboard instance. Will be set when document is ready.
     let citadelDashboard: Dashboard;
 
-    // Create new instance of the dashboard class on page load.
     document.onreadystatechange = (event: ProgressEvent) => {
         if (document.readyState.toUpperCase() == "complete".toUpperCase()) {
             $.ajaxPrefilter(function (options, originalOptions, xhr) { // this will run before each request
                 var token = $('meta[name="csrf-token"]').attr('content'); // or _token, whichever you are using
-
                 if (token) {
                     return xhr.setRequestHeader('X-CSRF-TOKEN', token); // adds directly to the XmlHttpRequest Object
                 }
