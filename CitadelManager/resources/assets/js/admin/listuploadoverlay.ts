@@ -26,14 +26,24 @@ namespace Citadel {
      * @class ListUploadOverlay
      */
     export class ListUploadOverlay {
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        ERROR_MESSAGE_DELAY_TIME        = 5000;
+        FADE_IN_DELAY_TIME              = 200;
 
-        /**
-         * Callback that is triggered on each successful upload.
-         *
-         * @private
-         * @type {UploadComplete}
-         * @memberOf ListUploadOverlay
-         */
+        URL_FILTER_UPLOAD               = 'api/admin/filterlists/upload';
+
+        TITLE_COMPLETE                  = 'Upload Complete';
+        TITLE_FAILED                    = 'Upload Failed';
+        TITLE_UPLOADING                 = 'Uploading File';
+        MESSAGE_COMPLETE                = 'File upload complete.';
+        MESSAGE_UPLOADING_PREFIX        = 'Uploading file.';
+        MESSAGE_UPLOADING_SUFFIX        = '%. File is being processed. Do not refresh your browser.';
+
+        // ───────────────────────────────────────────────────
+        //   :::::: C A L L B A C K S  ::::::
+        // ───────────────────────────────────────────────────
         private m_uploadCompleteCallback: UploadComplete;
 
         public get UploadCompleteCallback(): UploadComplete {
@@ -44,13 +54,6 @@ namespace Citadel {
             this.m_uploadCompleteCallback = value;
         }
 
-        /**
-         * Callback that is triggered on each failed upload.
-         *
-         * @private
-         * @type {UploadFailed}
-         * @memberOf ListUploadOverlay
-         */
         private m_uploadFailedCallback: UploadFailed;
 
         public get UploadFailedCallback(): UploadFailed {
@@ -61,107 +64,30 @@ namespace Citadel {
             this.m_uploadFailedCallback = value;
         }
 
-        /**
-         * The div container that represents the entirety of our HTML UI.
-         *
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf ListUploadOverlay
-         */
-        private m_overlay: HTMLDivElement;
+        // ───────────────────────────────────────────────
+        //   :::::: H T M L      E L E M E N T S  ::::::
+        // ───────────────────────────────────────────────
+        private m_overlay               : HTMLDivElement;
+        private m_inputSelectedFile     : HTMLInputElement;
+        private m_inputNamespace        : HTMLInputElement;
+        private m_inputOverWrite        : HTMLInputElement;
 
-        /**
-         * A readonly display to show the user the file they have selected for upload.
-         *
-         * @private
-         * @type {HTMLInputElement}
-         * @memberOf ListUploadOverlay
-         */
-        private m_listSelectedFileNameInput: HTMLInputElement;
+        private m_btnSubmit             : HTMLButtonElement;
+        private m_btnCancel             : HTMLButtonElement;
 
-        /**
-         * The input element where the user may define a namespace for the lists that are to be uploaded.
-         * Namespaces permit multiple sets of the same list categories. They are also referred to as list
-         * groups, but the function is precisely that of a namespace: to prevent name collisions.
-         *
-         * @private
-         * @type {HTMLInputElement}
-         * @memberOf ListUploadOverlay
-         */
-        private m_listNamespaceInput: HTMLInputElement;
+        private m_listExistNamespace    : HTMLDataListElement;
 
-        /**
-         * The checkbox toggle used to indicate whether or not this upload should overwrite any and all
-         * categories that are of the same name within the same namespace, or if the contents of matching
-         * categories should be merged and then prune to unique entries only.
-         *
-         * @private
-         * @type {HTMLInputElement}
-         * @memberOf ListUploadOverlay
-         */
-        private m_overwriteOnUploadInput: HTMLInputElement;
-
-        /**
-         * The submit button. This should only be made enabled when a file is currently
-         * in the dropzone queue.
-         *
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf ListUploadOverlay
-         */
-        private m_submitButton: HTMLButtonElement;
-
-        /**
-         * The cancel button. Should be available at any time, and shut down the overlay.
-         *
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf ListUploadOverlay
-         */
-        private m_cancelButton: HTMLButtonElement;
-
-        /**
-         * Holds suggestions for the namespace input box. Dynamically
-         * populated to hold existing namespaces.
-         *
-         * @private
-         * @type {HTMLDataListElement}
-         * @memberOf ListUploadOverlay
-         */
-        private m_existingNamespaceDataList: HTMLDataListElement;
-
-        /**
-         * Used to display full page, overlay progress event information to the
-         * user.
-         *
-         * @private
-         * @type {ProgressWait}
-         * @memberOf Dashboard
-         */
-        private m_progressWait: ProgressWait;
-
-        /**
-         * Dropzone control.
-         *
-         * @private
-         * @type {Dropzone}
-         * @memberOf Dashboard
-         */
-        private m_filterListDropzone: Dropzone;
+        private m_progressWait          : ProgressWait;
+        private m_filterListDropzone    : Dropzone;
 
         constructor() {
-            // Build dropzone for uploading filter lists.
             this.ConstructDropzone();
-
-            // Build button/input handlers and references.
             this.ConstructUIElements();
         }
 
         private ConstructDropzone(): void {
-            // Ensure progresswait exists for dropzone.
             this.m_progressWait = new ProgressWait();
 
-            // Build the filter list upload dropzone.
             let dropzoneOptions: Dropzone.DropzoneOptions = {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -171,27 +97,25 @@ namespace Citadel {
                 autoProcessQueue: false,
                 maxFiles: 1,
                 parallelUploads: 1,
-                url: 'api/admin/filterlists/upload',
+                url: this.URL_FILTER_UPLOAD,
                 complete: ((file: Dropzone.DropzoneFile): void => {
                     this.m_filterListDropzone.removeAllFiles();
 
                     if (file.accepted == true) {
-                        this.m_progressWait.Show("Upload Complete", "File upload complete.");
+                        this.m_progressWait.Show(this.TITLE_COMPLETE, this.MESSAGE_COMPLETE);
+
                         setTimeout(() => {
                             this.m_progressWait.Hide();
-
                             if (this.m_uploadCompleteCallback != null) {
                                 this.m_uploadCompleteCallback();
                             }
-
-                        }, 4000);
+                        }, this.ERROR_MESSAGE_DELAY_TIME);
                     }
                 }),
                 error: ((file: Dropzone.DropzoneFile, message: string | Error, xhr: XMLHttpRequest): void => {
 
                     file.accepted = false;
-
-                    this.m_progressWait.Show("Upload Failed", xhr.responseText);
+                    this.m_progressWait.Show(this.TITLE_FAILED, xhr.responseText);
 
                     setTimeout(() => {
                         this.m_progressWait.Hide();
@@ -199,38 +123,32 @@ namespace Citadel {
                         if (this.m_uploadFailedCallback != null) {
                             this.m_uploadFailedCallback(message);
                         }
-                    }, 4000);
+                    }, this.ERROR_MESSAGE_DELAY_TIME);
 
                     this.m_filterListDropzone.removeAllFiles();
                 }),
                 maxfilesexceeded: ((file: Dropzone.DropzoneFile): void => {
                     this.m_filterListDropzone.removeAllFiles();
                     this.m_filterListDropzone.addFile(file);
-
-                    this.m_listSelectedFileNameInput.value = file.name;
-
-                    this.m_submitButton.disabled = false;
+                    this.m_inputSelectedFile.value = file.name;
+                    this.m_btnSubmit.disabled = false;
                 }),
                 addedfile: ((file: Dropzone.DropzoneFile): void => {
-                    this.m_listSelectedFileNameInput.value = file.name;
-
-                    this.m_submitButton.disabled = false;
+                    this.m_inputSelectedFile.value = file.name;
+                    this.m_btnSubmit.disabled = false;
                 }),
                 uploadprogress: ((file: Dropzone.DropzoneFile, progress: number, bytesSent: number): any => {
                     if (file.accepted) {
-                        this.m_progressWait.Show("Uploading File", 'Uploading file. ' + progress.toFixed(2) + '%. File is being processed. Do not refresh your browser.');
+                        this.m_progressWait.Show(this.TITLE_UPLOADING, this.MESSAGE_UPLOADING_PREFIX + progress.toFixed(2) + this.MESSAGE_UPLOADING_SUFFIX);
                     }
                 }),
                 sending: ((file: Dropzone.DropzoneFile, xhr: XMLHttpRequest, formData: FormData): void => {
-                    // This is where you're going to send all the extra post data that you want
-                    // along with an upload.
 
-                    if (this.m_listNamespaceInput.value == null || this.m_listNamespaceInput.value.length <= 0) {
-                        this.m_listNamespaceInput.value = "Default";
+                    if (this.m_inputNamespace.value == null || this.m_inputNamespace.value.length <= 0) {
+                        this.m_inputNamespace.value = "Default";
                     }
-
-                    formData.append('overwrite', this.m_overwriteOnUploadInput.checked ? '1' : '0');
-                    formData.append('namespace', this.m_listNamespaceInput.value);
+                    formData.append('overwrite', this.m_inputOverWrite.checked ? '1' : '0');
+                    formData.append('namespace', this.m_inputNamespace.value);
                 })
             };
 
@@ -238,26 +156,19 @@ namespace Citadel {
         }
 
         private ConstructUIElements(): void {
-            this.m_overlay = document.querySelector('#overlay_list_upload') as HTMLDivElement;
+            this.m_overlay              = document.querySelector('#overlay_list_upload') as HTMLDivElement;
+            this.m_inputSelectedFile    = document.querySelector('#upload_list_selected_file_name') as HTMLInputElement;
+            this.m_inputNamespace       = document.querySelector('#upload_list_namespace') as HTMLInputElement;
+            this.m_inputOverWrite       = document.querySelector('#upload_list_overwrite') as HTMLInputElement;
+            this.m_btnSubmit            = document.querySelector('#upload_list_submit') as HTMLButtonElement;
+            this.m_btnCancel            = document.querySelector('#upload_list_cancel') as HTMLButtonElement;
+            this.m_listExistNamespace   = document.querySelector('#existing_list_namespaces') as HTMLDataListElement;
 
-            this.m_listSelectedFileNameInput = document.querySelector('#upload_list_selected_file_name') as HTMLInputElement;
-
-            this.m_listNamespaceInput = document.querySelector('#upload_list_namespace') as HTMLInputElement;
-
-            this.m_overwriteOnUploadInput = document.querySelector('#upload_list_overwrite') as HTMLInputElement;
-
-            this.m_submitButton = document.querySelector('#upload_list_submit') as HTMLButtonElement;
-
-            this.m_cancelButton = document.querySelector('#upload_list_cancel') as HTMLButtonElement;
-
-            this.m_existingNamespaceDataList = document.querySelector('#existing_list_namespaces') as HTMLDataListElement;
-
-            this.m_submitButton.onclick = ((e: MouseEvent) => {
-                // Let dropzone do its thing.
+            this.m_btnSubmit.onclick = ((e: MouseEvent) => {
                 this.m_filterListDropzone.processQueue();
             });
 
-            this.m_cancelButton.onclick = ((e: MouseEvent) => {
+            this.m_btnCancel.onclick = ((e: MouseEvent) => {
                 this.Hide();
             });
 
@@ -265,40 +176,23 @@ namespace Citadel {
         }
 
         private Reset(): void {
-            // By default, disable submit button.
-            this.m_submitButton.disabled = true;
+            this.m_btnSubmit.disabled = true;
+            this.m_btnCancel.disabled = false;
 
-            // Ensure cancel button is always available.
-            this.m_cancelButton.disabled = false;
-
-            // Clear out dropzone.
             this.m_filterListDropzone.removeAllFiles();
 
-            // Clear out existing namespace suggestions.
-            while (this.m_existingNamespaceDataList.firstChild) {
-                this.m_existingNamespaceDataList.removeChild(this.m_existingNamespaceDataList.firstChild);
+            while (this.m_listExistNamespace.firstChild) {
+                this.m_listExistNamespace.removeChild(this.m_listExistNamespace.firstChild);
             }
 
-            // Form defaults.
-            this.m_listNamespaceInput.value = "Default";
-            this.m_listSelectedFileNameInput.value = "";
-            this.m_overwriteOnUploadInput.checked = false;
+            this.m_inputNamespace.value = "Default";
+            this.m_inputSelectedFile.value = "";
+            this.m_inputOverWrite.checked = false;
         }
 
-        /**
-         * Shows the HTML UI. Takes the datatables data from the lists table and tries
-         * to extract existing filter groups/namespaces to show them as suggestions
-         * inside the input field.
-         *
-         * @param {DataTables.Api} allLists
-         * @param {number} [fadeInTimeMsec=200]
-         *
-         * @memberOf ListUploadOverlay
-         */
         public Show(allLists: DataTables.Api, fadeInTimeMsec: number = 200): void {
             this.Reset();
 
-            // Try to build out suggestions based on existing filter namespaces, if any.
             if (allLists != null && allLists.length > 0) {
                 let uniqueNamespaces = {};
                 let distinct = [];
@@ -314,7 +208,7 @@ namespace Citadel {
                 distinct.forEach((value: any): void => {
                     let existingNamespaceOption = document.createElement('option') as HTMLOptionElement;
                     existingNamespaceOption.value = value;
-                    this.m_existingNamespaceDataList.appendChild(existingNamespaceOption);
+                    this.m_listExistNamespace.appendChild(existingNamespaceOption);
                 });
 
             }
@@ -322,13 +216,6 @@ namespace Citadel {
             $(this.m_overlay).fadeIn(fadeInTimeMsec);
         }
 
-        /**
-         * Hides the HTML UI.
-         *
-         * @param {number} [fadeOutTimeMsec=200]
-         *
-         * @memberOf ListUploadOverlay
-         */
         public Hide(fadeOutTimeMsec: number = 200): void {
             $(this.m_overlay).fadeOut(fadeOutTimeMsec);
         }
