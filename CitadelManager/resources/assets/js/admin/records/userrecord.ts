@@ -447,7 +447,6 @@ namespace Citadel {
                                 },
                                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
                                     that.m_progressWait.Show(that.TITLE_ACTION_FAILED, that.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
-
                                     setTimeout(() => {
                                         that.m_progressWait.Hide();
                                     }, that.ERROR_MESSAGE_DELAY_TIME);
