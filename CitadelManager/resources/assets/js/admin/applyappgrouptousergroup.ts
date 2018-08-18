@@ -15,77 +15,71 @@ namespace Citadel {
      * @class ApplyToGroupOverlay
      */
     export class ApplyAppgroupToUsergroup {
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        ERROR_MESSAGE_DELAY_TIME        = 5000;
+        FADE_IN_DELAY_TIME              = 200;
 
-        /**
-         * The div container that represents the entirety of our HTML UI.
-         *
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf ApplyToGroupOverlay
-         */
-        private m_parentDashboard: Citadel.Dashboard;
-        private m_overlay: HTMLDivElement;
-        private m_appGroupNameList: HTMLSelectElement;
-        /**
-         * Unselected Groups/Selected Groups to apply with Black/Whitelist.
-         *
-         * @private
-         * @type {HTMLSelectElement}
-         * @memberOf ApplyToGroupOverlay
-         */
-        private m_arrLeftGroupData: any[];
-        private m_arrRightGroupData: any[];
-        private m_leftSelect: HTMLSelectElement;
-        private m_rightSelect: HTMLSelectElement;
-        /**
-         * The close button. Should be available at any time, and shut down the overlay.
-         *
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf ApplyToGroupOverlay
-         */
-        private m_closeButton: HTMLButtonElement;
-        private m_applyButton: HTMLButtonElement;
-        private m_btnMoveRightAll: HTMLButtonElement;
-        private m_btnMoveRight: HTMLButtonElement;
-        private m_btnMoveLeft: HTMLButtonElement;
-        private m_btnMoveLeftAll: HTMLButtonElement;
-        /**
-         * Used to display full page, overlay progress event information to the
-         * user.
-         *
-         * @private
-         * @type {ProgressWait}
-         * @memberOf Dashboard
-         */
-        private m_progressWait: ProgressWait;
+        MESSAGE_LOADING                 = 'Please wait...';
+        MESSAGE_ACTION_FAILED           = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        private m_userGroups: any[];
-        private m_selectedGroups: any[];
-        private m_unselectedGroups: any[];
+        TITLE_LOADING                   = 'Loading';
+        TITLE_ACTION_FAILED             = 'Action Failed';
+
+        URL_GET_APPLY_GRP_DATA          = 'api/admin/apply_appgroup_to_usergroup/data';
+        URL_SELECTED_USER_GRP           = 'api/admin/apply_appgroup_to_usergroup/selected_user_group';
+        URL_APPLY_APP_TO_USER           = 'api/admin/apply_appgroup_to_usergroup';
+        // ───────────────────────────────────────────────────
+        //   :::::: M E M B E R S    V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        private m_arrLeftGroupData      : any[];
+        private m_arrRightGroupData     : any[];
+        private m_userGroups            : any[];
+        private m_selectedGroups        : any[];
+        private m_unselectedGroups      : any[];
+        // ─────────────────────────────────────────────────────────
+        //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
+        // ─────────────────────────────────────────────────────────
+        private m_parentDashboard       : Citadel.Dashboard;
+        private m_overlay               : HTMLDivElement;
+        private m_appGroupNameList      : HTMLSelectElement;
+
+        private m_leftSelect            : HTMLSelectElement;
+        private m_rightSelect           : HTMLSelectElement;
+
+        private m_closeButton           : HTMLButtonElement;
+        private m_applyButton           : HTMLButtonElement;
+
+        private m_btnMoveRightAll       : HTMLButtonElement;
+        private m_btnMoveRight          : HTMLButtonElement;
+        private m_btnMoveLeft           : HTMLButtonElement;
+        private m_btnMoveLeftAll        : HTMLButtonElement;
+        private m_progressWait          : ProgressWait;
+
         constructor(dashboard) {
             this.m_parentDashboard = dashboard;
-            // Build button/input handlers and references.
             this.ConstructUIElements();
         }
 
         private ConstructUIElements(): void {
+
             let that = this;
-            this.m_overlay = document.querySelector('#overlay_apply_app_group_to_user_group') as HTMLDivElement;
-            this.m_appGroupNameList = document.querySelector("#app_group_name_list") as HTMLSelectElement;
-            this.m_leftSelect = document.querySelector("#apply_app_group_to_user_group_source_list") as HTMLSelectElement;
-            this.m_rightSelect = document.querySelector("#apply_app_group_to_user_group_target_list") as HTMLSelectElement;
+            this.m_overlay              = document.querySelector('#overlay_apply_app_group_to_user_group') as HTMLDivElement;
+            this.m_appGroupNameList     = document.querySelector("#app_group_name_list") as HTMLSelectElement;
+            this.m_leftSelect           = document.querySelector("#apply_app_group_to_user_group_source_list") as HTMLSelectElement;
+            this.m_rightSelect          = document.querySelector("#apply_app_group_to_user_group_target_list") as HTMLSelectElement;
 
-            this.m_btnMoveRightAll = document.querySelector("#apply_app_group_to_user_group_right_all_btn") as HTMLButtonElement;
-            this.m_btnMoveRight = document.querySelector("#apply_app_group_to_user_group_right_btn") as HTMLButtonElement;
-            this.m_btnMoveLeft = document.querySelector("#apply_app_group_to_user_group_left_btn") as HTMLButtonElement;
-            this.m_btnMoveLeftAll = document.querySelector("#apply_app_group_to_user_group_left_all_btn") as HTMLButtonElement;
+            this.m_btnMoveRightAll      = document.querySelector("#apply_app_group_to_user_group_right_all_btn") as HTMLButtonElement;
+            this.m_btnMoveRight         = document.querySelector("#apply_app_group_to_user_group_right_btn") as HTMLButtonElement;
+            this.m_btnMoveLeft          = document.querySelector("#apply_app_group_to_user_group_left_btn") as HTMLButtonElement;
+            this.m_btnMoveLeftAll       = document.querySelector("#apply_app_group_to_user_group_left_all_btn") as HTMLButtonElement;
 
-            this.m_arrLeftGroupData = [];
-            this.m_arrRightGroupData = [];
-            this.m_selectedGroups = [];
-            this.m_applyButton = document.querySelector("#apply_app_group_to_user_group_appy") as HTMLButtonElement;
-            this.m_closeButton = document.querySelector('#apply_app_group_to_user_group_close') as HTMLButtonElement;
+            this.m_arrLeftGroupData     = [];
+            this.m_arrRightGroupData    = [];
+            this.m_selectedGroups       = [];
+            this.m_applyButton          = document.querySelector("#apply_app_group_to_user_group_appy") as HTMLButtonElement;
+            this.m_closeButton          = document.querySelector('#apply_app_group_to_user_group_close') as HTMLButtonElement;
 
             this.m_applyButton.onclick = ((e: MouseEvent) => {
                 this.onApplyButtonClicked(e);
@@ -118,24 +112,16 @@ namespace Citadel {
         private Reset(): void {
             this.m_progressWait = new ProgressWait();
 
-            // Ensure cancel button is always available.
-            this.m_progressWait.Show("Loading", "Please wait...");
+            this.m_progressWait.Show(this.TITLE_LOADING, this.MESSAGE_LOADING);
             this.m_closeButton.disabled = false;
-            this.getRetrieveData();
+            this._getAppliedGroupData();
         }
 
-        /**
-         * Get Group data with AJAX
-         *
-         * @private
-         * @type {}
-         * @memberOf ApplyToGroupOverlay
-         */
-        private getRetrieveData() {
+        private _getAppliedGroupData() {
             let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
-                url: "api/admin/apply_appgroup_to_usergroup/data",
+                url: this.URL_GET_APPLY_GRP_DATA,
                 data: {},
                 success: (data: any): any => {
                     $(this.m_appGroupNameList).empty();
@@ -157,10 +143,10 @@ namespace Citadel {
                     return false;
                 },
                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
-                    this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                    this.m_progressWait.Show(this.TITLE_ACTION_FAILED, this.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
                     setTimeout(() => {
                         this.m_progressWait.Hide();
-                    }, 5000);
+                    }, this.ERROR_MESSAGE_DELAY_TIME);
                 }
             }
 
@@ -171,12 +157,12 @@ namespace Citadel {
             this.m_applyButton.disabled = true;
 
             $('#spiner_3').show();
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
-                url: "api/admin/apply_appgroup_to_usergroup/selected_user_group/" + id,
+                url: this.URL_SELECTED_USER_GRP + id,
                 data: {},
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                success: (data: any): any => {
                     $('#spiner_3').hide();
                     this.m_applyButton.disabled = false;
                     this.m_selectedGroups = [];
@@ -199,28 +185,17 @@ namespace Citadel {
                     return false;
                 },
                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                    this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                    this.m_progressWait.Show(this.TITLE_ACTION_FAILED, this.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
                     setTimeout(() => {
                         this.m_progressWait.Hide();
-                    }, 5000);
+                    }, this.ERROR_MESSAGE_DELAY_TIME);
                 }
             }
 
-            $.get(ajaxSettings);
+            $.ajax(ajaxSettings);
         }
 
-        private drawLeftGroups() {
-            $(this.m_leftSelect).empty();
-            this.m_unselectedGroups.forEach((app_group_id): void => {
-                var newOption = document.createElement("option");
-                var item = this.getUsergroupItem(app_group_id);
-                newOption.text = item.name;
-                newOption.value = item.id;
-                this.m_leftSelect.add(newOption);
-            });
-        }
-
-        private getUsergroupItem(app_group_id) {
+        private _getUsergroupItem(app_group_id) {
             var group_item = null;
             this.m_userGroups.forEach((item: any): void => {
                 if (item.id == app_group_id) {
@@ -232,11 +207,22 @@ namespace Citadel {
             return group_item;
         }
 
-        private drawRightGroups() {
+        public drawLeftGroups() {
+            $(this.m_leftSelect).empty();
+            this.m_unselectedGroups.forEach((app_group_id): void => {
+                var newOption = document.createElement("option");
+                var item = this._getUsergroupItem(app_group_id);
+                newOption.text = item.name;
+                newOption.value = item.id;
+                this.m_leftSelect.add(newOption);
+            });
+        }
+
+        public drawRightGroups() {
             $(this.m_rightSelect).empty();
             this.m_selectedGroups.forEach((group_id): void => {
                 var newOption = document.createElement("option");
-                var item = this.getUsergroupItem(group_id);
+                var item = this._getUsergroupItem(group_id);
                 newOption.text = item.name;
                 newOption.value = item.id;
                 this.m_rightSelect.add(newOption);
@@ -248,13 +234,6 @@ namespace Citadel {
             this.loadSelectedUsergroups(sel_id);
         }
 
-        /**
-         * Get Black/White list data with AJAX
-         *
-         * @private
-         * @type {blackFlag} true: Blacklist, false: Whitelist
-         * @memberOf ApplyToGroupOverlay
-         */
         public onMoveRightAllClicked(e: MouseEvent): void {
             this.m_unselectedGroups.forEach((group_id): void => {
                 this.m_selectedGroups.push(group_id);
@@ -299,18 +278,8 @@ namespace Citadel {
             this.drawRightGroups();
         }
 
-        /**
-         * Shows the HTML UI. Takes the datatables data from the lists table and tries
-         * to extract existing filter groups/namespaces to show them as suggestions
-         * inside the input field.
-         *
-         * @param {e} MouseEvent
-         * @param {number} [fadeInTimeMsec=200]
-         *
-         * @memberOf ApplyToGroupOverlay
-         */
         public onApplyButtonClicked(e: MouseEvent): void {
-            let url = "api/admin/apply_appgroup_to_usergroup"
+            let url = this.URL_APPLY_APP_TO_USER;
             let sel_id = parseInt(this.m_appGroupNameList.selectedOptions[0].value);
             let dataObject = {
                 app_group_id: sel_id,
@@ -318,49 +287,31 @@ namespace Citadel {
             };
 
             $('#spiner_3').show();
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "POST",
                 timeout: 60000,
                 url: url,
                 data: dataObject,
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                success: (data: any): any => {
                     $('#spiner_3').hide();
-
                     return false;
                 },
                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                    this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
+                    this.m_progressWait.Show(this.TITLE_ACTION_FAILED, this.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
                     setTimeout(() => {
                         this.m_progressWait.Hide();
-                    }, 5000);
+                    }, this.ERROR_MESSAGE_DELAY_TIME);
                 }
             }
 
-            $.post(ajaxSettings);
+            $.ajax(ajaxSettings);
         }
 
-        /**
-         * Shows the HTML UI. Takes the datatables data from the lists table and tries
-         * to extract existing filter groups/namespaces to show them as suggestions
-         * inside the input field.
-         *
-         * @param {DataTables.Api} allLists
-         * @param {number} [fadeInTimeMsec=200]
-         *
-         * @memberOf ListUploadOverlay
-         */
         public Show(fadeInTimeMsec: number = 200): void {
             this.Reset();
             $(this.m_overlay).fadeIn(fadeInTimeMsec);
         }
 
-        /**
-         * Hides the HTML UI.
-         *
-         * @param {number} [fadeOutTimeMsec=200]
-         *
-         * @memberOf ListUploadOverlay
-         */
         public Hide(fadeOutTimeMsec: number = 200): void {
             this.m_parentDashboard.ForceTableRedraw(this.m_parentDashboard.m_tableAppLists);
             $(this.m_overlay).fadeOut(fadeOutTimeMsec);
