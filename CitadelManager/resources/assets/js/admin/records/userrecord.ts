@@ -402,7 +402,7 @@ namespace Citadel {
                         e.preventDefault();
                         if (confirm(that.MESSAGE_DELETE_ACTIVATION_CONFIRM)) {
                             let dataObject = {};
-                            let id = that.getIdFromElementId(e.target.id);
+                            let id = that.getIdFromElementId(e.target['id']);
 
                             let ajaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
@@ -433,7 +433,7 @@ namespace Citadel {
                         e.preventDefault();
                         if (confirm(that.MESSAGE_BLOCK_ACTIVATION_CONFIRM)) {
                             let dataObject = {};
-                            let id = that.getIdFromElementId(e.target.id);
+                            let id = that.getIdFromElementId(e.target['id']);
 
                             let ajaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
