@@ -6,6 +6,7 @@
  */
 
 ///<reference path="../progresswait.ts"/>
+/// <reference types="dropzone" />
 
 // Disable dropzone autodiscover in the global scope.
 Dropzone.autoDiscover = false;
