@@ -1263,7 +1263,7 @@ namespace Citadel {
                                 return;
                             }
 
-                            let id_str = this.id;
+                            let id_str = this['id'];
                             let checkAjaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
