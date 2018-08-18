@@ -14,10 +14,11 @@ class App extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'notes'
+        'name', 'notes',
     ];
 
-    public function group() {
+    public function group()
+    {
         return $this->hasMany('App\AppGroupToApp');
     }
 }

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * Description of BlockActionReviewRequest
  *
  */
-class BlockActionReviewRequest extends Model 
+class BlockActionReviewRequest extends Model
 {
     protected $timestamps = true;
 }

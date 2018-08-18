@@ -9,22 +9,22 @@
 
 namespace App\Http\Controllers;
 
-use Validator;
-use App\User;
+use App\AppUserActivation;
+use App\DeactivationRequest;
+use App\Events\DeactivationRequestReceived;
 use App\Group;
 use App\Role;
-use Illuminate\Support\Facades\Auth;
+use App\User;
 use App\UserActivationAttemptResult;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
-use App\DeactivationRequest;
-use App\AppUserActivation;
-use App\Events\DeactivationRequestReceived;
-use Laravel\Passport\Passport;
-use Log;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Log;
+use Validator;
 
-class UserController extends Controller {
+class UserController extends Controller
+{
 
     /**
      * Display a listing of the resource.
@@ -32,8 +32,9 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request) {
-        
+    public function index(Request $request)
+    {
+
         $draw = $request->input('draw');
         $start = $request->input('start');
         $length = $request->input('length') ? $request->input('length') : 10;
@@ -48,27 +49,27 @@ class UserController extends Controller {
 
         $recordsTotal = User::count();
 
-        $query = User::with(['group', 'roles','activations'])
+        $query = User::with(['group', 'roles', 'activations'])
             ->select('users.*')
-            ->when($search, function($query) use($search) {
-                return $query->where('users.name', 'like',"%$search%")
+            ->when($search, function ($query) use ($search) {
+                return $query->where('users.name', 'like', "%$search%")
                     ->orWhere('users.email', 'like', "%$search%");
             })
-            ->when($email, function($query) use($email) {
+            ->when($email, function ($query) use ($email) {
                 return $query->where('users.email', $email);
             })
-            ->when($id, function($query) use($id) {
+            ->when($id, function ($query) use ($id) {
                 return $query->where('users.id', $id);
             })
-            ->when($customer_id, function($query) use($customer_id) {
+            ->when($customer_id, function ($query) use ($customer_id) {
                 return $query->where('users.customer_id', $customer_id);
             })
             ->when(($order_name == 'group.name' || $order_name == 'roles[, ].display_name'), function ($query) use ($order_str, $order_name) {
                 if ($order_name == 'group.name') {
-                    return $query->leftJoin('groups','groups.id','=','users.group_id')
+                    return $query->leftJoin('groups', 'groups.id', '=', 'users.group_id')
                         ->orderBy("groups.name", $order_str);
                 } elseif ($order_name == 'roles[, ].display_name') {
-                    return $query->leftJoin('role_user','role_user.user_id','=','users.id')
+                    return $query->leftJoin('role_user', 'role_user.user_id', '=', 'users.id')
                         ->orderBy("role_user.role_id", $order_str);
                 }
             }, function ($query) use ($order_str, $order_name) {
@@ -76,7 +77,7 @@ class UserController extends Controller {
             });
 
         $recordsFilterTotal = $query->count();
-        
+
         $users = $query->offset($start)
             ->limit($length)
             ->get();
@@ -86,17 +87,17 @@ class UserController extends Controller {
             "recordsTotal" => $recordsTotal,
             "recordsFiltered" => $recordsFilterTotal,
             "search" => $search,
-            "data" => $users
+            "data" => $users,
         ]);
     }
-
 
     /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function create() {
+    public function create()
+    {
         // No forms here kids.
         return response('', 405);
     }
@@ -107,19 +108,20 @@ class UserController extends Controller {
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $this->validate($request, [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|same:password_verify',
             'role_id' => 'required|exists:roles,id',
-            'group_id' => 'required|exists:groups,id'
+            'group_id' => 'required|exists:groups,id',
         ]);
 
-        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id','customer_id','activations_allowed','isactive', 'report_level']);
+        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id', 'customer_id', 'activations_allowed', 'isactive', 'report_level']);
         $input['password'] = Hash::make($input['password']);
-        
-        $user = User::create($input);   
+
+        $user = User::create($input);
 
         $suppliedRoleId = $request->input('role_id');
         $suppliedRole = Role::where('id', $suppliedRoleId)->first();
@@ -134,7 +136,8 @@ class UserController extends Controller {
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id) {
+    public function show($id)
+    {
         return User::where('id', $id)->get();
     }
 
@@ -144,28 +147,30 @@ class UserController extends Controller {
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id) {
+    public function edit($id)
+    {
         // There is no form, son.
         return response('', 405);
     }
 
-    public function updateField(Request $request) {
+    public function updateField(Request $request)
+    {
         $id = $request->input('id');
-        $value = intval($request->input('value'));   //0 or 1
+        $value = intval($request->input('value')); //0 or 1
 
         $id_arr = explode("_", $id);
-        if($id_arr[0] != "user") {
+        if ($id_arr[0] != "user") {
             return response()->json([
-                "success" => false
+                "success" => false,
             ]);
         }
         $user_id = intval($id_arr[2]);
-        User::where('id', $user_id)->update(['report_level'=>$value]);
-        $user = User::with(['group', 'roles','activations'])
-                ->where('id', $user_id)->first();
+        User::where('id', $user_id)->update(['report_level' => $value]);
+        $user = User::with(['group', 'roles', 'activations'])
+            ->where('id', $user_id)->first();
         return response()->json([
             "user" => $user,
-            "success" => true
+            "success" => true,
         ]);
     }
     /**
@@ -175,20 +180,21 @@ class UserController extends Controller {
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
 
         // The javascript side/admin UI will not send
         // password or password_verify unless they are
         // intentionally trying to change a user's password.
 
-        //Checking customer_id 
+        //Checking customer_id
         $input_chk_customer_id = $request->only(['customer_id', 'email', 'name']);
         $customer_id = $input_chk_customer_id['customer_id'];
-        
-        if($customer_id != null) {
+
+        if ($customer_id != null) {
             $customer_list = User::where('id', '!=', $id)->where('customer_id', $customer_id)->get();
             $customer_count = count($customer_list);
-            if($customer_count > 0) {
+            if ($customer_count > 0) {
                 return response('customer_id is duplicated. please choose another customer_id', 403);
             }
         }
@@ -197,7 +203,7 @@ class UserController extends Controller {
         $email = $input_chk_customer_id['email'];
         $email_list = User::where('id', '!=', $id)->where('email', $email)->get();
         $email_count = count($email_list);
-        if($email_count > 0) {
+        if ($email_count > 0) {
             return response('email address exists, please choose another email_address', 403);
         }
 
@@ -207,14 +213,14 @@ class UserController extends Controller {
             $this->validate($request, [
                 'name' => 'required',
                 'email' => 'required',
-                'password' => 'required|same:password_verify'
+                'password' => 'required|same:password_verify',
             ]);
 
             $inclPassword = true;
         } else {
             $this->validate($request, [
                 'name' => 'required',
-                'email' => 'required'
+                'email' => 'required',
             ]);
         }
 
@@ -230,7 +236,7 @@ class UserController extends Controller {
         if ($request->has('role_id')) {
 
             $this->validate($request, [
-                'role_id' => 'required|exists:roles,id'
+                'role_id' => 'required|exists:roles,id',
             ]);
 
             $suppliedRoleId = $request->input('role_id');
@@ -243,7 +249,7 @@ class UserController extends Controller {
             }
         }
 
-        /* 
+        /*
          * If we are deactivating the user then we revoke all their personal access tokens at the same time.
          * This will force them to redo all installations.
          */
@@ -252,9 +258,9 @@ class UserController extends Controller {
             if ($request->input('isactive') == '0') {
                 $updateUser = User::where('id', $id)->first();
                 $userTokens = $updateUser->tokens;
-                foreach($userTokens as $token) {
-                    $token->revoke();   
-                }  
+                foreach ($userTokens as $token) {
+                    $token->revoke();
+                }
             }
         }
 
@@ -267,16 +273,17 @@ class UserController extends Controller {
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id) {
-        
+    public function destroy($id)
+    {
+
         $user = User::where('id', $id)->first();
         if (!is_null($user)) {
 
             // Revoke all tokens.
             $userTokens = $user->tokens;
-            foreach($userTokens as $token) {
-                $token->revoke();   
-            }  
+            foreach ($userTokens as $token) {
+                $token->revoke();
+            }
 
             $user->detachRoles();
 
@@ -292,26 +299,27 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function checkUserData(Request $request) {
+    public function checkUserData(Request $request)
+    {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
         // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
         // If the identifier doesn't exist in the system we create a new activation.
         if ($request->has('identifier')) {
             $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
-            if($activation) {
+            if ($activation) {
                 $activation->updated_at = Carbon::now()->timestamp;
-                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';
+                $activation->app_version = $request->has('app_version') ? $request->input('app_version') : 'none';
                 $activation->ip_address = $request->ip();
                 if ($token) {
                     $activation->token_id = $token->id;
                 }
                 $activation->save();
-                //Log::debug('Activation Exists.  Saved'); 
+                //Log::debug('Activation Exists.  Saved');
             } else {
                 $activation = new AppUserActivation;
                 $activation->updated_at = Carbon::now()->timestamp;
-                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';                
+                $activation->app_version = $request->has('app_version') ? $request->input('app_version') : 'none';
                 $activation->user_id = $thisUser->id;
                 $activation->device_id = $request->input('device_id');
                 $activation->identifier = $request->input('identifier');
@@ -320,7 +328,7 @@ class UserController extends Controller {
                     $activation->token_id = $token->id;
                 }
                 $activation->bypass_used = 0;
-                $activation->save();                
+                $activation->save();
             }
         }
         $userGroup = $thisUser->group()->first();
@@ -338,7 +346,8 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function getUserData(Request $request) {
+    public function getUserData(Request $request)
+    {
         $thisUser = \Auth::user();
         //Log::debug($request);
         $userGroup = $thisUser->group()->first();
@@ -357,11 +366,12 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function getCanUserDeactivate(Request $request) {
+    public function getCanUserDeactivate(Request $request)
+    {
 
         $validator = Validator::make($request->all(), [
-                    'identifier' => 'required',
-                    'device_id' => 'required'
+            'identifier' => 'required',
+            'device_id' => 'required',
         ]);
 
         if (!$validator->fails()) {
@@ -383,10 +393,10 @@ class UserController extends Controller {
 
                 return response('', 204);
             } else {
-              // If this is a deactivate request that has not been granted then we fire an event.
+                // If this is a deactivate request that has not been granted then we fire an event.
                 try {
                     event(new DeactivationRequestReceived($deactivateRequest));
-                } catch(\Exception $e){
+                } catch (\Exception $e) {
                     Log::error($e);
                 }
             }
@@ -399,7 +409,8 @@ class UserController extends Controller {
      * Handles when user is requesting their license terms.
      * @param Request $request
      */
-    public function getUserTerms(Request $request) {
+    public function getUserTerms(Request $request)
+    {
 
         $userLicensePath = resource_path() . DIRECTORY_SEPARATOR . 'UserLicense.txt';
 
@@ -414,10 +425,11 @@ class UserController extends Controller {
      * it returns a token and the users email address.
      * @param Request $request
      */
-    public function retrieveUserToken(Request $request) {
+    public function retrieveUserToken(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'identifier' => 'required',
-            'device_id' => 'required'
+            'device_id' => 'required',
         ]);
 
         if (!$validator->fails()) {
@@ -429,10 +441,10 @@ class UserController extends Controller {
                 $user = User::where('id', $activation->user_id)->first();
                 if ($user->isactive) {
                     // Creating a token without scopes...
-                    $token = $user->createToken('Token Name')->accessToken; 
+                    $token = $user->createToken('Token Name')->accessToken;
                     return response([
                         'authToken' => $token,
-                        'userEmail' => $user->email
+                        'userEmail' => $user->email,
                     ], 200);
                 } else {
                     // User is not active.
@@ -441,7 +453,7 @@ class UserController extends Controller {
             } else {
                 return response('Activation does not exist.', 401);
             }
-        }        
+        }
         return response($validator->errors(), 401);
 
     }
@@ -450,45 +462,46 @@ class UserController extends Controller {
      * Handles when user logs in from the application.  Returns their access token.
      * @param Request $request
      */
-    public function getUserToken(Request $request) {
+    public function getUserToken(Request $request)
+    {
         $user = \Auth::user();
 
         $userActivateResult = $user->tryActivateUser($request);
 
         switch ($userActivateResult) {
-            case UserActivationAttemptResult::Success: {
+            case UserActivationAttemptResult::Success:{
                     // Creating a token without scopes...
-                    $token = $user->createToken('Token Name')->accessToken; 
-                    $this->checkUserData($request); 
-                    return $token; 
+                    $token = $user->createToken('Token Name')->accessToken;
+                    $this->checkUserData($request);
+                    return $token;
                 }
                 break;
 
-            case UserActivationAttemptResult::ActivationLimitExceeded: {
+            case UserActivationAttemptResult::ActivationLimitExceeded:{
                     Auth::logout();
                     return response('Your account has been activated on more devices than permitted.', 401);
                 }
                 break;
 
-            case UserActivationAttemptResult::AccountDisabled: {
+            case UserActivationAttemptResult::AccountDisabled:{
                     Auth::logout();
                     return response('Your account has been disabled.', 401);
                 }
                 break;
 
-            case UserActivationAttemptResult::GroupDisabled: {
+            case UserActivationAttemptResult::GroupDisabled:{
                     Auth::logout();
                     return response('The group that your account belongs to has been disabled.', 401);
                 }
                 break;
 
-            case UserActivationAttemptResult::IndentifyingInformationMissing: {
+            case UserActivationAttemptResult::IndentifyingInformationMissing:{
                     Auth::logout();
                     return response('User device identifier and or name not supplied.', 401);
                 }
                 break;
 
-            case UserActivationAttemptResult::UnknownError: {
+            case UserActivationAttemptResult::UnknownError:{
                     Auth::logout();
                     return response('An unknown error occurred while trying to activate or verify your account activation.', 401);
                 }
@@ -501,7 +514,8 @@ class UserController extends Controller {
      * This could probably be rolled into deactivation requests in the future.
      * @param Request $request
      */
-    public function revokeUserToken(Request $request) {
+    public function revokeUserToken(Request $request)
+    {
 
         $user = \Auth::user();
         $token = $user->token();
@@ -513,7 +527,8 @@ class UserController extends Controller {
      * Used by our debugging tool to provide a central place to store logs received from users.
      * @param Request $request
      */
-    public function uploadLog(Request $request) {
+    public function uploadLog(Request $request)
+    {
         $this->validate($request, [
             'user_email' => 'required|email',
             'log' => 'required',
@@ -523,7 +538,19 @@ class UserController extends Controller {
         return "OK";
     }
 
-    public function activation_data(Request $request, $id) {
+    public function activation_data(Request $request, $id)
+    {
         return AppUserActivation::where('user_id', $id)->get();
+    }
+
+    /**
+     * response server time
+     * @return [ server_time => '2018-07-24T18:58:04Z' ]
+     */
+    public function getTime() {
+        $time = [
+            "server_time" => date('Y-m-d\Th:i:s\Z')
+        ];
+        return response($time, 200);
     }
 }

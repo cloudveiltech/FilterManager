@@ -15,6 +15,6 @@ class SystemPlatform extends Model
      */
     protected $table = 'system_platforms';
     protected $fillable = [
-        'id', 'platform', 'os_name'
+        'id', 'platform', 'os_name',
     ];
 }

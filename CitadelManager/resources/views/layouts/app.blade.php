@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -14,20 +15,20 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Citadel') }}</title>
-    
-    <!-- Styles -->    
+
+    <!-- Styles -->
     <link href="{{ asset('css/metro.css') }}" rel="stylesheet">
     <link href="{{ asset('css/metro-icons.css') }}" rel="stylesheet">
     <link href="{{ asset('css/metro-responsive.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dragula.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/citadel-main.css') }}" rel="stylesheet">
-    
+
     <link href="{{ asset('plugins/datetimepicker-2.2.4/jquery.datetimepicker.css') }}" rel="stylesheet">
     <!-- re-enable these when we manage to make datatables.responsive work properly.. -->
     <!-- <link href="{{ asset('css/datatables.min.css') }}" rel="stylesheet"> -->
     <!-- <link href="{{ asset('css/responsive.datatables.min.css') }}" rel="stylesheet"> -->
-    
-    <!-- Scripts -->    
+
+    <!-- Scripts -->
     <script src="{{ asset('js/dragula.min.js') }}"></script>
     <!-- Require for form/data validation. -->
     <script src="{{ asset('js/jquery-2.2.4.min.js') }}" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
@@ -38,15 +39,15 @@
     <script src="{{ asset('js/datatables.min.js') }}"></script>
 
     <script src="{{ asset('plugins/datetimepicker-2.2.4/jquery.datetimepicker.js') }}"></script>
-    
+
     <script>
-        window.Laravel = {!! json_encode([
+        window.Laravel = <?php echo json_encode([
             'csrfToken' => csrf_token(),
-        ]) !!};
+        ]); ?>;
     </script>
 
     <script>
-        function pushMessage(t){
+        function pushMessage(t) {
             var mes = 'Info|Implement independently';
             $.Notify({
                 caption: mes.split("|")[0],
@@ -55,22 +56,23 @@
             });
         }
 
-        $(function(){
-            $('.sidebar').on('click', 'li', function(){
+        $(function () {
+            $('.sidebar').on('click', 'li', function () {
                 if (!$(this).hasClass('active')) {
                     $('.sidebar li').removeClass('active');
                     $(this).addClass('active');
                 }
             });
             $('#system_version_input_rdate').datetimepicker({
-                mask:'9999/19/39 29:59'
+                mask: '9999/19/39 29:59'
             });
 
         })
     </script>
 </head>
+
 <body class="bg-grayLighter" style="overflow: hidden;">
-    @yield('navbar')
-    @yield('content')
+    @yield('navbar') @yield('content')
 </body>
+
 </html>

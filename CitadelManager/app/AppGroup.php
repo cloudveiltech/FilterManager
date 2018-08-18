@@ -14,17 +14,20 @@ class AppGroup extends Model
      * @var array
      */
     protected $fillable = [
-        'group_name'
+        'group_name',
     ];
 
-    public function group_app(){
+    public function group_app()
+    {
         return $this->hasMany('App\AppGroupToApp');
     }
-    public function user_group() {
+    public function user_group()
+    {
         return $this->hasMany('App\UserGroupToAppGroup');
     }
 
-    public function app() {
+    public function app()
+    {
         return $this->belongsToMany('App\App', 'app_group_to_apps', 'app_group_id', 'app_id');
     }
 }
