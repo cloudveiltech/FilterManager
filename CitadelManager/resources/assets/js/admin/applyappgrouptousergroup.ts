@@ -137,7 +137,7 @@ namespace Citadel {
                 timeout: 60000,
                 url: "api/admin/apply_appgroup_to_usergroup/data",
                 data: {},
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                success: (data: any): any => {
                     $(this.m_appGroupNameList).empty();
                     var id = 0;
                     var p = 0;
@@ -156,7 +156,7 @@ namespace Citadel {
                     this.m_progressWait.Hide();
                     return false;
                 },
-                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
                     this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
                     setTimeout(() => {
                         this.m_progressWait.Hide();
