@@ -69,6 +69,7 @@ namespace Citadel {
         URL_UPDATE_GROUP_FIELD              = 'api/admin/groups/update_field';
         URL_UPDATE_DEACTIVATION_FIELD       = 'api/admin/deactivationreq/update_field';
         URL_UPDATE_ACTIVATION_FIELD         = 'api/admin/activations/update_field';
+        URL_UPDATE_ACTIVATION_REPORT        = 'api/admin/activations/update_report';
         URL_UPDATE_VERSION_STATUS           = 'api/admin/versions/update_status';
 
         ICON_USER                           = '<span class=\'mif-user self-scale-group fg-green\'></span>';
@@ -1060,7 +1061,7 @@ namespace Citadel {
                             let checkAjaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
-                                url: that.URL_UPDATE_ACTIVATION_FIELD,
+                                url: that.URL_UPDATE_ACTIVATION_REPORT,
                                 data: {
                                     id: id_str,
                                     value: val
