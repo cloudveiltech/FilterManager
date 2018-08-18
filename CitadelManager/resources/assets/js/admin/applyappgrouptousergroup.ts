@@ -132,7 +132,7 @@ namespace Citadel {
          * @memberOf ApplyToGroupOverlay
          */
         private getRetrieveData() {
-            let ajaxSettings: JQuery.UrlAjaxSettings = {
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
                 url: "api/admin/apply_appgroup_to_usergroup/data",
@@ -164,7 +164,7 @@ namespace Citadel {
                 }
             }
 
-            $.get(ajaxSettings);
+            $.ajax(ajaxSettings);
         }
 
         private loadSelectedUsergroups(id: Number) {
