@@ -97,6 +97,10 @@
                         </div>
                     </div>
                 </div>
+                <div class="row cell-auto-size" style='padding-left: 50px'>
+                    <div id="version_form_errors">
+                    </div>
+                </div>
                 <hr class="thin margin-left-50">
 
                 <div class="row cell-auto-size">

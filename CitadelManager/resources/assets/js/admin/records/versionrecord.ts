@@ -110,8 +110,8 @@ namespace Citadel {
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
                 errorPlacement: ((error: JQuery, element: JQuery): void => {
-                    error.appendTo('#user_form_errors');
-                    $('#user_form_errors').append('<br/>');
+                    error.appendTo('#version_form_errors');
+                    $('#version_form_errors').append('<br/>');
                 }),
                 messages: validationErrorMessages
             };
