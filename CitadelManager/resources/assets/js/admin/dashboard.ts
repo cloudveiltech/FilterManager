@@ -175,6 +175,7 @@ namespace Citadel {
             this.ConstructNavigation();
             this.loadAllFilters();
             this.loadAllGroups();
+
             // Initialize views.
             this.ConstructManagementViews();
 
@@ -193,6 +194,8 @@ namespace Citadel {
                 this.ForceTableRedraw(this.m_tableGroups);
                 this.m_filterListUploadController.Hide();
             });
+
+            this.loadPreviousTab();
         }
 
         private loadAllFilters(): void {
@@ -209,6 +212,60 @@ namespace Citadel {
             }
 
             $.ajax(ajaxSettings);
+        }
+
+        private loadPreviousTab(): void {
+            var prev_tab = window.localStorage.getItem('previous_tab');
+            console.log("Prevous Tab => ", prev_tab);
+            $('.tabs-holder li').removeClass('active');
+            $('.tabs-content .tab-panel').css('display', 'none');
+
+            if(prev_tab != undefined  && prev_tab != null && prev_tab != '') {
+                var val = parseInt(prev_tab);
+                switch(val) {
+                    case 1:
+                        this.m_tabBtnUsers.onclick(null);
+                        $(this.m_tabBtnUsers).parent().addClass('active');
+                        $('#tab_users').css('display', 'block');
+                        break;
+                    case 2:
+                        this.m_tabBtnGroups.onclick(null);
+                        $(this.m_tabBtnGroups).parent().addClass('active');
+                        $('#tab_groups').css('display', 'block');
+                        break;
+                    case 3:
+                        this.m_tabBtnFilterLists.onclick(null);
+                        $(this.m_tabBtnFilterLists).parent().addClass('active');
+                        $('#tab_filter_lists').css('display', 'block');
+                        break;
+                    case 4:
+                        this.m_tabBtnUserRequest.onclick(null);
+                        $(this.m_tabBtnUserRequest).parent().addClass('active');
+                        $('#tab_user_deactivation_requests').css('display', 'block');
+                        break;
+                    case 5:
+                        this.m_tabBtnAppGroup.onclick(null);
+                        $(this.m_tabBtnAppGroup).parent().addClass('active');
+                        $('#tab_app_groups').css('display', 'block');
+                        break;
+                    case 6:
+                        this.m_tabBtnAppGroup.onclick(null);
+                        $(this.m_tabBtnAppGroup).parent().addClass('active');
+                        $('#tab_app_groups').css('display', 'block');
+                        break;
+                    case 7:
+                        this.m_tabBtnActivation.onclick(null);
+                        $(this.m_tabBtnActivation).parent().addClass('active');
+                        $('#tab_app_user_activations').css('display', 'block');
+                        break;
+
+                    case 8:
+                        this.m_tabBtnVersion.onclick(null);
+                        $(this.m_tabBtnVersion).parent().addClass('active');
+                        $('#tab_system_versions').css('display', 'block');
+                        break;
+                }
+            }
         }
 
         private loadAllGroups(): void {
@@ -243,7 +300,7 @@ namespace Citadel {
             this.ConstructTables();
             this.ConstructDragula();
 
-            this.ViewState = DashboardViewStates.UserListView;
+            //this.ViewState = DashboardViewStates.UserListView;
         }
 
         private ConstructDragula(): void {
@@ -2016,7 +2073,8 @@ namespace Citadel {
         }
 
         private set ViewState(value: DashboardViewStates) {
-
+            console.log(' set state');
+            console.log(value);
             this.m_viewUser.style.display                   = "none";
             this.m_viewGroup.style.display                  = "none";
             this.m_viewFilter.style.display                 = "none";
@@ -2025,13 +2083,14 @@ namespace Citadel {
             this.m_viewAppGroup.style.display               = "none";
             this.m_viewActivation.style.display             = "none";
             this.m_viewVersion.style.display                = "none";
-
+            var tab_index = 0;
             switch (value) {
                 case DashboardViewStates.UserListView:
                     {
                         this.ForceTableRedraw(this.m_tableUsers);
                         this.m_viewUser.style.display = "block";
                         this.m_btnDeleteUser.disabled = true;
+                        tab_index = 1;
                     }
                     break;
 
@@ -2041,6 +2100,7 @@ namespace Citadel {
                         this.m_viewGroup.style.display = "block";
                         this.m_btnDeleteGroup.disabled = true;
                         this.m_btnCloneGroup.disabled = true;
+                        tab_index = 2;
                     }
                     break;
 
@@ -2051,6 +2111,7 @@ namespace Citadel {
                         this.m_btnDeleteFL.disabled = true;
                         this.m_btnDeleteFLInNamespace.disabled = true;
                         this.m_btnDeleteFLTypeInNamespace.disabled = true;
+                        tab_index = 3;
                     }
                     break;
 
@@ -2059,6 +2120,7 @@ namespace Citadel {
                         this.ForceTableRedraw(this.m_tableDeactivationRequests);
                         this.m_viewDeactivationReq.style.display = "block";
                         this.m_btnDeleteDR.disabled = true;
+                        tab_index = 4;
                     }
                     break;
 
@@ -2067,6 +2129,7 @@ namespace Citadel {
                         this.ForceTableRedraw(this.m_tableAppLists);
                         this.m_viewApplication.style.display = "block";
                         this.m_btnRemoveApplication.disabled = true;
+                        tab_index = 5;
                     }
                     break;
 
@@ -2075,6 +2138,7 @@ namespace Citadel {
                         this.ForceTableRedraw(this.m_tableAppGroupLists);
                         this.m_viewAppGroup.style.display = "block";
                         this.m_btnRemoveApplication.disabled = true;
+                        tab_index = 6;
                     }
                     break;
                 case DashboardViewStates.AppUserActivationView:
@@ -2083,6 +2147,7 @@ namespace Citadel {
                         this.m_viewActivation.style.display = "block";
                         this.m_btnDeleteActivation.disabled = true;
                         this.m_btnBlockActivation.disabled = true;
+                        tab_index = 7;
                     }
                     break;
                 case DashboardViewStates.SystemVersionView:
@@ -2090,11 +2155,13 @@ namespace Citadel {
                         this.ForceTableRedraw(this.m_tableVersions);
                         this.m_viewVersion.style.display = "block";
                         this.m_btnDeleteVersion.disabled = true;
+                        tab_index = 8;
                     }
                     break;
             }
-
+            console.log('---end----');
             this.m_currentViewState = value;
+            window.localStorage.setItem('previous_tab', tab_index.toString());
         }
 
         private get ViewState(): DashboardViewStates {
