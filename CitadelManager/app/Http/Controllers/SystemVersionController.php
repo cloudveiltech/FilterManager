@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\SystemPlatform;
 use App\SystemVersion;
+use App\SystemExtension;
 use Illuminate\Http\Request;
 
 class SystemVersionController extends Controller
@@ -104,6 +105,83 @@ class SystemVersionController extends Controller
     }
 
     /**
+     * Display a listing of platforms.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getExtensions()
+    {
+        $systems = SystemExtension::orderBy('sys_name', 'DESC')->get();
+        $default_os = ['WIN', 'LINUX', 'OSX'];
+        $extension_arr = [];
+        foreach ($systems as $row) {
+            $key = array_search($row->sys_name, $default_os);
+
+            if($key !== false) {
+                array_splice($default_os, $key, 1);
+            }
+            $extension_arr[] = [
+                'platform' => $row->sys_name,
+                'extensions' => $row->file_extensions
+            ];
+        }
+
+        foreach ($default_os as $os) {
+            $extension_arr[] = [
+                'platform' => $os,
+                'extensions' => ''
+            ];
+        }
+        return response()->json([
+            "extensions" => $extension_arr,
+            "success" => true,
+        ]);
+    }
+
+    /**
+     * Display a listing of platforms.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getOsExtension($os)
+    {
+        $systems = SystemExtension::where('sys_name', $os)->orderBy('sys_name', 'DESC')->get();
+        $str_extension = '';
+        foreach ($systems as $row) {
+            $str_extension  = $row->file_extensions;
+        }
+
+        return response()->json([
+            "extension" => $str_extension,
+            "success" => true,
+        ]);
+    }
+
+    /**
+     * Display a listing of platforms.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function updateExtension(Request $request)
+    {
+        $os = $request->input('platform');
+        $extension = $request->input('extensions');
+
+        $bExist = SystemExtension::where('sys_name', $os)->count();
+        if($bExist > 0) {
+            SystemExtension::where('sys_name', '=', $os)->update([
+                'file_extensions'=>$extension
+            ]);
+        } else {
+            SystemExtension::create([
+                'sys_name' => $os,
+                'file_extensions'=>$extension
+            ]);
+        }
+        return response('', 204);
+    }
+
+    /**
      * Create a new platform.
      *
      * @return \Illuminate\Http\Response
@@ -162,7 +240,7 @@ class SystemVersionController extends Controller
             'stable' => 'required',
             'release_date' => 'required',
         ]);
-        $input = $request->only(['platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active']);
+        $input = $request->only(['platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active','file_ext']);
 
         if ($input['active'] == 1) {
             $rows = SystemVersion::where('platform_id', '=', $input['platform_id'])->where('active', '=', 1)->get();
@@ -213,7 +291,7 @@ class SystemVersionController extends Controller
             'stable' => 'required',
             'release_date' => 'required',
         ]);
-        $input = $request->only(['id', 'platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active']);
+        $input = $request->only(['id', 'platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active', 'file_ext']);
         $platform_id = $input['platform_id'];
         $active = $input['active'];
         $item = SystemVersion::where('id', '=', $id)->get()->first();

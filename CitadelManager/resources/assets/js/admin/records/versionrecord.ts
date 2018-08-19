@@ -35,6 +35,7 @@ namespace Citadel {
 
         URL_ROUTE                           = 'api/admin/version';
         URL_PLATFORMS                       = 'api/admin/platforms';
+        URL_EXTENSIONS                      = 'api/admin/extensions';
 
         // ──────────────────────────────────────────────────────────────
         //   :::::: V E R S I O N    R E C O R D   M E M B E R S ::::::
@@ -50,6 +51,10 @@ namespace Citadel {
         private m_stable                : string;
         private m_releaseDate           : string;
         private m_active                : number;
+        private m_fileExt               : string;
+        private m_extensions            : any[];
+        private m_platforms             : any[];
+        private m_loaded                : number;
 
         // ──────────────────────────────────────────────
         //   :::::: H T M L      E L E M E N T S ::::::
@@ -60,6 +65,7 @@ namespace Citadel {
 
         private m_h1_Version            : HTMLHeadingElement;
         private m_inputOS               : HTMLSelectElement;
+        private m_inputFileExt              : HTMLSelectElement;
         private m_inputAppName          : HTMLInputElement;
         private m_inputFileName         : HTMLInputElement;
         private m_inputAlphaVersion     : HTMLInputElement;
@@ -99,7 +105,6 @@ namespace Citadel {
             validationRules[this.m_inputStableVersion.id] = {
                 required: true
             };
-
             let validationErrorMessages = {};
             validationErrorMessages[this.m_inputAppName.id] = this.ERROR_MESSAGE_APP_NAME;
             validationErrorMessages[this.m_inputFileName.id] = this.ERROR_MESSAGE_FILE_NAME;
@@ -110,8 +115,8 @@ namespace Citadel {
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
                 errorPlacement: ((error: JQuery, element: JQuery): void => {
-                    error.appendTo('#user_form_errors');
-                    $('#user_form_errors').append('<br/>');
+                    error.appendTo('#version_form_errors');
+                    $('#version_form_errors').append('<br/>');
                 }),
                 messages: validationErrorMessages
             };
@@ -122,12 +127,15 @@ namespace Citadel {
         constructor() {
             super();
             $("#btn_cancel").hide();
-            this.m_appName = "Cloud Veil";
-            this.m_fileName = "Cloud Veil";
+            this.m_appName = "CloudVeil";
+            this.m_fileName = "CloudVeil";
             this.InitUIComponents();
         }
 
         private InitUIComponents(): void {
+            this.m_extensions = [];
+            this.m_platforms = [];
+            this.m_loaded = 0;
             this.m_btnAdd               = document.querySelector('#btn_add') as HTMLButtonElement;
             this.m_btnClose             = document.querySelector('#system_version_close') as HTMLButtonElement;
 
@@ -144,6 +152,7 @@ namespace Citadel {
             this.m_inpuReleaseDate      = document.querySelector('#system_version_input_rdate') as HTMLInputElement;
             this.m_inputIsActive        = document.querySelector('#system_version_default_version') as HTMLInputElement;
             this.m_inputChange          = document.querySelector('#system_version_input_changes') as HTMLTextAreaElement;
+            this.m_inputFileExt         = document.querySelector('#system_version_ext') as HTMLSelectElement;
 
             this.InitButtonHandlers();
         }
@@ -151,6 +160,10 @@ namespace Citadel {
         private InitButtonHandlers(): void {
             this.m_btnClose.onclick = ((e: MouseEvent): any => {
                 this.StopEditing();
+            });
+
+            this.m_inputOS.onchange = ((e: MouseEvent): any => {
+                this.onChangePlatform();
             });
         }
 
@@ -166,6 +179,7 @@ namespace Citadel {
             this.m_stable               = data['stable'] as string;
             this.m_releaseDate          = data['release_date'] as string;
             this.m_active               = data['active'] as number;
+            this.m_fileExt              = data['file_ext'] as string;
         }
 
         protected LoadFromForm(): void {
@@ -180,21 +194,27 @@ namespace Citadel {
             this.m_releaseDate          = this.m_inpuReleaseDate.value;
             this.m_active               = this.m_inputIsActive.checked == true ? 1 : 0;
             this.m_changes              = this.m_inputChange.value;
+            let selectedFileExt         = this.m_inputFileExt.options[this.m_inputFileExt.selectedIndex] as HTMLOptionElement;
+            this.m_fileExt              = selectedFileExt.value;
+
+            console.log('m_fileExt', this.m_fileExt);
         }
 
         public StartEditing(rowData: Object = null): void {
+            $('#version_form_errors').empty();          // remove all previous errors;
+            
             switch (rowData == null) {
                 case true:
                     {
-                        this.m_h1_Version.innerText = this.TITLE_NEW_VERSION;
-                        this.m_btnAdd.innerText = this.BTN_LABEL_NEW_VERSION;
+                        this.m_h1_Version.innerText     = this.TITLE_NEW_VERSION;
+                        this.m_btnAdd.innerText         = this.BTN_LABEL_NEW_VERSION;
                         this.m_mainForm.reset();
-                        this,
-                        this.m_platformId = 0;
+                        this.m_platformId               = 0;
                         this.loadPlatforms();
+                        this.loadExtensions();
 
-                        this.m_inputAppName.value = this.m_appName;
-                        this.m_inputFileName.value = this.m_fileName;
+                        this.m_inputAppName.value       = this.m_appName;
+                        this.m_inputFileName.value      = this.m_fileName;
                     }
                     break;
 
@@ -203,18 +223,19 @@ namespace Citadel {
                         // Editing an existing object here.
                         this.LoadFromObject(rowData);
 
-                        this.m_h1_Version.innerText = this.TITLE_EDIT_VERSION;
-                        this.m_btnAdd.innerText = this.BTN_LABEL_EDIT_GROUP;
+                        this.m_h1_Version.innerText     = this.TITLE_EDIT_VERSION;
+                        this.m_btnAdd.innerText         = this.BTN_LABEL_EDIT_GROUP;
 
-                        this.m_inputAppName.value = this.m_appName;
-                        this.m_inputFileName.value = this.m_fileName;
-                        this.m_inputAlphaVersion.value = this.m_alpha;
-                        this.m_inputBetaVersion.value = this.m_beta;
+                        this.m_inputAppName.value       = this.m_appName;
+                        this.m_inputFileName.value      = this.m_fileName;
+                        this.m_inputAlphaVersion.value  = this.m_alpha;
+                        this.m_inputBetaVersion.value   = this.m_beta;
                         this.m_inputStableVersion.value = this.m_stable;
-                        this.m_inpuReleaseDate.value = this.m_releaseDate;
-                        this.m_inputIsActive.checked = this.m_active === 1 ? true : false;
-                        this.m_inputChange.value = this.m_changes;
+                        this.m_inpuReleaseDate.value    = this.m_releaseDate;
+                        this.m_inputIsActive.checked    = this.m_active === 1 ? true : false;
+                        this.m_inputChange.value        = this.m_changes;
                         this.loadPlatforms();
+                        this.loadExtensions();
                     }
                     break;
             }
@@ -238,6 +259,34 @@ namespace Citadel {
             $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }
 
+        public onChangePlatform(): void {
+            var platform_id = $(this.m_inputOS).val();
+            var sel_os = '';
+            for(let os of this.m_platforms) {
+                if(os.id == platform_id) {
+                    sel_os = os.platform;
+                }
+            }
+            var sel_ext = '';
+            for(let ext of this.m_extensions) {
+                if(ext.platform == sel_os) {
+                    sel_ext = ext.extensions;
+                }
+            }
+            var ext_arr = sel_ext.split(",");
+            $(this.m_inputFileExt).html('');
+            ext_arr.forEach((ext): void => {
+                var newOption = document.createElement("option");
+                newOption.text = ext;
+                newOption.value = ext;
+                this.m_inputFileExt.add(newOption);
+            });
+            if(this.m_fileExt != '' && this.m_fileExt != undefined && this.m_fileExt != null) {
+                $(this.m_inputFileExt).val(this.m_fileExt);
+            } else {
+                this.m_inputFileExt.selectedIndex = 0;
+            }
+        }
         private loadPlatforms(): void {
             let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
@@ -245,7 +294,34 @@ namespace Citadel {
                 url: this.URL_PLATFORMS,
                 data: {},
                 success: (data: any): any => {
+                    this.m_platforms = data.platforms;
+                    this.m_loaded ++;
                     this._update_platforms(data.platforms);
+                    if(this.m_loaded >= 2) {
+                        this.onChangePlatform();
+                    }
+                    return false;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(textStatus);
+                }
+            }
+
+            $.ajax(ajaxSettings);
+        }
+
+        private loadExtensions(): void {
+            let ajaxSettings: JQueryAjaxSettings = {
+                method: "GET",
+                timeout: 60000,
+                url: this.URL_EXTENSIONS,
+                data: {},
+                success: (data: any): any => {
+                    this.m_loaded ++;
+                    this.m_extensions = data.extensions;
+                    if(this.m_loaded >= 2) {
+                        this.onChangePlatform();
+                    }
                     return false;
                 },
                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
@@ -280,6 +356,7 @@ namespace Citadel {
                 'stable'        : this.m_stable,
                 'release_date'  : this.m_releaseDate,
                 'active'        : this.m_active,
+                'file_ext'      : this.m_fileExt
             };
             return obj;
         }

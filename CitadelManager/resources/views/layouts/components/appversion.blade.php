@@ -32,10 +32,13 @@
                     <div class="cell cell-auto-size">
                         <div class="input-control text" data-role="input">
                             <label for="system_version_input_file_name">File Name:</label>
-                            <input type="text" name="system_version_input_file_name" id="system_version_input_file_name">
-                            <button class="button helper-button clear" tabindex="-1" type="button">
+                            <input type="text" name="system_version_input_file_name" id="system_version_input_file_name" style='width: 8rem;'>
+                            <button class="button helper-button clear file-name" tabindex="-1" type="button">
                                 <span class="mif-cross"></span>
                             </button>
+                            <select class="system-file-ext" id='system_version_ext'>
+                                <option>...</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -95,6 +98,10 @@
                                 <span class="mif-cross"></span>
                             </button>
                         </div>
+                    </div>
+                </div>
+                <div class="row cell-auto-size" id='error_div_versions'>
+                    <div id="version_form_errors">
                     </div>
                 </div>
                 <hr class="thin margin-left-50">

@@ -106,6 +106,9 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
     Route::post('/platform/create', 'SystemVersionController@createPlatform');
     Route::post('/platform/update/{id}', 'SystemVersionController@updatePlatform');
     Route::post('/platform/delete', 'SystemVersionController@deletePlatform');
+    Route::get('/extensions', 'SystemVersionController@getExtensions');
+    Route::get('/extensions/selected/{os}', 'SystemVersionController@getOsExtension');
+    Route::post('/extensions/update', 'SystemVersionController@updateExtension');
     Route::resource('version', 'SystemVersionController');
 
 });
