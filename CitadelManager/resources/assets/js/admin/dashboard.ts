@@ -49,6 +49,7 @@ namespace Citadel {
         MESSAGE_CONFIRM_APPGROUP_DELETE         = 'Really delete Application? THIS CANNOT BE UNDONE!!!';
         MESSAGE_CONFIRM_ACTIVATION_DELETE       = 'Really delete app user activation? THIS CANNOT BE UNDONE!!!';
         MESSAGE_CONFIRM_ACTIVATION_BLOCK        = 'Really block app user activation? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_VERSION_DELETE          = 'Really delete versions? THIS CANNOT BE UNDONE!!!';
 
         MESSAGE_LOAD_FAIL                       = 'Failed to load group record from table selection.';
         MESSAGE_ACTION_FAILED                   = 'Error reported by the server during action. console for more information.';
@@ -1738,11 +1739,11 @@ namespace Citadel {
                         this.ForceTableRedraw(this.m_tableVersions);
                     });
 
-                    if (confirm(this.MESSAGE_CONFIRM_USER_DELETE)) {
+                    if (confirm(this.MESSAGE_CONFIRM_VERSION_DELETE)) {
                         versionObject.Delete();
                     }
                 } catch (e) {
-                    console.log('Failed to load user record from table selection.');
+                    console.log(this.MESSAGE_LOAD_FAIL);
                     console.log(e);
                 }
             }
@@ -1766,7 +1767,7 @@ namespace Citadel {
                         userObject.Delete();
                     }
                 } catch (e) {
-                    console.log('Failed to load user record from table selection.');
+                    console.log(this.MESSAGE_LOAD_FAIL);
                     console.log(e);
                 }
             }
