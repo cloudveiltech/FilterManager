@@ -97,7 +97,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row cell-auto-size" style='padding-left: 50px'>
+                <div class="row cell-auto-size" id='error_div_versions'>
                     <div id="version_form_errors">
                     </div>
                 </div>

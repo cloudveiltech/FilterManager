@@ -99,7 +99,6 @@ namespace Citadel {
             validationRules[this.m_inputStableVersion.id] = {
                 required: true
             };
-
             let validationErrorMessages = {};
             validationErrorMessages[this.m_inputAppName.id] = this.ERROR_MESSAGE_APP_NAME;
             validationErrorMessages[this.m_inputFileName.id] = this.ERROR_MESSAGE_FILE_NAME;
@@ -183,6 +182,7 @@ namespace Citadel {
         }
 
         public StartEditing(rowData: Object = null): void {
+            $('#version_form_errors').empty();          // remove all previous errors;
             switch (rowData == null) {
                 case true:
                     {

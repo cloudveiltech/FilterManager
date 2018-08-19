@@ -514,6 +514,11 @@ Main admin page.
     padding: 10px;
 }
 
+#error_div_versions{
+    padding-left: 50px;
+    margin-top: 30px;
+}
+
 .version_number {
     font-size: 14px;
     font-weight: bold;
