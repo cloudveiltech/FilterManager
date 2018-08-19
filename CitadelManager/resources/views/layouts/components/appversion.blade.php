@@ -36,11 +36,8 @@
                             <button class="button helper-button clear file-name" tabindex="-1" type="button">
                                 <span class="mif-cross"></span>
                             </button>
-                            <select class="system-file-ext">
-                                <option>.exe</option>
-                                <option>.sh</option>
-                                <option>.deb</option>
-                                <option>.rpm</option>
+                            <select class="system-file-ext" id='system_version_ext'>
+                                <option>...</option>
                             </select>
                         </div>
                     </div>

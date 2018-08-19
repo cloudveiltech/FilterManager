@@ -240,7 +240,7 @@ class SystemVersionController extends Controller
             'stable' => 'required',
             'release_date' => 'required',
         ]);
-        $input = $request->only(['platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active']);
+        $input = $request->only(['platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active','file_ext']);
 
         if ($input['active'] == 1) {
             $rows = SystemVersion::where('platform_id', '=', $input['platform_id'])->where('active', '=', 1)->get();
@@ -291,7 +291,7 @@ class SystemVersionController extends Controller
             'stable' => 'required',
             'release_date' => 'required',
         ]);
-        $input = $request->only(['id', 'platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active']);
+        $input = $request->only(['id', 'platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active', 'file_ext']);
         $platform_id = $input['platform_id'];
         $active = $input['active'];
         $item = SystemVersion::where('id', '=', $id)->get()->first();

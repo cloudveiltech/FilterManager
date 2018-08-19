@@ -34,6 +34,7 @@ class UpdateController extends Controller
                 $version = $versions->first();
                 $arr_data['app_name'] = $version->app_name;
                 $arr_data['file_name'] = $version->file_name;
+                $arr_data['file_ext'] = $version->file_ext;
                 $arr_data['version_number'] = $version->version_number;
                 $arr_data['changes'] = array($version->changes);
                 $arr_data['channels'] = [
@@ -54,6 +55,7 @@ class UpdateController extends Controller
             } else {
                 $arr_data['app_name'] = "unavailable";
                 $arr_data['file_name'] = "unavailable";
+                $arr_data['file_ext'] = "unavailable";
                 $arr_data['version_number'] = "---";
                 $arr_data['changes'] = array();
                 $arr_data['channels'] = [
@@ -75,6 +77,7 @@ class UpdateController extends Controller
         } else {
             $arr_data['app_name'] = "unavailable";
             $arr_data['file_name'] = "unavailable";
+            $arr_data['file_ext'] = "unavailable";
             $arr_data['version_number'] = "---";
             $arr_data['changes'] = array();
             $arr_data['channels'] = [
