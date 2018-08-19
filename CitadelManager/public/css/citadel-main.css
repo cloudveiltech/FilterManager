@@ -518,7 +518,12 @@ Main admin page.
     padding-left: 50px;
     margin-top: 30px;
 }
-
+.helper-button.file-name{
+    right: 55px !important;
+}
+.system-file-ext {
+    width: 50px !important;
+}
 .version_number {
     font-size: 14px;
     font-weight: bold;
@@ -1265,6 +1270,7 @@ Whitelist editor.
 .os_linux {
     color: #000;
     vertical-align: 0px !important;
+    width: 16.8px;
 }
 
 .os_mac {
@@ -1787,6 +1793,20 @@ Apply Appgroup to Usergroup Overlay.
     font-weight: normal;
 }
 
+.platform-item .platform_os_name {
+    width: 100px;
+    padding-left: 15px;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: normal;
+    display:inline-block;
+}
+.platform-item .extensions {
+    padding-left: 15px;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: normal;
+}
 .platform-item .item-actions a {
     margin-left: 5px;
     margin-right: 5px;

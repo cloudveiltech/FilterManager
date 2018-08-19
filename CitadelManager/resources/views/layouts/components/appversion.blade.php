@@ -32,10 +32,16 @@
                     <div class="cell cell-auto-size">
                         <div class="input-control text" data-role="input">
                             <label for="system_version_input_file_name">File Name:</label>
-                            <input type="text" name="system_version_input_file_name" id="system_version_input_file_name">
-                            <button class="button helper-button clear" tabindex="-1" type="button">
+                            <input type="text" name="system_version_input_file_name" id="system_version_input_file_name" style='width: 8rem;'>
+                            <button class="button helper-button clear file-name" tabindex="-1" type="button">
                                 <span class="mif-cross"></span>
                             </button>
+                            <select class="system-file-ext">
+                                <option>.exe</option>
+                                <option>.sh</option>
+                                <option>.deb</option>
+                                <option>.rpm</option>
+                            </select>
                         </div>
                     </div>
                 </div>
