@@ -122,8 +122,8 @@ namespace Citadel {
         constructor() {
             super();
             $("#btn_cancel").hide();
-            this.m_appName = "Cloud Veil";
-            this.m_fileName = "Cloud Veil";
+            this.m_appName = "CloudVeil";
+            this.m_fileName = "CloudVeil";
             this.InitUIComponents();
         }
 
