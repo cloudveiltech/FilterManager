@@ -24,6 +24,7 @@ namespace Citadel {
         MESSAGE_BLOCK_ACTIVATION_CONFIRM    = 'Are you sure you want to delete this activation and block the token?  The user will need to sign in again.';
         MESSAGE_DELETE_ACTIVATION_CONFIRM   = 'Are you sure you want to delete this activation?';
         MESSAGE_ACTION_FAILED               = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        MESSAGE_INVALID_CHECKED_IN_DAYS     = 'Checked-In should be greater equal than 0.';
 
         TITLE_NEW_USER                      = 'Create New User';
         TITLE_EDIT_USER                     = 'Edit User';
@@ -377,7 +378,11 @@ namespace Citadel {
                     $("#user_activation_table").on("blur", "input[type='number']", function () {
                         let id = $(this).attr("data-id");
                         let val = $(this).val();
-
+                        if( val < 0) {
+                            alert(that.MESSAGE_INVALID_CHECKED_IN_DAYS);
+                            $(this).val(0);
+                            return;
+                        }
                         let checkAjaxSettings: JQueryAjaxSettings = {
                             method: "POST",
                             timeout: 60000,
