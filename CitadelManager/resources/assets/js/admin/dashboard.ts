@@ -83,6 +83,14 @@ namespace Citadel {
         SPAN_ACTIVE                         = '<span class=\'active-s status\'>Active</span>';
         SPAN_INACTIVE                       = '<span class=\'inactive-s status\'>Inactive</span>';
 
+        BTN_ADD_APPLICATION_LABEL           = '<span class="icon mif-stack"></span>Add <br /> Application';
+        BTN_REMOVE_APPLICATION_LABEL        = '<span class="mif-cancel"></span>Remove <br /> Application';
+        BTN_APPLY_APPLICATION_LABEL         = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To App Group';
+
+        BTN_ADD_APPGROUP_LABEL              = '<span class="icon mif-stack"></span>Add <br /> Application <br /> Group';
+        BTN_REMOVE_APPGROUP_LABEL           = '<span class="mif-cancel"></span>Remove <br /> Application <br /> Group';
+        BTN_APPLY_APPGROUP_LABEL            = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To User Group';
+
         // ───────────────────────────────────────────────────────────────────
         //   :::::: M A I N   M E N U   B U T T O N   E L E M E N T S ::::::
         // ───────────────────────────────────────────────────────────────────
@@ -216,11 +224,9 @@ namespace Citadel {
 
         private loadPreviousTab(): void {
             var prev_tab = window.localStorage.getItem('previous_tab');
-            console.log("Prevous Tab => ", prev_tab);
-            $('.tabs-holder li').removeClass('active');
-            $('.tabs-content .tab-panel').css('display', 'none');
-
             if(prev_tab != undefined  && prev_tab != null && prev_tab != '') {
+                $('.tabs-holder li').removeClass('active');
+                $('.tabs-content .tab-panel').css('display', 'none');
                 var val = parseInt(prev_tab);
                 switch(val) {
                     case 1:
@@ -244,14 +250,22 @@ namespace Citadel {
                         $('#tab_user_deactivation_requests').css('display', 'block');
                         break;
                     case 5:
-                        this.m_tabBtnAppGroup.onclick(null);
+                        this.ViewState = DashboardViewStates.AppView;
                         $(this.m_tabBtnAppGroup).parent().addClass('active');
                         $('#tab_app_groups').css('display', 'block');
+                        this.m_btnApp.checked = true;
+                        this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPLICATION_LABEL;
+                        this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPLICATION_LABEL;
+                        this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPLICATION_LABEL;
                         break;
                     case 6:
-                        this.m_tabBtnAppGroup.onclick(null);
+                        this.ViewState = DashboardViewStates.AppGroupView;
                         $(this.m_tabBtnAppGroup).parent().addClass('active');
                         $('#tab_app_groups').css('display', 'block');
+                        this.m_btnAppGroup.checked = true;
+                        this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPGROUP_LABEL;
+                        this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPGROUP_LABEL;
+                        this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPGROUP_LABEL;
                         break;
                     case 7:
                         this.m_tabBtnActivation.onclick(null);
@@ -265,6 +279,10 @@ namespace Citadel {
                         $('#tab_system_versions').css('display', 'block');
                         break;
                 }
+            } else {
+                this.m_tabBtnUsers.onclick(null);
+                $(this.m_tabBtnUsers).parent().addClass('active');
+                $('#tab_users').css('display', 'block');
             }
         }
 
@@ -1358,58 +1376,56 @@ namespace Citadel {
 
         private ConstructNavigation(): void {
 
-            this.m_btnSignOut           = document.getElementById('btn_sign_out') as HTMLLIElement;
+            this.m_btnSignOut                   = document.getElementById('btn_sign_out') as HTMLLIElement;
 
-            this.m_tabBtnUsers          = document.querySelector('a[href="#tab_users"]') as HTMLLinkElement;
-            this.m_tabBtnGroups         = document.querySelector('a[href="#tab_groups"]') as HTMLLinkElement;
-            this.m_tabBtnFilterLists    = document.querySelector('a[href="#tab_filter_lists"]') as HTMLLinkElement;
-            this.m_tabBtnUserRequest    = document.querySelector('a[href="#tab_user_deactivation_requests"]') as HTMLLinkElement;
-            this.m_tabBtnAppGroup       = document.querySelector('a[href="#tab_app_groups"]') as HTMLLinkElement;
-            this.m_tabBtnActivation     = document.querySelector('a[href="#tab_app_user_activations"]') as HTMLLinkElement;
-            this.m_tabBtnVersion        = document.querySelector('a[href="#tab_system_versions"]') as HTMLLinkElement;
+            this.m_tabBtnUsers                  = document.querySelector('a[href="#tab_users"]') as HTMLLinkElement;
+            this.m_tabBtnGroups                 = document.querySelector('a[href="#tab_groups"]') as HTMLLinkElement;
+            this.m_tabBtnFilterLists            = document.querySelector('a[href="#tab_filter_lists"]') as HTMLLinkElement;
+            this.m_tabBtnUserRequest            = document.querySelector('a[href="#tab_user_deactivation_requests"]') as HTMLLinkElement;
+            this.m_tabBtnAppGroup               = document.querySelector('a[href="#tab_app_groups"]') as HTMLLinkElement;
+            this.m_tabBtnActivation             = document.querySelector('a[href="#tab_app_user_activations"]') as HTMLLinkElement;
+            this.m_tabBtnVersion                = document.querySelector('a[href="#tab_system_versions"]') as HTMLLinkElement;
             // Init user management button references.
-            this.m_btnCreateUser        = document.getElementById('btn_user_add') as HTMLButtonElement;
-            this.m_btnDeleteUser        = document.getElementById('btn_user_delete') as HTMLButtonElement;
-            this.m_btnDeleteUser.disabled = true;
+            this.m_btnCreateUser                = document.getElementById('btn_user_add') as HTMLButtonElement;
+            this.m_btnDeleteUser                = document.getElementById('btn_user_delete') as HTMLButtonElement;
+            this.m_btnDeleteUser.disabled       = true;
 
             // Init group management button references.
-            this.m_btnCreateGroup       = document.getElementById('btn_group_add') as HTMLButtonElement;
-            this.m_btnDeleteGroup       = document.getElementById('btn_group_delete') as HTMLButtonElement;
-            this.m_btnCloneGroup        = document.getElementById('btn_group_clone') as HTMLButtonElement;
-            this.m_btnDeleteGroup.disabled = true;
-            this.m_btnCloneGroup.disabled = true;
+            this.m_btnCreateGroup               = document.getElementById('btn_group_add') as HTMLButtonElement;
+            this.m_btnDeleteGroup               = document.getElementById('btn_group_delete') as HTMLButtonElement;
+            this.m_btnCloneGroup                = document.getElementById('btn_group_clone') as HTMLButtonElement;
+            this.m_btnDeleteGroup.disabled      = true;
+            this.m_btnCloneGroup.disabled       = true;
 
-            // Init Filter List/Data management button references.
-            this.m_btnUploadFL          = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;
-            this.m_btnDeleteFL          = document.getElementById('btn_delete_filter_list') as HTMLButtonElement;
+            this.m_btnUploadFL                  = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;
+            this.m_btnDeleteFL                  = document.getElementById('btn_delete_filter_list') as HTMLButtonElement;
             this.m_btnDeleteFLInNamespace       = document.getElementById('btn_delete_filter_list_namespace') as HTMLButtonElement;
             this.m_btnDeleteFLTypeInNamespace   = document.getElementById('btn_delete_filter_list_type_namespace') as HTMLButtonElement;
-            this.m_btnDeleteFL.disabled = true;
-            this.m_btnDeleteFLInNamespace.disabled = true;
-            this.m_btnDeleteFLTypeInNamespace.disabled = true;
+            this.m_btnDeleteFL.disabled         = true;
+            this.m_btnDeleteFLInNamespace.disabled      = true;
+            this.m_btnDeleteFLTypeInNamespace.disabled  = true;
 
-            // Init user deactivation request.
-            this.m_btnDeleteDR          = document.getElementById('btn_delete_user_deactivation_request') as HTMLButtonElement;
-            this.m_btnDeleteDR.disabled = true;
+            this.m_btnDeleteDR                  = document.getElementById('btn_delete_user_deactivation_request') as HTMLButtonElement;
+            this.m_btnDeleteDR.disabled         = true;
 
-            this.m_btnRefreshDR         = document.getElementById('btn_refresh_user_deactivation_request_list') as HTMLButtonElement;
+            this.m_btnRefreshDR                 = document.getElementById('btn_refresh_user_deactivation_request_list') as HTMLButtonElement;
 
-            this.m_btnApp               = document.getElementById('global_radio_app') as HTMLInputElement;
-            this.m_btnAppGroup          = document.getElementById('global_radio_app_group') as HTMLInputElement;
-            this.m_btnAddApplication    = document.getElementById('btn_application_add') as HTMLButtonElement;
-            this.m_btnRemoveApplication = document.getElementById('btn_application_remove') as HTMLButtonElement;
+            this.m_btnApp                       = document.getElementById('global_radio_app') as HTMLInputElement;
+            this.m_btnAppGroup                  = document.getElementById('global_radio_app_group') as HTMLInputElement;
+            this.m_btnAddApplication            = document.getElementById('btn_application_add') as HTMLButtonElement;
+            this.m_btnRemoveApplication         = document.getElementById('btn_application_remove') as HTMLButtonElement;
             this.m_btnRemoveApplication.disabled = true;
-            this.m_btnApplyToGroup      = document.getElementById('btn_apply_group') as HTMLButtonElement;
+            this.m_btnApplyToGroup              = document.getElementById('btn_apply_group') as HTMLButtonElement;
 
-            this.m_btnDeleteActivation  = document.getElementById('btn_delete_activation') as HTMLButtonElement;
-            this.m_btnBlockActivation   = document.getElementById('btn_block_activations') as HTMLButtonElement;
+            this.m_btnDeleteActivation          = document.getElementById('btn_delete_activation') as HTMLButtonElement;
+            this.m_btnBlockActivation           = document.getElementById('btn_block_activations') as HTMLButtonElement;
             this.m_btnDeleteActivation.disabled = true;
-            this.m_btnBlockActivation.disabled = true;
+            this.m_btnBlockActivation.disabled  = true;
 
-            this.m_btnCreateVersion     = document.getElementById('btn_version_add') as HTMLButtonElement;
-            this.m_btnDeleteVersion     = document.getElementById('btn_version_delete') as HTMLButtonElement;
-            this.m_btnDeleteVersion.disabled = true;
-            this.m_btnSystemPlatform    = document.getElementById('btn_sysem_platform') as HTMLButtonElement;
+            this.m_btnCreateVersion             = document.getElementById('btn_version_add') as HTMLButtonElement;
+            this.m_btnDeleteVersion             = document.getElementById('btn_version_delete') as HTMLButtonElement;
+            this.m_btnDeleteVersion.disabled    = true;
+            this.m_btnSystemPlatform            = document.getElementById('btn_sysem_platform') as HTMLButtonElement;
 
             this.InitButtonHandlers();
         }
@@ -1507,18 +1523,18 @@ namespace Citadel {
                 this.ViewState = DashboardViewStates.AppView;
                 let itemIsActuallySelected              = $("#app_table").children().next().find(".selected").length > 0 ? true : false;
                 this.m_btnRemoveApplication.disabled    = true;
-                this.m_btnAddApplication.innerHTML      = '<span class="icon mif-stack"></span>Add <br /> Application';
-                this.m_btnRemoveApplication.innerHTML   = '<span class="mif-cancel"></span>Remove <br /> Application';
-                this.m_btnApplyToGroup.innerHTML        = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To App Group'
+                this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPLICATION_LABEL;
+                this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPLICATION_LABEL;
+                this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPLICATION_LABEL;
             });
 
             this.m_btnAppGroup.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.AppGroupView;
                 let itemIsActuallySelected              = $("#app_group_table").children().next().find(".selected").length > 0 ? true : false;
                 this.m_btnRemoveApplication.disabled    = true;
-                this.m_btnAddApplication.innerHTML      = '<span class="icon mif-stack"></span>Add <br /> Application <br /> Group';
-                this.m_btnRemoveApplication.innerHTML   = '<span class="mif-cancel"></span>Remove <br /> Application <br /> Group';
-                this.m_btnApplyToGroup.innerHTML        = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To User Group'
+                this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPGROUP_LABEL;
+                this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPGROUP_LABEL;
+                this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPGROUP_LABEL;
             });
 
             this.m_btnAddApplication.onclick = ((e: MouseEvent) => {
@@ -2073,8 +2089,6 @@ namespace Citadel {
         }
 
         private set ViewState(value: DashboardViewStates) {
-            console.log(' set state');
-            console.log(value);
             this.m_viewUser.style.display                   = "none";
             this.m_viewGroup.style.display                  = "none";
             this.m_viewFilter.style.display                 = "none";
@@ -2159,8 +2173,8 @@ namespace Citadel {
                     }
                     break;
             }
-            console.log('---end----');
             this.m_currentViewState = value;
+
             window.localStorage.setItem('previous_tab', tab_index.toString());
         }
 
