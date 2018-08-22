@@ -268,7 +268,7 @@ label.unchecked-alone:after {
     left: 0;
     right: 0;
     top: 0;
-    margin: 80px 80px 0 80px;
+    margin: 80px 0px 0 0px;
 }
 
 .fluent-menu .fluent-big-button {
@@ -448,7 +448,7 @@ Main admin page.
 }
 
 #editor_container {
-    margin: 10px 80px 80px 80px;
+/*    margin: 10px 80px 80px 80px;*/
     background: white;
     height: calc(100% - 300px);
     box-shadow: 0 2px 6px rgba(57, 73, 76, 0.35);
