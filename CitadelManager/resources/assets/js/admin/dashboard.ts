@@ -49,6 +49,7 @@ namespace Citadel {
         MESSAGE_CONFIRM_APPGROUP_DELETE         = 'Really delete Application? THIS CANNOT BE UNDONE!!!';
         MESSAGE_CONFIRM_ACTIVATION_DELETE       = 'Really delete app user activation? THIS CANNOT BE UNDONE!!!';
         MESSAGE_CONFIRM_ACTIVATION_BLOCK        = 'Really block app user activation? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CANT_DELETE_GROUP               = 'This group is not empty, so it can not be deleted.';
 
         MESSAGE_LOAD_FAIL                       = 'Failed to load group record from table selection.';
         MESSAGE_ACTION_FAILED                   = 'Error reported by the server during action. console for more information.';
@@ -1791,16 +1792,17 @@ namespace Citadel {
                 var groupObject: GroupRecord;
 
                 try {
-                    groupObject = BaseRecord.CreateFromObject(GroupRecord, selectedItem);
-
-                    // We want to update both users and groups after delete.
-                    groupObject.ActionCompleteCallback = ((action: string): void => {
-                        this.ForceTableRedraw(this.m_tableUsers);
-                        this.ForceTableRedraw(this.m_tableGroups);
-                    });
-
-                    if (confirm(this.MESSAGE_CONFIRM_GROUP_DELETE)) {
-                        groupObject.Delete();
+                    if(selectedItem['user_count'] > 0) {
+                        alert(this.MESSAGE_CANT_DELETE_GROUP);
+                    } else {
+                        if (confirm(this.MESSAGE_CONFIRM_GROUP_DELETE)) {
+                            groupObject = BaseRecord.CreateFromObject(GroupRecord, selectedItem);
+                            groupObject.ActionCompleteCallback = ((action: string): void => {
+                                this.ForceTableRedraw(this.m_tableUsers);
+                                this.ForceTableRedraw(this.m_tableGroups);
+                            });
+                            groupObject.Delete();
+                        }
                     }
                 } catch (e) {
                     console.log(this.MESSAGE_LOAD_FAIL);
