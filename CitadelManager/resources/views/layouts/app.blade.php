@@ -40,7 +40,10 @@
 
     <script src="{{ asset('plugins/datetimepicker-2.2.4/jquery.datetimepicker.js') }}"></script>
 
+    <script src="https://cdn.ravenjs.com/3.19.1/raven.min.js" crossorigin="anonymous"></script>
+
     <script>
+	//Raven.config('').install();
         window.Laravel = <?php echo json_encode([
             'csrfToken' => csrf_token(),
         ]); ?>;
