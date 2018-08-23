@@ -160,7 +160,7 @@ namespace Citadel {
             let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
-                url: this.URL_SELECTED_USER_GRP + id,
+                url: this.URL_SELECTED_USER_GRP + '/' + id,
                 data: {},
                 success: (data: any): any => {
                     $('#spiner_3').hide();
