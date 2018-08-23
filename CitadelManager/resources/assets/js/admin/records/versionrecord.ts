@@ -19,8 +19,10 @@ namespace Citadel {
         ERROR_MESSAGE_FILE_NAME             = 'A valid file name is required.';
         ERROR_MESSAGE_VERSION_ALPHA         = 'Alpha version is required.';
         ERROR_MESSAGE_VERSION_BETA          = 'Beta version is required.';
-        ERROR_MESSAGE_BERSION_STABLE        = 'Stable is required.';
-
+        ERROR_MESSAGE_VERSION_STABLE        = 'Stable is required.';
+        ERROR_MESSAGE_RELEASE_DATE          = 'Release date is required.';
+        ERROR_MESSAGE_CHANGES               = 'Changes field is required.';
+        
         MESSAGE_ACTION_FAILED               = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
         TITLE_ACTION_FAILED                 = 'Action Failed';
@@ -119,7 +121,9 @@ namespace Citadel {
             validationErrorMessages[this.m_inputFileName.id] = this.ERROR_MESSAGE_FILE_NAME;
             validationErrorMessages[this.m_inputAlphaVersion.id] = this.ERROR_MESSAGE_VERSION_ALPHA;
             validationErrorMessages[this.m_inputBetaVersion.id] = this.ERROR_MESSAGE_VERSION_BETA;
-            validationErrorMessages[this.m_inputStableVersion.id] = this.ERROR_MESSAGE_BERSION_STABLE;
+            validationErrorMessages[this.m_inputStableVersion.id] = this.ERROR_MESSAGE_VERSION_STABLE;
+            validationErrorMessages[this.m_inputReleaseDate.id] = this.ERROR_MESSAGE_RELEASE_DATE;
+            validationErrorMessages[this.m_inputChange.id] = this.ERROR_MESSAGE_CHANGES;
 
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
