@@ -19,8 +19,10 @@ namespace Citadel {
         ERROR_MESSAGE_FILE_NAME             = 'A valid file name is required.';
         ERROR_MESSAGE_VERSION_ALPHA         = 'Alpha version is required.';
         ERROR_MESSAGE_VERSION_BETA          = 'Beta version is required.';
-        ERROR_MESSAGE_BERSION_STABLE        = 'Stable is required.';
-
+        ERROR_MESSAGE_VERSION_STABLE        = 'Stable is required.';
+        ERROR_MESSAGE_RELEASE_DATE          = 'Release date is required.';
+        ERROR_MESSAGE_CHANGES               = 'Changes field is required.';
+        
         MESSAGE_ACTION_FAILED               = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
         TITLE_ACTION_FAILED                 = 'Action Failed';
@@ -71,7 +73,7 @@ namespace Citadel {
         private m_inputAlphaVersion     : HTMLInputElement;
         private m_inputBetaVersion      : HTMLInputElement;
         private m_inputStableVersion    : HTMLInputElement;
-        private m_inpuReleaseDate       : HTMLInputElement;
+        private m_inputReleaseDate       : HTMLInputElement;
         private m_inputIsActive         : HTMLInputElement;
         private m_inputChange           : HTMLTextAreaElement;
 
@@ -105,12 +107,23 @@ namespace Citadel {
             validationRules[this.m_inputStableVersion.id] = {
                 required: true
             };
+
+            validationRules[this.m_inputReleaseDate.id] = {
+                required: true
+            };
+
+            validationRules[this.m_inputChange.id] = {
+                required: true
+            };
+            
             let validationErrorMessages = {};
             validationErrorMessages[this.m_inputAppName.id] = this.ERROR_MESSAGE_APP_NAME;
             validationErrorMessages[this.m_inputFileName.id] = this.ERROR_MESSAGE_FILE_NAME;
             validationErrorMessages[this.m_inputAlphaVersion.id] = this.ERROR_MESSAGE_VERSION_ALPHA;
             validationErrorMessages[this.m_inputBetaVersion.id] = this.ERROR_MESSAGE_VERSION_BETA;
-            validationErrorMessages[this.m_inputStableVersion.id] = this.ERROR_MESSAGE_BERSION_STABLE;
+            validationErrorMessages[this.m_inputStableVersion.id] = this.ERROR_MESSAGE_VERSION_STABLE;
+            validationErrorMessages[this.m_inputReleaseDate.id] = this.ERROR_MESSAGE_RELEASE_DATE;
+            validationErrorMessages[this.m_inputChange.id] = this.ERROR_MESSAGE_CHANGES;
 
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
@@ -149,7 +162,7 @@ namespace Citadel {
             this.m_inputAlphaVersion    = document.querySelector('#system_version_input_alpha_version') as HTMLInputElement;
             this.m_inputBetaVersion     = document.querySelector('#system_version_input_beta_version') as HTMLInputElement;
             this.m_inputStableVersion   = document.querySelector('#system_version_input_stable_version') as HTMLInputElement;
-            this.m_inpuReleaseDate      = document.querySelector('#system_version_input_rdate') as HTMLInputElement;
+            this.m_inputReleaseDate      = document.querySelector('#system_version_input_rdate') as HTMLInputElement;
             this.m_inputIsActive        = document.querySelector('#system_version_default_version') as HTMLInputElement;
             this.m_inputChange          = document.querySelector('#system_version_input_changes') as HTMLTextAreaElement;
             this.m_inputFileExt         = document.querySelector('#system_version_ext') as HTMLSelectElement;
@@ -191,7 +204,7 @@ namespace Citadel {
             this.m_alpha                = this.m_inputAlphaVersion.value;
             this.m_beta                 = this.m_inputBetaVersion.value;
             this.m_stable               = this.m_inputStableVersion.value;
-            this.m_releaseDate          = this.m_inpuReleaseDate.value;
+            this.m_releaseDate          = this.m_inputReleaseDate.value;
             this.m_active               = this.m_inputIsActive.checked == true ? 1 : 0;
             this.m_changes              = this.m_inputChange.value;
             let selectedFileExt         = this.m_inputFileExt.options[this.m_inputFileExt.selectedIndex] as HTMLOptionElement;
@@ -231,7 +244,7 @@ namespace Citadel {
                         this.m_inputAlphaVersion.value  = this.m_alpha;
                         this.m_inputBetaVersion.value   = this.m_beta;
                         this.m_inputStableVersion.value = this.m_stable;
-                        this.m_inpuReleaseDate.value    = this.m_releaseDate;
+                        this.m_inputReleaseDate.value    = this.m_releaseDate;
                         this.m_inputIsActive.checked    = this.m_active === 1 ? true : false;
                         this.m_inputChange.value        = this.m_changes;
                         this.loadPlatforms();

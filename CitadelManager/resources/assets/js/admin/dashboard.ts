@@ -1289,7 +1289,7 @@ namespace Citadel {
                         })
                     },
                     {
-                        title: 'Action',
+                        title: 'Current',
                         data: 'active',
                         orderable: false,
                         visible: true,
