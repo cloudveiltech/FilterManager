@@ -11,13 +11,12 @@
                     <ul>
                     @foreach ($changes AS $change)
                         <li>{{ $change }}</li>
-
                     @endforeach
                     </ul>
                 ]]>
             </description>
             <pubDate>{{ $date }}</pubDate>
-            <enclosure channel="{{ $channel['release'] }}" url="{{ url('/') }}/releases/{{ $file_name }}-{{ $channel['version_number'] }}-{{ $platform }}.msi" length="0" sparkle:os="windows" sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $channel['version_number'] }}" type="application/octet-stream"/>    
+            <enclosure channel="{{ $channel['release'] }}" url="{{ url('/') }}/releases/{{ $file_name }}-{{ $channel['version_number'] }}-{{ $platform }}{{ $file_ext }}" length="0" sparkle:os="windows" sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $channel['version_number'] }}" type="application/octet-stream"/>    
         </item>
         @endforeach
     </channel>

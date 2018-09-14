@@ -9,18 +9,19 @@
 
 namespace App;
 
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Zizaco\Entrust\Traits\EntrustUserTrait;
 use App\AppUserActivation;
-use Illuminate\Http\Request;
-use Validator;
-use Laravel\Passport\HasApiTokens;
-use Log;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Http\Request;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\HasApiTokens;
+use Log;
+use Validator;
+use Zizaco\Entrust\Traits\EntrustUserTrait;
 
-class UserActivationAttemptResult {
+class UserActivationAttemptResult
+{
 
     const Success = 1;
     const ActivationLimitExceeded = 2;
@@ -31,7 +32,8 @@ class UserActivationAttemptResult {
 
 }
 
-class User extends Authenticatable {
+class User extends Authenticatable
+{
 
     use Notifiable;
     use EntrustUserTrait;
@@ -52,27 +54,30 @@ class User extends Authenticatable {
     protected static function boot()
     {
         parent::boot();
-     
+
         // Order by name ASC
         static::addGlobalScope('order', function (Builder $builder) {
             $builder->orderBy('name', 'asc');
         });
     }
-     
 
-    public function group() {
+    public function group()
+    {
         return $this->belongsTo('App\Group');
     }
 
-    public function roles() {
+    public function roles()
+    {
         return $this->belongsToMany('App\Role');
     }
 
-    public function permissions() {
+    public function permissions()
+    {
         return $this->hasMany('App\Permission');
     }
 
-    public function activations() {
+    public function activations()
+    {
         return $this->hasMany('App\AppUserActivation');
     }
 
@@ -80,10 +85,11 @@ class User extends Authenticatable {
      * Gets a count of all activations for this user.
      * @return type
      */
-    public function activationsCountRelation() {
+    public function activationsCountRelation()
+    {
         return $this->hasOne('App\AppUserActivation')
             ->selectRaw('user_id, count(*) as count')
-            ->where('updated_at','>=', Carbon::now()->subDays(config('app.license_expiration'))->format('Y-m-d H:i:s'))
+            ->where('updated_at', '>=', Carbon::now()->subDays(config('app.license_expiration'))->format('Y-m-d H:i:s'))
             ->groupBy('user_id');
     }
 
@@ -91,7 +97,8 @@ class User extends Authenticatable {
      * Gets the number of rule entries for this filter list.
      * @return type
      */
-    public function getActivationsUsedAttribute(): int {
+    public function getActivationsUsedAttribute(): int
+    {
 
         $activationRelation = $this->activationsCountRelation()->first();
         //Log::debug($activationRelation);
@@ -108,55 +115,56 @@ class User extends Authenticatable {
      * @param Request $request
      * @return \App\UserActivationAttemptResult
      */
-    public function tryActivateUser(Request $request) {
-        
+    public function tryActivateUser(Request $request)
+    {
+
         if ($this->isactive == false) {
             return UserActivationAttemptResult::AccountDisabled;
         }
-        
+
         $userGroup = $this->group()->first();
         if (!is_null($userGroup)) {
             if ($userGroup->isactive == false) {
                 return UserActivationAttemptResult::GroupDisabled;
             }
         }
-        
+
         $validator = Validator::make($request->all(), [
             'identifier' => 'required',
-            'device_id' => 'required'
+            'device_id' => 'required',
         ]);
 
         if ($validator->fails()) {
-            return UserActivationAttemptResult::IndentifyingInformationMissing;            
+            return UserActivationAttemptResult::IndentifyingInformationMissing;
         }
-        
+
         $userInfo = $request->only(['identifier', 'device_id']);
         $userInfo['user_id'] = $this->id;
-        
+
         try
         {
             $activation = AppUserActivation::firstOrCreate($userInfo);
             Log::debug('Created New Activation');
             Log::debug($activation);
             $numActivations = $this->getActivationsUsedAttribute();
-            
+
             // Only deny this user if their activation is brand new
             // and it pushed the number of activations over the allowed
             // maximum.
-            if($numActivations > $this->activations_allowed + config('app.license_overage_allowed') && $activation->wasRecentlyCreated){
+            if ($numActivations > $this->activations_allowed + config('app.license_overage_allowed') && $activation->wasRecentlyCreated) {
                 $activation->delete();
                 return UserActivationAttemptResult::ActivationLimitExceeded;
             }
-            
+
             // Update timestamp on this user's access. This can be used to
             // track/identify stale activations.
             $activation->touch();
-            
+
         } catch (Exception $ex) {
             Log::error(print_r($ex, true));
-            return UserActivationAttemptResult::UnknownError;  
+            return UserActivationAttemptResult::UnknownError;
         }
-        
+
         return UserActivationAttemptResult::Success;
     }
 

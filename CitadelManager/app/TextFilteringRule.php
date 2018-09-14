@@ -16,9 +16,9 @@ class TextFilteringRule extends Model
 {
     // Enables mass insert, and insert-ignore, insert-update etc.
     use InsertOnDuplicateKey;
-    
+
     public $timestamps = true;
-    
+
     /**
      * The attributes that are mass assignable.
      *

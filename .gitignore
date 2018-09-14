@@ -291,10 +291,13 @@ __pycache__/
 /node_modules
 /public/hot
 /public/storage
+/public/js/admin
 /storage/*.key
 /vendor
 /.idea
 /.vagrant
+/CitadelManager/public/js/admin
+/CitadelManager/public/js/admin/*
 Homestead.json
 Homestead.yaml
 npm-debug.log

@@ -5,20 +5,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-namespace Citadel
-{
+namespace Citadel {
     /**
-     * 
-     * 
+     *
+     *
      * @export
      * @class ProgressWait
      */
-    export class ProgressWait
-    {
+    export class ProgressWait {
 
         /**
-         * 
-         * 
+         *
+         *
          * @private
          * @type {HTMLDivElement}
          * @memberOf ProgressWait
@@ -26,8 +24,8 @@ namespace Citadel
         private m_overlay: HTMLDivElement;
 
         /**
-         * 
-         * 
+         *
+         *
          * @private
          * @type {HTMLHeadingElement}
          * @memberOf ProgressWait
@@ -35,8 +33,8 @@ namespace Citadel
         private m_title: HTMLHeadingElement;
 
         /**
-         * 
-         * 
+         *
+         *
          * @private
          * @type {HTMLParagraphElement}
          * @memberOf ProgressWait
@@ -45,28 +43,26 @@ namespace Citadel
 
         /**
          * Creates an instance of ProgressWait.
-         * 
-         * 
+         *
+         *
          * @memberOf ProgressWait
          */
-        constructor()
-        {
+        constructor() {
             this.m_overlay = document.getElementById('overlay_loading') as HTMLDivElement;
             this.m_title = document.getElementById('overlay_loading_title') as HTMLHeadingElement;
             this.m_message = document.getElementById('overlay_loading_message') as HTMLParagraphElement;
         }
 
         /**
-         * 
-         * 
+         *
+         *
          * @param {string} title
          * @param {string} [message=""]
          * @param {number} [fadeInTimeMsec=1000]
-         * 
+         *
          * @memberOf ProgressWait
          */
-        public Show(title: string, message: string = "", fadeInTimeMsec: number = 200): void
-        {
+        public Show(title: string, message: string = "", fadeInTimeMsec: number = 200): void {
             this.m_title.innerText = title;
             this.m_message.innerHTML = '<div>' + message + '</div>';
             //this.m_message.innerText = message;
@@ -74,16 +70,14 @@ namespace Citadel
         }
 
         /**
-         * 
-         * 
+         *
+         *
          * @param {number} [fadeOutTimeMsec=1000]
-         * 
+         *
          * @memberOf ProgressWait
          */
-        public Hide(fadeOutTimeMsec: number = 200): void
-        {
+        public Hide(fadeOutTimeMsec: number = 200): void {
             $(this.m_overlay).fadeOut(fadeOutTimeMsec);
         }
-
     }
 }

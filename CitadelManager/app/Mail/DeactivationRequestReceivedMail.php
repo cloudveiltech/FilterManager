@@ -2,12 +2,11 @@
 
 namespace App\Mail;
 
+use App\DeactivationRequest;
+use App\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use App\DeactivationRequest;
-use App\User;
 
 class DeactivationRequestReceivedMail extends Mailable
 {
@@ -34,8 +33,8 @@ class DeactivationRequestReceivedMail extends Mailable
      */
     public function __construct(DeactivationRequest $deactivationRequest, User $user)
     {
-      $this->deactivationRequest = $deactivationRequest;
-      $this->user = $user;
+        $this->deactivationRequest = $deactivationRequest;
+        $this->user = $user;
     }
 
     /**

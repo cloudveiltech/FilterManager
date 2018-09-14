@@ -1,19 +1,21 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\AppGroup;
-use App\Group;
-use App\AppGroupToApp;
+
 use App\App;
-use Illuminate\Http\Request;
+use App\AppGroup;
+use App\AppGroupToApp;
 use App\UserGroupToAppGroup;
+use Illuminate\Http\Request;
 use Log;
+
 class ApplicationGroupController extends Controller
 {
-    public function __construct() {
-        
+    public function __construct()
+    {
+
     }
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -23,7 +25,7 @@ class ApplicationGroupController extends Controller
     {
         $draw = $request->input('draw');
         $start = $request->input('start');
-        $length = $request->input('length')? $request->input('length') : 10;
+        $length = $request->input('length') ? $request->input('length') : 10;
         $search = $request->input('search')['value'];
 
         $order = $request->input('order')[0]['column'];
@@ -33,29 +35,29 @@ class ApplicationGroupController extends Controller
         $recordsTotal = AppGroup::count();
         $query = AppGroup::with(['group_app'])
             ->select('app_groups.*')
-            ->when($search, function($query) use($search) {
-                return $query->where('group_name', 'like',"%$search%");
+            ->when($search, function ($query) use ($search) {
+                return $query->where('group_name', 'like', "%$search%");
             }, function ($query) use ($order_str, $order_name) {
                 return $query->orderBy($order_name, $order_str);
             });
 
         $recordsFilterTotal = $query->count();
-        
+
         $app_groups = $query->offset($start)
             ->limit($length)
             ->get();
-       
-        foreach($app_groups as $app_group) {
+
+        foreach ($app_groups as $app_group) {
             $arr_app_id = [];
-            foreach($app_group->group_app as $group_item) {
+            foreach ($app_group->group_app as $group_item) {
                 $arr_app_id[] = $group_item->app_id;
             }
             Log::debug($arr_app_id);
             $apps = App::whereIn('id', $arr_app_id)->get();
             $str = '';
-            foreach($apps as $app) {
-                if(strlen($str) > 0) {
-                    $str .= ", ".$app->name;
+            foreach ($apps as $app) {
+                if (strlen($str) > 0) {
+                    $str .= ", " . $app->name;
                 } else {
                     $str = $app->name;
                 }
@@ -69,7 +71,7 @@ class ApplicationGroupController extends Controller
             "draw" => intval($draw),
             "recordsTotal" => $recordsTotal,
             "recordsFiltered" => $recordsFilterTotal,
-            "data" => $app_groups
+            "data" => $app_groups,
         ]);
     }
 
@@ -79,9 +81,10 @@ class ApplicationGroupController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $this->validate($request, [
-            'group_name' => 'required'
+            'group_name' => 'required',
         ]);
 
         $input = $request->only(['group_name']);
@@ -90,15 +93,14 @@ class ApplicationGroupController extends Controller
         $apps = array_filter(explode(",", $apps_str['apps']));
 
         foreach ($apps as $app_id) {
-            AppGroupToApp::create( array(
+            AppGroupToApp::create(array(
                 "app_group_id" => $group->id,
-                "app_id" => intval($app_id)
+                "app_id" => intval($app_id),
             ));
         }
 
         return response('', 204);
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -106,7 +108,8 @@ class ApplicationGroupController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id) {
+    public function destroy($id)
+    {
         AppGroupToApp::where('app_group_id', $id)->delete();
         UserGroupToAppGroup::where('app_group_id', $id)->delete();
         $applicationGroup = AppGroup::where('id', $id)->first();
@@ -117,19 +120,20 @@ class ApplicationGroupController extends Controller
         return response('', 204);
     }
 
-    public function update(Request $request, $id) {
-        
+    public function update(Request $request, $id)
+    {
         $input = $request->only(['group_name']);
         AppGroup::where('id', $id)->update($input);
         AppGroupToApp::where('app_group_id', $id)->delete();
         $apps_str = $request->only(['apps']);
-        $apps = array_filter(explode(",", $apps_str['apps']));   
+        $apps = array_filter(explode(",", $apps_str['apps']));
         foreach ($apps as $app_id) {
-            AppGroupToApp::create( array(
+            AppGroupToApp::create(array(
                 "app_group_id" => $id,
-                "app_id" => intval($app_id)
+                "app_id" => intval($app_id),
             ));
         }
+
         return response('', 204);
     }
 }

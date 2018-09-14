@@ -1,10 +1,4 @@
-@extends('layouts.app')
-
-@section('navbar')
-@include('layouts.components.adminnav')
-@endsection
-
-@section('content')
+@extends('layouts.app') @section('navbar') @include('layouts.components.adminnav') @endsection @section('content')
 
 <!-- Include BaseRecord Record Type JS. Must be done to serve any record type correctly. -->
 <script src="{{ asset('js/admin/records/baserecord.js') }}">
@@ -13,13 +7,27 @@
 <!-- Primary admin menu. -->
 <div class="fluent-menu" data-role="fluentmenu">
     <ul class="tabs-holder">
-        <li id="btn_tab_users" class="active"><a href="#tab_users">Users</a></li>
-        <li id="btn_tab_groups"><a href="#tab_groups">Groups</a></li>
-        <li id="btn_filter_lists"><a href="#tab_filter_lists">Filter Lists</a></li>
-        <li id="btn_user_deactivation_requests"><a href="#tab_user_deactivation_requests">Deactivation Requests</a></li>
-        <li id="btn_tab_app_groups"><a href="#tab_app_groups">Application Groups</a></li>
-        <li id="btn_app_user_activations"><a href="#tab_app_user_activations">App User Activations</a></li>
-        <li id="btn_system_versions"><a href="#tab_system_versions">System Versions</a></li>
+        <li id="btn_tab_users" class="active">
+            <a href="#tab_users">Users</a>
+        </li>
+        <li id="btn_tab_groups">
+            <a href="#tab_groups">Groups</a>
+        </li>
+        <li id="btn_filter_lists">
+            <a href="#tab_filter_lists">Filter Lists</a>
+        </li>
+        <li id="btn_user_deactivation_requests">
+            <a href="#tab_user_deactivation_requests">Deactivation Requests</a>
+        </li>
+        <li id="btn_tab_app_groups">
+            <a href="#tab_app_groups">Application Groups</a>
+        </li>
+        <li id="btn_app_user_activations">
+            <a href="#tab_app_user_activations">App User Activations</a>
+        </li>
+        <li id="btn_system_versions">
+            <a href="#tab_system_versions">System Versions</a>
+        </li>
     </ul>
 
     <!-- Primary menu contents container. -->
@@ -37,12 +45,13 @@
                         <!-- Default state of all delete buttons should be disabled. -->
                         <button id="btn_user_delete" class="fluent-big-button" disabled>
                             <span class="mif-user-minus"></span>
-                            <span class="label">Delete<br>User</span>
+                            <span class="label">Delete
+                                <br>User</span>
                         </button>
                     </div>
                 </div>
                 <div class="tab-group-caption">Creation / Deletion</div>
-            </div>                   
+            </div>
         </div>
 
         <!-- Groups tab. -->
@@ -57,7 +66,8 @@
                         <!-- Default state of all delete buttons should be disabled. -->
                         <button id="btn_group_delete" class="fluent-big-button" disabled>
                             <span class="mif-cancel"></span>
-                            <span class="label">Delete<br>Group</span>
+                            <span class="label">Delete
+                                <br>Group</span>
                         </button>
                     </div>
                 </div>
@@ -86,27 +96,30 @@
                         <!-- Default state of all delete buttons should be disabled. -->
                         <button id="btn_delete_filter_list" class="fluent-big-button" disabled>
                             <span class="mif-cancel"></span>
-                            <span class="label">Delete<br/>List</span>
+                            <span class="label">Delete
+                                <br/>List</span>
                         </button>
                     </div>
                 </div>
-                <div class="tab-group-caption">Creation / Deletion</div>                        
+                <div class="tab-group-caption">Creation / Deletion</div>
             </div>
             <div class="tab-panel-group">
                 <div class="tab-group-content">
                     <!-- Default state of all delete buttons should be disabled. -->
                     <button id="btn_delete_filter_list_namespace" class="fluent-big-button" disabled>
                         <span class="mif-warning"></span>
-                        <span class="label">Delete All<br/>In Namespace</span>
+                        <span class="label">Delete All
+                            <br/>In Namespace</span>
                     </button>
-                    
+
                     <!-- Default state of all delete buttons should be disabled. -->
                     <button id="btn_delete_filter_list_type_namespace" class="fluent-big-button" disabled>
                         <span class="mif-warning"></span>
-                        <span class="label">Delete Type<br/>In Namespace</span>
+                        <span class="label">Delete Type
+                            <br/>In Namespace</span>
                     </button>
                 </div>
-                <div class="tab-group-caption">!!Mass Deletion!!</div>                        
+                <div class="tab-group-caption">!!Mass Deletion!!</div>
             </div>
         </div>
 
@@ -118,9 +131,10 @@
                         <!-- Default state of all delete buttons should be disabled. -->
                         <button id="btn_delete_user_deactivation_request" class="fluent-big-button" disabled>
                             <span class="mif-cancel"></span>
-                            <span class="label">Delete<br/>Request</span>
+                            <span class="label">Delete
+                                <br/>Request</span>
                         </button>
-                        <div class="tab-content-segment">                                
+                        <div class="tab-content-segment">
                             <button id="btn_refresh_user_deactivation_request_list" class="fluent-big-button">
                                 <span class="mif-download"></span>
                                 <span class="label">Refresh</span>
@@ -132,13 +146,13 @@
             </div>
         </div>
 
-         <!-- App groups tab. -->
+        <!-- App groups tab. -->
         <div class="tab-panel" id="tab_app_groups" style="display: none;">
             <div class="tab-panel-group">
                 <div class="tab-group-content">
-                    <div class="tab-content-segment">
+                    <div class="tab-content-segment app-group-content">
                         <!-- Default state of all delete buttons should be disabled. -->
-                         <label class="input-control radio">
+                        <label class="input-control radio">
                             <input id="global_radio_app" type="radio" name="global_app_n1" checked>
                             <span class="check"></span>
                             <span class="caption">Application</span>
@@ -162,7 +176,8 @@
                         <!-- Default state of all delete buttons should be disabled. -->
                         <button id="btn_application_remove" class="fluent-big-button" disabled>
                             <span class="mif-cancel"></span>
-                            <span class="label">Remove<br>Application</span>
+                            <span class="label">Remove
+                                <br>Application</span>
                         </button>
                     </div>
                 </div>
@@ -187,12 +202,14 @@
                         <!-- Default state of all delete buttons should be disabled. -->
                         <button id="btn_delete_activation" class="fluent-big-button" disabled>
                             <span class="mif-cancel"></span>
-                            <span class="label">Retire<br/>Activations</span>
+                            <span class="label">Retire
+                                <br/>Activations</span>
                         </button>
-                        <div class="tab-content-segment">                                
+                        <div class="tab-content-segment">
                             <button id="btn_block_activations" class="fluent-big-button">
                                 <span class="mif-blocked"></span>
-                                <span class="label">Block<br/>Activations</span>
+                                <span class="label">Block
+                                    <br/>Activations</span>
                             </button>
                         </div>
                     </div>
@@ -213,12 +230,13 @@
                         <!-- Default state of all delete buttons should be disabled. -->
                         <button id="btn_version_delete" class="fluent-big-button" disabled>
                             <span class="mif-move-down"></span>
-                            <span class="label">Remove<br>Version</span>
+                            <span class="label">Remove
+                                <br>Version</span>
                         </button>
                     </div>
                 </div>
                 <div class="tab-group-caption">Add / Remove</div>
-            </div> 
+            </div>
             <div class="tab-panel-group">
                 <div class="tab-group-content">
                     <button id="btn_sysem_platform" class="fluent-big-button">
@@ -227,8 +245,8 @@
                     </button>
                 </div>
                 <div class="tab-group-caption">Platforms</div>
-            </div>         
-            
+            </div>
+
         </div>
     </div>
 </div>
@@ -241,7 +259,7 @@
         <table id="user_table" class="table striped hovered border">
 
         </table>
-    </div>        
+    </div>
 
     <!-- Group editing view. -->
     <div id="view_group_management" class="dataTables_wrapper">
@@ -314,8 +332,7 @@
 <!-- Require appgroup list editing overlay. -->
 @include('layouts.components.appgroupeditor')
 <!-- Require Apply Application to App group overlay. -->
-@include('layouts.components.applyapptoappgroup')
-@include('layouts.components.applyappgrouptousergroup')
+@include('layouts.components.applyapptoappgroup') @include('layouts.components.applyappgrouptousergroup')
 <!-- Require Apply to group overlay. -->
 @include('layouts.components.appuseractivationeditor')
 <!-- Require System Version overlay. -->

@@ -190,10 +190,11 @@ return [
         App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-	    RachidLaasri\LaravelInstaller\Providers\LaravelInstallerServiceProvider::class,
+	RachidLaasri\LaravelInstaller\Providers\LaravelInstallerServiceProvider::class,
         Zizaco\Entrust\EntrustServiceProvider::class,
         Mnabialek\LaravelSqlLogger\Providers\ServiceProvider::class,
         Laravel\Passport\PassportServiceProvider::class,
+        Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
     ],
 
     /*
@@ -243,6 +244,7 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'Entrust' => Zizaco\Entrust\EntrustFacade::class,
+        'Sentry' => Sentry\SentryLaravel\SentryFacade::class, 
     ],
 
 ];
