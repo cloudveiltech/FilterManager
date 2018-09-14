@@ -321,7 +321,6 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-<<<<<<< HEAD
     public function getUserData(Request $request) {
         $this->validate($request, [
             'identifier' => 'required',
