@@ -28,6 +28,7 @@ VOLUME /var/www
 #	chmod 775 /var/www/CitadelManager/.env;
 
 ENV APACHE_DOCUMENT_ROOT /var/www/FilterManager/public
+#USER www-data
 
 EXPOSE 80
 EXPOSE 443
