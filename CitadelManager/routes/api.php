@@ -146,6 +146,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api']],
     Route::post('/me/config/check', 'UserController@checkConfig'); //This will return a checksum for the above-mentioned configuration file.
     Route::post('/rules/get', 'UserController@getRules'); //This will get a ZIP file of all rules available in the system.
     Route::post('/rules/check', 'UserController@checkRules'); //This will return a checksum for the above-mentioned ZIP file.
+    Route::post('/rules/rebuild', 'UserController@rebuildRules');
     // END - New Requests for 1.7
 
     Route::get('/time', 'UserController@getTime');

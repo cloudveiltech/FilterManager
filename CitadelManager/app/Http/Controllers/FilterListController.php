@@ -232,6 +232,9 @@ class FilterListController extends Controller
 
     private function forceRebuildOnGroups(array $arrOfGroupIds)
     {
+        $globalFilterRules = new GlobalFilterRules();
+        $globalFilterRules->buildRuleData();
+
         foreach ($arrOfGroupIds as $groupId) {
             $thisGroup = Group::where('id', $groupId)->first();
 

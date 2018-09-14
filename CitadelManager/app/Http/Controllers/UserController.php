@@ -9,6 +9,7 @@
 
 namespace App\Http\Controllers;
 
+use App\GlobalFilterRules;
 use App\AppUserActivation;
 use App\DeactivationRequest;
 use App\Events\DeactivationRequestReceived;
@@ -314,6 +315,33 @@ class UserController extends Controller
         return response('', 204);
     }
 
+    public function rebuildRules(Request $request) {
+        $globalFilterRules = new GlobalFilterRules();
+        
+        $globalFilterRules->buildRuleData();
+
+        return response('', 204);
+    }
+
+    /**
+     * Return the SHA1 hash of the rule zip. This is for versions >=1.7
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function checkRules(Request $request) {
+        $globalFilterRules = new GlobalFilterRules();
+
+        $dataPath = $globalFilterRules->getRuleDataPath();
+
+        // TODO: Add an SHA1 cache mechanism. Do we want to do this in the DB or in the FS?
+        if(file_exists($dataPath)) {
+            $hash = hash("sha1", $dataPath);
+            return $hash;
+        }
+
+        return response('', 204);
+    }
+
     /**
      * Request the current user data. This includes filter rules and
      * configuration data.  This is for versions <=1.6.  Version 1.7
@@ -321,7 +349,6 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-<<<<<<< HEAD
     public function getUserData(Request $request) {
         $this->validate($request, [
             'identifier' => 'required',
@@ -340,6 +367,22 @@ class UserController extends Controller
         }
 
         return response('', 204);
+    }
+    
+    public function getRules(Request $request) {
+        $globalFilterRules = new GlobalFilterRules();
+
+        $dataPath = $globalFilterRules->getRuleDataPath();
+        
+        if(!file_exists($dataPath)) {
+            $globalFilterRules->buildRuleData();
+        }
+
+        if(file_exists($dataPath) && filesize($dataPath) > 0) {
+            return response()->download($dataPath);
+        }
+
+        return response($dataPath, 200);
     }
 
     /**
@@ -427,7 +470,6 @@ class UserController extends Controller
 
         if (!$validator->fails()) {
             $thisUser = \Auth::user();
-
             $reqArgs = $request->only(['identifier', 'device_id']);
 
             $reqArgs['user_id'] = $thisUser->id;
