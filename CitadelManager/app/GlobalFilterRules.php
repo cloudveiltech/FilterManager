@@ -8,6 +8,26 @@ namespace App {
             $rulesZipPath = $storageDir . DIRECTORY_SEPARATOR . 'global-rules.zip';
             return $rulesZipPath;
         }
+        
+        private function getFilename($listNamespace, $listCategory, $filename, $separatorChar = '.') {
+            return "$separatorChar$listNamespace$separatorChar$listCategory$separatorChar$filename";
+        }
+
+        // Helps reduce memory usage for rule file building.
+        public function buildFile($filename, $filters) {
+            $storageDir = storage_path();
+            $filePath = $storageDir . DIRECTORY_SEPARATOR . $filename;
+
+            $file = fopen($filePath, 'w');
+
+            foreach($filters as $filter) {
+                fprintf($file, "%s\n", $filter->rule);
+            }
+
+            fclose($file);
+
+            return $filePath;
+        }
 
         public function buildRuleData() {
             $rulesZipPath = $this->getRuleDataPath();
@@ -25,30 +45,20 @@ namespace App {
 
                     switch ($listType) {
                         case 'Filters':{
-                                $inMemFilterFile = '';
-                                $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
+                                $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'rules.txt', '/');
+                                $entryCacheFilename = $this->getFilename($listNamespace, $listCategory, 'rules.txt', '.');
 
-                                foreach ($filters as $filter) {
-                                    $inMemFilterFile .= $filter->rule . "\n";
-                                }
-
-                                $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/rules.txt';
-
-                                $zip->addFromString($entryRelativePath, $inMemFilterFile);
+                                $entryCachePath = $this->buildFile($entryCacheFilename, TextFilteringRule::where('filter_list_id', '=', $listId)->cursor());
+                                $zip->addFile($entryCachePath, $entryRelativePath);
                             }
                             break;
 
                         case 'Triggers':{
-                                $inMemFilterFile = '';
-                                $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
+                                $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'triggers.txt', '/');
+                                $entryCacheFilename = $this->getFilename($listNamespace, $listCategory, 'triggers.txt', '.');
 
-                                foreach ($filters as $filter) {
-                                    $inMemFilterFile .= $filter->rule . "\n";
-                                }
-
-                                $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/triggers.txt';
-
-                                $zip->addFromString($entryRelativePath, $inMemFilterFile);
+                                $entryCachePath = $this->buildFile($entryCacheFilename, TextFilteringRule::where('filter_list_id', '=', $listId)->cursor());
+                                $zip->addFile($entryCachePath, $entryRelativePath);
                             }
                             break;
 
