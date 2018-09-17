@@ -232,7 +232,7 @@ class FilterListController extends Controller
 
     private function forceRebuildOnGroups(array $arrOfGroupIds)
     {
-        $globalFilterRules = new GlobalFilterRules();
+        $globalFilterRules = new FilterRulesManager();
         $globalFilterRules->buildRuleData();
 
         foreach ($arrOfGroupIds as $groupId) {

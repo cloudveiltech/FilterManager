@@ -9,7 +9,7 @@
 
 namespace App\Http\Controllers;
 
-use App\GlobalFilterRules;
+use App\FilterRulesManager;
 use App\AppUserActivation;
 use App\DeactivationRequest;
 use App\Events\DeactivationRequestReceived;
@@ -17,6 +17,7 @@ use App\Group;
 use App\Role;
 use App\User;
 use App\UserActivationAttemptResult;
+use App\FilterList;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -316,7 +317,7 @@ class UserController extends Controller
     }
 
     public function rebuildRules(Request $request) {
-        $globalFilterRules = new GlobalFilterRules();
+        $globalFilterRules = new FilterRulesManager();
         
         $globalFilterRules->buildRuleData();
 
@@ -328,8 +329,8 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function checkRules(Request $request) {
-        $globalFilterRules = new GlobalFilterRules();
+    /*public function checkRules(Request $request) {
+        $globalFilterRules = new FilterRulesManager();
 
         $dataPath = $globalFilterRules->getRuleDataPath();
 
@@ -340,6 +341,37 @@ class UserController extends Controller
         }
 
         return response('', 204);
+    }*/
+
+    public function checkRules(Request $request) {
+        $array = $request->all();
+        $responseArray = [];
+
+        // format of each array key: /{namespace}/{category}/{type}.txt
+        foreach($array as $key => $value) {
+            $keyTrimmed = trim($key, '/');
+            $keyParts = explode('/', $keyTrimmed);
+
+            $namespace = $keyParts[0];
+            $category = $keyParts[1];
+            $type = explode('.', $keyParts[2])[0];
+            $internalType = $this->getInternalType($type);
+            
+            $filterList = FilterList::where('namespace', $namespace)
+                ->where('category', $category)
+                ->where('type', $internalType)
+                ->first();
+            
+            if($filterList == null) {
+                $responseArray[$key] = null;
+            } else if(strtolower($filterList->file_sha1) === $value) {
+                $responseArray[$key] = true;
+            } else {
+                $responseArray[$key] = false;
+            }
+        }
+
+        return response()->json($responseArray);
     }
 
     /**
@@ -369,8 +401,73 @@ class UserController extends Controller
         return response('', 204);
     }
     
+    private function getInternalType($type) {
+        $internalType = null;
+        switch($type) {
+            case 'rules':
+                $internalType = 'Filters';
+                break;
+
+            case 'triggers':
+                $internalType = 'Triggers';
+                break;
+        }
+
+        return $internalType;
+    }
+
+    public function getRuleset(Request $request, $namespace, $category, $type) {
+        $filterRulesManager = new FilterRulesManager();
+        
+        // Get etag from request and compare it against the cached file SHA1 for the matched ruleset.
+        $etag = $request->header('ETag');
+        
+        $internalType = $this->getInternalType($type);
+        if($internalType == null) {
+            return response('No such type defined', 500);
+        }
+
+        $filterList = FilterList::where('namespace', $namespace)
+            ->where('category', $category)
+            ->where('type', $internalType)
+            ->first();
+        
+        if($filterList === null) {
+            return response('', 404);
+        }
+
+        if($etag !== null && strtolower($etag) === strtolower($filterList->file_sha1)) {
+            return response('', 304);
+        }
+
+        // If they don't match, load the ruleset from the disk cache.
+        $hashExists = strlen($filterList->file_sha1) > 0;
+
+        $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
+        
+        if($hashExists && file_exists($rulesetFilePath) && filesize($rulesetFilePath) > 0) {
+            $response = response()->download($rulesetFilePath);
+            
+            $serverEtag = $filterRulesManager->getEtag($rulesetFilePath);
+            $response->setEtag($serverEtag);
+
+            return $response;
+        }
+
+        // If the ruleset does not exist on the disk cache, create it.
+        $rulesetFilePath = $filterRulesManager->buildRuleset($namespace, $category, $type, $filterList);
+       
+        // return the ruleset.
+        $response = response()->download($rulesetFilePath);
+
+        $serverEtag = $filterRulesManager->getEtag($rulesetFilePath);
+        $response->setEtag($serverEtag);
+
+        return $response;
+    }
+
     public function getRules(Request $request) {
-        $globalFilterRules = new GlobalFilterRules();
+        $globalFilterRules = new FilterRulesManager();
 
         $dataPath = $globalFilterRules->getRuleDataPath();
         

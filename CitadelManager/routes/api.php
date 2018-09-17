@@ -144,6 +144,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api']],
     // START - New Requests for 1.7.
     Route::post('/me/config/get','UserController@getConfig'); //This will get the configuration JSON file for the currently authenticated user.
     Route::post('/me/config/check', 'UserController@checkConfig'); //This will return a checksum for the above-mentioned configuration file.
+    Route::get('/rules/{namespace}/{category}/{type}.txt', 'UserController@getRuleset'); // This returns a specific ruleset file.
     Route::post('/rules/get', 'UserController@getRules'); //This will get a ZIP file of all rules available in the system.
     Route::post('/rules/check', 'UserController@checkRules'); //This will return a checksum for the above-mentioned ZIP file.
     Route::post('/rules/rebuild', 'UserController@rebuildRules');

@@ -1,7 +1,14 @@
 <?php
 
+/*
+ * Copyright © 2018 CloudVeil Technology, Inc.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 namespace App {
-    class GlobalFilterRules {
+    class FilterRulesManager {
         public function getRuleDataPath(): string
         {
             $storageDir = storage_path();
@@ -9,8 +16,19 @@ namespace App {
             return $rulesZipPath;
         }
         
-        private function getFilename($listNamespace, $listCategory, $filename, $separatorChar = '.') {
+        public function getFilename($listNamespace, $listCategory, $filename, $separatorChar = '.') {
             return "$separatorChar$listNamespace$separatorChar$listCategory$separatorChar$filename";
+        }
+    
+        public function getEtag($path) {
+            return hash_file('sha1', $path);
+        }
+
+        public function getRulesetPath($namespace, $category, $type) {
+            $filename = $this->getFilename($namespace, $category, "$type.txt");
+
+            $storageDir = storage_path();
+            return $storageDir . DIRECTORY_SEPARATOR . $filename;
         }
 
         // Helps reduce memory usage for rule file building.
@@ -25,7 +43,18 @@ namespace App {
             }
 
             fclose($file);
+            
+            return $filePath;
+        }
 
+        public function buildRuleset($namespace, $category, $type, $filterList) {
+            $filename = $this->getFilename($namespace, $category, "$type.txt");
+
+            $filePath = $this->buildFile($filename, TextFilteringRule::where('filter_list_id', '=', $filterList->id)->cursor());
+            
+            $filterList->file_sha1 = $this->getEtag($filePath);
+            $filterList->save();
+            
             return $filePath;
         }
 

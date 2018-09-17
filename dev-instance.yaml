@@ -7,11 +7,14 @@ services:
     restart: always
     volumes:
       - "~/.filtermanager-db:/var/lib/mysql"
+#      - "~/.filtermanager-db.conf.d:/etc/mysql/conf.d"
     environment:
       MYSQL_ROOT_PASSWORD: testpassword
       MYSQL_USER: test_user
       MYSQL_PASSWORD: testpassword
       MYSQL_DATABASE: citadel
+    ports:
+      - "13306:3306"
 
 #    networks:
 #      default:
