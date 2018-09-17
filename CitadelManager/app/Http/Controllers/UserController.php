@@ -349,6 +349,10 @@ class UserController extends Controller
 
         // format of each array key: /{namespace}/{category}/{type}.txt
         foreach($array as $key => $value) {
+            if($key == 'identifier' || $key == 'device_id') {
+                continue;
+            }
+
             $keyTrimmed = trim($key, '/');
             $keyParts = explode('/', $keyTrimmed);
 
