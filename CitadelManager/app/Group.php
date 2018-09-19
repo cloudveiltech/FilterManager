@@ -9,23 +9,24 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
-use App\TextFilteringRule;
-use App\NlpFilteringRule;
-use App\ImageFilteringRule;
-use App\AppGroup;
 use App\App;
-use App\UserGroupToAppGroup;
+use App\AppGroup;
 use App\Client\FilteringPlainTextListModel;
-use App\Client\PlainTextFilteringListType;
 use App\Client\NLPConfigurationModel;
+use App\Client\PlainTextFilteringListType;
+use App\NlpFilteringRule;
+use App\TextFilteringRule;
+use App\User;
+use App\UserGroupToAppGroup;
+use Illuminate\Database\Eloquent\Model;
 use Log;
 
 /**
  * Description of Group
  *
  */
-class Group extends Model {
+class Group extends Model
+{
 
     public $timestamps = true;
 
@@ -35,14 +36,15 @@ class Group extends Model {
      * @var array
      */
     protected $fillable = [
-        'name', 'isactive', 'app_cfg', 'data_sha1'
+        'name', 'isactive', 'app_cfg', 'data_sha1',
     ];
 
     /**
      * Gets all users assigned to this group.
      * @return type
      */
-    public function users() {
+    public function users()
+    {
         return $this->hasMany('App\User');
     }
 
@@ -50,17 +52,28 @@ class Group extends Model {
      * Gets all filter lists assigned to this group.
      * @return type
      */
-    public function assignedFilterIds() {
-        // From the docs: 
+    public function assignedFilterIds()
+    {
+        // From the docs:
         // https://laravel.com/docs/5.4/eloquent-relationships#has-many-through
-        // The third argument is the name of the foreign key on the intermediate 
-        // model, the fourth argument is the name of the foreign key on the 
+        // The third argument is the name of the foreign key on the intermediate
+        // model, the fourth argument is the name of the foreign key on the
         // final model, and the fifth argument is the local key.
 
         return $this->hasMany('App\GroupFilterAssignment');
     }
+    public function userCount()
+    {
+        // From the docs:
+        // https://laravel.com/docs/5.4/eloquent-relationships#has-many-through
+        // The third argument is the name of the foreign key on the intermediate
+        // model, the fourth argument is the name of the foreign key on the
+        // final model, and the fifth argument is the local key.
 
-    public function getGroupDataPayloadPath(): string {
+        return $this->hasMany('App\User');
+    }
+    public function getGroupDataPayloadPath(): string
+    {
         $storageDir = storage_path();
         $groupDataZipFolder = $storageDir . DIRECTORY_SEPARATOR . 'group_data' . DIRECTORY_SEPARATOR . $this->id;
         if (!file_exists($groupDataZipFolder)) {
@@ -72,7 +85,8 @@ class Group extends Model {
         return $groupDataZipPath;
     }
 
-    public function rebuildGroupData() {
+    public function rebuildGroupData()
+    {
 
         $groupDataZipPath = $this->getGroupDataPayloadPath();
 
@@ -100,7 +114,7 @@ class Group extends Model {
                 $listId = $list->id;
 
                 switch ($listType) {
-                    case 'Filters': {
+                    case 'Filters':{
                             $inMemFilterFile = '';
                             $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
 
@@ -122,7 +136,7 @@ class Group extends Model {
                         }
                         break;
 
-                    case 'Triggers': {
+                    case 'Triggers':{
                             $inMemFilterFile = '';
                             $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
 
@@ -138,7 +152,7 @@ class Group extends Model {
                         }
                         break;
 
-                    case 'NLP': {
+                    case 'NLP':{
 
                             $entryRelativePath = '/' . $listNamespace . '/nlp/nlp.model';
 
@@ -172,7 +186,7 @@ class Group extends Model {
                         }
                         break;
 
-                    case 'VISUAL': {
+                    case 'VISUAL':{
 
                             $filter = TextFilteringRule::where('filter_list_id', '=', $listId)->first();
 
@@ -192,13 +206,13 @@ class Group extends Model {
 
         // Merge app_groups into configuration.
         $app_cfg = json_decode($this->app_cfg, true);
-        $app_group_ids = UserGroupToAppGroup::where('user_group_id',$this->id)->pluck('app_group_id');
+        $app_group_ids = UserGroupToAppGroup::where('user_group_id', $this->id)->pluck('app_group_id');
         $app_groups = AppGroup::with('app')->find($app_group_ids);
         $apps = [];
         // The apps variable is populated like this to remove duplicates.
-        foreach($app_groups AS $ag) {
-            foreach ($ag['app'] AS $app) {
-                $apps[ $app['name'] ] = $app['name'];
+        foreach ($app_groups as $ag) {
+            foreach ($ag['app'] as $app) {
+                $apps[$app['name']] = $app['name'];
             }
         }
         $apps = array_values($apps);
@@ -224,7 +238,8 @@ class Group extends Model {
         Group::where('id', $this->id)->update(['data_sha1' => sha1_file($groupDataZipPath)]);
     }
 
-    public function destroyGroupData() {
+    public function destroyGroupData()
+    {
         $groupDataZipPath = $this->getGroupDataPayloadPath();
         if (file_exists($groupDataZipPath)) {
             unlink($groupDataZipPath);

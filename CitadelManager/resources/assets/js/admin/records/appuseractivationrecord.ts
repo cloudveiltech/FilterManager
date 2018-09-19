@@ -7,257 +7,211 @@
 
 ///<reference path="../../progresswait.ts"/>
 
-namespace Citadel
-{
+namespace Citadel {
 
-    export class AppUserActivationRecord extends BaseRecord
-    {
-        //
-        // ────────────────────────────────────────────────────────────────────────── I ──────────
-        //   :::::: U S E R   D A T A   M E M B E R S : :  :   :    :     :        :          :
-        // ────────────────────────────────────────────────────────────────────────────────────
-        //        
+    export class AppUserActivationRecord extends BaseRecord {
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        ERROR_MESSAGE_APP_NAME      = 'Application name is required.';
 
-        private m_activationId: number;
-        private m_userName: string;
-        private m_identifier: string;
-        private m_deviceId: string;
-        private m_ipAddress: string;
-        private m_bypassQuantity: number;
-        private m_bypassPeriod: number;
-        private m_bypassUsed: number;
+        MESSAGE_REPORT_LABEL        = 'Report blocked sites back to server';
+        MESSAGE_NO_REPORT_LABEL     = 'No reporting back to server';
 
-        //
-        // ──────────────────────────────────────────────────────────────────────────────── II ──────────
-        //   :::::: E D I T O R   H T M L   E L E M E N T S : :  :   :    :     :        :          :
-        // ──────────────────────────────────────────────────────────────────────────────────────────
-        //
+        MESSAGE_ACTION_FAILED       = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        MESSAGE_ACTION_BLOCK        = 'Blocking record to server.';
 
-        private m_mainForm: HTMLFormElement;
-        /**
-         * The Div of the editing overlay. This houses all of the editor
-         * contents and overlays everything else with a super high z-index.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf GroupRecord
-         */
-        private m_editorOverlay: HTMLDivElement;
-        /**
-         * The Div of the editing overlay. This houses all of the editor
-         * contents and overlays everything else with a super high z-index.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf WhitelistRecord
-         */     
-        private m_userNameInput: HTMLInputElement;
-        private m_identifierInput: HTMLInputElement;
-        private m_deviceIdInput: HTMLInputElement;
-        private m_ipAddressInput: HTMLInputElement;
-        private m_bypassQuantityInput: HTMLInputElement;
-        private m_bypassPeriodInput: HTMLInputElement;
-        private m_bypassUsedInput: HTMLInputElement;
-        private m_submitBtn: HTMLButtonElement;
-        private m_cancelBtn: HTMLButtonElement;
-        private m_applicationNameInput: HTMLInputElement;
+        TITLE_ACTION_FAILED         = 'Action Failed';
+        TITLE_ACTION_BLOCK          = 'Block Record';
 
-        /**
-         * Gets the base API route from this record type.
-         * 
-         * @readonly
-         * @type {string}
-         * @memberOf WhitelistRecord
-         */
-        public get RecordRoute(): string
-        {
-            return 'api/admin/user_activations';
-        }
+        ERROR_MESSAGE_DELAY_TIME    = 5000;
+        FADE_IN_DELAY_TIME          = 200;
 
-        protected get ValidationOptions(): JQueryValidation.ValidationOptions
-        {
-            let validationRules: JQueryValidation.RulesDictionary = {};
+        URL_ROUTE                   = 'api/admin/user_activations';
 
-           
-            let validationErrorMessages = {};
-            validationErrorMessages[this.m_applicationNameInput.id] = 'Application name is required.';
-            
-            let validationOptions: JQueryValidation.ValidationOptions =
-                {
-                    rules: validationRules,
-                    errorPlacement: ((error: JQuery, element: JQuery): void =>
-                    {
-                        error.appendTo('#activation_form_errors');
-                        $('#activation_form_errors').append('<br/>');
-                    }),
-                    messages: validationErrorMessages
-                };
+        // ──────────────────────────────────────────────────────
+        //   :::::: APP USER ACTIVATION   M E M B E R S ::::::
+        // ──────────────────────────────────────────────────────
+        private m_activationId              : number;
+        private m_userName                  : string;
+        private m_identifier                : string;
+        private m_deviceId                  : string;
+        private m_ipAddress                 : string;
+        private m_bypassQuantity            : number;
+        private m_bypassPeriod              : number;
+        private m_bypassUsed                : number;
+        private m_reportLevel               : number;
 
-            return validationOptions;
-        }
+        // ──────────────────────────────────────────────────────────
+        //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
+        // ──────────────────────────────────────────────────────────
+        private m_mainForm                  : HTMLFormElement;
 
-        /**
-         * Creates an instance of WhitelistRecord.
-         * 
-         * 
-         * @memberOf WhitelistRecord
-         */
-        constructor() 
-        {
+        private m_editorOverlay             : HTMLDivElement;
+
+        private m_inputUserName             : HTMLInputElement;
+        private m_inputIdentifier           : HTMLInputElement;
+        private m_inputDeviceId             : HTMLInputElement;
+        private m_inputIPAddress            : HTMLInputElement;
+        private m_inputBPQuantity           : HTMLInputElement;    // Bypass Quantity
+        private m_inputBPPeriod             : HTMLInputElement;    // Bypass Period
+        private m_inputBPUsed               : HTMLInputElement;    // Bypass Used
+        private m_inputAppName              : HTMLInputElement;
+        private m_inputReportLevel          : HTMLInputElement;
+        private m_labelReportLevel          : HTMLLabelElement;
+
+        private m_btnSubmit                 : HTMLButtonElement;
+        private m_btnCancel                 : HTMLButtonElement;
+
+        constructor() {
             super();
             this.ConstructFormReferences();
         }
 
-        private ConstructFormReferences(): void
-        {
-            this.m_mainForm = document.querySelector('#editor_activation_form') as HTMLFormElement;
-            this.m_editorOverlay = document.querySelector('#overlay_activation_editor') as HTMLDivElement;
-            this.m_userNameInput = document.querySelector('#editor_activation_input_user_full_name') as HTMLInputElement;
-            this.m_identifierInput = document.querySelector('#editor_activation_input_identifier') as HTMLInputElement;
-            this.m_deviceIdInput = document.querySelector('#editor_activation_input_device_id') as HTMLInputElement;
-            this.m_ipAddressInput = document.querySelector('#editor_activation_input_ip_address') as HTMLInputElement;
-            
-            this.m_bypassQuantityInput = document.querySelector('#editor_activation_input_bypass_quantity') as HTMLInputElement;
-            this.m_bypassPeriodInput = document.querySelector('#editor_activation_input_bypass_period') as HTMLInputElement;
-            this.m_bypassUsedInput = document.querySelector('#editor_activation_input_bypass_used') as HTMLInputElement;
-            
-            this.m_submitBtn = document.querySelector('#activation_editor_submit') as HTMLButtonElement;
-            this.m_cancelBtn = document.querySelector('#activation_editor_cancel') as HTMLButtonElement;
+        public get RecordRoute(): string {
+            return this.URL_ROUTE;
+        }
+
+        protected get ValidationOptions(): JQueryValidation.ValidationOptions {
+            let validationRules: JQueryValidation.RulesDictionary = {};
+
+            let validationErrorMessages = {};
+            validationErrorMessages[this.m_inputAppName.id] = this.ERROR_MESSAGE_APP_NAME;
+
+            let validationOptions: JQueryValidation.ValidationOptions = {
+                rules: validationRules,
+                errorPlacement: ((error: JQuery, element: JQuery): void => {
+                    error.appendTo('#activation_form_errors');
+                    $('#activation_form_errors').append('<br/>');
+                }),
+                messages: validationErrorMessages
+            };
+
+            return validationOptions;
+        }
+
+        private ConstructFormReferences(): void {
+            this.m_mainForm             = document.querySelector('#editor_activation_form') as HTMLFormElement;
+            this.m_editorOverlay        = document.querySelector('#overlay_activation_editor') as HTMLDivElement;
+            this.m_inputUserName        = document.querySelector('#editor_activation_input_user_full_name') as HTMLInputElement;
+            this.m_inputIdentifier      = document.querySelector('#editor_activation_input_identifier') as HTMLInputElement;
+            this.m_inputDeviceId        = document.querySelector('#editor_activation_input_device_id') as HTMLInputElement;
+            this.m_inputIPAddress       = document.querySelector('#editor_activation_input_ip_address') as HTMLInputElement;
+            this.m_inputReportLevel     = document.querySelector('#editor_activation_report_level') as HTMLInputElement;
+            this.m_labelReportLevel     = document.querySelector('#editor_activation_report_level_text') as HTMLLabelElement;
+
+            this.m_inputBPQuantity      = document.querySelector('#editor_activation_input_bypass_quantity') as HTMLInputElement;
+            this.m_inputBPPeriod        = document.querySelector('#editor_activation_input_bypass_period') as HTMLInputElement;
+            this.m_inputBPUsed          = document.querySelector('#editor_activation_input_bypass_used') as HTMLInputElement;
+
+            this.m_btnSubmit            = document.querySelector('#activation_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel            = document.querySelector('#activation_editor_cancel') as HTMLButtonElement;
 
             this.InitButtonHandlers();
         }
 
-        private InitButtonHandlers(): void
-        {
-            this.m_cancelBtn.onclick = ((e: MouseEvent): any =>
-            {
+        private InitButtonHandlers(): void {
+            let that = this;
+
+            this.m_inputReportLevel.onchange = ((e: MouseEvent): any => {
+                if (that.m_inputReportLevel.checked)
+                    that.m_labelReportLevel.innerHTML = this.MESSAGE_REPORT_LABEL;
+                else
+                    that.m_labelReportLevel.innerHTML = this.MESSAGE_NO_REPORT_LABEL;
+            });
+
+            this.m_btnCancel.onclick = ((e: MouseEvent): any => {
                 this.StopEditing();
             });
         }
 
-        protected LoadFromObject(data: Object): void
-        {
-            this.m_activationId = data['id'] as number;
-            this.m_userName = data['user']['name'] as string;
-            this.m_identifier = data['identifier'] as string;
-            this.m_ipAddress = data['ip_address'] as string;
-            this.m_deviceId = data['device_id'] as string;
-            if(data['bypass_quantity'] != null)
-                this.m_bypassQuantity = data['bypass_quantity'] as number;
-            else 
-                this.m_bypassQuantity = null;
-
-            if(data['bypass_period'] == null)                 
-                this.m_bypassPeriod = data['bypass_period'] as number;
-            else
-                this.m_bypassPeriod = null;
-            this.m_bypassUsed = data['bypass_used'] as number;
-            
+        protected LoadFromObject(data: Object): void {
+            this.m_activationId     = data['id'] as number;
+            this.m_userName         = data['name'] as string;
+            this.m_identifier       = data['identifier'] as string;
+            this.m_ipAddress        = data['ip_address'] as string;
+            this.m_deviceId         = data['device_id'] as string;
+            this.m_bypassQuantity   = (data['bypass_quantity'] != null) ? data['bypass_quantity'] as number: null;
+            this.m_bypassPeriod     = (data['bypass_period'] != null) ? data['bypass_period'] as number : null;
+            this.m_bypassUsed       = data['bypass_used'] as number;
+            this.m_reportLevel      = data['report_level'] as number;
         }
 
-        protected LoadFromForm(): void
-        {
-            this.m_bypassQuantity = this.m_bypassQuantityInput.value == "" ? null:parseInt(this.m_bypassQuantityInput.value);
-            this.m_bypassPeriod = this.m_bypassPeriodInput.value == "" ? null:parseInt(this.m_bypassPeriodInput.value);            
+        protected LoadFromForm(): void {
+            this.m_bypassQuantity   = this.m_inputBPQuantity.value == "" ? null : parseInt(this.m_inputBPQuantity.value);
+            this.m_bypassPeriod     = this.m_inputBPPeriod.value == "" ? null : parseInt(this.m_inputBPPeriod.value);
+            this.m_reportLevel      = this.m_inputReportLevel.checked ? 1 : 0;
         }
 
-        public StartEditing(userData: Object = null): void
-        {
-            // Editing an existing object here.
+        public StartEditing(userData: Object = null): void {
+
             this.LoadFromObject(userData);
 
-            this.m_userNameInput.value = this.m_userName;
-            this.m_identifierInput.value = this.m_identifier;
-            this.m_deviceIdInput.value = this.m_deviceId;
-            this.m_ipAddressInput.value = this.m_ipAddress;
-            if(this.m_bypassQuantity != null)
-                this.m_bypassQuantityInput.value = this.m_bypassQuantity.toString();
-            else
-                this.m_bypassQuantityInput.value = "";
+            this.m_inputUserName.value      = this.m_userName;
+            this.m_inputIdentifier.value    = this.m_identifier;
+            this.m_inputDeviceId.value      = this.m_deviceId;
+            this.m_inputIPAddress.value     = this.m_ipAddress;
+            this.m_inputBPQuantity.value    = (this.m_bypassQuantity != null) ? this.m_bypassQuantity.toString() : '';
+            this.m_inputBPPeriod.value      = (this.m_bypassPeriod != null) ? this.m_bypassPeriod.toString() : '';
+            this.m_inputBPUsed.value        = this.m_bypassUsed.toString();
+            this.m_inputReportLevel.checked = (this.m_reportLevel === 1);
 
-            if(this.m_bypassPeriod != null)
-                this.m_bypassPeriodInput.value = this.m_bypassPeriod.toString();
-            else
-                this.m_bypassPeriodInput.value = "";
-            
-            this.m_bypassUsedInput.value = this.m_bypassUsed.toString();
+            if (this.m_reportLevel === 1) {
+                this.m_labelReportLevel.innerHTML = this.MESSAGE_REPORT_LABEL;
+            } else {
+                this.m_labelReportLevel.innerHTML = this.MESSAGE_NO_REPORT_LABEL;
+            }
 
-            this.m_mainForm.onsubmit = ((e: Event): any =>
-            {
+            this.m_mainForm.onsubmit = ((e: Event): any => {
                 return this.OnFormSubmitClicked(e, userData == null);
             });
 
-            // Show the editor.
-            $(this.m_editorOverlay).fadeIn(250);
+            $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
 
-        public StopEditing(): void
-        {
-            $(this.m_editorOverlay).fadeOut(200);
+        public StopEditing(): void {
+            $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }
 
-        public ToObject(): Object
-        {
-            let obj =
-                {
-                    'id': this.m_activationId,
-                    'bypass_quantity': this.m_bypassQuantity,
-                    'bypass_period': this.m_bypassPeriod
-                };
+        public ToObject(): Object {
+            let obj = {
+                'id'                : this.m_activationId,
+                'bypass_quantity'   : this.m_bypassQuantity,
+                'bypass_period'     : this.m_bypassPeriod,
+                'report_level'      : this.m_reportLevel,
+            };
 
             return obj;
         }
 
-        public Block(): void
-        {
-            //this.LoadFromForm();
-            
-            // Get this record's data as an object we can serialize.
+        public Block(): void {
             let dataObject = {};
 
-            this.m_progressWait.Show('Block Record', 'Blocking record to server.');
+            this.m_progressWait.Show(this.TITLE_ACTION_BLOCK, this.MESSAGE_ACTION_BLOCK);
 
-            let ajaxSettings: JQueryAjaxSettings =
-                {
-                    method: "POST",
-                    timeout: 60000,
-                    contents: { _token: $('meta[name="csrf-token"]').attr('content') },
-                    url: this.RecordRoute + '/block/' + this.m_activationId,
-                    data: dataObject,
-                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                    {
-                        this.m_progressWait.Hide();
-                        if (this.m_actionCompleteCallback != null)
-                        {
-                            this.m_actionCompleteCallback("Blocked");
-                        }
-
-                        return false;
-                    },
-                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                    {
-                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
-                         setTimeout(() => 
-                            {
-                                this.m_progressWait.Hide();
-                            }, 5000);
-
-                        if (jqXHR.status > 399 && jqXHR.status < 500)
-                        {
-                            // Almost certainly auth related error. Redirect to login
-                            // by signalling for logout.
-                            //window.location.href = 'login.php?logout';
-                        }
-                        else
-                        {
-                            
-                        }
+            let ajaxSettings: JQueryAjaxSettings = {
+                method: "POST",
+                timeout: 60000,
+                url: this.RecordRoute + '/block/' + this.m_activationId,
+                data: dataObject,
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                    this.m_progressWait.Hide();
+                    if (this.m_actionCompleteCallback != null) {
+                        this.m_actionCompleteCallback("Blocked");
                     }
-                }
 
-            // POST the auth request.
+                    return false;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    this.m_progressWait.Show(this.TITLE_ACTION_FAILED, this.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
+
+                    setTimeout(() => {
+                        this.m_progressWait.Hide();
+                    }, this.ERROR_MESSAGE_DELAY_TIME);
+                }
+            }
+
             $.ajax(ajaxSettings);
         }
     }
-
 }

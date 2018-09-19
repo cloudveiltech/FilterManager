@@ -7,181 +7,104 @@
 
 ///<reference path="../../progresswait.ts"/>
 
-namespace Citadel
-{
-    export class FilterListRecord extends BaseRecord
-    {
+namespace Citadel {
+    export class FilterListRecord extends BaseRecord {
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        ERROR_MESSAGE_DELAY_TIME        = 5000;
+        FADE_IN_DELAY_TIME              = 200;
 
-        /**
-         * The unique ID of this filter list.
-         * 
-         * @private
-         * @type {number}
-         * @memberOf FilterListRecord
-         */
-        private m_filterId: number;
+        MESSAGE_ACTION_FAILED           = 'Error reported by the server during action.\n Check console for more information.';
+        MESSAGE_ACTION_DELETING         = 'Deleting record from server.';
 
-        /**
-         * The category name that this filter list represents or belongs to.
-         * 
-         * @private
-         * @type {string}
-         * @memberOf FilterListRecord
-         */
-        private m_filterCategoryName: string;
+        TITLE_ACTION_FAILED             = 'Action Failed';
+        TITLE_ACTION_DELETING           = 'Deleting Record';
 
-        /**
-         * The named type of this filter list.
-         * 
-         * @private
-         * @type {string}
-         * @memberOf FilterListRecord
-         */
-        private m_filterType: string;
+        URL_ROUTE                       = 'api/admin/filterlists';
 
-        /**
-         * The namespace of this filter list.
-         * 
-         * @private
-         * @type {string}
-         * @memberOf FilterListRecord
-         */
-        private m_filterListNamespace: string;
+        // ──────────────────────────────────────────────────────────
+        //   :::::: F I L T E R L I S T       M E M B E R S ::::::
+        // ──────────────────────────────────────────────────────────
+        private m_filterId              : string;
+        private m_filterCategoryName    : string;
+        private m_filterType            : string;
+        private m_filterListNamespace   : string;
+        private m_numRuleEntries        : number;
 
-        /**
-         * The total number of rules in this filter list.
-         * 
-         * @private
-         * @type {number}
-         * @memberOf FilterListRecord
-         */
-        private m_numRuleEntries: number;
-
-
-        /**
-         * Gets the base API route from this record type.
-         * 
-         * @readonly
-         * @type {string}
-         * @memberOf GroupRecord
-         */
-        public get RecordRoute(): string
-        {
-            return 'api/admin/filterlists';
+        public get RecordRoute(): string {
+            return this.URL_ROUTE;
         }
 
-        protected get ValidationOptions(): JQueryValidation.ValidationOptions
-        {
-            let opt: JQueryValidation.ValidationOptions =
-                {
+        protected get ValidationOptions(): JQueryValidation.ValidationOptions {
+            let opt: JQueryValidation.ValidationOptions = {
 
-                };
+            };
             return opt;
         }
 
-        constructor()
-        {
+        constructor() {
             super();
         }
 
-        protected LoadFromObject(value: Object): void
-        {
-            this.m_filterId = value['id'];
-            this.m_filterCategoryName = value['category'];
-            this.m_filterType = value['type'];
-            this.m_filterListNamespace = value['namespace'];
-            this.m_numRuleEntries = value['num_entries'];
+        protected LoadFromObject(value: Object): void {
+            this.m_filterId             = value['id'];
+            this.m_filterCategoryName   = value['category'];
+            this.m_filterType           = value['type'];
+            this.m_filterListNamespace  = value['namespace'];
+            this.m_numRuleEntries       = value['num_entries'];
         }
 
-        protected LoadFromForm(): void
-        {
+        protected LoadFromForm(): void {
             // Do nothing. No editor for this.
         }
 
-        public ToObject(): Object
-        {
-            let obj =
-                {
-                    'id': this.m_filterId,
-                    'category': this.m_filterCategoryName,
-                    'type': this.m_filterType,
-                    'namespace': this.m_filterListNamespace,
-                    'num_entries': this.m_numRuleEntries
-                };
+        public ToObject(): Object {
+            let obj = {
+                'id'            : this.m_filterId,
+                'category'      : this.m_filterCategoryName,
+                'type'          : this.m_filterType,
+                'namespace'     : this.m_filterListNamespace,
+                'num_entries'   : this.m_numRuleEntries
+            };
 
             return obj;
         }
 
-        public StopEditing(): void
-        {
+        public StopEditing(): void {
 
         }
 
-        /**
-         * Requests the deletion of this filter list record, along with all other lists in the same namespace. It's also possible
-         * to constrain this mass deletion to the same type as this list.
-         * @param constrainToType Whether or not to constrain the deletion to those of the same type as well. For example, delete only triggers
-         * in the same namespace, or filters, NLP, etc.
-         */
-        public DeleteAllInNamespace(constrainToType: boolean): void
-        {
+        public DeleteAllInNamespace(constrainToType: boolean): void {
 
-            this.m_progressWait.Show('Deleting Record', 'Deleting record from server.');
+            this.m_progressWait.Show(this.TITLE_ACTION_DELETING, this.MESSAGE_ACTION_DELETING);
 
             let dataObject = this.ToObject();
 
-            let ajaxSettings: JQueryAjaxSettings =
-                {
-                    // PHP script expects post.
-                    method: "DELETE",
+            let ajaxSettings: JQueryAjaxSettings = {
+                method: "DELETE",
+                timeout: 60000,
+                url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'],
+                success: (data: any): any => {
+                    this.m_progressWait.Hide();
 
-                    // 60 seconds or quit.
-                    timeout: 60000,
-
-                    contents: { _token: $('meta[name="csrf-token"]').attr('content') },
-
-                    // Sent to setup.php.
-                    url: constrainToType == true ? this.RecordRoute + '/namespace/' + dataObject['namespace'] + '/' + dataObject['type'] : this.RecordRoute + '/namespace/' + dataObject['namespace'],
-
-                    // Callback if the call was a success.
-                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                    {
-                        this.m_progressWait.Hide();
-
-                        if (this.m_actionCompleteCallback != null)
-                        {
-                            this.m_actionCompleteCallback("Deleted");
-                        }
-
-                        return false;
-                    },
-
-                    // Callback if the call was a failure.
-                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                    {
-                        console.log(jqXHR.responseText);
-
-                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action. Check console for more information.');
-
-                        if (jqXHR.status > 399 && jqXHR.status < 500)
-                        {
-                            // Almost certainly auth related error. Redirect to login
-                            // by signalling for logout.
-                            //window.location.href = 'login.php?logout';
-                        }
-                        else
-                        {
-                            setTimeout(() => 
-                            {
-                                this.m_progressWait.Hide();
-                            }, 5000);
-                        }
+                    if (this.m_actionCompleteCallback != null) {
+                        this.m_actionCompleteCallback("Deleted");
                     }
-                }
 
-            // POST the auth request.
+                    return false;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(jqXHR.responseText);
+
+                    this.m_progressWait.Show(this.TITLE_ACTION_FAILED, this.MESSAGE_ACTION_FAILED);
+                    setTimeout(() => {
+                        this.m_progressWait.Hide();
+                    }, this.ERROR_MESSAGE_DELAY_TIME);
+                }
+            }
+
             $.ajax(ajaxSettings);
         }
-
     }
 }

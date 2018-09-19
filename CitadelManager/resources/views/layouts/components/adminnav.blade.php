@@ -9,15 +9,17 @@
     <div class="app-bar-element place-right">
 
         <!-- Drop down with primary title has logged user's username. -->
-        <span class="dropdown-toggle"><span class="mif-cog"></span>
+        <span class="dropdown-toggle">
+            <span class="mif-cog"></span>
             {{ Auth::user()->name }}
         </span>
-        <div class="app-bar-drop-container padding10 place-right no-margin-top block-shadow fg-dark" data-role="dropdown" data-no-close="true" style="width: 220px">
-            <h2 class="text-light">Your Account</h2>
-            <ul class="unstyled-list fg-dark">
+        <div class="app-bar-drop-container place-right no-margin-top block-shadow fg-dark drop-menu-mine" data-role="dropdown" data-no-close="true"
+            style="width: 220px">
 
+            <ul class="unstyled-list fg-dark">
+                <li id='btn_system_version'>System Versions</li>
                 <!-- Sign out button. -->
-                <li id='btn_sign_out'><a href="#" class="fg-white3 fg-hover-yellow">Sign Out</a></li>
+                <li id='btn_sign_out'>Sign Out</li>
             </ul>
         </div>
     </div>

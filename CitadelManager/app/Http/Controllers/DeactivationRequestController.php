@@ -10,8 +10,8 @@
 namespace App\Http\Controllers;
 
 use App\DeactivationRequest;
+use App\Events\DeactivationRequestGranted;
 use Illuminate\Http\Request;
-use App\Events\DeactivationRequestGranted;  
 use Log;
 
 class DeactivationRequestController extends Controller
@@ -21,9 +21,66 @@ class DeactivationRequestController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return DeactivationRequest::with(['user'])->get();
+        $draw = $request->input('draw');
+        $start = $request->input('start');
+        $length = $request->input('length') ? $request->input('length') : 10;
+        $search = $request->input('search')['value'];
+
+        $order = $request->input('order')[0]['column'];
+        $order_name = $request->input('columns')[intval($order)]['data'];
+        $order_str = $request->input('order')[0]['dir'];
+
+        $recordsTotal = DeactivationRequest::count();
+
+        $query = DeactivationRequest::with(['user'])
+            ->select('deactivation_requests.*')
+            ->when($search, function ($query) use ($search) {
+                return $query->leftJoin('users', 'deactivation_requests.user_id', '=', 'users.id')
+                    ->where('deactivation_requests.device_id', 'like', "%$search%")
+                    ->orWhere('users.email', 'like', "%$search%");
+            })
+            ->when(($order_name == "user.name" || $order_name == "user.email"), function ($query) use ($order_str, $order_name) {
+
+                return $query->leftJoin('users', 'deactivation_requests.user_id', '=', 'users.id')
+                    ->orderBy(str_replace("user", "users", $order_name), $order_str);
+
+            }, function ($query) use ($order_str, $order_name) {
+                return $query->orderBy($order_name, $order_str);
+            });
+
+        $recordsFilterTotal = $query->count();
+
+        $rows = $query->offset($start)
+            ->limit($length)
+            ->get();
+
+        return response()->json([
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsFilterTotal,
+            "data" => $rows,
+        ]);
+    }
+
+    public function updateField(Request $request)
+    {
+        $id = $request->input('id');
+        $value = intval($request->input('value')); //0 or 1
+
+        $id_arr = explode("_", $id);
+        if ($id_arr[0] != "deactivatereq") {
+            return response()->json([
+                "success" => false,
+            ]);
+        }
+        $activation_id = intval($id_arr[2]);
+        DeactivationRequest::where('id', $activation_id)->update(['granted' => $value]);
+
+        return response()->json([
+            "success" => true,
+        ]);
     }
 
     /**
@@ -84,18 +141,17 @@ class DeactivationRequestController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'granted' => 'required'            
+            'granted' => 'required',
         ]);
-        
+
         $input = $request->only(['granted']);
         $deactivateRequest = DeactivationRequest::where('id', $id)->first();
         $deactivateRequest->update($input);
-        Log::info("Logging an object: " . print_r($input, true));
         // If this is a deactivate request that we are granting then we fire an event.
         if ($input['granted'] == 1) {
             try {
                 event(new DeactivationRequestGranted($deactivateRequest));
-            } catch(\Exception $e){
+            } catch (\Exception $e) {
                 Log::error($e);
             }
         }

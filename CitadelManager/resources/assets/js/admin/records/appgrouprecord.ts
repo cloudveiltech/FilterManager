@@ -7,338 +7,318 @@
 
 ///<reference path="../../progresswait.ts"/>
 
-namespace Citadel
-{
+namespace Citadel {
 
-    export class AppGroupRecord extends BaseRecord
-    {
-        //
-        // ────────────────────────────────────────────────────────────────────────── I ──────────
-        //   :::::: U S E R   D A T A   M E M B E R S : :  :   :    :     :        :          :
-        // ────────────────────────────────────────────────────────────────────────────────────
-        //        
+    export class AppGroupRecord extends BaseRecord {
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        ERROR_MESSAGE_GROUP_NAME        = 'App group name is required.';
 
-        private m_appgroupId: number;
-        private m_appGroupName: string;
-        private m_selectedApps: string;
-        private m_dateRegistered: string;
-        //
-        // ──────────────────────────────────────────────────────────────────────────────── II ──────────
-        //   :::::: E D I T O R   H T M L   E L E M E N T S : :  :   :    :     :        :          :
-        // ──────────────────────────────────────────────────────────────────────────────────────────
-        //
+        MESSAGE_ACTION_FAILED           = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        private m_mainForm: HTMLFormElement;
+        TITLE_ACTION_FAILED             = 'Action Failed';
+        TITLE_NEW_APP_GROUP             = 'Add Application Group';
+        TITLE_EDIT_APP_GROUP            = 'Edit Application Group';
 
-        /**
-         * The Div of the editing overlay. This houses all of the editor
-         * contents and overlays everything else with a super high z-index.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf appgroupRecord
-         */
-        private m_editorOverlay: HTMLDivElement;
-        private m_editorTitle: HTMLHeadingElement;
-        private m_groupNameInput: HTMLInputElement;
-        private m_sourceAppList: HTMLSelectElement;
-        private m_targetAppList: HTMLSelectElement;
-        
-        private m_appsSourceToTargetBtn: HTMLButtonElement;
-        private m_appSourceToTargetBtn: HTMLButtonElement;
-        private m_appTargetToSourceBtn: HTMLButtonElement;
-        private m_appsTargetToSourceBtn: HTMLButtonElement;
+        BTN_LABEL_CREATE_APP_GROUP      = 'Create';
+        BTN_LABEL_EDIT_APP_GROUP        = 'Save';
 
-        private m_submitBtn: HTMLButtonElement;
-        private m_cancelBtn: HTMLButtonElement;
+        ERROR_MESSAGE_DELAY_TIME        = 5000;
+        FADE_IN_DELAY_TIME              = 200;
 
-        private m_arrLeftApplications: any[];
-        private m_arrRightApplications: any[];
-        private m_groupApp: any;
-        /**
-         * Gets the base API route from this record type.
-         * 
-         * @readonly
-         * @type {string}
-         * @memberOf appgroupRecord
-         */
-        public get RecordRoute(): string
-        {
-            return 'api/admin/app_group';
-        }
+        URL_ROUTE                       = 'api/admin/app_group';
+        URL_APPLICATIONS                = 'api/admin/applications';
+        // ────────────────────────────────────────────────────
+        //   :::::: A P P G R O U P     M E M B E R S  ::::::
+        // ────────────────────────────────────────────────────
+        private m_appGroupId            : number;
+        private m_appGroupName          : string;
+        private m_selectedApps          : string;
+        private m_registeredAt          : string;
+        private m_leftApps              : any[];
+        private m_rightApps             : any[];
 
-        protected get ValidationOptions(): JQueryValidation.ValidationOptions
-        {
-            let validationRules: JQueryValidation.RulesDictionary = {};
+        private m_groupApp              : any;
 
-            validationRules[this.m_groupNameInput.id] = {
-                required: true
-            };
+        // ─────────────────────────────────────────────────────────
+        //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
+        // ─────────────────────────────────────────────────────────
 
-            let validationErrorMessages = {};
-            validationErrorMessages[this.m_groupNameInput.id] = 'App group name is required.';
-            
-            let validationOptions: JQueryValidation.ValidationOptions =
-                {
-                    rules: validationRules,
-                    errorPlacement: ((error: JQuery, element: JQuery): void =>
-                    {
-                        error.appendTo('#appgroup_form_errors');
-                        $('#appgroup_form_errors').append('<br/>');
-                    }),
-                    messages: validationErrorMessages
-                };
+        private m_mainForm              : HTMLFormElement;
 
-            return validationOptions;
-        }
+        private m_editorOverlay         : HTMLDivElement;
+        private m_editorTitle           : HTMLHeadingElement;
 
-        /**
-         * Creates an instance of appgroupRecord.
-         * 
-         * 
-         * @memberOf appgroupRecord
-         */
-        constructor() 
-        {
+        private m_inputGroupName        : HTMLInputElement;
+
+        private m_selectSource          : HTMLSelectElement;
+        private m_selectTarget          : HTMLSelectElement;
+
+        private m_btn_S_T_All           : HTMLButtonElement;
+        private m_btn_S_T_One           : HTMLButtonElement;
+        private m_btn_T_S_One           : HTMLButtonElement;
+        private m_btn_T_S_All           : HTMLButtonElement;
+
+        private m_btnSubmit             : HTMLButtonElement;
+        private m_btnCancel             : HTMLButtonElement;
+
+        constructor() {
             super();
             this.ConstructFormReferences();
         }
 
-        private ConstructFormReferences(): void
-        {
-            this.m_mainForm = document.querySelector('#editor_appgroup_form') as HTMLFormElement;
-            this.m_editorTitle = document.querySelector('#appgroup_editing_title') as HTMLHeadingElement;
-            this.m_editorOverlay = document.querySelector('#overlay_appgroup_editor') as HTMLDivElement;
-
-            this.m_groupNameInput = document.querySelector('#editor_appgroup_name') as HTMLInputElement;
-            this.m_sourceAppList = document.querySelector('#app_source_list') as HTMLSelectElement;
-            this.m_targetAppList = document.querySelector('#app_target_list') as HTMLSelectElement;
-            
-            this.m_appsSourceToTargetBtn = document.querySelector('#apps_source_to_target') as HTMLButtonElement;
-            this.m_appSourceToTargetBtn = document.querySelector('#app_source_to_target') as HTMLButtonElement;
-            this.m_appTargetToSourceBtn = document.querySelector('#app_target_to_source') as HTMLButtonElement;
-            this.m_appsTargetToSourceBtn = document.querySelector('#apps_target_to_source') as HTMLButtonElement;
-
-            this.m_submitBtn = document.querySelector('#appgroup_editor_submit') as HTMLButtonElement;
-            this.m_cancelBtn = document.querySelector('#appgroup_editor_cancel') as HTMLButtonElement;
-            this.m_submitBtn.disabled = true;
-            this.m_arrLeftApplications = [];
-            this.m_arrRightApplications = [];
-            this.m_groupApp = {};
-            $(this.m_sourceAppList).empty();
-            $(this.m_targetAppList).empty();
-            
-            $('#spiner_1').hide();
-            this.InitButtonHandlers();            
-            this.getRetrieveApplications();
+        public get RecordRoute(): string {
+            return this.URL_ROUTE;
         }
-        private getRetrieveApplications() {
+
+        protected get ValidationOptions(): JQueryValidation.ValidationOptions {
+            let validationRules: JQueryValidation.RulesDictionary = {};
+
+            validationRules[this.m_inputGroupName.id] = {
+                required: true
+            };
+
+            let validationErrorMessages = {};
+            validationErrorMessages[this.m_inputGroupName.id] = this.ERROR_MESSAGE_GROUP_NAME;
+
+            let validationOptions: JQueryValidation.ValidationOptions = {
+                rules: validationRules,
+                errorPlacement: ((error: JQuery, element: JQuery): void => {
+                    error.appendTo('#appgroup_form_errors');
+                    $('#appgroup_form_errors').append('<br/>');
+                }),
+                messages: validationErrorMessages
+            };
+
+            return validationOptions;
+        }
+
+        private ConstructFormReferences(): void {
+            this.m_mainForm             = document.querySelector('#editor_appgroup_form') as HTMLFormElement;
+            this.m_editorTitle          = document.querySelector('#appgroup_editing_title') as HTMLHeadingElement;
+            this.m_editorOverlay        = document.querySelector('#overlay_appgroup_editor') as HTMLDivElement;
+
+            this.m_inputGroupName       = document.querySelector('#editor_appgroup_name') as HTMLInputElement;
+            this.m_selectSource         = document.querySelector('#app_source_list') as HTMLSelectElement;
+            this.m_selectTarget         = document.querySelector('#app_target_list') as HTMLSelectElement;
+
+            this.m_btn_S_T_All          = document.querySelector('#apps_source_to_target') as HTMLButtonElement;
+            this.m_btn_S_T_One          = document.querySelector('#app_source_to_target') as HTMLButtonElement;
+            this.m_btn_T_S_One          = document.querySelector('#app_target_to_source') as HTMLButtonElement;
+            this.m_btn_T_S_All          = document.querySelector('#apps_target_to_source') as HTMLButtonElement;
+
+            this.m_btnSubmit            = document.querySelector('#appgroup_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel            = document.querySelector('#appgroup_editor_cancel') as HTMLButtonElement;
+            this.m_btnSubmit.disabled = true;
+            this.m_leftApps             = [];
+            this.m_rightApps            = [];
+            this.m_groupApp             = {};
+
+            $(this.m_selectSource).empty();
+            $(this.m_selectTarget).empty();
+
+            $('#spiner_1').hide();
+            this.InitButtonHandlers();
+            this._getApplications();
+        }
+
+        private _getApplications() {
+
             $('#spiner_1').show();
-            let ajaxSettings: JQueryAjaxSettings =
-            {
+
+            let ajaxSettings: JQueryAjaxSettings = {
                 method: "GET",
                 timeout: 60000,
-                url: "api/admin/applications",
+                url: this.URL_APPLICATIONS,
                 data: {},
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                {
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
                     $('#spiner_1').hide();
-                    this.m_arrLeftApplications = data;
-                    if (this.m_appgroupId > 0) {
-                        this.m_groupApp.forEach((app: any): void =>
-                        {
+
+                    this.m_leftApps = data;
+                    if (this.m_appGroupId > 0) {
+                        this.m_groupApp.forEach((app: any): void => {
                             let idx = -1;
-                            let sel_seq_idx = 0;                            
-                            this.m_arrLeftApplications.forEach((item: any) => {
-                                idx ++;
-                                if(item.id == app.app_id) {
+                            let sel_seq_idx = 0;
+                            this.m_leftApps.forEach((item: any) => {
+                                idx++;
+                                if (item.id == app.app_id) {
                                     sel_seq_idx = idx;
-                                    this.m_arrRightApplications.push(item);
+                                    this.m_rightApps.push(item);
                                 }
                             });
-                            if(sel_seq_idx >= 0) {
-                                this.m_arrLeftApplications.splice(sel_seq_idx, 1);
+                            if (sel_seq_idx >= 0) {
+                                this.m_leftApps.splice(sel_seq_idx, 1);
                             }
                         });
-                        this.drawRightApplications();
+                        this._drawApplications(this.m_rightApps, this.m_selectTarget);
                     }
-                    this.drawLeftApplications();
+                    this._drawApplications(this.m_leftApps, this.m_selectSource);
 
                     this.m_progressWait.Hide();
-                    this.m_submitBtn.disabled = false;
+                    this.m_btnSubmit.disabled = false;
+
                     return false;
                 },
-                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                {
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
                     $('#spiner_1').hide();
-                    console.log(jqXHR.responseText);
-                    console.log(errorThrown);
-                    console.log(textStatus);
 
-                    this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
-                    setTimeout(() => 
-                        {
-                            this.m_progressWait.Hide();
-                        }, 5000);
-
-                    if (jqXHR.status > 399 && jqXHR.status < 500)
-                    {
-                        // Almost certainly auth related error. Redirect to login
-                        // by signalling for logout.
-                        //window.location.href = 'login.php?logout';
-                    }
-                    else
-                    {
-                        
-                    }
+                    this.m_progressWait.Show(this.TITLE_ACTION_FAILED, this.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
+                    setTimeout(() => {
+                        this.m_progressWait.Hide();
+                    }, this.ERROR_MESSAGE_DELAY_TIME);
                 }
             }
-            $.get(ajaxSettings);
-        }
-    
-        private drawLeftApplications() {
-            $(this.m_sourceAppList).empty();
-            this.m_arrLeftApplications.forEach((item: any): void =>
-            {
-                var newOption = document.createElement("option");
-                newOption.text = item.name;
-                newOption.value = item.id;
-                this.m_sourceAppList.add(newOption);
-            });
+
+            $.ajax(ajaxSettings);
         }
 
-        private drawRightApplications() {
-            $(this.m_targetAppList).empty();
-            this.m_arrRightApplications.forEach((item: any): void =>
-            {
+        private _getSelectedAppIds(): string {
+            var str = '';
+
+            this.m_rightApps.forEach((item: any): void => {
+                if (str.length == 0) {
+                    str = item.id;
+                } else {
+                    str += "," + item.id;
+                }
+            });
+            return str;
+        }
+
+        private _drawApplications(data: any[], selectBox: HTMLSelectElement): void {
+            $(selectBox).empty();
+            data.forEach((item: any): void => {
                 var newOption = document.createElement("option");
                 newOption.text = item.name;
                 newOption.value = item.id;
-                this.m_targetAppList.add(newOption);
+                selectBox.add(newOption);
             });
         }
 
         public onMoveRightAllClicked(e: MouseEvent): void {
-            this.m_arrLeftApplications.forEach((item: any): void =>
-            {
-                this.m_arrRightApplications.push(item);
+            this.m_leftApps.forEach((item: any): void => {
+                this.m_rightApps.push(item);
             });
-            this.m_arrLeftApplications = [];
-            this.drawLeftApplications();
-            this.drawRightApplications();
+            this.m_leftApps = [];
+
+            this._drawApplications(this.m_leftApps, this.m_selectSource);
+            this._drawApplications(this.m_rightApps, this.m_selectTarget);
         }
 
         public onMoveLeftAllClicked(e: MouseEvent): void {
-            this.m_arrRightApplications.forEach((item: any): void =>
-            {
-                this.m_arrLeftApplications.push(item);
+            this.m_rightApps.forEach((item: any): void => {
+                this.m_leftApps.push(item);
             });
-            this.m_arrRightApplications = [];
-            this.drawLeftApplications();
-            this.drawRightApplications();
+            this.m_rightApps = [];
+
+            this._drawApplications(this.m_leftApps, this.m_selectSource);
+            this._drawApplications(this.m_rightApps, this.m_selectTarget);
         }
 
         public onMoveRightClicked(e: MouseEvent): void {
-            if(this.m_sourceAppList.selectedIndex == -1) return;
-            for(var i = 0; i < this.m_sourceAppList.selectedOptions.length; i++) {
-                let sel_id = parseInt(this.m_sourceAppList.selectedOptions[i].value);
+            if (this.m_selectSource.selectedIndex == -1) return;
+
+            for (var i = 0; i < this.m_selectSource.selectedOptions.length; i++) {
+                let sel_id = parseInt(this.m_selectSource.selectedOptions[i].value);
                 let idx = -1;
                 let sel_seq_idx = 0;
-                this.m_arrLeftApplications.forEach((item: any): void =>
-                {
-                    idx ++;
-                    if(item.id == sel_id) {
-                        this.m_arrRightApplications.push(item);
+                this.m_leftApps.forEach((item: any): void => {
+                    idx++;
+                    if (item.id == sel_id) {
+                        this.m_rightApps.push(item);
                         sel_seq_idx = idx;
-                        return;                    
+                        return;
                     }
                 });
-                if(sel_seq_idx > -1) {
-                    this.m_arrLeftApplications.splice(sel_seq_idx,1);
+                if (sel_seq_idx > -1) {
+                    this.m_leftApps.splice(sel_seq_idx, 1);
                 }
             }
-            
-            this.drawLeftApplications();
-            this.drawRightApplications();
-            
+
+            this._drawApplications(this.m_leftApps, this.m_selectSource);
+            this._drawApplications(this.m_rightApps, this.m_selectTarget);
         }
 
         public onMoveLeftClicked(e: MouseEvent): void {
-            if(this.m_targetAppList.selectedIndex == -1) return;
-            for(var i = 0; i < this.m_targetAppList.selectedOptions.length; i++) {
-                let sel_opt = this.m_targetAppList.selectedOptions[i];
+            if (this.m_selectTarget.selectedIndex == -1) return;
+
+            for (var i = 0; i < this.m_selectTarget.selectedOptions.length; i++) {
+                let sel_opt = this.m_selectTarget.selectedOptions[i];
                 let sel_id = parseInt(sel_opt.value);
                 let idx = -1;
                 let find_id_to_remove = -1;
-                this.m_arrRightApplications.forEach((item: any): void =>
-                {
-                    idx ++;
-                    if(item.id == sel_id) {
+                this.m_rightApps.forEach((item: any): void => {
+                    idx++;
+                    if (item.id == sel_id) {
                         find_id_to_remove = idx;
-                        this.m_arrLeftApplications.push(item);
-                        return;                    
+                        this.m_leftApps.push(item);
+                        return;
                     }
                 });
 
-                if(find_id_to_remove > -1) {
-                    this.m_arrRightApplications.splice(find_id_to_remove,1);
+                if (find_id_to_remove > -1) {
+                    this.m_rightApps.splice(find_id_to_remove, 1);
                 }
-                
+
             }
-            this.drawLeftApplications();
-            this.drawRightApplications();
+
+            this._drawApplications(this.m_leftApps, this.m_selectSource);
+            this._drawApplications(this.m_rightApps, this.m_selectTarget);
         }
-        private InitButtonHandlers(): void
-        {
-            this.m_cancelBtn.onclick = ((e: MouseEvent): any =>
-            {
+
+        private InitButtonHandlers(): void {
+            this.m_btnCancel.onclick = ((e: MouseEvent): any => {
                 this.StopEditing();
             });
-            this.m_appsSourceToTargetBtn.onclick = ((e: MouseEvent) =>
-            {
-                this.onMoveRightAllClicked(e);        
+            this.m_btn_S_T_All.onclick = ((e: MouseEvent) => {
+                this.onMoveRightAllClicked(e);
             });
 
-            this.m_appSourceToTargetBtn.onclick = ((e: MouseEvent) =>
-            {
-                this.onMoveRightClicked(e);        
+            this.m_btn_S_T_One.onclick = ((e: MouseEvent) => {
+                this.onMoveRightClicked(e);
             });
 
-            this.m_appTargetToSourceBtn.onclick = ((e: MouseEvent) =>
-            {
-                this.onMoveLeftClicked(e);        
+            this.m_btn_T_S_One.onclick = ((e: MouseEvent) => {
+                this.onMoveLeftClicked(e);
             });
 
-            this.m_appsTargetToSourceBtn.onclick = ((e: MouseEvent) =>
-            {
-                this.onMoveLeftAllClicked(e);        
+            this.m_btn_T_S_All.onclick = ((e: MouseEvent) => {
+                this.onMoveLeftAllClicked(e);
             });
         }
 
-        protected LoadFromObject(data: Object): void
-        {
-            this.m_appgroupId = data['id'] as number;
-            this.m_appGroupName = data['group_name'] as string;
-            this.m_groupApp = data['group_app'] as object;
-            this.m_dateRegistered = data['dt'] as string;
+        protected LoadFromObject(data: Object): void {
+            this.m_appGroupId           = data['id'] as number;
+            this.m_appGroupName         = data['group_name'] as string;
+            this.m_groupApp             = data['group_app'] as object;
+            this.m_registeredAt         = data['dt'] as string;
         }
 
-        protected LoadFromForm(): void
-        {
-            this.m_appGroupName = this.m_groupNameInput.value;
+        protected LoadFromForm(): void {
+            this.m_appGroupName         = this.m_inputGroupName.value;
         }
 
-        public StartEditing(userData: Object = null): void
-        {
-            switch (userData == null)
-            {
+        public ToObject(): Object {
+            let obj = {
+                'id'            : this.m_appGroupId,
+                'group_name'    : this.m_appGroupName,
+                'apps'          : this._getSelectedAppIds(),
+                'dt'            : this.m_registeredAt
+            };
+
+            return obj;
+        }
+
+        public StartEditing(userData: Object = null): void {
+            switch (userData == null) {
 
                 case true:
                     {
                         // Creating a new object here.
 
-                        this.m_editorTitle.innerText = "Add Application Group";
-                        this.m_submitBtn.innerText = "Add";
+                        this.m_editorTitle.innerText = this.TITLE_NEW_APP_GROUP;
+                        this.m_btnSubmit.innerText = this.BTN_LABEL_CREATE_APP_GROUP;
 
                         this.m_mainForm.reset();
                     }
@@ -349,61 +329,30 @@ namespace Citadel
                         // Editing an existing object here.
                         this.LoadFromObject(userData);
 
-                        this.m_editorTitle.innerText = "Edit Application Group";
-                        this.m_submitBtn.innerText = "Save";
-                        this.m_groupNameInput.value = this.m_appGroupName;                        
+                        this.m_editorTitle.innerText = this.TITLE_EDIT_APP_GROUP;
+                        this.m_btnSubmit.innerText = this.BTN_LABEL_EDIT_APP_GROUP;
+                        this.m_inputGroupName.value = this.m_appGroupName;
                     }
                     break;
             }
 
-            this.m_mainForm.onsubmit = ((e: Event): any =>
-            {
+            this.m_mainForm.onsubmit = ((e: Event): any => {
 
                 let validateOpts = this.ValidationOptions;
                 let validresult = $(this.m_mainForm).validate(validateOpts).form();
 
-                if ($(this.m_mainForm).validate(validateOpts).valid())
-                {
+                if ($(this.m_mainForm).validate(validateOpts).valid()) {
                     return this.OnFormSubmitClicked(e, userData == null);
                 }
 
                 return false;
             });
 
-            // Show the editor.
-            $(this.m_editorOverlay).fadeIn(250);
+            $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
 
-        public StopEditing(): void
-        {
-            $(this.m_editorOverlay).fadeOut(200);
-        }
-        public ToObject(): Object
-        {
-            let obj =
-                {
-                    'id': this.m_appgroupId,
-                    'group_name': this.m_appGroupName,
-                    'apps': this.getSelectedAppIds(),
-                    'dt': this.m_dateRegistered
-                };
-
-            return obj;
-        }
-
-        private getSelectedAppIds(): string {
-            var str = '';
-            
-            this.m_arrRightApplications.forEach((item: any): void =>
-            {
-                if( str.length == 0) {
-                    str = item.id;
-                } else {
-                    str += "," + item.id;
-                }
-            });
-            return str;
+        public StopEditing(): void {
+            $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }
     }
-
 }

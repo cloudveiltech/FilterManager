@@ -13,471 +13,177 @@
 ///<reference path="records/apprecord.ts"/>
 ///<reference path="records/appgrouprecord.ts"/>
 ///<reference path="records/appuseractivationrecord.ts"/>
+///<reference path="records/versionrecord.ts"/>
 
-namespace Citadel
-{
+namespace Citadel {
     /**
      * An enum containing all valid view states for the administrator dashboard.
-     * 
+     *
      * @enum {number}
      */
-    enum DashboardViewStates
-    {
-        /**
-         * A view with a dataTables instance that lists all existing users.
-         */
+    enum DashboardViewStates {
         UserListView,
-
-        /**
-         * A view with a dataTables instance that lists all existing groups.
-         */
         GroupListView,
-
-        /**
-         * A view with a dataTables instance that lists all existing filter
-         * lists.
-         */
         FilterListView,
-
-        /**
-         * A view with a dataTables instance that lists all existing user
-         * deactivation requests.
-         */
         DeactivationRequestListView,
-        /**
-         * A view with a dataTables instance that lists all existing global
-         * App & App Group 
-         */
         AppView,
         AppGroupView,
-        /**
-         * A view with a dataTables instance that lists all existing global
-         * App User Activations
-         */
-        AppUserActivationView
-        
+        AppUserActivationView,
+        SystemVersionView
     }
 
-    /**
-     * The Dashboard class is used to drive the UI for the administrator
-     * Dashboard. The Dashboard enables the administrator to create and manage
-     * user accounts, create and manage group policies, assign users to group
-     * policies, create and manage filtering lists and other filtering data and
-     * assign them to group policies.
-     * 
-     * @class Dashboard
-     */
-    export class Dashboard
-    {
+    export class Dashboard {
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
 
-        //
-        // ────────────────────────────────────────────────────────────────────────────────────────── I ──────────
-        //   :::::: M A I N   M E N U   B U T T O N   E L E M E N T S : :  :   :    :     :        :          :
-        // ────────────────────────────────────────────────────────────────────────────────────────────────────
-        //
+        MESSAGE_VERSION_SET_DEFAULT             = 'Do you want to set this version as default version?';
+        MESSAGE_CONFIRM_SIGNOUT                 = 'Are you sure you\'d like to sign out?';
+        MESSAGE_CONFIRM_USER_DELETE             = 'Really delete user? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_GROUP_DELETE            = 'Really delete group? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_FILTER_DELETE           = 'Really delete filter list? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_FILTER_DELETE_ALL_NAMESPACE ='Really delete all filters with the same type in this lists\' namespace? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_FILTER_DELETE_TYPE_NAMESPACE = 'Really delete all filters in this lists\' namespace? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_DEACTIVATION_REQUEST_DELETE = 'Really delete user deactivation request? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_APPLICATION_DELETE      = 'Really delete Application? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_APPGROUP_DELETE         = 'Really delete Application? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_ACTIVATION_DELETE       = 'Really delete app user activation? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_ACTIVATION_BLOCK        = 'Really block app user activation? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CONFIRM_VERSION_DELETE          = 'Really delete versions? THIS CANNOT BE UNDONE!!!';
+        MESSAGE_CANT_DELETE_GROUP               = 'This group is not empty, so it can not be deleted.';
 
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for user
-         * management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_tabBtnUsers: HTMLLinkElement;
+        MESSAGE_LOAD_FAIL                       = 'Failed to load group record from table selection.';
+        MESSAGE_ACTION_FAILED                   = 'Error reported by the server during action. console for more information.';
 
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for group
-         * management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_tabBtnGroups: HTMLLinkElement;
+        URL_FETCH_FILTERLIST                = 'api/admin/filterlist/all';
+        URL_FETCH_GROUP                     = 'api/admin/group/all';
 
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for filter
-         * list management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_tabBtnFilterLists: HTMLLinkElement;
+        URL_FETCH_USERS_TABLE               = 'api/admin/users';
+        URL_FETCH_GROUPS_TABLE              = 'api/admin/groups';
+        URL_FETCH_FILTERS_TABLE             = 'api/admin/filterlists';
+        URL_FETCH_DEACTIVATES_TABLE         = 'api/admin/deactivationreq';
+        URL_FETCH_APPLICATIONS_TABLE        = 'api/admin/app';
+        URL_FETCH_APP_GROUPS_TABLE          = 'api/admin/app_group';
+        URL_FETCH_ACTIVATIONS_TABLE         = 'api/admin/activations';
+        URL_FETCH_VERSIONS_TABLE            = 'api/admin/versions';
 
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for user
-         * request management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_tabBtnUserRequest: HTMLLinkElement;
+        URL_UPDATE_USER_FIELD               = 'api/admin/users/update_field';
+        URL_UPDATE_GROUP_FIELD              = 'api/admin/groups/update_field';
+        URL_UPDATE_DEACTIVATION_FIELD       = 'api/admin/deactivationreq/update_field';
+        URL_UPDATE_ACTIVATION_FIELD         = 'api/admin/activations/update_field';
+        URL_UPDATE_ACTIVATION_REPORT        = 'api/admin/activations/update_report';
+        URL_UPDATE_VERSION_STATUS           = 'api/admin/versions/update_status';
 
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for global
-         * applist & appgrouplist management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_tabBtnAppGroup: HTMLLinkElement;
+        ICON_USER                           = '<span class=\'mif-user self-scale-group fg-green\'></span>';
+        ICON_EMAIL                          = '<span class=\'mif-mail self-scale-group color-gray\'></span>';
+        ICON_GROUP                          = '<span class=\'mif-organization self-scale-group fg-green\'></span>';
+        ICON_GROUP_DETACTIVE                = '<span class=\'mif-organization self-scale-group color-gray\'></span>';
+        ICON_IP                             = '<span class=\'mif-flow-tree self-scale-3\'></span>';
+        ICON_FILTER                         = '<span class=\'mif-filter fg-green\'></span>';
+        ICON_WARNING                        = '<span class=\'mif-warning fg-red\'></span>';
+        SPAN_ACTIVE                         = '<span class=\'active-s status\'>Active</span>';
+        SPAN_INACTIVE                       = '<span class=\'inactive-s status\'>Inactive</span>';
 
-        /**
-         * Clickable main menu tab that hosts all menu action buttons for global
-         * AppUserActivation management.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_tabBtnAppUserActivation: HTMLLinkElement;
+        BTN_ADD_APPLICATION_LABEL           = '<span class="icon mif-stack"></span>Add <br /> Application';
+        BTN_REMOVE_APPLICATION_LABEL        = '<span class="mif-cancel"></span>Remove <br /> Application';
+        BTN_APPLY_APPLICATION_LABEL         = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To App Group';
 
-        /**
-         * Button to initiate the process of creating a new user.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnCreateUser: HTMLButtonElement;
+        BTN_ADD_APPGROUP_LABEL              = '<span class="icon mif-stack"></span>Add <br /> Application <br /> Group';
+        BTN_REMOVE_APPGROUP_LABEL           = '<span class="mif-cancel"></span>Remove <br /> Application <br /> Group';
+        BTN_APPLY_APPGROUP_LABEL            = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To User Group';
 
-        /**
-         * Button to initiate the process of deleting an existing, selected
-         * user.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnDeleteUser: HTMLButtonElement;
+        // ───────────────────────────────────────────────────────────────────
+        //   :::::: M A I N   M E N U   B U T T O N   E L E M E N T S ::::::
+        // ───────────────────────────────────────────────────────────────────
+        private m_tabBtnUsers                   : HTMLLinkElement;
+        private m_tabBtnGroups                  : HTMLLinkElement;
+        private m_tabBtnFilterLists             : HTMLLinkElement;
+        private m_tabBtnUserRequest             : HTMLLinkElement;
+        private m_tabBtnAppGroup                : HTMLLinkElement;
+        private m_tabBtnActivation              : HTMLLinkElement;
+        private m_tabBtnVersion                 : HTMLLinkElement;
 
-        /// Group management tab elements.
+        // Container Views
+        private m_viewUser                      : HTMLDivElement;
+        private m_viewGroup                     : HTMLDivElement;
+        private m_viewFilter                    : HTMLDivElement;
+        private m_viewDeactivationReq           : HTMLDivElement;
+        private m_viewApplication               : HTMLDivElement;
+        private m_viewAppGroup                  : HTMLDivElement;
+        private m_viewActivation                : HTMLDivElement;
+        private m_viewVersion                   : HTMLDivElement;
 
-        /**
-         * Button to initiate the process of creating a new group.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnCreateGroup: HTMLButtonElement;
+        private m_currentViewState              : DashboardViewStates;
 
-        /**
-         * Button to initiate the process of deleting an existing, selected
-         * group.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnDeleteGroup: HTMLButtonElement;
-        /**
-         * Button to initiate the process of creating a new group.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnCloneGroup: HTMLButtonElement;
-        
-        /// Filter list/data management tab elements.
+        // User View
+        private m_btnCreateUser                 : HTMLButtonElement;
+        private m_btnDeleteUser                 : HTMLButtonElement;
 
-        /**
-         * Button used to force open the list file upload modal overlay.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf Dashboard
-         */
-        private m_btnUploadFilterLists: HTMLButtonElement;
+        // Group View
+        private m_btnCreateGroup                : HTMLButtonElement;
+        private m_btnDeleteGroup                : HTMLButtonElement;
+        private m_btnCloneGroup                 : HTMLButtonElement;
 
-        /**
-         * Button to initiate the process of deleting an existing, selected
-         * filter list.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnDeleteFilterList: HTMLButtonElement;
+        // Filterlist View
+        private m_btnUploadFL                   : HTMLButtonElement;   // Upload Filter List Button
+        private m_btnDeleteFL                   : HTMLButtonElement;   // Delete Filter List Button
+        private m_btnDeleteFLInNamespace        : HTMLButtonElement;
+        private m_btnDeleteFLTypeInNamespace    : HTMLButtonElement;
 
-        /**
-         * Button to initiate the process of deleting all filter lists in the same
-         * namespace as a selected list.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnDeleteFilterListInNamespace: HTMLButtonElement;
+        // Deactivation Request View
+        private m_btnDeleteDR                   : HTMLButtonElement;   // Delete User Deactivation Request Button
+        private m_btnRefreshDR                  : HTMLButtonElement;   // Refresh User Deactivation Request Button
 
+        // Application View
+        private m_btnAddApplication             : HTMLButtonElement;
+        private m_btnRemoveApplication          : HTMLButtonElement;
+        private m_btnApplyToGroup               : HTMLButtonElement;
 
-        /**
-         * Button to initiate the process of deleting all filter lists in the same namespace
-         * that are of the same type as the list selected.
-         */
-        private m_btnDeleteFilterListTypeInNamespace: HTMLButtonElement;
+        private m_btnApp                        : HTMLInputElement;     // Switch App Group -> App
+        private m_btnAppGroup                   : HTMLInputElement;     // Switch App -> App Group
 
-        /**
-         * Button to initiate the process of deleting an existing, selected 
-         * filter list.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf Dashboard
-         */
-        private m_btnDeleteUserDeactivationRequest: HTMLButtonElement;
+        // Activation View
+        private m_btnDeleteActivation           : HTMLButtonElement;
+        private m_btnBlockActivation            : HTMLButtonElement;
 
-        /**
-         * Button to initiate the process of refreshing the user deactivation
-         * request table.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf Dashboard
-         */
-        private m_btnRefreshUserDeactivationRequests: HTMLButtonElement;
+        // ─────────────────────────────────────────────────────────────────
+        //   :::::: T O P   M E N U   B A R   U I   E L E M E N T S ::::::
+        // ─────────────────────────────────────────────────────────────────
+        private m_btnSignOut                    : HTMLLIElement;
+        private m_btnCreateVersion              : HTMLButtonElement;
+        private m_btnDeleteVersion              : HTMLButtonElement;
+        private m_btnSystemPlatform             : HTMLButtonElement;
 
-        /// Global Applist & AppGroupList tab elements.
+        // ───────────────────────────────────────
+        //   :::::: D A T A   T A B L E S ::::::
+        // ───────────────────────────────────────
 
-        /**
-         * Button to initiate the process of Add a new item to list.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnAddItem: HTMLButtonElement;
+        public m_tableUsers                     : DataTables.Api;
+        public m_tableGroups                    : DataTables.Api;
+        public m_tableFilterLists               : DataTables.Api;
+        public m_tableDeactivationRequests      : DataTables.Api;
+        public m_tableAppLists                  : DataTables.Api;
+        public m_tableAppGroupLists             : DataTables.Api;
+        public m_tableActivation                : DataTables.Api;
+        public m_tableVersions                  : DataTables.Api;
 
-        /**
-         * Button to initiate the process of removing item an existing, selected
-         * item.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnRemoveItem: HTMLButtonElement;
-        /**
-         * Button to initiate the process of removing item an existing, selected
-         * item.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnApplyToGroup: HTMLButtonElement;
-        /**
-         * RadioButton to indicate AppList
-         * 
-         * @private
-         * @type {HTMLInputElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnApp: HTMLInputElement;
-        
-        /**
-         * RadioButton to indicate AppGroupList
-         * 
-         * @private
-         * @type {HTMLInputElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnAppGroup: HTMLInputElement;
+        private m_filterListUploadController    : ListUploadOverlay;
+        private m_filterGroupSelectionArea      : dragula.Drake;
 
-        /**
-         * Button to initiate the process of removing item an existing, selected
-         * item.
-         * 
-         * @private
-         * @type {HTMLButtonElement}
-         * @memberOf DashboardMenu
-         */
-        private m_btnDeleteAppUserActivation: HTMLButtonElement;
-        private m_btnBlockAppUserActivation: HTMLButtonElement;
-        
-        
-        //
-        // ──────────────────────────────────────────────────────────────────────────────────────── II ──────────
-        //   :::::: T O P   M E N U   B A R   U I   E L E M E N T S : :  :   :    :     :        :          :
-        // ──────────────────────────────────────────────────────────────────────────────────────────────────
-        //
-
-        /**
-         * Represents the sign out button.
-         * 
-         * @private
-         * 
-         * @memberOf Dashboard
-         */
-        private m_btnSignOut;        
-
-        //
-        // ──────────────────────────────────────────────────────────────────────────────── III ──────────
-        //   :::::: D A T A   P R E S E N T E R   V I E W S : :  :   :    :     :        :          :
-        // ──────────────────────────────────────────────────────────────────────────────────────────
-        //
-
-        /**
-         * Host container where user related data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_viewUserManagement: HTMLDivElement;
-
-        /**
-         * Host container where group related data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_viewGroupManagement: HTMLDivElement;
-
-        /**
-         * Host container where filter list related data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_viewFilterManagement: HTMLDivElement;
-
-        /**
-         * Host container where user request data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_viewUserDeactivationRequestManagement: HTMLDivElement;
-
-        /**
-         * Host container where AppList/AppGroupList related data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_viewAppManagement: HTMLDivElement;
-        private m_viewAppGroupManagement: HTMLDivElement;
-
-        /**
-         * Host container where App User Activations related data is displayed.
-         * 
-         * @private
-         * @type {HTMLDivElement}
-         * @memberOf Dashboard
-         */
-        private m_viewAppUserActivationManagement: HTMLDivElement;
-        //
-        // ────────────────────────────────────────────────────────────── IV ──────────
-        //   :::::: D A T A   T A B L E S : :  :   :    :     :        :          :
-        // ────────────────────────────────────────────────────────────────────────
-        //
-
-        /**
-         * User DataTable.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
-        private m_tableUsers: DataTables.DataTable;
-
-        /**
-         * Group DataTable.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
-        private m_tableGroups: DataTables.DataTable;
-
-        /**
-         * Filter list DataTable.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
-        private m_tableFilterLists: DataTables.DataTable;
-
-        /**
-         * Deactivation requests table.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
-        private m_tableUserDeactivationRequests: DataTables.DataTable;
-
-        /**
-         *  BlackWhite DataTable.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
-        public m_tableAppLists: DataTables.DataTable;
-        public m_tableAppGroupLists: DataTables.DataTable;
-
-        /**
-         * App User Activations table.
-         * 
-         * @private
-         * @type {DataTables.DataTable}
-         * @memberOf Dashboard
-         */
-        private m_tableAppUserActivationTable: DataTables.DataTable;
-        /**
-         * Represents the current view state of the application. This must not
-         * be accessed directly, but rather the getters and setters should be
-         * called, even though they are private as well. The getters and setter
-         * incorporate functionality that enforces the validity of various view
-         * states by synchronizing visual elements and data as required for each
-         * different state.
-         * 
-         * @private
-         * @type {DashboardViewStates}
-         * @memberOf Dashboard
-         */
-        private m_currentViewState: DashboardViewStates;
-
-        /**
-         * Modal overlay for handling filter list uploading.
-         * 
-         * @private
-         * @type {ListUploadOverlay}
-         * @memberOf Dashboard
-         */
-        private m_filterListUploadController: ListUploadOverlay;
-
-        /**
-         * Dragula, we use to allow editing of a groups assigned filters.
-         * 
-         * @private
-         * @type {dragula.Drake}
-         * @memberOf Dashboard
-         */
-        private m_filterGroupSelectionArea: dragula.Drake;
+        private m_allFilters;
+        private m_allGroups;
 
         /**
          * Creates an instance of Dashboard.
-         * 
-         * 
+         *
+         *
          * @memberOf Dashboard
          */
-        constructor()
-        {
+        constructor() {
             // Setup nav.
             this.ConstructNavigation();
+            this.loadAllFilters();
+            this.loadAllGroups();
 
             // Initialize views.
             this.ConstructManagementViews();
@@ -485,42 +191,138 @@ namespace Citadel
             this.m_filterListUploadController = new ListUploadOverlay();
 
             // Force table redraw any time an upload of new lists fails or succeeds.
-            this.m_filterListUploadController.UploadCompleteCallback = (():void =>
-            {
+            this.m_filterListUploadController.UploadCompleteCallback = ((): void => {
+                this.ForceTableRedraw(this.m_tableFilterLists);
+                this.ForceTableRedraw(this.m_tableGroups);
+                this.m_filterListUploadController.Hide();
+                this.loadAllFilters();
+            });
+
+            this.m_filterListUploadController.UploadFailedCallback = ((): void => {
                 this.ForceTableRedraw(this.m_tableFilterLists);
                 this.ForceTableRedraw(this.m_tableGroups);
                 this.m_filterListUploadController.Hide();
             });
-            this.m_filterListUploadController.UploadFailedCallback = (():void =>
-            {
-                this.ForceTableRedraw(this.m_tableFilterLists);
-                this.ForceTableRedraw(this.m_tableGroups);
-                this.m_filterListUploadController.Hide();
-            });
+
+            this.loadPreviousTab();
         }
 
-        private ConstructManagementViews(): void
-        {
+        private loadAllFilters(): void {
+            let ajaxSettings: JQueryAjaxSettings = {
+                method: "GET",
+                timeout: 60000,
+                url: this.URL_FETCH_FILTERLIST,
+                success: (data: any): any => {
+                    this.m_allFilters = data;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(errorThrown);
+                }
+            }
+
+            $.ajax(ajaxSettings);
+        }
+
+        private loadPreviousTab(): void {
+            var prev_tab = window.localStorage.getItem('previous_tab');
+            if(prev_tab != undefined  && prev_tab != null && prev_tab != '') {
+                $('.tabs-holder li').removeClass('active');
+                $('.tabs-content .tab-panel').css('display', 'none');
+                var val = parseInt(prev_tab);
+                switch(val) {
+                    case 1:
+                        this.m_tabBtnUsers.onclick(null);
+                        $(this.m_tabBtnUsers).parent().addClass('active');
+                        $('#tab_users').css('display', 'block');
+                        break;
+                    case 2:
+                        this.m_tabBtnGroups.onclick(null);
+                        $(this.m_tabBtnGroups).parent().addClass('active');
+                        $('#tab_groups').css('display', 'block');
+                        break;
+                    case 3:
+                        this.m_tabBtnFilterLists.onclick(null);
+                        $(this.m_tabBtnFilterLists).parent().addClass('active');
+                        $('#tab_filter_lists').css('display', 'block');
+                        break;
+                    case 4:
+                        this.m_tabBtnUserRequest.onclick(null);
+                        $(this.m_tabBtnUserRequest).parent().addClass('active');
+                        $('#tab_user_deactivation_requests').css('display', 'block');
+                        break;
+                    case 5:
+                        this.ViewState = DashboardViewStates.AppView;
+                        $(this.m_tabBtnAppGroup).parent().addClass('active');
+                        $('#tab_app_groups').css('display', 'block');
+                        this.m_btnApp.checked = true;
+                        this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPLICATION_LABEL;
+                        this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPLICATION_LABEL;
+                        this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPLICATION_LABEL;
+                        break;
+                    case 6:
+                        this.ViewState = DashboardViewStates.AppGroupView;
+                        $(this.m_tabBtnAppGroup).parent().addClass('active');
+                        $('#tab_app_groups').css('display', 'block');
+                        this.m_btnAppGroup.checked = true;
+                        this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPGROUP_LABEL;
+                        this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPGROUP_LABEL;
+                        this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPGROUP_LABEL;
+                        break;
+                    case 7:
+                        this.m_tabBtnActivation.onclick(null);
+                        $(this.m_tabBtnActivation).parent().addClass('active');
+                        $('#tab_app_user_activations').css('display', 'block');
+                        break;
+
+                    case 8:
+                        this.m_tabBtnVersion.onclick(null);
+                        $(this.m_tabBtnVersion).parent().addClass('active');
+                        $('#tab_system_versions').css('display', 'block');
+                        break;
+                }
+            } else {
+                this.m_tabBtnUsers.onclick(null);
+                $(this.m_tabBtnUsers).parent().addClass('active');
+                $('#tab_users').css('display', 'block');
+            }
+        }
+
+        private loadAllGroups(): void {
+            let ajaxSettings: JQueryAjaxSettings = {
+                method: "GET",
+                timeout: 60000,
+                url: this.URL_FETCH_GROUP,
+                success: (data: any): any => {
+                    this.m_allGroups = data;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(errorThrown);
+                }
+            }
+
+            $.ajax(ajaxSettings);
+        }
+
+
+        private ConstructManagementViews(): void {
             // Grab main view container references.
-            this.m_viewUserManagement = document.getElementById('view_user_management') as HTMLDivElement;
-            this.m_viewGroupManagement = document.getElementById('view_group_management') as HTMLDivElement;
-            this.m_viewFilterManagement = document.getElementById('view_filter_management') as HTMLDivElement;
-            this.m_viewUserDeactivationRequestManagement = document.getElementById('view_user_deactivation_request_management') as HTMLDivElement;
-            this.m_viewAppManagement = document.getElementById('view_app_management') as HTMLDivElement;
-            this.m_viewAppGroupManagement = document.getElementById('view_app_group_management') as HTMLDivElement;
-            this.m_viewAppUserActivationManagement = document.getElementById('view_app_user_activations_management') as HTMLDivElement;
+            this.m_viewUser             = document.getElementById('view_user_management') as HTMLDivElement;
+            this.m_viewGroup            = document.getElementById('view_group_management') as HTMLDivElement;
+            this.m_viewFilter           = document.getElementById('view_filter_management') as HTMLDivElement;
+            this.m_viewDeactivationReq  = document.getElementById('view_user_deactivation_request_management') as HTMLDivElement;
+            this.m_viewApplication      = document.getElementById('view_app_management') as HTMLDivElement;
+            this.m_viewAppGroup         = document.getElementById('view_app_group_management') as HTMLDivElement;
+            this.m_viewActivation       = document.getElementById('view_app_user_activations_management') as HTMLDivElement;
+            this.m_viewVersion          = document.getElementById('view_system_versions_management') as HTMLDivElement;
+
             // Build the tables.
             this.ConstructTables();
-
-            // Build dragula for editing group's assigned filters.
             this.ConstructDragula();
 
-            // Set the current state to the user lists view.
-            this.ViewState = DashboardViewStates.UserListView;
+            //this.ViewState = DashboardViewStates.UserListView;
         }
 
-        private ConstructDragula(): void
-        {
+        private ConstructDragula(): void {
             let c: Element[] = [
                 document.getElementById('group_blacklist_filters'),
                 document.getElementById('group_whitelist_filters'),
@@ -529,31 +331,25 @@ namespace Citadel
             ];
 
             let d: dragula.DragulaOptions = {
-                containers: c,                
+                containers: c,
                 revertOnSpill: true,
                 removeOnSpill: false,
                 direction: 'vertical',
                 copy: false,
                 delay: false,
                 mirrorContainer: document.body,
-                isContainer: ((element: Element) : any =>
-                {
-                    // Easy way to make dragula containers. Just add the class below.
+
+                isContainer: ((element: Element): any => {
                     return element.classList.contains('dragula-container');
                 }),
-                accepts: ((el?: Element, target?: Element, source?: Element, sibling?: Element): boolean =>
-                {
-                    // Don't allow NLP filters to be anything but blacklist. NLP is not
-                    // designed to function any other way.
-                    //
-                    // Same goes for triggers. They're blacklist-specific as well.
+
+                accepts: ((el ? : Element, target ? : Element, source ? : Element, sibling ? : Element): boolean => {
                     var attr = el.getAttribute('citadel-filter-list-type');
-                    if((attr.toLowerCase() === 'nlp' || attr.toLowerCase() === 'trigger') && (target.id != 'group_blacklist_filters' && target.id != 'group_unassigned_filters'))
-                    {
+                    if ((attr.toLowerCase() === 'nlp' || attr.toLowerCase() === 'trigger') &&
+                        (target.id != 'group_blacklist_filters' && target.id != 'group_unassigned_filters')) {
                         return false;
                     }
 
-                    // Allow everything else to be dragged anywhere.
                     return true;
                 })
             };
@@ -564,660 +360,1009 @@ namespace Citadel
 
         /**
          * Runs the DataTables initialization on all tables we have to present.
-         * 
+         *
          * @private
-         * 
+         *
          * @memberOf Dashboard
          */
-        private ConstructTables(): void
-        {
-            let userTableConstruction = (() =>
-            {
-                let userTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'User Id',
-                            data: 'id',
-                            visible: false,                            
-                        },
-                        {
-                            // This field belongs to a different table, so it
-                            // needs to be included on the server side!
-                            title: 'Group Id',
-                            data: 'group.id',
-                            defaultContent: 'Unassigned',                            
-                            visible: false
-                        },
-                        {
-                            // This field belongs to a different table, so it
-                            // needs to be included on the server side!
-                            title: 'Group Name',
-                            data: 'group.name',
-                            className: 'phone',
-                            defaultContent: 'Unassigned',
-                            visible: true
-                        },
-                        {
-                            title: 'Name',
-                            data: 'name',
-                            className: 'desktop',
-                            visible: true
-                        },
-                        {
-                            title: 'Username',
-                            data: 'email',
-                            className: 'phone',
-                            visible: true
-                        },
-                        {
-                            title: 'Roles',                            
-                            data: 'roles[, ].display_name',
-                            className: 'desktop',
-                            defaultContent: 'None'
-                        },
-                        {
-                            title: 'Active',
-                            data: 'isactive',
-                            className: 'phone',
-                            visible: true,                            
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data == null)
-                                {
-                                    return "";
-                                }
+        private ConstructTables(): void {
+            let height = $("body").height();
 
-                                if(data == 1)
-                                {
-                                    return "True";
-                                }
-                                else
-                                {
-                                    return "False";
-                                }
-                            })
-                        },
-                        {
-                            // This field belongs to a different database, so it
-                            // needs to be included on the server side!
-                            title: '# Licenses',
-                            data: 'activations_allowed',
-                            className: 'desktop',
-                            visible: true
-                        },
-                        {
-                            // This field belongs to a different database, so it
-                            // needs to be included on the server side!
-                            title: '# Lic. Used',
-                            data: 'activations_used',
-                            className: 'desktop',
-                            visible: true
-                        },
-                        {
-                            title: 'Date Registered',
-                            data: 'created_at',
-                            className: 'desktop',
-                            visible: true
-                        }
-                    ];
+            let userTableConstruction = (() => {
 
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let userTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+                let userTableColumns: DataTables.ColumnSettings[] = [{
+                        title: 'User Id',
+                        data: 'id',
+                        visible: false,
+                    },
                     {
-                        url: "api/admin/users",
-                        dataSrc: "",                        
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                ////window.location.href = 'login.php?logout';
+                        title: 'Group Id',
+                        data: 'group.id',
+                        defaultContent: 'Unassigned',
+                        visible: false
+                    },
+                    {
+                        title: 'User Name',
+                        data: 'name',
+                        className: 'content-left user-name',
+                        visible: true,
+                        width: '300px',
+                        render: ((data: string): any => {
+                            return this.ICON_USER + ` <b>${data}</b>`;
+                        })
+                    },
+                    {
+                        title: 'Group Name',
+                        data: 'group.name',
+                        className: 'content-left',
+                        defaultContent: 'Unassigned',
+                        visible: true,
+                        width: '220px',
+                        render: ((data: string): any => {
+                            return this.ICON_GROUP_DETACTIVE + ' - ' + data;
+                        })
+                    },
+                    {
+                        title: 'User Email',
+                        data: 'email',
+                        className: 'content-left user-email',
+                        visible: true,
+                        render: ((data: string)=> {
+                            return this.ICON_EMAIL + ' ' + data;
+                        })
+                    },
+                    {
+                        title: 'Roles',
+                        data: 'roles[, ].display_name',
+                        className: 'content-left',
+                        defaultContent: 'None',
+                        width: '220px'
+                    },
+                    {
+                        title: 'License Used',
+                        data: 'activations_allowed',
+                        className: 'content-center',
+                        visible: true,
+                        render: ((data: any, t: string, row: any): any => {
+                            return "<span class='license_used'>" + row.activations_used
+                             + "</span> of <span class='license_allowed'>" + data + "</span>";
+                        }),
+                        width: '150px'
+                    },
+                    {
+                        title: 'Report Level',
+                        data: 'report_level',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            var chk_report = (data === 1) ? "checked" : "";
+                            var str = "<label class='switch-original'><input type='checkbox' id='user_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                            return str;
+                        }),
+                        className: 'content-center',
+                        width: '130px'
+                    },
+                    {
+                        title: 'Status',
+                        data: 'isactive',
+                        className: 'content-center',
+                        visible: true,
+                        render: ((data: number): any => {
+                            if (data == null) return '';
+                            return (data == 1) ? this.SPAN_ACTIVE:this.SPAN_INACTIVE;
+                        }),
+                        width: '90px'
+                    },
+                    {
+                        title: 'Date Registered',
+                        data: 'created_at',
+                        visible: true,
+                        width: '180px',
+                        className: 'updated_date'
+                    }
+                ];
+
+                let userTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: this.URL_FETCH_USERS_TABLE,
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        console.log(jqXHR);
+                    })
+                };
+
+                let usersTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: userTableColumns,
+                    ajax: userTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: ((settings): void => {
+                        let that = this;
+                        $("#user_table").off("change", "input[type='checkbox']");
+                        $("#user_table").on("change", "input[type='checkbox']", function () {
+                            let id_str = this['id'];    // get id from checkbox element
+                            let val = 0;
+                            if (this['checked']) {
+                                val = 1;
                             }
-                        })
-                    };
 
-                // Define user table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let usersTableSettings: DataTables.Settings =
-                    {
-                        autoWidth: true,
-                        stateSave: true,
-                        columns: userTableColumns,
-                        ajax: userTablesLoadFromAjaxSettings,
-                        
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        })
-                    };
+                            let checkAjaxSettings: JQueryAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: that.URL_UPDATE_USER_FIELD,
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
+                                success: (data: any): any => {
+                                    that.ForceTableRedraw(that.m_tableUsers);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                }
+                            }
 
-                    usersTableSettings['resonsive'] = true;
+                            $.ajax(checkAjaxSettings);
+                        });
+                    })
+                };
                 this.m_tableUsers = $('#user_table').DataTable(usersTableSettings);
             });
 
-            let groupTableConstruction = (() =>
-            {
-                let groupTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'Group Id',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'Group Name',
-                            data: 'name',
-                            visible: true
-                        },
-                        {
-                            title: 'Active',
-                            data: 'isactive',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data == null)
-                                {
-                                    return "";
-                                }
-                                
-                                if(data == 1)
-                                {
-                                    return "True";
-                                }
-                                else
-                                {
-                                    return "False";
-                                }
-                            })
-                        },
-                        {
-                            title: 'Assigned Filters',
-                            data: 'assigned_filter_ids',
-                            visible: false
-                        },
-                        {
-                            title: 'Date Registered',
-                            data: 'created_at',
-                            visible: true
-                        },
-                        {
-                            title: 'Date Modified',
-                            data: 'updated_at',
-                            visible: true
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let groupTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+            let groupTableConstruction = (() => {
+                let groupTableColumns: DataTables.ColumnSettings[] = [{
+                        title: 'Group Id',
+                        data: 'id',
+                        visible: false
+                    },
                     {
-                        url: "api/admin/groups",
-                        dataSrc: "",
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
+                        title: 'Group Name',
+                        data: 'name',
+                        visible: true,
+                        className: 'content-left',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return this.ICON_GROUP + '- <b title=\'' + row.user_count + ' users are registered to this group.\'>' + data + '</b> <span class=\'user_count\'>(' + row.user_count + ')</span>';
+                        })
+                    },
+                    {
+                        title: 'Primary DNS',
+                        data: 'primary_dns',
+                        visible: true,
+                        render: ((data: string): any => {
+                            return (data === null || data === '')? '': this.ICON_IP + ' ' + data;
+                        }),
+                        className: 'content-left',
+                        width: '190px'
+                    },
+                    {
+                        title: 'Secondary DNS',
+                        data: 'secondary_dns',
+                        visible: true,
+                        render: ((data: string): any => {
+                            return (data === null || data === '')? '': this.ICON_IP + ' ' + data;
+                        }),
+                        className: 'content-left',
+                        width: '190px'
+                    },
+                    {
+                        title: 'Terminate/Internet/Threshold',
+                        data: 'terminate',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            if (data === null || data === '') {
+                                return '';
                             }
-                        })
-                    };
-
-                // Define group table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let groupTableSettings: DataTables.Settings =
+                            var app_cfg = JSON.parse(row.app_cfg);
+                            var chk_terminate = app_cfg.CannotTerminate ? 'checked' : '';
+                            var chk_internet = app_cfg.BlockInternet ? 'checked' : '';
+                            var chk_threshold = app_cfg.UseThreshold ? 'checked' : '';
+                            var str = '<label class=\'switch-original\'><input type=\'checkbox\' id=\'group_terminate_' + row.id + '\'' + chk_terminate + ' /><span class=\'check\'></span></label>';
+                            str += '<label class=\'switch-original\'><input type=\'checkbox\' id=\'group_internet_' + row.id + '\' ' + chk_internet + ' /><span class=\'check\'></span></label>';
+                            str += '<label class=\'switch-original\'><input type=\'checkbox\' id=\'group_threshold_' + row.id + '\' ' + chk_threshold + ' /><span class=\'check\'></span></label>';
+                            return str;
+                        }),
+                        className: 'content-left',
+                        width: '290px'
+                    },
                     {
-                        autoWidth: true,
-                        stateSave: true,
-                        columns: groupTableColumns,
-                        ajax: groupTablesLoadFromAjaxSettings,
+                        title: 'Bypass',
+                        data: 'bypass',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            if (data === null || data === '') {
+                                return '';
+                            }
+                            var app_cfg = JSON.parse(row.app_cfg);
+                            var bypass_permitted = app_cfg['BypassesPermitted'] === null || app_cfg['BypassesPermitted'] === 0 ? "" : "<span class='mif-clipboard self-scale-4 fg-cyan'></span> " + app_cfg['BypassesPermitted'] + "<span class='unit_day'>/day</span>";
+                            var bypass_duration = app_cfg['BypassDuration'] === null || app_cfg['BypassDuration'] === 0 ? "" : " <span class='mif-alarm-on self-scale-5 fg-pink'></span> " + app_cfg['BypassDuration'] + "<span class='unit_min'>mins</span>";
+                            return bypass_permitted + bypass_duration;
+                        }),
+                        className: 'content-left',
+                        width: '180px'
+                    },
+                    {
+                        title: 'Report Level',
+                        data: 'report_level',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            var app_cfg = JSON.parse(row.app_cfg);
+                            var chk_report = (app_cfg.ReportLevel == 1) ? "checked" : "";
 
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        })
-                    };
+                            return "<label class='switch-original'><input type='checkbox' id='group_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                        }),
+                        className: 'content-center',
+                        width: '150px'
+                    },
+                    {
+                        title: 'Status',
+                        data: 'isactive',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return data == null? '': data == 1? this.SPAN_ACTIVE : this.SPAN_INACTIVE;
+                        }),
+                        className: 'content-center',
+                        width: '60px'
+                    },
+                    {
+                        title: 'Date Registered',
+                        data: 'created_at',
+                        visible: true,
+                        width: '180px',
+                        className: 'updated_date'
+                    }
+                ];
+
+                let groupTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: this.URL_FETCH_GROUPS_TABLE,
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        console.log(errorThrown);
+                    })
+                };
+
+                let groupTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: groupTableColumns,
+                    ajax: groupTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: ((settings): void => {
+                        let that = this;
+                        $("#group_table").off("change", "input[type='checkbox']");
+                        $("#group_table").on("change", "input[type='checkbox']", function () {
+                            let id_str = this['id'];
+                            let val = 0;
+
+                            if (this['checked']) {
+                                val = 1;
+                            }
+
+                            let checkAjaxSettings: JQueryAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: that.URL_UPDATE_GROUP_FIELD,
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
+                                success: (data: any): any => {
+                                    that.ForceTableRedraw(that.m_tableGroups);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                }
+                            }
+
+                            $.ajax(checkAjaxSettings);
+                        });
+                    })
+                };
 
                 this.m_tableGroups = $('#group_table').DataTable(groupTableSettings);
             });
 
-            let filterTableConstruction = (() =>
-            {
-                let filterTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'ID',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'Category Name',
-                            data: 'category',
-                            visible: true
-                        },
-                        {
-                            title: 'List Group Name',
-                            data: 'namespace',
-                            visible: true
-                        },
-                        {
-                            title: 'Type',
-                            data: 'type',
-                            visible: true
-                        },
-                        {
-                            title: '# Entries',
-                            data: 'entries_count',
-                            visible: true
-                        },
-                        {
-                            title: 'Date Created',
-                            data: 'created_at',
-                            visible: true
-                        },
-                        {
-                            title: 'Date Modified',
-                            data: 'updated_at',
-                            visible: true
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let filterTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+            let filterTableConstruction = (() => {
+                let filterTableColumns: DataTables.ColumnSettings[] = [{
+                        title: 'ID',
+                        data: 'id',
+                        visible: false
+                    },
                     {
-                        url: "api/admin/filterlists",
-                        dataSrc: "",
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
-                            }
+                        title: 'Category Name',
+                        data: 'category',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return (data == null)? '':row.type === 'Filters'?this.ICON_FILTER + ' ' + data:this.ICON_WARNING + ' ' + data;
                         })
-                    };
-
-                // Define filter table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let filterTableSettings: DataTables.Settings =
+                    },
                     {
-                        autoWidth: true,
-                        stateSave: true,
-                        columns: filterTableColumns,
-                        ajax: filterTablesLoadFromAjaxSettings,
-
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
+                        title: 'List Group Name',
+                        data: 'namespace',
+                        visible: true,
+                        render: ((data: string): any => {
+                            return (data == null)?'':data;
                         })
-                    };
+                    },
+                    {
+                        title: 'Type',
+                        data: 'type',
+                        visible: true,
+                        render: ((data: string): any => {
+                            return (data == null)? '': data === 'Filters'?this.ICON_FILTER + ' ' + data:this.ICON_WARNING + ' ' + data;
+                        }),
+                    },
+                    {
+                        title: '# Entries',
+                        data: 'entries_count',
+                        visible: true
+                    },
+                    {
+                        title: 'Date Created',
+                        data: 'created_at',
+                        visible: true,
+                        width: '180px',
+                        className: 'updated_date'
+                    }
+                ];
+
+                let filterTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: this.URL_FETCH_FILTERS_TABLE,
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        console.log(errorThrown);
+                    })
+                };
+
+                let filterTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: filterTableColumns,
+                    ajax: filterTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    })
+                };
 
                 this.m_tableFilterLists = $('#filter_table').DataTable(filterTableSettings);
 
             });
 
-            let deactivationRequestConstruction = (() =>
-            {
-                let userDeactivationRequestTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'ID',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'User Full Name',
-                            data: 'user.name',
-                            visible: true
-                        },
-                        {
-                            title: 'Username',
-                            data: 'user.email',
-                            visible: true
-                        },
-                        {
-                            title: 'Device Name',
-                            data: 'device_id',
-                            visible: true
-                        },
-                        {
-                            title: 'Granted',
-                            data: 'granted',
-                            visible: true,
-                            render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any =>
-                            {
-                                if(data == null)
-                                {
-                                    return "";
-                                }
-                                
-                                if(data == 1)
-                                {
-                                    return "True";
-                                }
-                                else
-                                {
-                                    return "False";
-                                }
-                            })
-                        },
-                        {
-                            title: 'Date Requested',
-                            data: 'created_at',
-                            visible: true
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let userDeactivationRequestTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+            let deactivationRequestConstruction = (() => {
+                let userDeactivationRequestTableColumns: DataTables.ColumnSettings[] = [{
+                        title: 'ID',
+                        data: 'id',
+                        visible: false
+                    },
                     {
-                        url: "api/admin/deactivationreq",
-                        dataSrc: "",
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
+                        title: 'User Full Name',
+                        data: 'user.name',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return "<span class='mif-user self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>"
+                        }),
+                        width: '240px'
+                    },
+                    {
+                        title: 'Username',
+                        data: 'user.email',
+                        visible: true,
+                        width: '240px'
+                    },
+                    {
+                        title: 'Device Name',
+                        data: 'device_id',
+                        visible: true
+                    },
+                    {
+                        title: 'Granted',
+                        data: 'granted',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            if (data == null) {
+                                return "";
                             }
-                        })
-                    };
 
-                // Define filter table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let userDeactivationRequestTableSettings: DataTables.Settings =
+                            var chk_report = (data === 1) ? "checked" : "";
+                            var str = "<label class='switch-original'><input type='checkbox' id='deactivatereq_enabled_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                            return str;
+                        }),
+                        width: '100px'
+                    },
                     {
-                        autoWidth: true,
-                        stateSave: true,
-                        columns: userDeactivationRequestTableColumns,
-                        ajax: userDeactivationRequestTablesLoadFromAjaxSettings,
+                        title: 'Date Requested',
+                        data: 'created_at',
+                        visible: true,
+                        width: '180px',
+                        className: 'updated_date'
+                    }
+                ];
 
-                        // We grap the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        })
-                    };
+                let userDeactivationRequestTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: this.URL_FETCH_DEACTIVATES_TABLE,
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        console.log(errorThrown);
+                    })
+                };
 
-                this.m_tableUserDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
+                let userDeactivationRequestTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: userDeactivationRequestTableColumns,
+                    ajax: userDeactivationRequestTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: ((settings): void => {
+                        let that = this;
+                        $("#user_deactivation_request_table").off("change", "input[type='checkbox']");
+                        $("#user_deactivation_request_table").on("change", "input[type='checkbox']", function () {
+                            let id_str = this['id'];
+                            let val = 0;
+
+                            if (this['checked']) {
+                                val = 1;
+                            }
+
+                            let checkAjaxSettings: JQueryAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: that.URL_UPDATE_DEACTIVATION_FIELD,
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
+                                success: (data: any): any => {
+                                    that.ForceTableRedraw(that.m_tableDeactivationRequests);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                }
+                            }
+
+                            $.ajax(checkAjaxSettings);
+                        });
+                    })
+                };
+
+                this.m_tableDeactivationRequests = $('#user_deactivation_request_table').DataTable(userDeactivationRequestTableSettings);
             });
 
-            let appListTableConstruction = (() =>
-            {
-                let appListTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'App Id',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'Application Name',
-                            data: 'name',
-                            visible: true,
-                            width: '200px'
-                        },
-                        {
-                            title: 'Notes',
-                            data: 'notes',
-                            visible: true,
-                            width: '200px'
-                        },
-                        {
-                            title: 'Linked Group',
-                            data: 'group_name',
-                            visible: true
-                        },
-                        {
-                            title: 'Date Modified',
-                            data: 'updated_at',
-                            visible: true,
-                            width: '200px'
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let appListTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+            let appListTableConstruction = (() => {
+                let appListTableColumns: DataTables.ColumnSettings[] = [{
+                        title: 'App Id',
+                        data: 'id',
+                        visible: false
+                    },
                     {
-                        url: "api/admin/app",
-                        dataSrc: "",
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
-                            }
+                        title: 'Application Name',
+                        data: 'name',
+                        visible: true,
+                        width: '200px',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return "<span class='mif-file-binary self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
                         })
-                    };
-
-                // Define AppList table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let appListTableSettings: DataTables.Settings =
+                    },
                     {
-                        autoWidth: true,
-                        stateSave: true,
-                        columns: appListTableColumns,
-                        ajax: appListTablesLoadFromAjaxSettings,
+                        title: 'Notes',
+                        data: 'notes',
+                        visible: true,
+                        width: '240px'
+                    },
+                    {
+                        title: 'Linked Group',
+                        data: 'group_name',
+                        orderable: false,
+                        visible: true
+                    },
+                    {
+                        title: 'Date Modified',
+                        data: 'updated_at',
+                        visible: true,
+                        width: '220px'
+                    }
+                ];
 
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        })
-                    };
+                let appListTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: this.URL_FETCH_APPLICATIONS_TABLE,
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        console.log(errorThrown);
+                    })
+                };
+
+                let appListTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: appListTableColumns,
+                    ajax: appListTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    })
+                };
 
                 this.m_tableAppLists = $('#app_table').DataTable(appListTableSettings);
             });
-            let appGroupListTableConstruction = (() =>
-            {
-                let appGroupListTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'App Group Id',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'App Group Name',
-                            data: 'group_name',
-                            visible: true,
-                            width: '200px'
-                        },
-                        {
-                            title: 'Linked Apps',
-                            data: 'app_names',
-                            visible: true
-                        },
-                        {
-                            title: 'Date Modified',
-                            data: 'updated_at',
-                            visible: true,
-                            width: '200px'
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let appGroupListTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+            let appGroupListTableConstruction = (() => {
+                let appGroupListTableColumns: DataTables.ColumnSettings[] = [{
+                        title: 'App Group Id',
+                        data: 'id',
+                        visible: false
+                    },
                     {
-                        url: "api/admin/app_group",
-                        dataSrc: "",
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
-                            }
+                        title: 'App Group Name',
+                        data: 'group_name',
+                        visible: true,
+                        width: '200px',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return "<span class='mif-file-folder self-scale-group fg-green'></span>  <b title='" + data + "'>" + data + "</b>";
                         })
-                    };
-
-                // Define AppList table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let appGroupListTableSettings: DataTables.Settings =
+                    },
                     {
-                        autoWidth: true,
-                        stateSave: true,
-                        columns: appGroupListTableColumns,
-                        ajax: appGroupListTablesLoadFromAjaxSettings,
+                        title: 'Linked Apps',
+                        data: 'app_names',
+                        orderable: false,
+                        visible: true
+                    },
+                    {
+                        title: 'Date Modified',
+                        data: 'updated_at',
+                        visible: true,
+                        width: '230px'
+                    }
+                ];
 
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
-                        })
-                    };
+                let appGroupListTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: this.URL_FETCH_APP_GROUPS_TABLE,
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        console.log(errorThrown);
+                    })
+                };
+
+                let appGroupListTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: appGroupListTableColumns,
+                    ajax: appGroupListTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    })
+                };
 
                 this.m_tableAppGroupLists = $('#app_group_table').DataTable(appGroupListTableSettings);
             });
 
-            let appUserActivationTableConstruction = (() =>
-            {
-                let appUserActivationTableColumns: DataTables.ColumnSettings[] =
-                    [
-                        {
-                            title: 'Activation Id',
-                            data: 'id',
-                            visible: false
-                        },
-                        {
-                            title: 'User',
-                            data: 'user.name',
-                            visible: true
-                        },
-                        {
-                            title: 'Identifier',
-                            data: 'identifier',
-                            visible: true
-                        },
-                        {
-                            title: 'Device Id',
-                            data: 'device_id',
-                            visible: true
-                        },
-                        {
-                            title: 'App Version',
-                            data: 'app_version',
-                            visible: true
-                        },
-                        {
-                            title: 'IP Address',
-                            data: 'ip_address',
-                            visible: true
-                        },
-                        {
-                            title: 'Bypass Quantity',
-                            data: 'bypass_quantity',
-                            visible: true
-                        },
-                        {
-                            title: 'Bypass Period',
-                            data: 'bypass_period',
-                            visible: true
-                        },
-                        {
-                            title: 'Bypass Used',
-                            data: 'bypass_used',
-                            visible: true
-                        },
-                        {
-                            title: 'Updated date',
-                            data: 'updated_at',
-                            visible: true
-                        }
-                    ];
-
-                // Set our table's loading AJAX settings to call the admin
-                // control API with the appropriate arguments.
-                let appUserActivationTablesLoadFromAjaxSettings: DataTables.AjaxSettings =
+            let appUserActivationTableConstruction = (() => {
+                let appUserActivationTableColumns: DataTables.ColumnSettings[] = [{
+                        title: 'Activation Id',
+                        data: 'id',
+                        visible: false
+                    },
                     {
-                        url: "api/admin/activations",
-                        dataSrc: "",
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        method: "GET",
-                        error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                        {
-                            if(jqXHR.status > 399 && jqXHR.status < 500)
-                            {
-                                // Almost certainly auth related error. Redirect to login
-                                // by signalling for logout.
-                                //////window.location.href = 'login.php?logout';
+                        title: 'User',
+                        data: 'name',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            var name = data;
+                            if (data.length > 17) {
+                                name = data.substring(0, 14) + "...";
+                            }
+
+                            var str = "";
+                            str += "<span class='mif-user self-scale-group fg-green'></span>  ";
+                            str += "<b title='" + data + "'>" + name + "</b>";
+                            return str;
+                        }),
+                        width: '200px'
+                    },
+                    {
+                        title: 'Device Id',
+                        data: 'device_id',
+                        visible: true,
+                        className: 'device_id',
+                        width: '200px'
+                    },
+                    {
+                        title: 'IP Address',
+                        data: 'ip_address',
+                        visible: true,
+                        width: '200px',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            var user_ip = "<span class='mif-flow-tree self-scale-3'></span>";
+                            var name = data;
+                            if (data === null || data === undefined) {
+                                name = "-";
+                                data = "*";
+                                return "";
+                            } else {
+
+                                if (data.length > 20) {
+                                    name = data.substring(0, 15) + "...";
+                                }
+                            }
+                            return user_ip + " <span title='" + data + "'>" + name + "</span>";
+                        })
+                    },
+                    {
+                        title: '#Bypass Used/Quantity/Period',
+                        data: 'bypass_quantity',
+                        visible: true,
+                        width: '210px',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            var bypass_used = "";
+                            if (row.bypass_used === null || row.bypass_used === 0)
+                                bypass_used = "<span class='mif-info self-scale-2 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
+                            else
+                                bypass_used = "<span class='mif-info self-scale-2 fg-cyan'></span> " + row.bypass_used + " ";
+
+                            var bypass_permitted = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                            if (data === null || data === 0)
+                                bypass_permitted += "<span class='mif-clipboard self-scale-1 unset_value_color'></span> <span class='unset_value_color'>-</span> ";
+                            else
+                                bypass_permitted += "<span class='mif-clipboard self-scale-1 fg-cyan'></span> " + data + " ";
+                            bypass_permitted += "<span class='unit_day'>/day</span>";
+
+                            var bypass_duration = "";
+                            if (row.bypass_period === null || row.bypass_period === 0)
+                                bypass_duration += "<span class='mif-alarm-on self-scale unset_value_color'></span> <span class='unset_value_color'>-</span> ";
+                            else
+                                bypass_duration += "<span class='mif-alarm-on self-scale fg-pink'></span> " + row.bypass_period + " ";
+                            bypass_duration += "<span class='unit_min'>mins</span>";
+                            return bypass_used + bypass_permitted + bypass_duration;
+                        })
+                    },
+                    {
+                        title: 'Report Level',
+                        data: 'report_level',
+                        visible: true,
+                        width: '140px',
+                        className: 'content-center',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            var chk_report = (data === 1) ? "checked" : "";
+                            return "<label class='switch-original'><input type='checkbox' id='useractivation_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
+                        }),
+                    },
+                    {
+                        title: 'Version',
+                        data: 'app_version',
+                        visible: true,
+                        width: '110px',
+                        className: 'content-center'
+                    },
+                    {
+                        title: 'Updated date',
+                        data: 'updated_at',
+                        visible: true,
+                        width: '170px',
+                        className: 'updated_date'
+                    }
+                ];
+
+                let appUserActivationTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: this.URL_FETCH_ACTIVATIONS_TABLE,
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        console.log(errorThrown);
+                    })
+                };
+
+                let appUserActivationTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: appUserActivationTableColumns,
+                    ajax: appUserActivationTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: ((settings): void => {
+                        let that = this;
+                        $("#app_user_activations_table").off("change", "input[type='checkbox']");
+                        $("#app_user_activations_table").on("change", "input[type='checkbox']", function () {
+                            let id_str = this['id'];
+                            let val = 0;
+
+                            if (this['checked']) {
+                                val = 1;
+                            }
+
+                            let checkAjaxSettings: JQueryAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: that.URL_UPDATE_ACTIVATION_REPORT,
+                                data: {
+                                    id: id_str,
+                                    value: val
+                                },
+                                success: (data: any): any => {
+                                    that.ForceTableRedraw(that.m_tableActivation);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                }
+                            }
+
+                            $.ajax(checkAjaxSettings);
+                        });
+                    })
+                };
+
+                this.m_tableActivation = $('#app_user_activations_table').DataTable(appUserActivationTableSettings);
+                $('<button id="refresh_user_activations"><span class="mif-loop2 "></span> Refresh</button>').appendTo('#app_user_activations_table_wrapper div.dataTables_filter');
+                $("#refresh_user_activations").click(() => {
+                    this.ForceTableRedraw(this.m_tableActivation);
+                })
+            });
+            let systemVersionTableConstruction = (() => {
+
+                let systemVersionTableColumns: DataTables.ColumnSettings[] = [{
+                        title: 'Version Id',
+                        data: 'id',
+                        visible: false,
+                    },
+                    {
+                        title: 'Platform',
+                        data: 'platform',
+                        className: 'content-left',
+                        orderable: false,
+                        visible: true,
+                        width: '200px',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            var name = row.os_name;
+                            var span = "";
+                            if (data === "WIN") {
+                                span = "<span class='mif-windows os_win'></span>";
+                            } else if (data === "OSX") {
+                                span = "<span class='mif-apple os_mac'></span>";
+                            } else if (data === "LINUX") {
+                                span = "<span class='mif-linux os_linux'></span>";
+                            } else {
+                                span = "<span class='mif-notification os_mac'></span>";
+                            }
+                            if (row.active === 1) {
+                                return span + " &nbsp; <b>" + name + "</b>";
+                            } else {
+                                return "<span class='inactive'>" + span + " &nbsp; <b>" + name + "</b></span>";
                             }
                         })
-                    };
-
-                // Define AppList table settings, ENSURE TO INCLUDE AJAX SETTINGS!
-                let appUserActivationTableSettings: DataTables.Settings =
+                    },
                     {
-                        autoWidth: true,
-                        stateSave: true,
-                        columns: appUserActivationTableColumns,
-                        ajax: appUserActivationTablesLoadFromAjaxSettings,
+                        title: 'App Name',
+                        data: 'app_name',
+                        orderable: false,
+                        className: 'content-left',
+                        visible: true,
+                        width: '140px',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
 
-                        // We grab the row callback with a fat arrow to keep the
-                        // class context. Otherwise, we'll lose it in the
-                        // callback, and "this" will be the datatable or a child
-                        // of it.
-                        rowCallback: ((row: Node, data: any[] | Object): void =>
-                        {
-                            this.OnTableRowCreated(row, data);
+                            if (row.active === 1) {
+                                return data;
+                            } else {
+                                return "<span class='inactive'>" + data + "</span>";
+                            }
                         })
-                    };
+                    },
+                    {
+                        title: 'File Name',
+                        data: 'file_name',
+                        className: 'content-left',
+                        orderable: false,
+                        visible: true,
+                        width: '140px',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
+                        })
+                    },
+                    {
+                        title: 'Version',
+                        data: 'version_number',
+                        orderable: false,
+                        className: 'content-left version_number',
+                        defaultContent: 'None',
+                        width: '100px',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
+                        })
+                    },
+                    {
+                        title: 'Release Date',
+                        data: 'release_date',
+                        orderable: false,
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
+                        }),
+                        className: 'content-center version_date',
+                        width: '180px'
+                    },
+                    {
+                        title: 'Alpha',
+                        data: 'alpha',
+                        orderable: false,
+                        className: 'content-center sub_version_number',
+                        visible: true,
+                        width: '100px',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
+                        })
+                    },
+                    {
+                        title: 'Beta',
+                        data: 'beta',
+                        orderable: false,
+                        visible: true,
+                        width: '100px',
+                        className: 'content-center sub_version_number',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
+                        })
+                    },
+                    {
+                        title: 'Stable',
+                        data: 'stable',
+                        orderable: false,
+                        visible: true,
+                        width: '100px',
+                        className: 'content-center sub_version_number',
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
+                        })
+                    },
+                    {
+                        title: 'Changes',
+                        data: 'changes',
+                        orderable: false,
+                        className: 'content-left',
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            return (row.active === 1) ? data : '<span class=\'inactive\'>' + data + '</span>';
+                        })
+                    },
+                    {
+                        title: 'Current',
+                        data: 'active',
+                        orderable: false,
+                        visible: true,
+                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
+                            if (data === 1) {
+                                return "<label class='checked-alone'></label>";
+                            } else {
+                                return "<label class='switch-original'><input type='checkbox' id='versions_" + row.id + "' /><span class='check'></span></label>";
+                            }
+                        }),
+                        className: 'content-left padding-left-10',
+                        width: '60px'
+                    }
+                ];
 
-                this.m_tableAppUserActivationTable = $('#app_user_activations_table').DataTable(appUserActivationTableSettings);
+                let systemVersionTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
+                    url: this.URL_FETCH_VERSIONS_TABLE,
+                    dataSrc: function (json) {
+                        return json.data;
+                    },
+                    method: "GET",
+                    error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                        console.log(errorThrown);
+                    })
+                };
+
+                let systemVersionsTableSettings: DataTables.Settings = {
+                    scrollY: '' + (height - 470) + 'px',
+                    scrollCollapse: true,
+                    autoWidth: true,
+                    stateSave: true,
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    deferLoading: 0,
+                    columns: systemVersionTableColumns,
+                    ajax: systemVersionTablesLoadFromAjaxSettings,
+                    rowCallback: ((row: Node, data: any[] | Object): void => {
+                        this.OnTableRowCreated(row, data);
+                    }),
+                    drawCallback: ((settings): void => {
+                        let that = this;
+                        $("#system_versions_table").off("change", "input[type='checkbox']");
+                        $("#system_versions_table").on("change", "input[type='checkbox']", function () {
+
+                            if (!confirm(that.MESSAGE_VERSION_SET_DEFAULT)) {
+                                // var objCheck = < HTMLInputElement > this;
+                                this['checked'] = false;
+                                return;
+                            }
+
+                            let id_str = this['id'];
+                            let checkAjaxSettings: JQueryAjaxSettings = {
+                                method: "POST",
+                                timeout: 60000,
+                                url: that.URL_UPDATE_VERSION_STATUS,
+                                data: {
+                                    id: id_str
+                                },
+                                success: (data: any): any => {
+                                    that.ForceTableRedraw(that.m_tableVersions);
+                                    return false;
+                                },
+                                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                                    console.log(errorThrown);
+                                }
+                            }
+
+                            $.ajax(checkAjaxSettings);
+                        });
+                    })
+                };
+                this.m_tableVersions = $('#system_versions_table').DataTable(systemVersionsTableSettings);
             });
 
             userTableConstruction();
@@ -1227,281 +1372,220 @@ namespace Citadel
             appListTableConstruction();
             appGroupListTableConstruction();
             appUserActivationTableConstruction();
+            systemVersionTableConstruction();
         }
 
-        private ConstructNavigation(): void
-        {
-            // Get references to the top level menu buttons.            
-            this.m_btnSignOut = document.getElementById('btn_sign_out') as HTMLLinkElement;
+        private ConstructNavigation(): void {
 
-            // Get reference to the main menu tab buttons.
-            this.m_tabBtnUsers = document.querySelector('a[href="#tab_users"]') as HTMLLinkElement;
-            this.m_tabBtnGroups = document.querySelector('a[href="#tab_groups"]') as HTMLLinkElement;
-            this.m_tabBtnFilterLists = document.querySelector('a[href="#tab_filter_lists"]') as HTMLLinkElement;
-            this.m_tabBtnUserRequest = document.querySelector('a[href="#tab_user_deactivation_requests"]') as HTMLLinkElement;
-            this.m_tabBtnAppGroup = document.querySelector('a[href="#tab_app_groups"]') as HTMLLinkElement;
-            this.m_tabBtnAppUserActivation = document.querySelector('a[href="#tab_app_user_activations"]') as HTMLLinkElement;
+            this.m_btnSignOut                   = document.getElementById('btn_sign_out') as HTMLLIElement;
+
+            this.m_tabBtnUsers                  = document.querySelector('a[href="#tab_users"]') as HTMLLinkElement;
+            this.m_tabBtnGroups                 = document.querySelector('a[href="#tab_groups"]') as HTMLLinkElement;
+            this.m_tabBtnFilterLists            = document.querySelector('a[href="#tab_filter_lists"]') as HTMLLinkElement;
+            this.m_tabBtnUserRequest            = document.querySelector('a[href="#tab_user_deactivation_requests"]') as HTMLLinkElement;
+            this.m_tabBtnAppGroup               = document.querySelector('a[href="#tab_app_groups"]') as HTMLLinkElement;
+            this.m_tabBtnActivation             = document.querySelector('a[href="#tab_app_user_activations"]') as HTMLLinkElement;
+            this.m_tabBtnVersion                = document.querySelector('a[href="#tab_system_versions"]') as HTMLLinkElement;
             // Init user management button references.
-            this.m_btnCreateUser = document.getElementById('btn_user_add') as HTMLButtonElement;
-            this.m_btnDeleteUser = document.getElementById('btn_user_delete') as HTMLButtonElement;
-
-            // These buttons cannot be enabled until a user is selected.
-            this.m_btnDeleteUser.disabled = true;
+            this.m_btnCreateUser                = document.getElementById('btn_user_add') as HTMLButtonElement;
+            this.m_btnDeleteUser                = document.getElementById('btn_user_delete') as HTMLButtonElement;
+            this.m_btnDeleteUser.disabled       = true;
 
             // Init group management button references.
-            this.m_btnCreateGroup = document.getElementById('btn_group_add') as HTMLButtonElement;
-            this.m_btnDeleteGroup = document.getElementById('btn_group_delete') as HTMLButtonElement;
-            this.m_btnCloneGroup = document.getElementById('btn_group_clone') as HTMLButtonElement;
-            // Delete button & Clone button cannot be enabled until a group is selected.
-            this.m_btnDeleteGroup.disabled = true;
-            this.m_btnCloneGroup.disabled = true;
-            
-            // Init Filter List/Data management button references.          
-            this.m_btnUploadFilterLists = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;  
-            this.m_btnDeleteFilterList = document.getElementById('btn_delete_filter_list') as HTMLButtonElement;
-            this.m_btnDeleteFilterListInNamespace = document.getElementById('btn_delete_filter_list_namespace') as HTMLButtonElement;
-            this.m_btnDeleteFilterListTypeInNamespace = document.getElementById('btn_delete_filter_list_type_namespace') as HTMLButtonElement;
+            this.m_btnCreateGroup               = document.getElementById('btn_group_add') as HTMLButtonElement;
+            this.m_btnDeleteGroup               = document.getElementById('btn_group_delete') as HTMLButtonElement;
+            this.m_btnCloneGroup                = document.getElementById('btn_group_clone') as HTMLButtonElement;
+            this.m_btnDeleteGroup.disabled      = true;
+            this.m_btnCloneGroup.disabled       = true;
 
-            // Delete button cannot be enabled until a list is selected.
-            this.m_btnDeleteFilterList.disabled = true;
-            this.m_btnDeleteFilterListInNamespace.disabled = true;
-            this.m_btnDeleteFilterListTypeInNamespace.disabled = true;
+            this.m_btnUploadFL                  = document.getElementById('btn_add_filter_lists') as HTMLButtonElement;
+            this.m_btnDeleteFL                  = document.getElementById('btn_delete_filter_list') as HTMLButtonElement;
+            this.m_btnDeleteFLInNamespace       = document.getElementById('btn_delete_filter_list_namespace') as HTMLButtonElement;
+            this.m_btnDeleteFLTypeInNamespace   = document.getElementById('btn_delete_filter_list_type_namespace') as HTMLButtonElement;
+            this.m_btnDeleteFL.disabled         = true;
+            this.m_btnDeleteFLInNamespace.disabled      = true;
+            this.m_btnDeleteFLTypeInNamespace.disabled  = true;
 
-            // Init user deactivation request.
-            this.m_btnDeleteUserDeactivationRequest = document.getElementById('btn_delete_user_deactivation_request') as HTMLButtonElement;
-            this.m_btnDeleteUserDeactivationRequest.disabled = true;
-            
-            this.m_btnRefreshUserDeactivationRequests = document.getElementById('btn_refresh_user_deactivation_request_list') as HTMLButtonElement;
+            this.m_btnDeleteDR                  = document.getElementById('btn_delete_user_deactivation_request') as HTMLButtonElement;
+            this.m_btnDeleteDR.disabled         = true;
 
-            // Init Global White/Black List buttons
-            this.m_btnApp = document.getElementById('global_radio_app') as HTMLInputElement;
-            this.m_btnAppGroup = document.getElementById('global_radio_app_group') as HTMLInputElement;
-            this.m_btnAddItem = document.getElementById('btn_application_add') as HTMLButtonElement;
-            this.m_btnRemoveItem = document.getElementById('btn_application_remove') as HTMLButtonElement;
-            this.m_btnRemoveItem.disabled = true;
-            this.m_btnApplyToGroup = document.getElementById('btn_apply_group') as HTMLButtonElement;
+            this.m_btnRefreshDR                 = document.getElementById('btn_refresh_user_deactivation_request_list') as HTMLButtonElement;
 
-            this.m_btnDeleteAppUserActivation = document.getElementById('btn_delete_activation') as HTMLButtonElement;
-            this.m_btnBlockAppUserActivation = document.getElementById('btn_block_activations') as HTMLButtonElement;
-            this.m_btnDeleteAppUserActivation.disabled = true;
-            this.m_btnBlockAppUserActivation.disabled = true;
-            // Get handlers setup for all input.
+            this.m_btnApp                       = document.getElementById('global_radio_app') as HTMLInputElement;
+            this.m_btnAppGroup                  = document.getElementById('global_radio_app_group') as HTMLInputElement;
+            this.m_btnAddApplication            = document.getElementById('btn_application_add') as HTMLButtonElement;
+            this.m_btnRemoveApplication         = document.getElementById('btn_application_remove') as HTMLButtonElement;
+            this.m_btnRemoveApplication.disabled = true;
+            this.m_btnApplyToGroup              = document.getElementById('btn_apply_group') as HTMLButtonElement;
+
+            this.m_btnDeleteActivation          = document.getElementById('btn_delete_activation') as HTMLButtonElement;
+            this.m_btnBlockActivation           = document.getElementById('btn_block_activations') as HTMLButtonElement;
+            this.m_btnDeleteActivation.disabled = true;
+            this.m_btnBlockActivation.disabled  = true;
+
+            this.m_btnCreateVersion             = document.getElementById('btn_version_add') as HTMLButtonElement;
+            this.m_btnDeleteVersion             = document.getElementById('btn_version_delete') as HTMLButtonElement;
+            this.m_btnDeleteVersion.disabled    = true;
+            this.m_btnSystemPlatform            = document.getElementById('btn_sysem_platform') as HTMLButtonElement;
+
             this.InitButtonHandlers();
         }
 
-        
-        /**
-         * Initializes click handlers for our UI buttons. Grabs the events with
-         * a fat arrow so that our this context is preserved, meaning that this
-         * will represent this class. The events are then passed to member
-         * functions for cleanliness.
-         * 
-         * @private
-         * 
-         * @memberOf Dashboard
-         */
-        private InitButtonHandlers(): void
-        {
-
-            this.m_btnSignOut.onclick = ((e: MouseEvent) =>
-            {
+        private InitButtonHandlers(): void {
+            this.m_btnSignOut.onclick = ((e: MouseEvent) => {
                 this.OnSignOutClicked(e);
             });
 
-            this.m_btnCreateUser.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnCreateUser.onclick = ((e: MouseEvent) => {
                 this.OnCreateUserClicked(e);
             });
 
-            this.m_btnDeleteUser.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteUser.onclick = ((e: MouseEvent) => {
                 this.OnDeleteUserClicked(e);
             });
 
-            this.m_btnCreateGroup.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnCreateGroup.onclick = ((e: MouseEvent) => {
                 this.OnCreateGroupClicked(e);
             });
 
-            this.m_btnDeleteGroup.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteGroup.onclick = ((e: MouseEvent) => {
                 this.OnDeleteGroupClicked(e);
             });
 
-            this.m_btnCloneGroup.onclick = ((e: MouseEvent) =>
-            {
-               this.OnCloneGroupClicked(e); 
+            this.m_btnCloneGroup.onclick = ((e: MouseEvent) => {
+                this.OnCloneGroupClicked(e);
             });
-            this.m_btnUploadFilterLists.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnUploadFL.onclick = ((e: MouseEvent) => {
                 this.m_filterListUploadController.Show(this.m_tableFilterLists.data());
             });
 
-            this.m_btnDeleteFilterList.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteFL.onclick = ((e: MouseEvent) => {
                 this.OnDeleteFilterListClicked(e);
             });
 
-            this.m_btnDeleteFilterListInNamespace.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteFLInNamespace.onclick = ((e: MouseEvent) => {
                 this.OnDeleteFilterListInNamespaceClicked(e, false);
             });
 
-            this.m_btnDeleteFilterListTypeInNamespace.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteFLTypeInNamespace.onclick = ((e: MouseEvent) => {
                 this.OnDeleteFilterListInNamespaceClicked(e, true);
             });
 
-            this.m_btnDeleteUserDeactivationRequest.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnDeleteDR.onclick = ((e: MouseEvent) => {
                 this.OnDeleteUserDeactivationRequestClicked(e);
             });
 
-            this.m_btnRefreshUserDeactivationRequests.onclick = ((e: MouseEvent) =>
-            {
-                this.ForceTableRedraw(this.m_tableUserDeactivationRequests);
+            this.m_btnRefreshDR.onclick = ((e: MouseEvent) => {
+                this.ForceTableRedraw(this.m_tableDeactivationRequests);
             });
 
-            // In our main menu tab click handlers, all we need to do is
-            // synchronize the view state, so we just call the setter from
-            // within.
-            this.m_tabBtnUsers.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnCreateVersion.onclick = ((e: MouseEvent) => {
+                this.OnClickAddVersion(e);
+            });
+
+            this.m_btnDeleteVersion.onclick = ((e: MouseEvent) => {
+                this.OnClickDeleteVersion(e);
+            });
+
+            this.m_btnSystemPlatform.onclick = ((e: MouseEvent) => {
+                this.OnClickPlatform(e);
+            });
+
+            this.m_tabBtnUsers.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.UserListView;
             });
 
-            this.m_tabBtnGroups.onclick = ((e: MouseEvent) =>
-            {
+            this.m_tabBtnGroups.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.GroupListView;
             });
 
-            this.m_tabBtnFilterLists.onclick = ((e: MouseEvent) =>
-            {
+            this.m_tabBtnFilterLists.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.FilterListView;
             });
 
-            this.m_tabBtnUserRequest.onclick = ((e: MouseEvent) =>
-            {
+            this.m_tabBtnUserRequest.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.DeactivationRequestListView;
             });
-            this.m_tabBtnAppGroup.onclick = ((e: MouseEvent) =>
-            {
-                if(this.m_btnApp.checked) {
+
+
+            this.m_tabBtnVersion.onclick = ((e: MouseEvent) => {
+                this.ViewState = DashboardViewStates.SystemVersionView;
+            });
+
+            this.m_tabBtnAppGroup.onclick = ((e: MouseEvent) => {
+                if (this.m_btnApp.checked) {
                     this.ViewState = DashboardViewStates.AppView;
                 } else {
                     this.ViewState = DashboardViewStates.AppGroupView;
                 }
             });
-            this.m_btnApp.onclick = ((e: MouseEvent) =>
-            {
+
+            this.m_btnApp.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.AppView;
-                let itemIsActuallySelected = $("#app_table").children().next().find(".selected").length > 0?true:false;
-                this.m_btnRemoveItem.disabled  = itemIsActuallySelected;
-                this.m_btnAddItem.innerHTML = '<span class="icon mif-stack"></span>Add <br /> Application';
-                this.m_btnRemoveItem.innerHTML = '<span class="mif-cancel"></span>Remove <br /> Application';
-                this.m_btnApplyToGroup.innerHTML = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To App Group'
+                let itemIsActuallySelected              = $("#app_table").children().next().find(".selected").length > 0 ? true : false;
+                this.m_btnRemoveApplication.disabled    = true;
+                this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPLICATION_LABEL;
+                this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPLICATION_LABEL;
+                this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPLICATION_LABEL;
             });
 
-            this.m_btnAppGroup.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnAppGroup.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.AppGroupView;
-                let itemIsActuallySelected = $("#app_group_table").children().next().find(".selected").length > 0?true:false;
-                this.m_btnRemoveItem.disabled  = itemIsActuallySelected;
-                this.m_btnAddItem.innerHTML = '<span class="icon mif-stack"></span>Add <br /> Application <br /> Group';
-                this.m_btnRemoveItem.innerHTML = '<span class="mif-cancel"></span>Remove <br /> Application <br /> Group';
-                this.m_btnApplyToGroup.innerHTML = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To User Group'
+                let itemIsActuallySelected              = $("#app_group_table").children().next().find(".selected").length > 0 ? true : false;
+                this.m_btnRemoveApplication.disabled    = true;
+                this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPGROUP_LABEL;
+                this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPGROUP_LABEL;
+                this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPGROUP_LABEL;
             });
-            this.m_btnAddItem.onclick = ((e: MouseEvent) => 
-            {
+
+            this.m_btnAddApplication.onclick = ((e: MouseEvent) => {
                 this.OnAddApplicationClicked(e);
             });
-            this.m_btnRemoveItem.onclick = ((e: MouseEvent) =>
-            {
-               this.onRemoveApplicationClicked(e); 
-            });
-            this.m_btnApplyToGroup.onclick = ((e: MouseEvent) =>
-            {
-                this.onApplyToGroupClicked(e);        
+
+            this.m_btnRemoveApplication.onclick = ((e: MouseEvent) => {
+                this.onRemoveApplicationClicked(e);
             });
 
-            this.m_tabBtnAppUserActivation.onclick = ((e: MouseEvent) =>
-            {
+            this.m_btnApplyToGroup.onclick = ((e: MouseEvent) => {
+                this.onApplyToGroupClicked(e);
+            });
+
+            this.m_tabBtnActivation.onclick = ((e: MouseEvent) => {
                 this.ViewState = DashboardViewStates.AppUserActivationView;
             });
 
-            this.m_btnDeleteAppUserActivation.onclick = ((e: MouseEvent) =>
-            {
-                this.onDeleteAppUserActivationClicked(e); 
+            this.m_btnDeleteActivation.onclick = ((e: MouseEvent) => {
+                this.onDeleteAppUserActivationClicked(e);
             });
 
-            this.m_btnBlockAppUserActivation.onclick = ((e: MouseEvent) =>
-            {
-                this.onBlockAppUserActivationClicked(e); 
+            this.m_btnBlockActivation.onclick = ((e: MouseEvent) => {
+                this.onBlockAppUserActivationClicked(e);
             });
-        }   
+        }
 
-        /**
-         * Called whenever a table row is created in any table. All we want to
-         * do here is add a click handler with a fat arrow so we can keep the
-         * context of these events class local.
-         * 
-         * @private
-         * @param {Node} row
-         * @param {(any[] | Object)} data
-         * 
-         * @memberOf Dashboard
-         */
-        private OnTableRowCreated(row: Node, data: any[] | Object): void
-        {
+        private OnTableRowCreated(row: Node, data: any[] | Object): void {
             let tableRow = row as HTMLTableRowElement;
-            tableRow.onclick = ((e: MouseEvent) =>
-            {
+            tableRow.onclick = ((e: MouseEvent) => {
                 this.OnTableRowClicked(e, data);
             });
 
-            tableRow.ondblclick = ((e: MouseEvent) =>
-            {
+            tableRow.ondblclick = ((e: MouseEvent) => {
                 this.OnTableRowDoubleClicked(e, data);
             });
         }
 
-        /**
-         * Called whenever a row is clicked in any of our data tables. We simply
-         * want to toggle the selected class on the item clicked for each table,
-         * and clear this class from all siblings. This way, in other logic, we
-         * can just query the table for the row that has the selected class in
-         * order to react to user actions.
-         * 
-         * @private
-         * @param {JQueryEventObject} eventObject
-         * 
-         * @memberOf Dashboard
-         */
-        private OnTableRowClicked(e: MouseEvent, data: any[] | Object): void
-        {
-            // Here we have to stop the propagation of the event, otherwise it will end up
-            // triggering on the table cells. We only want rows selectable.
+        private OnTableRowClicked(e: MouseEvent, data: any[] | Object): void {
             e.stopImmediatePropagation();
             e.stopPropagation();
 
-
-            // If this is a valid table row entry, give it the "selected" class,
-            // while removing that class from all its siblings.
-            if (!$(e.currentTarget).hasClass('dataTables_empty')) 
-            {
+            if (!$(e.currentTarget).hasClass('dataTables_empty')) {
                 $(e.currentTarget).toggleClass('selected').siblings().removeClass('selected');
             }
 
-            // Get the parent HTML table element.
             let parentTable = $(e.currentTarget).closest('table')[0] as HTMLTableElement;
-
-            // Find out if the item is actually selected after the toggle. If it is,
-            // then we're going to enable/disable the delete button for whichever
-            // table the row belongs to.
             let itemIsActuallySelected = $(e.currentTarget).hasClass('selected');
 
-            switch (parentTable.id)
-            {
+            switch (parentTable.id) {
                 case 'user_table':
                     {
                         this.m_btnDeleteUser.disabled = !itemIsActuallySelected;
@@ -1517,83 +1601,61 @@ namespace Citadel
 
                 case 'filter_table':
                     {
-                        this.m_btnDeleteFilterList.disabled = !itemIsActuallySelected;
-                        this.m_btnDeleteFilterListInNamespace.disabled = !itemIsActuallySelected;
-                        this.m_btnDeleteFilterListTypeInNamespace.disabled = !itemIsActuallySelected;
+                        this.m_btnDeleteFL.disabled = !itemIsActuallySelected;
+                        this.m_btnDeleteFLInNamespace.disabled = !itemIsActuallySelected;
+                        this.m_btnDeleteFLTypeInNamespace.disabled = !itemIsActuallySelected;
                     }
                     break;
 
-                    case 'user_deactivation_request_table':
+                case 'user_deactivation_request_table':
                     {
-                        this.m_btnDeleteUserDeactivationRequest.disabled = !itemIsActuallySelected;
+                        this.m_btnDeleteDR.disabled = !itemIsActuallySelected;
                     }
                     break;
 
                 case 'app_table':
                     {
-                        this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
+                        this.m_btnRemoveApplication.disabled = !itemIsActuallySelected;
                     }
                     break;
 
                 case 'app_group_table':
                     {
-                        this.m_btnRemoveItem.disabled = !itemIsActuallySelected;
+                        this.m_btnRemoveApplication.disabled = !itemIsActuallySelected;
                     }
-                    break;  
+                    break;
                 case 'app_user_activations_table':
                     {
-                        this.m_btnDeleteAppUserActivation.disabled = !itemIsActuallySelected;
-                        this.m_btnBlockAppUserActivation.disabled = !itemIsActuallySelected;
+                        this.m_btnDeleteActivation.disabled = !itemIsActuallySelected;
+                        this.m_btnBlockActivation.disabled = !itemIsActuallySelected;
                     }
-                    break;                
-                
-            }   
+                    break;
+                case 'system_versions_table':
+                    {
+                        this.m_btnDeleteVersion.disabled = !itemIsActuallySelected;
+                    }
+                    break;
+            }
         }
 
-        /**
-         * Called whenever a row in any of our data tables is double clicked.
-         * This is considered an action by the user to start the process of
-         * editing the data in the double-clicked row.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @param {(any[] | Object)} data
-         * 
-         * @memberOf Dashboard
-         */
-        private OnTableRowDoubleClicked(e: MouseEvent, data: any[] | Object): void
-        {
-            // Stop the event so it doesn't go anywhere else. We're handling it here.
+        private OnTableRowDoubleClicked(e: MouseEvent, data: any[] | Object): void {
             e.stopImmediatePropagation();
             e.stopPropagation();
-            // Get a typed instanced of the selected row.
+
             let selectedRow = e.currentTarget as HTMLTableRowElement;
+            let parentTable = $(selectedRow).closest('table')[0];
 
-            // Get the parent HTML table element.
-            let parentTable = $(selectedRow).closest('table')[0] as HTMLTableElement;
-
-            // Switch the unique ID on the parent table to figure out which type of
-            // element we're going to start editing.
-            switch (parentTable.id)
-            {
+            switch (parentTable.id) {
                 case 'user_table':
                     {
                         let userRecord = new UserRecord();
 
-                        userRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
-
+                        userRecord.ActionCompleteCallback = ((action: string): void => {
                             userRecord.StopEditing();
-
-                            // Whenever we do any action on a user record
-                            // successfully, we want to simply redraw the user
-                            // table to get the updated data showing.
                             this.ForceTableRedraw(this.m_tableUsers);
                         });
 
-                        // We supply everything in the groups table so that the user's group
-                        // can be changed to any available group.
-                        userRecord.StartEditing(this.m_tableGroups.data(), data);
+                        userRecord.StartEditing(this.m_allGroups, data);
                     }
                     break;
 
@@ -1601,23 +1663,12 @@ namespace Citadel
                     {
                         let groupRecord = new GroupRecord();
 
-                        // We supply everything in the filter lists table so that assigned
-                        // filters can be laid out for editing.
-                        groupRecord.StartEditing(this.m_tableFilterLists.data(), data);
+                        groupRecord.StartEditing(this.m_allFilters, data);
 
-                        groupRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
-
+                        groupRecord.ActionCompleteCallback = ((action: string): void => {
                             groupRecord.StopEditing();
 
-                            // Whenever we do any action on a group record
-                            // successfully, we want to simply redraw the group
-                            // table to get the updated data showing.
                             this.ForceTableRedraw(this.m_tableGroups);
-
-                            // We're also going to force redraw the user table, because
-                            // group table data is shown in there, and the user might have
-                            // changed a group name or something.
                             this.ForceTableRedraw(this.m_tableUsers);
                         });
                     }
@@ -1633,39 +1684,23 @@ namespace Citadel
                     {
                         let deactivationRequestRecord = new DeactivationRequestRecord();
 
-                        // We supply everything in the filter lists table so that assigned
-                        // filters can be laid out for editing.
                         deactivationRequestRecord.StartEditing(data);
 
-                        deactivationRequestRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
-
+                        deactivationRequestRecord.ActionCompleteCallback = ((action: string): void => {
                             deactivationRequestRecord.StopEditing();
-
-                            // Whenever we do any action on a group record
-                            // successfully, we want to simply redraw the group
-                            // table to get the updated data showing.
-                            this.ForceTableRedraw(this.m_tableUserDeactivationRequests);
+                            this.ForceTableRedraw(this.m_tableDeactivationRequests);
                         });
                     }
                     break;
                 case 'app_table':
                     {
                         let appRecord = new AppRecord();
-                        
-                        appRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
 
+                        appRecord.ActionCompleteCallback = ((action: string): void => {
                             appRecord.StopEditing();
-
-                            // Whenever we do any action on a user record
-                            // successfully, we want to simply redraw the user
-                            // table to get the updated data showing.
                             this.ForceTableRedraw(this.m_tableAppLists);
                         });
 
-                        // We supply everything in the groups table so that the user's group
-                        // can be changed to any available group.
                         appRecord.StartEditing(data);
                     }
                     break;
@@ -1673,292 +1708,188 @@ namespace Citadel
                 case 'app_group_table':
                     {
                         let appGroupRecord = new AppGroupRecord();
-                        
-                        appGroupRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
 
+                        appGroupRecord.ActionCompleteCallback = ((action: string): void => {
                             appGroupRecord.StopEditing();
-
-                            // Whenever we do any action on a user record
-                            // successfully, we want to simply redraw the user
-                            // table to get the updated data showing.
                             this.ForceTableRedraw(this.m_tableAppGroupLists);
                         });
 
-                        // We supply everything in the groups table so that the user's group
-                        // can be changed to any available group.
                         appGroupRecord.StartEditing(data);
                     }
-                    break;      
+                    break;
                 case 'app_user_activations_table':
                     {
                         let appUserActivationRecord = new AppUserActivationRecord();
-                        
-                        appUserActivationRecord.ActionCompleteCallback = ((action: string): void =>
-                        {
 
+                        appUserActivationRecord.ActionCompleteCallback = ((action: string): void => {
                             appUserActivationRecord.StopEditing();
-
-                            // Whenever we do any action on a user record
-                            // successfully, we want to simply redraw the user
-                            // table to get the updated data showing.
-                            
-                            this.ForceTableRedraw(this.m_tableAppUserActivationTable);
+                            this.ForceTableRedraw(this.m_tableActivation);
                         });
-
-                        // We supply everything in the groups table so that the user's group
-                        // can be changed to any available group.
                         appUserActivationRecord.StartEditing(data);
                     }
-                    break;      
+                    break;
+
+                case 'system_versions_table':
+                    {
+                        let versionRecord = new VersionRecord();
+
+                        versionRecord.ActionCompleteCallback = ((action: string): void => {
+                            versionRecord.StopEditing();
+                            this.ForceTableRedraw(this.m_tableVersions);
+                        });
+                        versionRecord.StartEditing(data);
+                    }
+                    break;
             }
         }
 
-        /**
-         * Gets the selected item in a table, if any. Return will be null if no current selected item.
-         * 
-         * @private
-         * @param {DataTables.DataTable} table
-         * @returns {DataTables.RowMethods}
-         * 
-         * @memberOf Dashboard
-         */
-        private GetSelectedRowForTable(table: DataTables.DataTable): DataTables.RowMethods
-        {
+        private GetSelectedRowForTable(table: DataTables.Api): DataTables.RowMethods {
 
             let selectedRow = $(table).find('tr .selected').first();
 
-            if (selectedRow == null)
-            {
+            if (selectedRow == null) {
                 return null;
             }
 
             return table.row(selectedRow);
         }
 
-        /**
-         * Clears any and all selected item(s) in the given table.
-         * 
-         * @private
-         * @param {DataTables.DataTable} table
-         * 
-         * @memberOf Dashboard
-         */
-        private ClearSelectedItemsInTable(table: DataTables.DataTable): void
-        {
+        private ClearSelectedItemsInTable(table: DataTables.Api): void {
             $(table).children().removeClass('selected');
         }
 
-        /**
-         * Forces the given table to re-render itself.
-         * 
-         * @private
-         * @param {DataTables.DataTable} table
-         * @param {boolean} [resetPagination=false]
-         * 
-         * @memberOf Dashboard
-         */
-        public ForceTableRedraw(table: DataTables.DataTable, resetPagination: boolean = false): void
-        {
+        public ForceTableRedraw(table: DataTables.Api, resetPagination: boolean = false): void {
             table.ajax.reload();
         }
-        
-        /**
-         * Called whenever the user clicks the sign out button.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private OnSignOutClicked(e: MouseEvent): any
-        {
-            if (confirm("Are you sure you'd like to sign out?"))
-            {
+
+        private OnSignOutClicked(e: MouseEvent): any {
+            if (confirm(this.MESSAGE_CONFIRM_SIGNOUT)) {
                 $.post(
                     'logout',
-                    (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                    {
+                    (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
                         location.reload();
                     }
                 )
             }
         }
 
-        /**
-         * Called whenever the user clicks the user creation button. Internally
-         * we'll validate that the current state is correct for this action.
-         * Then, we'll present the appropriate input view which itself will
-         * handle input validation, as well as POSTing appropriate commands to
-         * the server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private OnCreateUserClicked(e: MouseEvent): any
-        {
+        private OnCreateUserClicked(e: MouseEvent): any {
             let newUser = new UserRecord();
 
-            // We supply everything in the groups table so that the user's group
-            // can be changed to any available group.            
-            newUser.StartEditing(this.m_tableGroups.data(), this.m_tableUsers.data()['all_user_roles']);
+            var usergoup_data = this.m_tableGroups.data();
+            newUser.StartEditing(this.m_allGroups, this.m_tableUsers.data()['all_user_roles']);
 
-            newUser.ActionCompleteCallback = ((action: string): void =>
-            {
-
+            newUser.ActionCompleteCallback = ((action: string): void => {
                 newUser.StopEditing();
-
-                // Whenever we do any action on a user record
-                // successfully, we want to simply redraw the user
-                // table to get the updated data showing.
                 this.ForceTableRedraw(this.m_tableUsers);
             });
         }
 
-        /**
-         * Called whenever the user clicks the user deletion button. Internally
-         * we'll validate that the current state is correct for this action, and
-         * then initiate the process of POSTing this action as a command to the
-         * server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private OnDeleteUserClicked(e: MouseEvent): any 
-        {
-            let selectedItem = this.m_tableUsers.row('.selected').data();
+        private OnClickPlatform(e: MouseEvent): any {
+            let platformOverlay = new PlatformOverlay();
+            platformOverlay.StartEditing();
+        }
 
-            if (selectedItem != null)
-            {
-                var userObject: UserRecord;
+        private OnClickAddVersion(e: MouseEvent): any {
+            let appVersion = new VersionRecord();
+            appVersion.ActionCompleteCallback = ((action: string): void => {
+                appVersion.StopEditing();
+                this.ForceTableRedraw(this.m_tableVersions);
+            });
 
-                try 
-                {
-                    userObject = BaseRecord.CreateFromObject(UserRecord, selectedItem);
+            appVersion.StartEditing();
+        }
 
-                    // We want to update the table after a delete.
-                    userObject.ActionCompleteCallback = ((action: string): void =>
-                    {
-                        this.ForceTableRedraw(this.m_tableUsers);
+        private OnClickDeleteVersion(e: MouseEvent): any {
+            let selectedItem = this.m_tableVersions.row('.selected').data();
+
+            if (selectedItem != null) {
+                var versionObject: VersionRecord;
+
+                try {
+                    versionObject = BaseRecord.CreateFromObject(VersionRecord, selectedItem);
+
+                    versionObject.ActionCompleteCallback = ((action: string): void => {
+                        this.ForceTableRedraw(this.m_tableVersions);
                     });
 
-                    if (confirm("Really delete user? THIS CANNOT BE UNDONE!!!"))
-                    {
-                        userObject.Delete();
+                    if (confirm(this.MESSAGE_CONFIRM_VERSION_DELETE)) {
+                        versionObject.Delete();
                     }
-                }
-                catch (e)
-                {
-                    console.log('Failed to load user record from table selection.');
+                } catch (e) {
+                    console.log(this.MESSAGE_LOAD_FAIL);
                     console.log(e);
                 }
             }
         }
 
-        /**
-         * Called whenever the user clicks the group creation button. Internally
-         * we'll validate that the current state is correct for this action.
-         * Then, we'll present the appropriate input view which itself will
-         * handle input validation, as well as POSTing appropriate commands to
-         * the server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private OnCreateGroupClicked(e: MouseEvent): any
-        {
-            let groupRecord = new GroupRecord();
+        private OnDeleteUserClicked(e: MouseEvent): any {
+            let selectedItem = this.m_tableUsers.row('.selected').data();
 
-            groupRecord.ActionCompleteCallback = ((action: string): void =>
-            {
+            if (selectedItem != null) {
+                var userObject: UserRecord;
 
-                groupRecord.StopEditing();
+                try {
+                    userObject = BaseRecord.CreateFromObject(UserRecord, selectedItem);
 
-                // Whenever we do any action on a group record
-                // successfully, we want to simply redraw the group
-                // table to get the updated data showing.
-                this.ForceTableRedraw(this.m_tableGroups);
-            });
-
-            // We supply everything in the filter lists table so that assigned 
-            // filters can be laid out for editing.
-            groupRecord.StartEditing(this.m_tableFilterLists.data());
-        }
-
-        /**
-         * Called whenever the user clicks the group deletion button. Internally
-         * we'll validate that the current state is correct for this action, and
-         * then initiate the process of POSTing this action as a command to the
-         * server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private OnDeleteGroupClicked(e: MouseEvent): any
-        {
-            let selectedItem = this.m_tableGroups.row('.selected').data();
-
-            if (selectedItem != null)
-            {
-                var groupObject: GroupRecord;
-
-                try 
-                {
-                    groupObject = BaseRecord.CreateFromObject(GroupRecord, selectedItem);
-
-                    // We want to update both users and groups after delete.
-                    groupObject.ActionCompleteCallback = ((action: string): void =>
-                    {
+                    // We want to update the table after a delete.
+                    userObject.ActionCompleteCallback = ((action: string): void => {
                         this.ForceTableRedraw(this.m_tableUsers);
-                        this.ForceTableRedraw(this.m_tableGroups);
                     });
 
-                    if (confirm("Really delete group? THIS CANNOT BE UNDONE!!!"))
-                    {
-                        groupObject.Delete();
+                    if (confirm(this.MESSAGE_CONFIRM_USER_DELETE)) {
+                        userObject.Delete();
                     }
-                }
-                catch (e)
-                {
-                    console.log('Failed to load group record from table selection.');
+                } catch (e) {
+                    console.log(this.MESSAGE_LOAD_FAIL);
+                    console.log(e);
                 }
             }
         }
 
-        /**
-         * Called whenever the user clicks the group deletion button. Internally
-         * we'll validate that the current state is correct for this action, and
-         * then initiate the process of POSTing this action as a command to the
-         * server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private OnCloneGroupClicked(e: MouseEvent): any
-        {
+        private OnCreateGroupClicked(e: MouseEvent): any {
+            let groupRecord = new GroupRecord();
+
+            groupRecord.ActionCompleteCallback = ((action: string): void => {
+
+                groupRecord.StopEditing();
+                this.ForceTableRedraw(this.m_tableGroups);
+            });
+
+            groupRecord.StartEditing(this.m_tableFilterLists.data());
+        }
+
+        private OnDeleteGroupClicked(e: MouseEvent): any {
             let selectedItem = this.m_tableGroups.row('.selected').data();
-            if (selectedItem != null)
-            {
+
+            if (selectedItem != null) {
+                var groupObject: GroupRecord;
+
+                try {
+                    if(selectedItem['user_count'] > 0) {
+                        alert(this.MESSAGE_CANT_DELETE_GROUP);
+                    } else {
+                        if (confirm(this.MESSAGE_CONFIRM_GROUP_DELETE)) {
+                            groupObject = BaseRecord.CreateFromObject(GroupRecord, selectedItem);
+                            groupObject.ActionCompleteCallback = ((action: string): void => {
+                                this.ForceTableRedraw(this.m_tableUsers);
+                                this.ForceTableRedraw(this.m_tableGroups);
+                            });
+                            groupObject.Delete();
+                        }
+                    }
+                } catch (e) {
+                    console.log(this.MESSAGE_LOAD_FAIL);
+                }
+            }
+        }
+
+        private OnCloneGroupClicked(e: MouseEvent): any {
+            let selectedItem = this.m_tableGroups.row('.selected').data();
+            if (selectedItem != null) {
                 let groupRecord = new GroupRecord();
                 groupRecord.StartEditing(this.m_tableFilterLists.data(), null, selectedItem);
-                groupRecord.ActionCompleteCallback = ((action: string): void =>
-                {
+                groupRecord.ActionCompleteCallback = ((action: string): void => {
                     groupRecord.StopEditing();
                     this.ForceTableRedraw(this.m_tableGroups);
                     this.ForceTableRedraw(this.m_tableUsers);
@@ -1966,262 +1897,146 @@ namespace Citadel
             }
         }
 
-        /**
-         * Called whenever the user clicks the delete filter list button.
-         * Internally we'll validate that the current state is correct for this
-         * action, and then initiate the process of POSTing this action as a
-         * command to the server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private OnDeleteFilterListClicked(e: MouseEvent): any
-        {
+        private OnDeleteFilterListClicked(e: MouseEvent): any {
             let selectedItem = this.m_tableFilterLists.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var filterListObject: FilterListRecord;
 
-                try 
-                {
+                try {
                     filterListObject = BaseRecord.CreateFromObject(FilterListRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    filterListObject.ActionCompleteCallback = ((action: string): void =>
-                    {
-                        this.ForceTableRedraw(this.m_tableUsers);
-                        this.ForceTableRedraw(this.m_tableGroups);
+                    filterListObject.ActionCompleteCallback = ((action: string): void => {
+                        this.loadAllFilters();
                         this.ForceTableRedraw(this.m_tableFilterLists);
                     });
 
-                    if (confirm("Really delete filter list? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm(this.MESSAGE_CONFIRM_FILTER_DELETE)) {
                         filterListObject.Delete();
                     }
-                }
-                catch (e)
-                {
-                    console.log('Failed to load filter list record from table selection.');
+                } catch (e) {
+                    console.log(this.MESSAGE_ACTION_FAILED);
                 }
             }
         }
 
-        /**
-         * Called whenever the user clicks the delete filter in namespace button.
-         * Internally we'll validate that the current state is correct for this
-         * action, and then initiate the process of POSTing this action as a
-         * command to the server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private OnDeleteFilterListInNamespaceClicked(e: MouseEvent, constraintToType: boolean): any
-        {
+        private OnDeleteFilterListInNamespaceClicked(e: MouseEvent, constraintToType: boolean): any {
             let selectedItem = this.m_tableFilterLists.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var filterListObject: FilterListRecord;
 
-                try 
-                {
+                try {
                     filterListObject = BaseRecord.CreateFromObject(FilterListRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    filterListObject.ActionCompleteCallback = ((action: string): void =>
-                    {
-                        this.ForceTableRedraw(this.m_tableUsers);
-                        this.ForceTableRedraw(this.m_tableGroups);
+                    filterListObject.ActionCompleteCallback = ((action: string): void => {
+                        this.loadAllFilters();
                         this.ForceTableRedraw(this.m_tableFilterLists);
                     });
-                    
-                    let confirmMsg = constraintToType == true ? "Really delete all filters with the same type in this lists' namespace? THIS CANNOT BE UNDONE!!!" : "Really delete all filters in this lists' namespace? THIS CANNOT BE UNDONE!!!";
 
-                    if (confirm("Really delete all filters in this lists' namespace? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    let confirmMsg = constraintToType == true ? this.MESSAGE_CONFIRM_FILTER_DELETE_ALL_NAMESPACE: this.MESSAGE_CONFIRM_FILTER_DELETE_TYPE_NAMESPACE;
+
+                    if (confirm(confirmMsg)) {
                         filterListObject.DeleteAllInNamespace(constraintToType);
                     }
-                }
-                catch (e)
-                {
-                    console.log('Failed to load filter list record from table selection.');
+                } catch (e) {
+                    console.log(this.MESSAGE_ACTION_FAILED);
                 }
             }
         }
 
-        private OnDeleteUserDeactivationRequestClicked(e: MouseEvent): any
-        {
-            let selectedItem = this.m_tableUserDeactivationRequests.row('.selected').data();
+        private OnDeleteUserDeactivationRequestClicked(e: MouseEvent): any {
+            let selectedItem = this.m_tableDeactivationRequests.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var deactivationRequestObject: DeactivationRequestRecord;
 
-                try 
-                {
+                try {
                     deactivationRequestObject = BaseRecord.CreateFromObject(DeactivationRequestRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    deactivationRequestObject.ActionCompleteCallback = ((action: string): void =>
-                    {
-                        this.ForceTableRedraw(this.m_tableUserDeactivationRequests);
+                    deactivationRequestObject.ActionCompleteCallback = ((action: string): void => {
+                        this.ForceTableRedraw(this.m_tableDeactivationRequests);
                     });
 
-                    if (confirm("Really delete user deactivation request? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm(this.MESSAGE_CONFIRM_DEACTIVATION_REQUEST_DELETE)) {
                         deactivationRequestObject.Delete();
                     }
-                }
-                catch (e)
-                {
-                    console.log('Failed to load filter list record from table selection.');
+                } catch (e) {
+                    console.log(this.MESSAGE_ACTION_FAILED);
                 }
             }
         }
 
-
-        /**
-         * Called whenever the user clicks the Add Application button. Internally
-         * we'll validate that the current state is correct for this action.
-         * Then, we'll present the appropriate input view which itself will
-         * handle input validation, as well as POSTing appropriate commands to
-         * the server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private OnAddApplicationClicked(e: MouseEvent): any
-        {
-            if(this.m_btnApp.checked) {
+        private OnAddApplicationClicked(e: MouseEvent): any {
+            if (this.m_btnApp.checked) {
                 let newApp = new AppRecord();
 
-                // We supply everything in the groups table so that the user's group
-                // can be changed to any available group.            
-                newApp.StartEditing( );
-                newApp.ActionCompleteCallback = ((action: string): void =>
-                {
-
+                newApp.StartEditing();
+                newApp.ActionCompleteCallback = ((action: string): void => {
                     newApp.StopEditing();
-
-                    // Whenever we do any action on a user record
-                    // successfully, we want to simply redraw the user
-                    // table to get the updated data showing.
                     this.ForceTableRedraw(this.m_tableAppLists);
                 });
             } else {
                 let newAppGroup = new AppGroupRecord();
-                // We supply everything in the groups table so that the user's group
-                // can be changed to any available group.            
-                newAppGroup.StartEditing( );
-                newAppGroup.ActionCompleteCallback = ((action: string): void =>
-                {
+                newAppGroup.StartEditing();
+                newAppGroup.ActionCompleteCallback = ((action: string): void => {
 
                     newAppGroup.StopEditing();
-
-                    // Whenever we do any action on a user record
-                    // successfully, we want to simply redraw the user
-                    // table to get the updated data showing.
                     this.ForceTableRedraw(this.m_tableAppGroupLists);
                 });
             }
         }
-        /**
-         * Called whenever the user clicks the Remove Application button. Internally
-         * we'll validate that the current state is correct for this action.
-         * Then, we'll present the appropriate input view which itself will
-         * handle input validation, as well as POSTing appropriate commands to
-         * the server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private onRemoveApplicationClicked(e: MouseEvent): any
-        {
-            this.m_btnRemoveItem.disabled = true;
-            if(this.m_btnApp.checked) {
+
+        private onRemoveApplicationClicked(e: MouseEvent): any {
+            this.m_btnRemoveApplication.disabled = true;
+            if (this.m_btnApp.checked) {
                 let selectedItem = this.m_tableAppLists.row('.selected').data();
-                if (selectedItem != null)
-                {
+                if (selectedItem != null) {
                     var appObj: AppRecord;
-    
-                    try 
-                    {
+
+                    try {
                         appObj = BaseRecord.CreateFromObject(AppRecord, selectedItem);
-    
+
                         // We want to update both users and groups after delete.
-                        appObj.ActionCompleteCallback = ((action: string): void =>
-                        {
+                        appObj.ActionCompleteCallback = ((action: string): void => {
                             this.ForceTableRedraw(this.m_tableAppLists);
                         });
-    
-                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!"))
-                        {
+
+                        if (confirm(this.MESSAGE_CONFIRM_APPLICATION_DELETE)) {
                             appObj.Delete();
                         }
-                    }
-                    catch (e)
-                    {
-                        this.m_btnRemoveItem.disabled = false;
-                        console.log('Failed to load application record from table selection.');
+                    } catch (e) {
+                        this.m_btnRemoveApplication.disabled = false;
+                        console.log(this.MESSAGE_LOAD_FAIL);
                     }
                 }
             } else {
                 let selectedItem = this.m_tableAppGroupLists.row('.selected').data();
-                if (selectedItem != null)
-                {
+                if (selectedItem != null) {
                     var appGroupObj: AppGroupRecord;
-    
-                    try 
-                    {
+
+                    try {
                         appGroupObj = BaseRecord.CreateFromObject(AppGroupRecord, selectedItem);
-    
-                        // We want to update both users and groups after delete.
-                        appGroupObj.ActionCompleteCallback = ((action: string): void =>
-                        {
+
+                        appGroupObj.ActionCompleteCallback = ((action: string): void => {
                             this.ForceTableRedraw(this.m_tableAppGroupLists);
                         });
-    
-                        if (confirm("Really delete Application? THIS CANNOT BE UNDONE!!!"))
-                        {
+
+                        if (confirm(this.MESSAGE_CONFIRM_APPGROUP_DELETE)) {
                             appGroupObj.Delete();
                         }
-                    }
-                    catch (e)
-                    {
-                        this.m_btnRemoveItem.disabled = false;
-                        console.log('Failed to load application record from table selection.');
+                    } catch (e) {
+                        this.m_btnRemoveApplication.disabled = false;
+                        console.log(this.MESSAGE_LOAD_FAIL);
                     }
                 }
             }
         }
-        /**
-         * Called whenever the user clicks the Apply to Groupbutton. Internally
-         * we'll validate that the current state is correct for this action.
-         * Then, we'll present the appropriate input view which itself will
-         * handle input validation, as well as POSTing appropriate commands to
-         * the server.
-         * 
-         * @private
-         * @param {MouseEvent} e
-         * @returns {*}
-         * 
-         * @memberOf Dashboard
-         */
-        private onApplyToGroupClicked(e: MouseEvent): any
-        {
+
+        private onApplyToGroupClicked(e: MouseEvent): any {
             if (this.m_btnApp.checked) {
                 let apply_app_to_app_group_overlay = new ApplyAppToAppGroup(this);
                 apply_app_to_app_group_overlay.Show();
@@ -2231,171 +2046,156 @@ namespace Citadel
             }
         }
 
-        private onDeleteAppUserActivationClicked(e: MouseEvent): any
-        {
-            let selectedItem = this.m_tableAppUserActivationTable.row('.selected').data();
+        private onDeleteAppUserActivationClicked(e: MouseEvent): any {
+            let selectedItem = this.m_tableActivation.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var appUserActivationObject: AppUserActivationRecord;
 
-                try 
-                {
+                try {
                     appUserActivationObject = BaseRecord.CreateFromObject(AppUserActivationRecord, selectedItem);
 
                     // We want to update both users and groups after delete.
-                    appUserActivationObject.ActionCompleteCallback = ((action: string): void =>
-                    {
-                        this.ForceTableRedraw(this.m_tableAppUserActivationTable);
+                    appUserActivationObject.ActionCompleteCallback = ((action: string): void => {
+                        this.ForceTableRedraw(this.m_tableActivation);
                     });
 
-                    if (confirm("Really delete app user activation? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm(this.MESSAGE_CONFIRM_ACTIVATION_DELETE)) {
                         appUserActivationObject.Delete();
                     }
-                }
-                catch (e)
-                {
-                    console.log('Failed to load filter list record from table selection.');
+                } catch (e) {
+                    console.log(this.MESSAGE_ACTION_FAILED);
                 }
             }
         }
 
-        private onBlockAppUserActivationClicked(e: MouseEvent): any
-        {
-            let selectedItem = this.m_tableAppUserActivationTable.row('.selected').data();
+        private onBlockAppUserActivationClicked(e: MouseEvent): any {
+            let selectedItem = this.m_tableActivation.row('.selected').data();
 
-            if (selectedItem != null)
-            {
+            if (selectedItem != null) {
                 var appUserActivationObject: AppUserActivationRecord;
-                try 
-                {
+                try {
                     appUserActivationObject = BaseRecord.CreateFromObject(AppUserActivationRecord, selectedItem);
 
-                    // We want to update both users and groups after delete.
-                    appUserActivationObject.ActionCompleteCallback = ((action: string): void =>
-                    {
-                        this.ForceTableRedraw(this.m_tableAppUserActivationTable);
+                    appUserActivationObject.ActionCompleteCallback = ((action: string): void => {
+                        this.ForceTableRedraw(this.m_tableActivation);
                     });
 
-                    if (confirm("Really delete app user activation? THIS CANNOT BE UNDONE!!!"))
-                    {
+                    if (confirm(this.MESSAGE_CONFIRM_ACTIVATION_BLOCK)) {
                         appUserActivationObject.Block();
                     }
-                }
-                catch (e)
-                {
-                    console.log('Failed to load filter list record from table selection.');
+                } catch (e) {
+                    console.log(this.MESSAGE_ACTION_FAILED);
                 }
             }
         }
-        /**
-         * Sets the current view state. This will enforce that visual elements
-         * and data are synchronized as they should be for the specified view
-         * state.
-         * 
-         * @private
-         * 
-         * @memberOf Dashboard
-         */
-        private set ViewState(value: DashboardViewStates)
-        {
-            // Every time the view state is changed, we're going to
-            // force all of the tables to redraw. The reason for this
-            // is that, due to network delay, it's not possible to
-            // try and force synchronization between tables any
-            // other way.
 
-            this.m_viewUserManagement.style.visibility = "hidden";
-            this.m_viewGroupManagement.style.visibility = "hidden";
-            this.m_viewFilterManagement.style.visibility = "hidden";
-            this.m_viewUserDeactivationRequestManagement.style.visibility = "hidden";
-            this.m_viewAppManagement.style.visibility = "hidden";
-            this.m_viewAppGroupManagement.style.visibility = "hidden";
-            this.m_viewAppUserActivationManagement.style.visibility = "hidden";
-          
-            switch (value)
-            {
+        private set ViewState(value: DashboardViewStates) {
+            this.m_viewUser.style.display                   = "none";
+            this.m_viewGroup.style.display                  = "none";
+            this.m_viewFilter.style.display                 = "none";
+            this.m_viewDeactivationReq.style.display        = "none";
+            this.m_viewApplication.style.display            = "none";
+            this.m_viewAppGroup.style.display               = "none";
+            this.m_viewActivation.style.display             = "none";
+            this.m_viewVersion.style.display                = "none";
+            var tab_index = 0;
+            switch (value) {
                 case DashboardViewStates.UserListView:
                     {
                         this.ForceTableRedraw(this.m_tableUsers);
-                        this.m_viewUserManagement.style.visibility = "visible";
+                        this.m_viewUser.style.display = "block";
+                        this.m_btnDeleteUser.disabled = true;
+                        tab_index = 1;
                     }
                     break;
 
                 case DashboardViewStates.GroupListView:
                     {
                         this.ForceTableRedraw(this.m_tableGroups);
-                        this.m_viewGroupManagement.style.visibility = "visible";
+                        this.m_viewGroup.style.display = "block";
+                        this.m_btnDeleteGroup.disabled = true;
+                        this.m_btnCloneGroup.disabled = true;
+                        tab_index = 2;
                     }
                     break;
 
                 case DashboardViewStates.FilterListView:
                     {
                         this.ForceTableRedraw(this.m_tableFilterLists);
-                        this.m_viewFilterManagement.style.visibility = "visible";
+                        this.m_viewFilter.style.display = "block";
+                        this.m_btnDeleteFL.disabled = true;
+                        this.m_btnDeleteFLInNamespace.disabled = true;
+                        this.m_btnDeleteFLTypeInNamespace.disabled = true;
+                        tab_index = 3;
                     }
                     break;
 
                 case DashboardViewStates.DeactivationRequestListView:
                     {
-                        this.m_viewUserDeactivationRequestManagement.style.visibility = "visible";
+                        this.ForceTableRedraw(this.m_tableDeactivationRequests);
+                        this.m_viewDeactivationReq.style.display = "block";
+                        this.m_btnDeleteDR.disabled = true;
+                        tab_index = 4;
                     }
                     break;
 
                 case DashboardViewStates.AppView:
                     {
                         this.ForceTableRedraw(this.m_tableAppLists);
-                        this.m_viewAppManagement.style.visibility = "visible";
+                        this.m_viewApplication.style.display = "block";
+                        this.m_btnRemoveApplication.disabled = true;
+                        tab_index = 5;
                     }
                     break;
 
                 case DashboardViewStates.AppGroupView:
                     {
                         this.ForceTableRedraw(this.m_tableAppGroupLists);
-                        this.m_viewAppGroupManagement.style.visibility = "visible";
+                        this.m_viewAppGroup.style.display = "block";
+                        this.m_btnRemoveApplication.disabled = true;
+                        tab_index = 6;
                     }
                     break;
                 case DashboardViewStates.AppUserActivationView:
                     {
-                        this.ForceTableRedraw(this.m_tableAppUserActivationTable);
-                        this.m_viewAppUserActivationManagement.style.visibility = "visible";
+                        this.ForceTableRedraw(this.m_tableActivation);
+                        this.m_viewActivation.style.display = "block";
+                        this.m_btnDeleteActivation.disabled = true;
+                        this.m_btnBlockActivation.disabled = true;
+                        tab_index = 7;
+                    }
+                    break;
+                case DashboardViewStates.SystemVersionView:
+                    {
+                        this.ForceTableRedraw(this.m_tableVersions);
+                        this.m_viewVersion.style.display = "block";
+                        this.m_btnDeleteVersion.disabled = true;
+                        tab_index = 8;
                     }
                     break;
             }
-
             this.m_currentViewState = value;
+
+            window.localStorage.setItem('previous_tab', tab_index.toString());
         }
 
-        /**
-         * Gets the current view state.
-         * 
-         * @private
-         * @type {DashboardViewStates}
-         * @memberOf Dashboard
-         */
-        private get ViewState(): DashboardViewStates
-        {
+        private get ViewState(): DashboardViewStates {
             return this.m_currentViewState;
         }
     }
 
-    // Our Dashboard instance. Will be set when document is ready.
     let citadelDashboard: Dashboard;
 
-    // Create new instance of the dashboard class on page load.
-    document.onreadystatechange = (event: ProgressEvent) =>
-    {
-        if (document.readyState.toUpperCase() == "complete".toUpperCase())
-        {
-            $.ajaxPrefilter(function(options, originalOptions, xhr) { // this will run before each request
+    document.onreadystatechange = (event: ProgressEvent) => {
+        if (document.readyState.toUpperCase() == "complete".toUpperCase()) {
+            $.ajaxPrefilter(function (options, originalOptions, xhr) { // this will run before each request
                 var token = $('meta[name="csrf-token"]').attr('content'); // or _token, whichever you are using
-
                 if (token) {
                     return xhr.setRequestHeader('X-CSRF-TOKEN', token); // adds directly to the XmlHttpRequest Object
                 }
             });
-            
+
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

@@ -7,295 +7,145 @@
 
 ///<reference path="../../progresswait.ts"/>
 
-namespace Citadel
-{
+namespace Citadel {
 
-    /**
-     * Definition for callbacks that record classes can invoked when various
-     * actions have been completed. This is due to the fact that each record
-     * class also assumes the responsibility to drive the UI for editing itself,
-     * given the nature of these records.
-     * 
-     * @interface ActionCompleteCallback
-     */
-    interface ActionCompleteCallback
-    {
+    interface ActionCompleteCallback {
         (action: string): void;
     }
 
-    export abstract class BaseRecord
-    {
-        protected m_actionCompleteCallback: ActionCompleteCallback;
+    export abstract class BaseRecord {
+        // ───────────────────────────────────────────────────
+        //   :::::: C O N S T       V A R I A B L E S ::::::
+        // ───────────────────────────────────────────────────
+        MESSAGE_SAVING              = 'Saving record to server';
+        MESSAGE_DELETING            = 'Deleting record from server';
+        MESSAGE_ACTION_FAILED       = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        protected m_progressWait: ProgressWait;
+        TITLE_SAVING                = 'Saving Record';
+        TITLE_DELETING              = 'Saving Record';
+        TITLE_ACTION_FAILED         = 'Action Failed';
 
-        public get ActionCompleteCallback(): ActionCompleteCallback
-        {
+        BTN_LABEL_ADD_APP           = 'Add';
+        BTN_LABEL_EDIT_APP          = 'Save';
+
+        ERROR_MESSAGE_DELAY_TIME    = 5000;
+        FADE_IN_DELAY_TIME          = 200;
+
+        URL_ROUTE                   = 'api/admin/app';
+        URL_APPGROUP_DATA           = 'api/admin/get_appgroup_data'
+
+        // ───────────────────────────────────
+        //   :::::: C A L L B A C K S ::::::
+        // ───────────────────────────────────
+        protected m_actionCompleteCallback  : ActionCompleteCallback;
+        protected m_progressWait            : ProgressWait;
+
+        public get ActionCompleteCallback(): ActionCompleteCallback {
             return this.m_actionCompleteCallback;
         }
 
-        public set ActionCompleteCallback(value: ActionCompleteCallback)
-        {
+        public set ActionCompleteCallback(value: ActionCompleteCallback) {
             this.m_actionCompleteCallback = value;
         }
-
+        // ────────────────────────────────────────────────────
+        //   :::::: M E M B E R     F U N C T I O N S ::::::
+        // ────────────────────────────────────────────────────
         public abstract get RecordRoute(): string;
-
 
         protected abstract get ValidationOptions(): JQueryValidation.ValidationOptions;
 
-        /**
-         * Creates an instance of UserRecord.
-         * 
-         * 
-         * @memberOf UserRecord
-         */
-        constructor() 
-        {
+        constructor() {
             this.m_progressWait = new ProgressWait();
         }
 
-        /**
-         * Creates a new instance of the supplied record type and populates its
-         * properties with the given object.
-         * 
-         * @static
-         * @template RType
-         * @param {{ new (): RType; }} type The type of BaseRecord to create.
-         * @param {Object} data The data to populate the record with.
-         * @returns {RType} A new instance of the requested record type with its
-         * properties populated with the supplied object's data.
-         * 
-         * @memberOf BaseRecord
-         */
-        public static CreateFromObject<RType extends BaseRecord>(type: { new (): RType; }, data: Object): RType
-        {
+        public static CreateFromObject < RType extends BaseRecord > (type: {
+            new(): RType;
+        }, data: Object): RType {
             let inst = new type();
             inst.LoadFromObject(data);
             return inst;
         }
 
-        /**
-         * 
-         * 
-         * @static
-         * @template RType
-         * @param {{ new (): RType; }} type
-         * @returns {string}
-         * 
-         * @memberOf BaseRecord
-         */
-        public static GetRecordRoute<RType extends BaseRecord>(type: { new (): RType; }): string
-        {
+        public static GetRecordRoute < RType extends BaseRecord > (type: {
+            new(): RType;
+        }): string {
             let inst = new type();
             return inst.RecordRoute;
         }
 
-        /**
-         * Attempts to populate the instance with the property names and values
-         * of the given object.
-         * 
-         * @protected
-         * @abstract
-         * @param {Object} value The object from which to populate our inner
-         * properties.
-         * 
-         * @memberOf BaseRecord
-         */
         protected abstract LoadFromObject(value: Object): void;
-
-        /**
-         * Populates the properties of the record from the current input values
-         * of the record editor form.
-         * 
-         * @protected
-         * @abstract
-         * 
-         * @memberOf BaseRecord
-         */
         protected abstract LoadFromForm(): void;
-
-        /**
-         * Converts the object's data into a general object for serialization.
-         * 
-         * @abstract
-         * @returns {Object} An object with property/value keypairs for serialization.
-         * 
-         * @memberOf BaseRecord
-         */
         public abstract ToObject(): Object;
 
-        /**
-         * Initiates the process within the record of cleaning up and or hiding
-         * its visual content editing controls.
-         * 
-         * @abstract
-         * 
-         * @memberOf BaseRecord
-         */
         public abstract StopEditing(): void;
 
-        /**
-         * 
-         * 
-         * @protected
-         * @param {Event} e
-         * @param {boolean} newlyCreated
-         * @returns {*}
-         * 
-         * @memberOf BaseRecord
-         */
-        protected OnFormSubmitClicked(e: Event, newlyCreated: boolean): any
-        {
-            // If default not prevented, then form validation
-            // was a success.
-            if (!e.defaultPrevented)
-            {
+        protected OnFormSubmitClicked(e: Event, newlyCreated: boolean): any {
+            if (!e.defaultPrevented) {
                 e.stopImmediatePropagation();
                 e.stopPropagation();
 
-                // Call save while indicating that we've created
-                // something new, so as to have the correct call
-                // params go to the server.
                 this.Save(newlyCreated);
             }
 
             return false;
         }
 
-        public Save(newlyCreated: boolean = false): void
-        {
-            // Before getting an object rep of the data, call for a 
-            // load of current user input values.
+        public Save(newlyCreated: boolean = false): void {
             this.LoadFromForm();
 
-            // Get this record's data as an object we can serialize.
             let dataObject = this.ToObject();
-            console.log(dataObject);
-            this.m_progressWait.Show('Saving Record', 'Saving record to server.');
+            this.m_progressWait.Show(this.TITLE_SAVING, this.MESSAGE_SAVING);
 
-            let ajaxSettings: JQueryAjaxSettings =
-                {
-                    // PHP script expects post.
-                    method: newlyCreated == true ? "POST" : "PATCH",
-
-                    // 60 seconds or quit.
-                    timeout: 60000,
-
-                    // Sent to setup.php.
-                    url: newlyCreated == true ? this.RecordRoute : this.RecordRoute + '/' + dataObject['id'],
-
-                    // Just submit form data.
-                    data: dataObject,
-
-                    // Callback if the call was a success.
-                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                    {
-                        this.m_progressWait.Hide();
-
-                        if (this.m_actionCompleteCallback != null)
-                        {
-                            this.m_actionCompleteCallback(newlyCreated == true ? "Created" : "Updated");
-                        }
-
-                        return false;
-                    },
-
-                    // Callback if the call was a failure.
-                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                    {
-
-                        console.log(jqXHR.responseText);
-                        console.log(errorThrown);
-                        console.log(textStatus);
-
-                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action.\n' + jqXHR.responseText + '\nCheck console for more information.');
-
-                        setTimeout(() => 
-                            {
-                                this.m_progressWait.Hide();
-                            }, 5000);
-
-                        if (jqXHR.status > 399 && jqXHR.status < 500)
-                        {
-                            // Almost certainly auth related error. Redirect to login
-                            // by signalling for logout.
-                            //window.location.href = 'login.php?logout';
-                        }
-                        else
-                        {
-                            
-                        }
+            let ajaxSettings: JQueryAjaxSettings = {
+                method: newlyCreated == true ? "POST" : "PATCH",
+                timeout: 60000,
+                url: newlyCreated == true ? this.RecordRoute : this.RecordRoute + '/' + dataObject['id'],
+                data: dataObject,
+                success: (data: any): any => {
+                    this.m_progressWait.Hide();
+                    if (this.m_actionCompleteCallback != null) {
+                        this.m_actionCompleteCallback(newlyCreated == true ? "Created" : "Updated");
                     }
-                }
 
-            // POST the auth request.
-            $.post(ajaxSettings);
+                    return false;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    this.m_progressWait.Show(this.TITLE_ACTION_FAILED, this.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
+                    setTimeout(() => {
+                        this.m_progressWait.Hide();
+                    }, 5000);
+                }
+            }
+
+            $.ajax(ajaxSettings);
         }
 
-        /**
-         * Destroys this record in the database.
-         * 
-         * 
-         * @memberOf BaseRecord
-         */
-        public Delete(): void
-        {
+        public Delete(): void {
 
-            this.m_progressWait.Show('Deleting Record', 'Deleting record from server.');
-
+            this.m_progressWait.Show(this.TITLE_DELETING, this.MESSAGE_DELETING);
             let dataObject = this.ToObject();
-
-            let ajaxSettings: JQueryAjaxSettings =
-                {
-                    // PHP script expects post.
-                    method: "DELETE",
-
-                    // 60 seconds or quit.
-                    timeout: 60000,
-
-                    contents: { _token: $('meta[name="csrf-token"]').attr('content') },
-
-                    // Sent to setup.php.
-                    url: this.RecordRoute + '/' + dataObject['id'],
-
-                    // Callback if the call was a success.
-                    success: (data: any, textStatus: string, jqXHR: JQueryXHR): any =>
-                    {
-                        this.m_progressWait.Hide();
-
-                        if (this.m_actionCompleteCallback != null)
-                        {
-                            this.m_actionCompleteCallback("Deleted");
-                        }
-
-                        return false;
-                    },
-
-                    // Callback if the call was a failure.
-                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any =>
-                    {
-                        console.log(jqXHR.responseText);
-
-                        this.m_progressWait.Show('Action Failed', 'Error reported by the server during action. Check console for more information.');
-
-                        if (jqXHR.status > 399 && jqXHR.status < 500)
-                        {
-                            // Almost certainly auth related error. Redirect to login
-                            // by signalling for logout.
-                            //window.location.href = 'login.php?logout';
-                        }
-                        else
-                        {
-                            setTimeout(() => 
-                            {
-                                this.m_progressWait.Hide();
-                            }, 5000);
-                        }
+            let ajaxSettings: JQueryAjaxSettings = {
+                method: "DELETE",
+                timeout: 60000,
+                url: this.RecordRoute + '/' + dataObject['id'],
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                    this.m_progressWait.Hide();
+                    if (this.m_actionCompleteCallback != null) {
+                        this.m_actionCompleteCallback("Deleted");
                     }
-                }
 
-            // POST the auth request.
+                    return false;
+                },
+
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(jqXHR.responseText);
+                    this.m_progressWait.Show(this.TITLE_ACTION_FAILED, this.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
+                    setTimeout(() => {
+                        this.m_progressWait.Hide();
+                    }, this.ERROR_MESSAGE_DELAY_TIME);
+                }
+            }
+
             $.ajax(ajaxSettings);
         }
     }

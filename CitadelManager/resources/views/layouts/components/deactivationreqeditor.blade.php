@@ -3,11 +3,11 @@
 </script>
 
 <!-- Deactivation Request Editing Overlay -->
-<div class="bg-dark"  id="overlay_deactivation_request_editor">
+<div class="bg-dark" id="overlay_deactivation_request_editor">
     <div id="div_f213_0">
         <div class="flex-grid">
-            
-            <h1  id="deactivation_request_editing_title">Create New Group</h1>
+
+            <h1 id="deactivation_request_editing_title">Create New Group</h1>
             <br/>
             <hr class="thin">
             <br/>
@@ -18,13 +18,15 @@
                     <div class="cell cell-auto-size">
                         <div class="input-control text" data-role="input">
                             <label for="editor_deactivation_request_input_username">User Name:</label>
-                            <input type="text" name="editor_deactivation_request_input_username" id="editor_deactivation_request_input_username" >
-                            <button class="button helper-button clear" tabindex="-1" type="button"><span class="mif-cross"></span></button>
+                            <input type="text" name="editor_deactivation_request_input_username" id="editor_deactivation_request_input_username">
+                            <button class="button helper-button clear" tabindex="-1" type="button">
+                                <span class="mif-cross"></span>
+                            </button>
                         </div>
-                    </div>                   
+                    </div>
 
                     <div class="cell size4" id="div_f213_1">
-                        <label for="editor_deactivation_request_input_isgranted">Enabled:</label>                        
+                        <label for="editor_deactivation_request_input_isgranted">Granted:</label>
                         <label class="switch-original" id="label_f213_0">
                             <input type="checkbox" id="editor_deactivation_request_input_isgranted" name="editor_deactivation_request_input_isgranted">
                             <span class="check"></span>
@@ -33,7 +35,7 @@
 
                 </div>
 
-                <br/>               
+                <br/>
 
                 <div class="row cell-auto-size">
                     <div class="form-actions">
@@ -43,10 +45,10 @@
                 </div>
 
                 <div class="row cell-auto-size" id="div_f213_2">
-                    <div id="deactivation_request_form_errors">                        
+                    <div id="deactivation_request_form_errors">
                     </div>
                 </div>
-            </form>            
+            </form>
         </div>
     </div>
 </div>

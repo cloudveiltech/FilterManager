@@ -3,14 +3,18 @@
         "target": "es5",
         "module": "commonjs",
         "sourceMap": true,
-        "listFiles": true,    
+        "listFiles": true,
         "declaration": false,
         "removeComments": true,
-        "noLib": false,            
+        "noLib": false,
         "noImplicitAny": false,
         "outDir": "public/js",
-        "forceConsistentCasingInFileNames": true
-    },    
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "typeRoots": [
+            "node_modules/@types"
+        ]
+    },
     "exclude": [
         "vendor/**/*.ts",
         "node_modules**/*.ts"
@@ -21,6 +25,7 @@
     ],
     "typeRoots": [
         "typings/global",
-        "typings/modules"
+        "typings/modules",
+        "node_modules/@types"
     ]
 }

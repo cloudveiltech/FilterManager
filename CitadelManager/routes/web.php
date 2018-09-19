@@ -10,23 +10,23 @@
 use App\Role;
 
 /*
-  |--------------------------------------------------------------------------
-  | Web Routes
-  |--------------------------------------------------------------------------
-  |
-  | Here is where you can register web routes for your application. These
-  | routes are loaded by the RouteServiceProvider within a group which
-  | contains the "web" middleware group. Now create something great!
-  |
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| contains the "web" middleware group. Now create something great!
+|
  */
 
 Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
 Route::post('login', 'Auth\LoginController@login');
 Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 
-Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function() {
+Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () {
     Route::get('/', function () {
-        $roles =  Role::all();
+        $roles = Role::all();
         return view('adminhome')->with('roles', $roles);
     });
 });
@@ -39,7 +39,8 @@ Route::get('/', function () {
     }
 });
 
-Route::get('/update/win{platform}/update.xml', 'UpdateController@retrieve');
+Route::get('/update/{platform}/update.xml', 'UpdateController@retrieve');
+Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions');
 
 Route::get('/download/latest/64', function() {
   return redirect('/releases/CloudVeil-1.6.28-x64.msi');
@@ -48,4 +49,3 @@ Route::get('/download/latest/64', function() {
 Route::get('/download/latest/32', function() {
   return redirect('/releases/CloudVeil-1.6.28-x86.msi');
 });
-
