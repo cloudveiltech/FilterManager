@@ -251,7 +251,7 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once
     /* Manage Users */
     Route::post('/users/{id}', 'UserController@update'); //Should be deprecated.
     Route::post('/user/{id}', 'UserController@update');
-    Route::get('/users', 'UserController@index'); //Should be deprecated.
+    Route::get('/users', 'UserController@index');  //Used to lookup users.
     Route::get('/user', 'UserController@index');
     Route::post('/user', 'UserController@store');
 

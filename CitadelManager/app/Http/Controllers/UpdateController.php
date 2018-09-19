@@ -12,6 +12,7 @@ namespace App\Http\Controllers;
 use App\SystemPlatform;
 use App\SystemVersion;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class UpdateController extends Controller
 {
@@ -51,7 +52,10 @@ class UpdateController extends Controller
                         'version_number' => $version->stable,
                     ],
                 ];
-                $arr_data['date'] = $version->release_date;
+// This comment is to show the format we need it in.  Changing the format will break updates.
+// It's been broken before and we may break it again so here's a reminder.
+//                $arr_data['date'] = 'Tue, 20 Feb 2018 12:39:00 MST';
+                $arr_data['date'] = Carbon::parse($version->release_date)->toRfc7231String();
             } else {
                 $arr_data['app_name'] = "unavailable";
                 $arr_data['file_name'] = "unavailable";
