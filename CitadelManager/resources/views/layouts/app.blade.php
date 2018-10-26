@@ -43,7 +43,9 @@
     <script src="https://cdn.ravenjs.com/3.19.1/raven.min.js" crossorigin="anonymous"></script>
 
     <script>
-	//Raven.config('').install();
+	var ravenSentryDsn = '<?=getenv('JAVASCRIPT_SENTRY_DSN');?>';
+
+	Raven.config(ravenSentryDsn).install();
         window.Laravel = <?php echo json_encode([
             'csrfToken' => csrf_token(),
         ]); ?>;
