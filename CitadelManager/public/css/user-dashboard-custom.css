@@ -1,0 +1,47 @@
+
+.timepickers input[type="text"] {
+	width: 50px;
+	display: inline;
+}
+
+.timepickers span {
+	line-height: 36px;
+}
+
+.timepickers input {
+	margin-bottom: 0px;
+}
+
+.timepickers label {
+	line-height: 36px;
+}
+
+.time-restrictions .entity-list-item.time-block {
+	height: 148px;
+	padding: 0px;
+}
+
+.time-restrictions .entity-list-item.time-block .item-content-primary {
+	height: 148px;
+	padding: 10px;
+}
+
+.time-restrictions .entity-list-item.time-block .item-content-secondary {
+	height: 148px;
+	width: 48px;
+}
+
+.time-restrictions .entity-list-item.time-block .item-content-secondary button {
+	min-width: 48px;
+	height: 148px;
+	margin: 0;
+}
+
+.self-moderation button.btn-danger {
+	min-width: 48px;
+	margin: 0;
+}
+
+.self-moderation .row {
+	padding: 0px;
+}
