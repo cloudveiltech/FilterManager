@@ -31,6 +31,13 @@ Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () 
     });
 });
 
+Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user']], function() {
+    Route::get('/', function() {
+        $roles = Role::all();
+        return view('userhome')->with('roles', $roles);
+    });
+});
+
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect('/admin');
@@ -38,6 +45,12 @@ Route::get('/', function () {
         return redirect('/login');
     }
 });
+
+Route::get('/user-dashboard', function() {
+    if (Auth::check()) {
+        return redirect()
+    }
+})
 
 Route::get('/update/{platform}/update.xml', 'UpdateController@retrieve');
 Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions');
