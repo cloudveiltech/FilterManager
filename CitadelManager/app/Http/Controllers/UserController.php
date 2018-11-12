@@ -813,6 +813,8 @@ class UserController extends Controller
         }
 
         $user->save();
+
+        return '{}';
     }
 
     public function getSelfModerationInfo(Request $request) {
@@ -867,6 +869,8 @@ class UserController extends Controller
 
         $user->config_override = json_encode($config);
         $user->save();
+
+        return '{}';
     }
 
     public function getTimeRestrictions() {
@@ -900,5 +904,7 @@ class UserController extends Controller
 
         $user->config_override = json_encode($config);
         $user->save();
+
+        return '{}';
     }
 }

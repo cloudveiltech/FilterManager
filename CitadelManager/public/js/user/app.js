@@ -1,12 +1,20 @@
 var app = null;
 
 $(document).ready(function() {
+	$.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+
+        contentType: "application/json; charset=utf-8"
+    });
+
 	$("#logout_button").click(function() {
 		$.post('logout', function (data, textStatus, jqXHR) {
             location.reload();
         });
 	});
-	
+
 	var vueOptions = {
 		el: '#app',
 		data: {},
@@ -98,6 +106,41 @@ function timeRestrictionsModel() {
 		
 	}
 
+	that.applySetting = function(entry, enabled, starting, ending) {
+		entry.RestrictionsEnabled = enabled;
+
+		Vue.set(entry.EnabledThrough, 0, starting);
+		Vue.set(entry.EnabledThrough, 1, ending);
+	}
+
+	that.presets = {
+		evening: function() {
+			that.savedCustom = JSON.parse(JSON.stringify(that.data));
+
+			for(var i in that.data) {
+				that.applySetting(that.data[i], true, 5, 20);
+			}
+		},
+
+		office: function() {
+			that.savedCustom = JSON.parse(JSON.stringify(that.data));
+
+			for(var i in that.data) {
+				that.applySetting(that.data[i], true, 7, 18);
+			}
+
+			that.applySetting(that.data.saturday, true, 10, 15);
+			that.applySetting(that.data.sunday, true, 0, 0);
+		},
+
+		none: function() {
+			that.savedCustom = JSON.parse(JSON.stringify(that.data));
+
+			for(var i in that.data) {
+				that.applySetting(that.data[i], false, 0, 24);
+			}
+		}
+	}
 	that.setTimes = function(day, event) {
 		that.data[day] = that.data[day] || {};
 		that.data[day].EnabledThrough = that.data[day].EnabledThrough || [0, 24];
@@ -114,7 +157,9 @@ function timeRestrictionsModel() {
 
 	that.save = function() {
 		$.ajax('/api/user/time_restrictions', {
-			data: JSON.stringify(that.data),
+			data: JSON.stringify({
+				time_restrictions: that.data
+			}),
 			dataType: "json",
 			method: "POST"
 		}).done(function(data) {
@@ -153,7 +198,9 @@ function selfModerationModel() {
 
 	that.save = function() {
 		$.ajax('/api/user/self_moderation', {
-			data: JSON.stringify(that.data),
+			data: JSON.stringify({
+				self_moderation: that.data
+			}),
 			dataType: "json",
 			method: "POST"
 		}).done(function(data) {

@@ -61,10 +61,28 @@
 	margin: 12px 0;
 }
 
+.presets.btn-group {
+	margin-bottom: 10px;
+}
+
+.presets.btn-group label {
+	display: block;
+}
+
+.presets.btn-group button {
+	margin-top: 0px;
+}
+
 .swappable-password-box input {
 	float: left;
 	margin: 0;
 	height: 36px;
+}
+
+.swappable-password-box input.password {
+	text-security: disc;
+	-webkit-text-security: disc;
+	-moz-text-security: disc;
 }
 
 .swappable-password-box .btn {

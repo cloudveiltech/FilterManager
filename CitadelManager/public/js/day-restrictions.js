@@ -51,9 +51,11 @@ Vue.component('day-restrictions', {
 			} else {
 				if(enabledTimes[0] == 0 && enabledTimes[1] == 24) {
 					return "No restrictions for " + this.caption;
+				} else if(enabledTimes[0] == enabledTimes[1]) {
+					return "Internet restricted all day";
 				} else {
 					// enabledTimes[0] 
-					return "Internet restricted between " + this.timeOfDay(enabledTimes[1]) + " and " + this.timeOfDay(enabledTimes[0]);
+					return "Internet allowed between " + this.timeOfDay(enabledTimes[0]) + " and " + this.timeOfDay(enabledTimes[1]);
 				}
 			}
 		},
@@ -94,7 +96,7 @@ Vue.component('day-restrictions', {
 		value: {
 			handler: function(val, oldVal) {
 				for(var i in val) {
-					this.sliderValue[i] = val[i];
+					Vue.set(this.sliderValue, i, val[i]);
 				}
 			},
 

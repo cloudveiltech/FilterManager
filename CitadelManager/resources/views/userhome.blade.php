@@ -29,6 +29,14 @@
             <!-- TODO: Notify user that changes are saved when they finish editing -->
             <!-- Last saved: blah-blah-blah --> <!-- Changes saved! -->
 
+            <div class="presets btn-group horizontal">
+                <label>Presets</label>
+
+                <button @click="timeRestrictions.presets.evening()" class="btn btn-secondary">Evening</button>
+                <button @click="timeRestrictions.presets.office()" class="btn btn-secondary">Office</button>
+                <button @click="timeRestrictions.presets.none()" class="btn btn-secondary">None</button>
+            </div>
+
             <div class="form">
                 <day-restrictions v-for="(day, idx) in timeRestrictions.days" :slider-config="timeRestrictions.sliderConfig" v-model="timeRestrictions.data[day]" :caption="timeRestrictions.captionDays[idx]"></day-restrictions>
             </div>

@@ -13,10 +13,6 @@ class AddRelaxedPolicyPasscodeFields extends Migration
      */
     public function up()
     {
-        Schema::table('filter_lists', function (Blueprint $table) {
-            $table->char('file_sha1', 40);
-        });
-
         Schema::table('users', function(Blueprint $table) {
             $table->string('relaxed_policy_passcode', 64);
             $table->boolean('enable_relaxed_policy_passcode');
@@ -33,6 +29,6 @@ class AddRelaxedPolicyPasscodeFields extends Migration
         Schema::table('users', function(Blueprint $table) {
             $table->dropColumn('enable_relaxed_policy_passcode');
             $table->dropColumn('relaxed_policy_passcode');
-        })
+        });
     }
 }

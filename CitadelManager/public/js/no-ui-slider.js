@@ -27,6 +27,10 @@ Vue.component('no-ui-slider', {
   methods: {
 
     updateValue: function(value, handle) {
+      if(this.$suppressUpdate) {
+        return;
+      }
+
       this.$nextTick(function() {
         this.$emit('input', { handle: handle, value: value });
       });
@@ -58,6 +62,21 @@ Vue.component('no-ui-slider', {
     }
 
   },
+
+  watch: {
+    sliderValue: function(val) {
+      var innerVal = this.slider.noUiSlider.get();
+
+      if(innerVal[0] == val[0] && innerVal[1] == val[1]) {
+        return;
+      }
+
+      this.$suppressUpdate = true;
+      this.slider.noUiSlider.set([val[0], val[1]]);
+      this.$suppressUpdate = false;
+    }
+  },
+
   mounted: function() {
     this.$nextTick(function() {
       this.slider = document.getElementById(this.sliderId);

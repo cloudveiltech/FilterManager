@@ -54,8 +54,7 @@ Vue.component('editable-span', {
 
 Vue.component('swappable-password-box', {
 	template: "<div class='swappable-password-box'>\
-		<input v-if='!showPassword' v-model='innerValue' @input='onInput' type='password' class='form-control' />\
-		<input v-if='showPassword' v-model='innerValue' @input='onInput' type='text' class='form-control' />\
+		<input v-model='innerValue' @input='onInput' type='text' class='form-control' v-bind:class='{ password: !showPassword }' />\
 		<button class='btn btn-secondary theme-light no-outline' @mousedown='showPassword=true'><span class='glyph glyph-view'></span></button>\
 	</div>",
 
