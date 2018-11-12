@@ -1,6 +1,12 @@
 var app = null;
 
 $(document).ready(function() {
+	$("#logout_button").click(function() {
+		$.post('logout', function (data, textStatus, jqXHR) {
+            location.reload();
+        });
+	});
+	
 	var vueOptions = {
 		el: '#app',
 		data: {},

@@ -18,9 +18,9 @@
 					<li><a href="/admin">Admin</a></li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
-					<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Logged in as: unknown@example.org</a>
+					<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Logged in as: {{ Auth::user()->name }} <span class="glyph glyph-chevron-down"></span></a>
 						<ul class="dropdown-menu">
-							<li><a href="#">Logout</a></li>
+							<li><a href="#" id="logout_button">Logout</a></li>
 						</ul>
 					</li>
 				</ul>
