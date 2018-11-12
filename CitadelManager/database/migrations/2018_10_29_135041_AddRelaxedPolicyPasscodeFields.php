@@ -14,8 +14,8 @@ class AddRelaxedPolicyPasscodeFields extends Migration
     public function up()
     {
         Schema::table('users', function(Blueprint $table) {
-            $table->string('relaxed_policy_passcode', 64);
-            $table->boolean('enable_relaxed_policy_passcode');
+            $table->string('relaxed_policy_passcode', 64)->nullable();
+            $table->boolean('enable_relaxed_policy_passcode')->default(false);
         });
     }
 

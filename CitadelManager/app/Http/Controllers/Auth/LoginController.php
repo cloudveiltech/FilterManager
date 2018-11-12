@@ -11,6 +11,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Auth\AuthenticatesLicensedUsers;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -32,7 +33,15 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/admin';
+    protected function redirectTo() {
+        $user = Auth::user();
+
+        if($user->hasRole('user')) {
+            return '/user';
+        } else {
+            return '/admin';
+        }
+    }
 
     /**
      * Create a new controller instance.
