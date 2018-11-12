@@ -40,7 +40,13 @@ Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user']], function
 
 Route::get('/', function () {
     if (Auth::check()) {
-        return redirect('/admin');
+        $user = Auth::user();
+
+        if($user->hasRole('user')) {
+            return redirect('/user');
+        } else {
+            return redirect('/admin');
+        }
     } else {
         return redirect('/login');
     }

@@ -132,10 +132,10 @@ trait AuthenticatesLicensedUsers {
         if (!$validator->fails()) {
             $this->handleAppUserValidation($request, $user);
         } else {
-            if ($user->hasRole('user')) {
+            /*if ($user->hasRole('user')) {
                 $this->logout($request);
                 return response('Regular users are not permitted to authenticate via the web portal.', 401);
-            }
+            }*/
         }
     }
 
