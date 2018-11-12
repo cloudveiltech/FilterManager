@@ -519,6 +519,11 @@ class UserController extends Controller
                 $configuration = array_merge(json_decode($configuration, true), json_decode($activation->config_override, true));
             }
 
+            if($thisUser->enable_relaxed_policy_passcode) {
+                $configuration = json_decode($configuration, true);
+                $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
+            }
+
             return $configuration;
         }
 
@@ -783,5 +788,117 @@ class UserController extends Controller
             "server_time" => date('Y-m-d\Th:i:s\Z')
         ];
         return response($time, 200);
+    }
+
+    public function getRelaxedPolicyPasscode() {
+        $user = \Auth::user();
+
+        $result = [
+            'enable_relaxed_policy_passcode' => $user->enable_relaxed_policy_passcode,
+            'relaxed_policy_passcode' => $user->relaxed_policy_passcode
+        ];
+
+        return $result;
+    }
+
+    public function setRelaxedPolicyPasscode(Request $request) {
+        $user = \Auth::user();
+
+        if($request->has('enable_relaxed_policy_passcode')) {
+            $user->enable_relaxed_policy_passcode = $request->input('enable_relaxed_policy_passcode');
+        }
+
+        if($request->has('relaxed_policy_passcode')) {
+            $user->relaxed_policy_passcode = $request->input('relaxed_policy_passcode');
+        }
+
+        $user->save();
+    }
+
+    public function getSelfModerationInfo(Request $request) {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        if(json_last_error() != JSON_ERROR_NONE || !isset($config->SelfModeration)) {
+            return [];
+        }
+
+        return $config->SelfModeration;
+    }
+
+    public function addSelfModeratedWebsite(Request $request) {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        if(json_last_error() != JSON_ERROR_NONE ) {
+            $config = new \stdClass();
+        }
+
+        if(!isset($config->SelfModeration)) {
+            $config->SelfModeration = [];
+        }
+
+        if($request->has('url')) {
+            $config->SelfModeration[] = $request->input('url');
+        }
+
+        $user->config_override = json_encode($config);
+        $user->save();
+    }
+
+    public function setSelfModerationInfo(Request $request) {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        if(json_last_error() != JSON_ERROR_NONE) {
+            $config = new \stdClass();
+        }
+
+        if($request->has('self_moderation')) {
+            $config->SelfModeration = $request->input('self_moderation');
+        }
+
+        if(!isset($config->SelfModeration)) {
+            $config->SelfModeration = [];
+        }
+
+        $user->config_override = json_encode($config);
+        $user->save();
+    }
+
+    public function getTimeRestrictions() {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        if(json_last_error() != JSON_ERROR_NONE || !isset($config->TimeRestrictions)) {
+            return "{}";
+        }
+
+        return json_encode($config->TimeRestrictions);
+    }
+
+    public function setTimeRestrictions(Request $request) {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        if(json_last_error() != JSON_ERROR_NONE) {
+            $config = new \stdClass();
+        }
+
+        if($request->has('time_restrictions')) {
+            $config->TimeRestrictions = $request->input('time_restrictions');
+        }
+
+        if(!isset($config->TimeRestrictions)) {
+            $config->TimeRestrictions = [];
+        }
+
+        $user->config_override = json_encode($config);
+        $user->save();
     }
 }

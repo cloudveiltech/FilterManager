@@ -22,7 +22,7 @@
     <link href="{{ asset('css/metro-responsive.css') }}" rel="stylesheet">-->
     <link href="{{ asset('css/winstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dragula.min.css') }}" rel="stylesheet">
-
+    
     @yield('styles')
 
     <!--<link href="{{ asset('css/citadel-main.css') }}" rel="stylesheet">-->
@@ -33,6 +33,7 @@
     <!-- <link href="{{ asset('css/responsive.datatables.min.css') }}" rel="stylesheet"> -->
 
     <!-- Scripts -->
+    <script src="{{ asset('js/vue.js') }}"></script>
     <script src="{{ asset('js/dragula.min.js') }}"></script>
     <!-- Require for form/data validation. -->
     <script src="{{ asset('js/vendor/jquery.min.js') }}" crossorigin="anonymous"></script>
@@ -74,6 +75,8 @@
 
         })
     </script>
+
+    @yield('scripts')
 </head>
 
 <body>

@@ -45,3 +45,83 @@
 .self-moderation .row {
 	padding: 0px;
 }
+
+.site-text button {
+	height: 36px;
+}
+
+.site-text span[name='viewer'] {
+	line-height: 36px;
+	display: block;
+}
+
+.restrictions .checkbox,
+.restrictions .slider,
+.restrictions .checkbox:first-of-type {
+	margin: 12px 0;
+}
+
+.swappable-password-box input {
+	float: left;
+	margin: 0;
+	height: 36px;
+}
+
+.swappable-password-box .btn {
+	margin: 0;
+	min-width: 48px;
+	height: 36px;
+	border-left: 0px;
+}
+
+/* Modern UI styling for noUiSlider */
+
+.inverse .noUi-target {
+	background-color: #0078d7;
+}
+
+.inverse .noUi-connect {
+	background-color: #ccc;
+}
+
+.noUi-target {
+	background-color: #ccc;
+	box-shadow: none;
+	border: none;
+}
+
+.noUi-horizontal {
+	height: 3px;
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+.noUi-horizontal .noUi-handle {
+	width: 8px;
+	height: 30px;
+}
+
+.noUi-handle {
+	border: none;
+	background-color: #0078d7;
+	box-shadow: none;
+	border-radius: 3px;
+}
+
+.noUi-connect {
+	background-color: #0078d7;
+}
+
+.noUi-handle:after, .noUi-handle:before {
+	content: none;
+}
+
+html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
+	right: -5px;
+	left: auto;
+}
+
+.noUi-horizontal .noUi-handle {
+	left: -5px;
+	top: -13px;
+}
