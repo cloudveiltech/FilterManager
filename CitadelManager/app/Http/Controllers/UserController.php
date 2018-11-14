@@ -520,7 +520,6 @@ class UserController extends Controller
             }
 
             if($thisUser->enable_relaxed_policy_passcode) {
-                $configuration = json_decode($configuration, true);
                 $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
             }
 
