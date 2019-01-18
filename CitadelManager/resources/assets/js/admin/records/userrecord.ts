@@ -55,6 +55,7 @@ namespace Citadel {
         private m_reportLevel           : number;
         private m_registeredAt          : string;
 
+
         // ─────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
         // ─────────────────────────────────────────────────────────
@@ -95,6 +96,7 @@ namespace Citadel {
         private m_tableSettings         : DataTables.Settings;
         private m_tableColumns          : DataTables.ColumnSettings[];
         private m_ActivationTables      : DataTables.Api;
+        private m_selfModerationTable   : DataTables.Api;
 
         // ─────────────────────────────────────────────────
         //   ::::: M E M B E R     F U N C T I O N S ::::::
@@ -179,6 +181,8 @@ namespace Citadel {
             this.m_registeredAt     = data['dt'] as string;
             this.m_reportLevel      = data['report_level'] as number;
             this.jsonData           = data['activations'];
+            this.myConfigData       = data['config_override'] == null ? null : JSON.parse(data['config_override']);
+
         }
 
         protected LoadFromForm(): void {
@@ -259,6 +263,77 @@ namespace Citadel {
         // ───────────────────────────────────────────────
         //   ::::: C L A S S      H A N D L E R S ::::::
         // ───────────────────────────────────────────────
+        private generateAjaxSettings(url, data, otherOptions): JQueryAjaxSettings {
+            var options = {
+                method: "POST",
+                timeout: 60000,
+                url: url,
+                data: data,
+
+                success: (data: any): any => {
+                    return false;
+                },
+
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(errorThrown);
+                }
+            };
+
+            if(otherOptions) {
+                for(var i in otherOptions) {
+                    options[i] = otherOptions[i];
+                }
+            }
+
+            return options;
+        }
+
+        private InitSelfModerationTable() {
+            // TODO: Split out  from InitUserActivationTables()
+            this.m_selfModerationColumns = [
+                {
+                    title: 'Site',
+                    data: 'site',
+                    visible: true
+                },
+
+                {
+                    width: "100px",
+                    render: function (data, type, row) {
+                        var strButtons = "";
+                        strButtons += "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
+
+                        return strButtons;
+                    }
+                }
+            ];
+
+            if(!this.myConfigData || !this.myConfigData.SelfModeration) {
+                this.myConfigData = this.myConfigData || {};
+                this.myConfigData.SelfModeration = [];
+            }
+
+            this.m_selfModerationTableSettings = {
+                autoWidth: true,
+                stateSave: true,
+                responsive: true,
+                columns: this.m_selfModerationColumns,
+                data: this.myConfigData.SelfModeration,
+                rowCallback: ((row: Node, data: any[] | Object): void => {
+
+                }),
+
+                drawCallback: ((settings): void => {
+                    $("self_moderation_table").off("click", ".btn-delete");
+                    $("self_moderation_table").on("click", ".btn-delete", function() {
+                        console.log("KA-BLOOEY! No deletes for you yet.");
+                    });
+                })
+            };
+
+            this.m_selfModerationTable = $('#self_moderation_table').DataTable(this.m_selfModerationTableSettings);
+        }
+
         private InitUserActivationTables() {
             let that = this;
             let id = (this.m_id === undefined) ? 0 : this.m_id;
@@ -354,22 +429,10 @@ namespace Citadel {
                         let val = 0;
                         if (this['checked']) val = 1;
 
-                        let checkAjaxSettings: JQueryAjaxSettings = {
-                            method: "POST",
-                            timeout: 60000,
-                            url: that.URL_UPDATE_ALERT,
-                            data: {
-                                id: id,
-                                value: val
-                            },
-                            success: (data: any): any => {
-                                return false;
-                            },
-                            error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                                console.log(errorThrown);
-                                if (jqXHR.status > 399 && jqXHR.status < 500) {} else {}
-                            }
-                        }
+                        let checkAjaxSettings: JQueryAjaxSettings = that.generateAjaxSettings(this.URL_UPDATE_ALERT, {
+                            id: id,
+                            value: val
+                        });
 
                         $.ajax(checkAjaxSettings);
                     });
@@ -383,21 +446,11 @@ namespace Citadel {
                             $(this).val(0);
                             return;
                         }
-                        let checkAjaxSettings: JQueryAjaxSettings = {
-                            method: "POST",
-                            timeout: 60000,
-                            url: that.URL_UPDATE_CHECK_IN_DAYS,
-                            data: {
-                                id: id,
-                                value: val
-                            },
-                            success: (data: any): any => {
-                                return false;
-                            },
-                            error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                                console.log(errorThrown);
-                            }
-                        }
+
+                        let checkAjaxSettings: JQueryAjaxSettings = that.generateAjaxSettings(this.URL_UPDATE_CHECK_IN_DAYS, {
+                            id: id,
+                            value: val
+                        });
 
                         $.ajax(checkAjaxSettings);
                     });
@@ -409,17 +462,14 @@ namespace Citadel {
                             let dataObject = {};
                             let id = that.getIdFromElementId(e.target['id']);
 
-                            let ajaxSettings: JQueryAjaxSettings = {
-                                method: "POST",
-                                timeout: 60000,
-                                url: that.URL_DELETE_ACTIVATION + '/' + id,
-                                data: dataObject,
+                            let ajaxSettings: JQueryAjaxSettings = that.generateAjaxSettings(that.URL_DELETE_ACTIVATION + '/' + id, dataObject, {
                                 success: (data: any): any => {
                                     that.removeActivationById(id);
                                     that.InitUserActivationTables();
 
                                     return false;
                                 },
+
                                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
                                     that.m_progressWait.Show(that.TITLE_ACTION_FAILED, that.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
 
@@ -427,7 +477,7 @@ namespace Citadel {
                                         that.m_progressWait.Hide();
                                     }, that.ERROR_MESSAGE_DELAY_TIME);
                                 }
-                            }
+                            });
 
                             $.ajax(ajaxSettings);
                         }
@@ -574,10 +624,12 @@ namespace Citadel {
             if (userData != null) {
                 this.m_id = userData['id'];
                 this.InitUserActivationTables();
+                this.InitSelfModerationTable();
             } else {
                 this.m_id = 0;
                 this.jsonData = [];
                 this.InitUserActivationTables();
+                this.InitSelfModerationTable();
             }
 
             $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);

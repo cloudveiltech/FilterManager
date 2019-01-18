@@ -12,6 +12,7 @@ namespace App\Http\Controllers;
 use App\SystemPlatform;
 use App\SystemVersion;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class UpdateController extends Controller
 {
@@ -26,31 +27,57 @@ class UpdateController extends Controller
         $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
         $arr_data = ["platform" => $platform];
 
-      if($platforms->count() > 0) {
-        $os = $platforms->first();
-        $platform_id = $os->id;
-        $versions = SystemVersion::where('platform_id','=', $platform_id)->where('active','=',1)->get();
-        if($versions->count() > 0) {
-          $version = $versions->first();
-          $arr_data['app_name'] = $version->app_name;
-          $arr_data['file_name'] = $version->file_name;
-          $arr_data['version_number'] = $version->version_number;
-          $arr_data['changes'] = array($version->changes);
-          $arr_data['channels'] = [
-            [
-              'release'=>'Alpha',
-              'version_number'=>$version->alpha
-            ],
-            [
-              'release'=>'Beta',
-              'version_number'=>$version->beta
-            ],
-            [
-              'release'=>'Stable',
-              'version_number'=>$version->stable
-            ]
-          ];
-          $arr_data['date'] = Carbon::createFromFormat('Y-m-d H:i:s',$version->release_date)->toRfc7231String();
+        if ($platforms->count() > 0) {
+            $os = $platforms->first();
+            $platform_id = $os->id;
+            $versions = SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
+            if ($versions->count() > 0) {
+                $version = $versions->first();
+                $arr_data['app_name'] = $version->app_name;
+                $arr_data['file_name'] = $version->file_name;
+                $arr_data['file_ext'] = $version->file_ext;
+                $arr_data['version_number'] = $version->version_number;
+                $arr_data['changes'] = array($version->changes);
+                $arr_data['channels'] = [
+                    [
+                        'release' => 'Alpha',
+                        'version_number' => $version->alpha,
+                    ],
+                    [
+                        'release' => 'Beta',
+                        'version_number' => $version->beta,
+                    ],
+                    [
+                        'release' => 'Stable',
+                        'version_number' => $version->stable,
+                    ],
+                ];
+// This comment is to show the format we need it in.  Changing the format will break updates.
+// It's been broken before and we may break it again so here's a reminder.
+//                $arr_data['date'] = 'Tue, 20 Feb 2018 12:39:00 MST';
+                $arr_data['date'] = Carbon::parse($version->release_date)->toRfc7231String();
+            } else {
+                $arr_data['app_name'] = "unavailable";
+                $arr_data['file_name'] = "unavailable";
+                $arr_data['file_ext'] = "unavailable";
+                $arr_data['version_number'] = "---";
+                $arr_data['changes'] = array();
+                $arr_data['channels'] = [
+                    [
+                        'release' => 'Alpha',
+                        'version_number' => "---",
+                    ],
+                    [
+                        'release' => 'Beta',
+                        'version_number' => "---",
+                    ],
+                    [
+                        'release' => 'Stable',
+                        'version_number' => "---",
+                    ],
+                ];
+                $arr_data['date'] = "---";
+            }
         } else {
             $arr_data['app_name'] = "unavailable";
             $arr_data['file_name'] = "unavailable";

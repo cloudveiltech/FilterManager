@@ -42,10 +42,10 @@ Route::get('/', function () {
 Route::get('/update/{platform}/update.xml', 'UpdateController@retrieve');
 Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions');
 
-Route::get('/download/latest/64', function () {
-    return redirect('/releases/CloudVeil-1.6.21-x64.msi');
+Route::get('/download/latest/64', function() {
+  return redirect('/releases/CloudVeil-1.6.31-winx64.msi');
 });
 
-Route::get('/download/latest/32', function () {
-    return redirect('/releases/CloudVeil-1.6.21-x86.msi');
+Route::get('/download/latest/32', function() {
+  return redirect('/releases/CloudVeil-1.6.31-winx86.msi');
 });

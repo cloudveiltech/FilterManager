@@ -261,7 +261,7 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once
     /* Manage Users */
     Route::post('/users/{id}', 'UserController@update'); //Should be deprecated.
     Route::post('/user/{id}', 'UserController@update');
-    Route::get('/users', 'UserController@index'); //Should be deprecated.
+    Route::get('/users', 'UserController@index');  //Used to lookup users.
     Route::get('/user', 'UserController@index');
     Route::post('/user', 'UserController@store');
 
@@ -274,8 +274,8 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once
     Route::get('/activations', 'AppUserActivationController@index'); //Should be deprecated.
     Route::get('/activation', 'AppUserActivationController@index');
     Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
+    Route::post('/deactivation/{id}', 'DeactivationRequestController@update');
     Route::get('/deactivation/{id}', 'DeactivationRequestController@update');
-
 });
 
 Route::group(['middleware' => []], function () {

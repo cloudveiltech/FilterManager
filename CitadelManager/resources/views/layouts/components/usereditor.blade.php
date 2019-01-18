@@ -18,6 +18,9 @@
                         <li>
                             <a href="#user_activation_tab">Activations</a>
                         </li>
+                        <li>
+                            <a href="#self_moderation_tab">User's self-moderation</a>
+                        </li>
                     </ul>
 
                     <div class="frames">
@@ -142,6 +145,18 @@
                                 </h2>
                                 <hr class="thin" />
                                 <table id="user_activation_table" class="table striped hovered border" style="width:100%">
+
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="frame" id="self_moderation_tab">
+                            <div class="grid" id="self_moderation_list">
+                                <h2>
+                                    <small>Self-moderation</small>
+                                </h2>
+                                <hr class="thin" />
+                                <table id="self_moderation_table" class="table striped hovered border" style="width: 100%">
 
                                 </table>
                             </div>
