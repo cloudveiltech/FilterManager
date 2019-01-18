@@ -124,6 +124,15 @@ Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin
     Route::post('/me/terms', 'UserController@getUserTerms');
     Route::get('/time', 'UserController@getTime');
 
+    // New dashboard API calls. These API calls access user data in a slightly different way than any other API calls.
+    Route::get('/relaxed_policy/passcode_info', 'UserController@getRelaxedPolicyPasscode');
+    Route::post('/relaxed_policy/passcode_info', 'UserController@setRelaxedPolicyPasscode');
+
+    Route::get('/self_moderation', 'UserController@getSelfModerationInfo');
+    Route::post('/self_moderation', 'UserController@setSelfModerationInfo');
+
+    Route::get('/time_restrictions', 'UserController@getTimeRestrictions');
+    Route::post('/time_restrictions', 'UserController@setTimeRestrictions');
 });
 
 /**
@@ -148,6 +157,10 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api']],
     Route::post('/rules/get', 'UserController@getRules'); //This will get a ZIP file of all rules available in the system.
     Route::post('/rules/check', 'UserController@checkRules'); //This will return a checksum for the above-mentioned ZIP file.
     Route::post('/rules/rebuild', 'UserController@rebuildRules');
+
+    // New feature API calls.
+    Route::post('/self_moderation/add', 'UserController@addSelfModeratedWebsite'); // This adds a website to the user's sef moderation list.
+    Route::get('/time_restrictions', 'UserController@getTimeRestrictions');
     // END - New Requests for 1.7
 
     Route::get('/time', 'UserController@getTime');

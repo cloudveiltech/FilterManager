@@ -19,6 +19,28 @@ class RolesAndPermissionsSeeder extends Seeder
         $owner->description  = 'User is a registered application user.';
         $owner->save();
 
+        $timeRestrictions = new Permission();
+        $timeRestrictions->name = 'can-edit-own-time-restrictions';
+        $timeRestrictions->display_name = 'Can Edit Time Restrictions';
+        $timeRestrictions->description = 'User is allowed to edit his own time restrictions settings';
+        $timeRestrictions->save();
+
+        $relaxedPolicyPassword = new Permission();
+        $relaxedPolicyPassword->name = 'can-set-relaxed-policy-password';
+        $relaxedPolicyPassword->display_name = 'Relaxed Policy Password';
+        $relaxedPolicyPassword->description = 'User is allowed to set his own relaxed policy password.';
+        $relaxedPolicyPassword->save();
+
+        $deleteSelfModerated = new Permission();
+        $deleteSelfModerated->name = 'delete-self-moderated';
+        $deleteSelfModerated->display_name = 'Delete Self-moderated Site Entries';
+        $deleteSelfModerated->description = 'User is allowed to delete entries from his self-moderation list';
+        $deleteSelfModerated->save();
+
+        $owner->attachPermission($timeRestrictions);
+        $owner->attachPermission($relaxedPolicyPassword);
+        $owner->attachPermission($deleteSelfModerated);
+        
         $admin = new Role();
         $admin->name         = 'admin';
         $admin->display_name = 'Administrator'; // optional
@@ -32,5 +54,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $fullAdmin->save();
 
         $admin->attachPermission($fullAdmin);
+
+
     }
 }
