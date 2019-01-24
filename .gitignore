@@ -6,6 +6,8 @@
 .DS_Store
 package-lock.json
 
+share/
+
 # User-specific files
 *.suo
 *.user

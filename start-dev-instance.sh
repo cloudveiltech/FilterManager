@@ -3,6 +3,7 @@ cp ~/.ssl/server.key .
 cp ~/.ssl/server.crt .
 
 mkdir ./html # This is a shim for the PHP image we're using.
+mkdir ./share
 
 # Spin up test container.
 docker-compose -f dev-instance.yaml pull

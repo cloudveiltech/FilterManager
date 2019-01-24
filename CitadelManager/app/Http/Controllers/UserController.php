@@ -847,6 +847,8 @@ class UserController extends Controller
 
         $user->config_override = json_encode($config);
         $user->save();
+
+        return response('', 204);
     }
 
     public function setSelfModerationInfo(Request $request) {
