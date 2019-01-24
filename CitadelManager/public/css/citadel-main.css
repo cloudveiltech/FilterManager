@@ -1126,7 +1126,11 @@ User editor.
 }
 
 #user_activation_table .odd {
-    background: transparent !important;
+    background: transparent;
+}
+
+#self_moderation_table .odd {
+    background: transparent;
 }
 
 .tabcontrol .tabs li a:hover {
@@ -1138,13 +1142,13 @@ User editor.
 }
 
 #user_activation_table .button {
-    height: 1.5rem !important;
+    height: 1.5rem;
     margin-top: -10px;
     margin-bottom: -10px;
 }
 
 #user_activation_table_info {
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 /*

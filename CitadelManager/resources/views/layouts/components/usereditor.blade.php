@@ -2,6 +2,13 @@
 <script src="{{ asset('js/admin/records/userrecord.js') }}">
 </script>
 
+CONTINUE WRITING SELF_MODERATION EDITOR TOMORROW!
+<div class="bg-dark" id="overlay_self_moderation_editor">
+    <div class="flex-grid">
+        <h1 id="self_moderation_title">Edit Site</h1>
+    </div>
+</div>
+
 <!-- User Editing Overlay -->
 <div class="bg-dark" id="overlay_user_editor">
     <div id="div_08c2_0">

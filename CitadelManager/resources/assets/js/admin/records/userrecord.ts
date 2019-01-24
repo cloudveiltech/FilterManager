@@ -89,6 +89,8 @@ namespace Citadel {
         private m_btnCancel             : HTMLButtonElement;
 
         private jsonData                : any[];
+        private myConfigData            : any;
+        private selfModeration          : any;
 
         // ─────────────────────────────────────────────────
         //   ::::: A C T I V A T I O N    T A B L E ::::::
@@ -96,6 +98,12 @@ namespace Citadel {
         private m_tableSettings         : DataTables.Settings;
         private m_tableColumns          : DataTables.ColumnSettings[];
         private m_ActivationTables      : DataTables.Api;
+
+        /**
+         * SELF MODERATION TABLE
+         */
+        private m_selfModerationTableSettings : DataTables.Settings;
+        private m_selfModerationColumns : DataTables.ColumnSettings[];
         private m_selfModerationTable   : DataTables.Api;
 
         // ─────────────────────────────────────────────────
@@ -165,6 +173,21 @@ namespace Citadel {
             }
         }
 
+        /* Taken from https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript */
+        private siteIdHash(s: string): number {
+            let hash = 0;
+            if(s.length === 0) return hash;
+
+            let i = 0;
+            for(i = 0; i < s.length; i++) {
+                const chr = s.charCodeAt(i);
+                hash = ((hash << 5) - hash) + chr;
+                hash |= 0;
+            }
+
+            return hash;
+        }
+
         // ────────────────────────────────────────────────────
         //   ::::: C O N V E R T     F U N C T I O N S ::::::
         // ────────────────────────────────────────────────────
@@ -183,6 +206,24 @@ namespace Citadel {
             this.jsonData           = data['activations'];
             this.myConfigData       = data['config_override'] == null ? null : JSON.parse(data['config_override']);
 
+            if(this.myConfigData && this.myConfigData.SelfModeration) {
+                this.selfModeration = [];
+
+                for(var site of this.myConfigData.SelfModeration) {
+                    this.selfModeration.push({site: site, id: this.siteIdHash(site) });
+                }
+
+                /*for(let i in this.myConfigData.SelfModeration) {
+                    let site = this.myConfigData.SelfModeration[i];
+
+                    this.selfModeration.push({
+                        site: site
+                    });
+                }*/
+            } else {
+                this.selfModeration = [];
+            }
+
         }
 
         protected LoadFromForm(): void {
@@ -195,6 +236,16 @@ namespace Citadel {
             this.m_numActivations   = this.m_inputActivationCount.valueAsNumber;
             this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
             this.m_reportLevel      = this.m_inputReportLevel.checked == true ? 1 : 0;
+
+            this.selfModeration = this.m_selfModerationTable.data().toArray();
+            this.myConfigData = this.myConfigData || {};
+
+            this.myConfigData.SelfModeration = [];
+
+            // I know, I know, use .map(), but TS output -> ES5 doesn't support it.
+            for(var o of this.selfModeration) {
+                this.myConfigData.SelfModeration.push(o.site);
+            }
         }
 
         public ToObject(): Object {
@@ -209,6 +260,7 @@ namespace Citadel {
                 'isactive': this.m_isActive,
                 'dt': this.m_registeredAt,
                 'report_level': this.m_reportLevel,
+                'config_override': JSON.stringify(this.myConfigData)
             };
 
             if (this.m_password != null && this.m_password.length > 0 && (this.m_password != Array(30).join("x"))) {
@@ -289,19 +341,26 @@ namespace Citadel {
         }
 
         private InitSelfModerationTable() {
-            // TODO: Split out  from InitUserActivationTables()
+            let that = this;
+
             this.m_selfModerationColumns = [
                 {
                     title: 'Site',
                     data: 'site',
-                    visible: true
+                    name: 'site',
+                    visible: true,
+                    render: function(data, type, row) {
+                        var inputStr = "";
+
+                        inputStr +=
+                    }
                 },
 
                 {
                     width: "100px",
                     render: function (data, type, row) {
                         var strButtons = "";
-                        strButtons += "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
+                        strButtons += "<button type='button' data-row-id='" + row.id + "' id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
 
                         return strButtons;
                     }
@@ -318,20 +377,41 @@ namespace Citadel {
                 stateSave: true,
                 responsive: true,
                 columns: this.m_selfModerationColumns,
-                data: this.myConfigData.SelfModeration,
+                data: this.selfModeration,
+                destroy: true,
+
                 rowCallback: ((row: Node, data: any[] | Object): void => {
 
                 }),
 
                 drawCallback: ((settings): void => {
-                    $("self_moderation_table").off("click", ".btn-delete");
-                    $("self_moderation_table").on("click", ".btn-delete", function() {
-                        console.log("KA-BLOOEY! No deletes for you yet.");
+                    $("#self_moderation_table").off("click", "button.btn-delete");
+                    $("#self_moderation_table").on("click", "button.btn-delete", function() {
+                        var $btn = $(this);
+                        var rowId = $btn.attr("data-row-id");
+
+                        let deleteRow = false;
+                        for(var i = 0; that.selfModeration && i < that.selfModeration.length; i++) {
+                            if(that.selfModeration[i].id === parseInt(rowId)) {
+                                deleteRow = true;
+                                break;
+                            }
+                        }
+
+                        that.selfModeration.splice(i, 1);
+
+                        that.m_selfModerationTable.clear();
+                        that.m_selfModerationTable.rows.add(that.selfModeration);
+                        that.m_selfModerationTable.draw();
                     });
                 })
             };
 
             this.m_selfModerationTable = $('#self_moderation_table').DataTable(this.m_selfModerationTableSettings);
+
+            $("#self_moderation_table").on("click", "tbody td", function(e) {
+                //this.m_selfModerationEditor.inline(this);
+            })
         }
 
         private InitUserActivationTables() {
