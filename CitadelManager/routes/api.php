@@ -159,8 +159,8 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api']],
     Route::post('/rules/rebuild', 'UserController@rebuildRules');
 
     // New feature API calls.
-    Route::post('/self_moderation/add', 'UserController@addSelfModeratedWebsite'); // This adds a website to the user's sef moderation list.
-    Route::get('/time_restrictions', 'UserController@getTimeRestrictions');
+    Route::post('/me/self_moderation/add', 'UserController@addSelfModeratedWebsite'); // This adds a website to the user's sef moderation list.
+    Route::get('/me/time_restrictions', 'UserController@getTimeRestrictions');
     // END - New Requests for 1.7
 
     Route::get('/time', 'UserController@getTime');
