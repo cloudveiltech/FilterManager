@@ -9,6 +9,73 @@
 
 namespace Citadel {
 
+    export class SelfModerationEditor {
+        // Constants
+        TITLE_NEW_SITE = "New Site";
+        TITLE_EDIT_SITE = "Edit Site";
+
+        FADE_IN_DELAY_TIME = 1000;
+        FADE_OUT_DELAY_TIME = 1000;
+
+        private bindings : BindingInstance;
+
+        // Editor HTML Elements
+        private form : HTMLFormElement;
+        private editorOverlay : HTMLDivElement;
+        private title: string;
+
+        private site : string;
+
+        private onComplete: any;
+
+        private submitText : string;
+
+        private btnSubmit             : HTMLButtonElement;
+        private btnCancel             : HTMLButtonElement;
+
+        private ConstructFormReferences(): void {
+            this.editorOverlay = document.querySelector("#overlay_self_moderation_editor") as HTMLDivElement;
+
+            this.bindings = new BindingInstance(this.editorOverlay, this);
+            this.bindings.Bind();
+            this.bindings.Refresh();
+        }
+
+        public onSubmit(e: Event): any {
+            if(this.onComplete) {
+                this.onComplete(this.site);
+            }
+
+            this.StopEditing();
+            return false;
+        }
+
+        public cancelClick(): void {
+            this.StopEditing();
+        }
+
+        public StartEditing(site: string, onComplete: any): void {
+            this.onComplete = onComplete;
+
+            this.ConstructFormReferences();
+
+            this.site = site;
+
+            if(!site) {
+                this.title = this.TITLE_NEW_SITE;
+            } else {
+                this.title = this.TITLE_EDIT_SITE;
+            }
+
+            $(this.editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
+        }
+
+        public StopEditing(): void {
+            $(this.editorOverlay).fadeOut(this.FADE_OUT_DELAY_TIME);
+            this.bindings.Unbind();
+        }
+    }
+
     export class UserRecord extends BaseRecord {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
@@ -62,14 +129,15 @@ namespace Citadel {
         private m_mainForm              : HTMLFormElement;
 
         private m_editorOverlay         : HTMLDivElement;
-        private m_editorTitle           : HTMLHeadingElement;
+        private m_selfModerationEditor : SelfModerationEditor;
+
+        private m_editorTitleValue : string;
 
         // ─────────────────────────────────────────────
         //   ::::: I N P U T    E L E M E N T S ::::::
         // ─────────────────────────────────────────────
-        private m_inputFullName         : HTMLInputElement;
-        private m_inputEmail            : HTMLInputElement;
-        private m_inputPassword         : HTMLInputElement;
+        private m_emailInputId : string;
+        private m_inputPasswordId : string;
         private m_inputPasswordConfirm  : HTMLInputElement;
         private m_inputActivationCount  : HTMLInputElement;
         private m_inputCustomerId       : HTMLInputElement;
@@ -106,6 +174,8 @@ namespace Citadel {
         private m_selfModerationColumns : DataTables.ColumnSettings[];
         private m_selfModerationTable   : DataTables.Api;
 
+        private userData: any;
+
         // ─────────────────────────────────────────────────
         //   ::::: M E M B E R     F U N C T I O N S ::::::
         // ─────────────────────────────────────────────────
@@ -115,15 +185,20 @@ namespace Citadel {
             this.ConstructFormReferences();
         }
 
+        private m_bindings : BindingInstance;
+
         private ConstructFormReferences(): void {
-            this.m_mainForm         = document.querySelector('#editor_user_form') as HTMLFormElement;
-            this.m_editorTitle      = document.querySelector('#user_editing_title') as HTMLHeadingElement;
             this.m_editorOverlay    = document.querySelector('#overlay_user_editor') as HTMLDivElement;
 
-            this.m_inputEmail       = document.querySelector('#editor_user_input_username') as HTMLInputElement;
-            this.m_inputFullName    = document.querySelector('#editor_user_input_user_full_name') as HTMLInputElement;
-            this.m_inputPassword    = document.querySelector('#editor_user_input_password') as HTMLInputElement;
-            this.m_inputPasswordConfirm = document.querySelector('#editor_user_input_password_confirm') as HTMLInputElement;
+            this.m_bindings = new BindingInstance(this.m_editorOverlay, this);
+            this.m_bindings.Bind();
+            this.m_bindings.Refresh();
+
+            this.m_mainForm         = document.querySelector('#editor_user_form') as HTMLFormElement;
+
+            this.m_emailInputId = "editor_user_input_username";
+            this.m_inputPasswordId = "editor_user_input_password";
+
             this.m_inputActivationCount = document.querySelector('#editor_user_input_num_activations') as HTMLInputElement;
             this.m_selectGroup      = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
             this.m_selectRole       = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
@@ -132,8 +207,6 @@ namespace Citadel {
             this.m_inputReportLevel = document.querySelector('#editor_user_report_level') as HTMLInputElement;
             this.m_btnSubmit        = document.querySelector('#user_editor_submit') as HTMLButtonElement;
             this.m_btnCancel        = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
-
-            this.InitButtonHandlers();
         }
 
         public get RecordRoute(): string {
@@ -212,14 +285,6 @@ namespace Citadel {
                 for(var site of this.myConfigData.SelfModeration) {
                     this.selfModeration.push({site: site, id: this.siteIdHash(site) });
                 }
-
-                /*for(let i in this.myConfigData.SelfModeration) {
-                    let site = this.myConfigData.SelfModeration[i];
-
-                    this.selfModeration.push({
-                        site: site
-                    });
-                }*/
             } else {
                 this.selfModeration = [];
             }
@@ -227,9 +292,7 @@ namespace Citadel {
         }
 
         protected LoadFromForm(): void {
-            this.m_fullName         = this.m_inputFullName.value;
-            this.m_email            = this.m_inputEmail.value;
-            this.m_password         = this.m_inputPassword.value;
+            console.log(this.m_fullName);
             this.m_groupId          = this.getValueFromSelect(this.m_selectGroup);
             this.m_roleId           = this.getValueFromSelect(this.m_selectRole);
             this.m_customerId       = this.m_inputCustomerId.value == "" ? null:this.m_inputCustomerId.valueAsNumber;
@@ -274,19 +337,19 @@ namespace Citadel {
         protected get ValidationOptions(): JQueryValidation.ValidationOptions {
             let validationRules: JQueryValidation.RulesDictionary = {};
 
-            validationRules[this.m_inputEmail.id] = {
+            validationRules[this.m_emailInputId] = {
                 required: true,
                 email: true
             };
 
-            validationRules[this.m_inputPassword.id] = {
+            validationRules[this.m_inputPasswordId] = {
                 required: true,
                 equalTo: '#' + this.m_inputPasswordConfirm.id
             };
 
             validationRules[this.m_inputPasswordConfirm.id] = {
                 required: true,
-                equalTo: '#' + this.m_inputPassword.id
+                equalTo: '#' + this.m_inputPasswordId
             };
 
             validationRules[this.m_inputActivationCount.id] = {
@@ -295,8 +358,8 @@ namespace Citadel {
             };
 
             let validationErrorMessages = {};
-            validationErrorMessages[this.m_inputEmail.id] = this.ERROR_MESSAGE_EMAIL;
-            validationErrorMessages[this.m_inputPassword.id] = this.ERROR_MESSAGE_PASSWORD;
+            validationErrorMessages[this.m_emailInputId] = this.ERROR_MESSAGE_EMAIL;
+            validationErrorMessages[this.m_inputPasswordId] = this.ERROR_MESSAGE_PASSWORD;
             validationErrorMessages[this.m_inputPasswordConfirm.id] = this.ERROR_MESSAGE_CONFIRM_PASSWORD;
             validationErrorMessages[this.m_inputActivationCount.id] = this.ERROR_MESSAGE_ACTIVATION;
 
@@ -315,7 +378,7 @@ namespace Citadel {
         // ───────────────────────────────────────────────
         //   ::::: C L A S S      H A N D L E R S ::::::
         // ───────────────────────────────────────────────
-        private generateAjaxSettings(url, data, otherOptions): JQueryAjaxSettings {
+        private generateAjaxSettings(url, data, otherOptions = null): JQueryAjaxSettings {
             var options = {
                 method: "POST",
                 timeout: 60000,
@@ -348,12 +411,7 @@ namespace Citadel {
                     title: 'Site',
                     data: 'site',
                     name: 'site',
-                    visible: true,
-                    render: function(data, type, row) {
-                        var inputStr = "";
-
-                        inputStr +=
-                    }
+                    visible: true
                 },
 
                 {
@@ -361,6 +419,16 @@ namespace Citadel {
                     render: function (data, type, row) {
                         var strButtons = "";
                         strButtons += "<button type='button' data-row-id='" + row.id + "' id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
+
+                        return strButtons;
+                    }
+                },
+
+                {
+                    width: "100px",
+                    render: function(data, type, row) {
+                        var strButtons = "";
+                        strButtons += "<button type='button' data-row-id='" + row.id + "' id='edit_" + row.id + "' class='btn-edit button primary'>Edit</button>";
 
                         return strButtons;
                     }
@@ -390,10 +458,8 @@ namespace Citadel {
                         var $btn = $(this);
                         var rowId = $btn.attr("data-row-id");
 
-                        let deleteRow = false;
                         for(var i = 0; that.selfModeration && i < that.selfModeration.length; i++) {
                             if(that.selfModeration[i].id === parseInt(rowId)) {
-                                deleteRow = true;
                                 break;
                             }
                         }
@@ -404,12 +470,29 @@ namespace Citadel {
                         that.m_selfModerationTable.rows.add(that.selfModeration);
                         that.m_selfModerationTable.draw();
                     });
+
+                    $("#self_moderation_table").off("click", "button.btn-edit");
+                    $("#self_moderation_table").on("click", "button.btn-edit", function() {
+                        var $btn = $(this);
+                        var rowId = $btn.attr("data-row-id");
+
+                        for(var i = 0; that.selfModeration && i < that.selfModeration.length; i++) {
+                            if(that.selfModeration[i].id === parseInt(rowId)) {
+                                break;
+                            }
+                        }
+
+                        this.StartEditingSelfModeration(that.selfModeration[i].site, function(site) {
+                            that.selfModeration[i].site = site;
+                        });
+                    })
                 })
             };
 
             this.m_selfModerationTable = $('#self_moderation_table').DataTable(this.m_selfModerationTableSettings);
 
             $("#self_moderation_table").on("click", "tbody td", function(e) {
+                this.StartEditingSelfModeration()
                 //this.m_selfModerationEditor.inline(this);
             })
         }
@@ -501,8 +584,6 @@ namespace Citadel {
 
                 }),
                 drawCallback: ((settings): void => {
-                    let that = this;
-
                     $("#user_activation_table").off("change", "input[type='checkbox']");
                     $("#user_activation_table").on("change", "input[type='checkbox']", function () {
                         let id = $(this).attr("data-id");
@@ -597,15 +678,20 @@ namespace Citadel {
             this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
         }
 
-        private InitButtonHandlers(): void {
-            this.m_btnCancel.onclick = ((e: MouseEvent): any => {
-                if (this.m_actionCompleteCallback != null) {
-                    this.m_actionCompleteCallback("Cancel");
-                } else {
-                    this.StopEditing();
-                }
-            });
+        public cancelClick(e: MouseEvent): void {
+            if(this.m_actionCompleteCallback != null) {
+                this.m_actionCompleteCallback("Cancel");
+            } else {
+                this.StopEditing();
+            }
         }
+
+        /*public StartEditingSelfModeration(site: string = null): void {
+            if(userData == null) {
+                this.m_selfModerationEditorTitle.innerText = this.TITLE_NEW_SELF_MODERATION_SITE;
+                this.m_selfModerationEditor
+            }
+        }*/
 
         public StartEditing(allGroups, userData: Object = null): void {
 
@@ -620,11 +706,13 @@ namespace Citadel {
                 this.m_selectGroup.options.add(option);
             }
 
+            this.userData = userData;
+
             switch (userData == null) {
 
                 case true:
                     {
-                        this.m_editorTitle.innerText = this.TITLE_NEW_USER;
+                        this.m_editorTitleValue = this.TITLE_NEW_USER;
                         this.m_btnSubmit.innerText = this.BTN_NEW_USER;
 
                         this.m_mainForm.reset();
@@ -646,14 +734,11 @@ namespace Citadel {
                     {
                         this.LoadFromObject(userData);
 
-                        this.m_editorTitle.innerText = this.TITLE_EDIT_USER;
+                        this.m_editorTitleValue = this.TITLE_EDIT_USER;
                         this.m_btnSubmit.innerText = this.BTN_EDIT_USER;
 
-                        this.m_inputFullName.value = this.m_fullName;
-                        this.m_inputEmail.value = this.m_email;
                         this.m_inputCustomerId.value = (this.m_customerId == null) ? '':this.m_customerId.toString();
 
-                        this.m_inputPassword.value = new Array(30).join("x");
                         this.m_inputPasswordConfirm.value = new Array(30).join("x");
 
                         this.m_inputActivationCount.value = this.m_numActivations.toString();
@@ -690,16 +775,7 @@ namespace Citadel {
                     break;
             }
 
-            this.m_mainForm.onsubmit = ((e: Event): any => {
-                let validateOpts = this.ValidationOptions;
-                let validresult = $(this.m_mainForm).validate(validateOpts).form();
-
-                if ($(this.m_mainForm).validate(validateOpts).valid()) {
-                    return this.OnFormSubmitClicked(e, userData == null);
-                }
-
-                return false;
-            });
+            this.m_bindings.Refresh();
 
             if (userData != null) {
                 this.m_id = userData['id'];
@@ -715,7 +791,20 @@ namespace Citadel {
             $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
 
+
+        private onSubmit(e: Event): any {
+            let validateOpts = this.ValidationOptions;
+            let validresult = $(this.m_mainForm).validate(validateOpts).form();
+
+            if ($(this.m_mainForm).validate(validateOpts).valid()) {
+                return this.OnFormSubmitClicked(e, this.userData == null);
+            }
+
+            return false;
+        }
+
         public StopEditing(): void {
+            this.m_bindings.Unbind();
             $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }
     }

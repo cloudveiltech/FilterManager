@@ -2,10 +2,29 @@
 <script src="{{ asset('js/admin/records/userrecord.js') }}">
 </script>
 
-CONTINUE WRITING SELF_MODERATION EDITOR TOMORROW!
 <div class="bg-dark" id="overlay_self_moderation_editor">
     <div class="flex-grid">
-        <h1 id="self_moderation_title">Edit Site</h1>
+        <h1 id="self_moderation_title" text-bind="title">Edit Site</h1>
+
+        <form method="post" action="javascript:void(0)" elem-bind="form" event-submit="onSubmit" data-on-submit="submit">
+            <div class="grid">
+                <div class="row cell-auto-size">
+                    <div class="cell cell-auto-size">
+                        <div class="input-control text" data-role="input">
+                            <label for="editor_self_moderation_input_site">Site:</label>
+                            <input type="text" value-bind="site" name="editor_self_moderation_input_site" id="editor_self_moderation_input_site">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row cell-auto-size">
+                    <div class="form-actions">
+                        <button id="self_moderation_submit" type="submit" class="button primary">Save</button>
+                        <button id="self_moderation_cancel" event-click="cancelClick" type="button" class="button link">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -14,9 +33,9 @@ CONTINUE WRITING SELF_MODERATION EDITOR TOMORROW!
     <div id="div_08c2_0">
         <div class="flex-grid">
 
-            <h1 id="user_editing_title">Create New User</h1>
+            <h1 text-bind="m_editorTitleValue" id="user_editing_title">Create New User</h1>
             <br />
-            <form method="post" action="javascript:void(0)" id="editor_user_form" data-on-submit="submit">
+            <form method="post" action="javascript:void(0)" event-click="onSubmit" id="editor_user_form" data-on-submit="submit">
                 <div class="tabcontrol" data-role="tabcontrol">
                     <ul class="tabs">
                         <li class="active">
@@ -42,7 +61,7 @@ CONTINUE WRITING SELF_MODERATION EDITOR TOMORROW!
                                     <div class="cell cell-auto-size">
                                         <div class="input-control text" data-role="input">
                                             <label for="editor_user_input_user_full_name">User Full Name:</label>
-                                            <input type="text" name="editor_user_input_user_full_name" id="editor_user_input_user_full_name">
+                                            <input type="text" value-bind="m_fullName" name="editor_user_input_user_full_name" id="editor_user_input_user_full_name">
                                             <button class="button helper-button clear" tabindex="-1" type="button">
                                                 <span class="mif-cross"></span>
                                             </button>
@@ -52,7 +71,7 @@ CONTINUE WRITING SELF_MODERATION EDITOR TOMORROW!
                                     <div class="cell cell-auto-size">
                                         <div class="input-control text" data-role="input">
                                             <label for="editor_user_input_username">User email:</label>
-                                            <input type="text" name="editor_user_input_username" id="editor_user_input_username">
+                                            <input type="text" value-bind="m_email" name="editor_user_input_username" id="editor_user_input_username">
                                             <button class="button helper-button clear" tabindex="-1" type="button">
                                                 <span class="mif-cross"></span>
                                             </button>
@@ -76,7 +95,7 @@ CONTINUE WRITING SELF_MODERATION EDITOR TOMORROW!
                                     <div class="cell cell-auto-size">
                                         <div class="input-control password" data-role="input">
                                             <label for="editor_user_input_password">User password:</label>
-                                            <input type="password" name="editor_user_input_password" id="editor_user_input_password">
+                                            <input type="password" value-bind="m_password" name="editor_user_input_password" id="editor_user_input_password">
                                             <button class="button helper-button reveal" tabindex="-1" type="button">
                                                 <span class="mif-looks"></span>
                                             </button>
@@ -86,7 +105,7 @@ CONTINUE WRITING SELF_MODERATION EDITOR TOMORROW!
                                     <div class="cell cell-auto-size">
                                         <div class="input-control password" data-role="input">
                                             <label for="editor_user_input_password_confirm">Password Confirm:</label>
-                                            <input type="password" name="editor_user_input_password_confirm" id="editor_user_input_password_confirm">
+                                            <input type="password" elem-bind="m_inputPasswordConfirm" name="editor_user_input_password_confirm" id="editor_user_input_password_confirm">
                                             <button class="button helper-button reveal" tabindex="-1" type="button">
                                                 <span class="mif-looks"></span>
                                             </button>

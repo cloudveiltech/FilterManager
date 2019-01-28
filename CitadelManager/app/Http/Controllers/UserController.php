@@ -843,6 +843,8 @@ class UserController extends Controller
 
         if($request->has('url')) {
             $config->SelfModeration[] = $request->input('url');
+        } else {
+            return response('{ "error": "Please specify a URL." }');
         }
 
         $user->config_override = json_encode($config);
