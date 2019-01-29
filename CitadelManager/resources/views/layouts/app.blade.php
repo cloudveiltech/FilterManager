@@ -23,6 +23,8 @@
     <link href="{{ asset('css/dragula.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/citadel-main.css') }}" rel="stylesheet">
 
+    @yield('styles')
+
     <link href="{{ asset('plugins/datetimepicker-2.2.4/jquery.datetimepicker.css') }}" rel="stylesheet">
     <!-- re-enable these when we manage to make datatables.responsive work properly.. -->
     <!-- <link href="{{ asset('css/datatables.min.css') }}" rel="stylesheet"> -->

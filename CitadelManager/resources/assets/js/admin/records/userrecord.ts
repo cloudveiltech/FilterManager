@@ -160,6 +160,7 @@ namespace Citadel {
         private jsonData                : any[];
         private myConfigData            : any;
         private selfModeration          : any;
+        private timeRestrictions : any;
 
         // ─────────────────────────────────────────────────
         //   ::::: A C T I V A T I O N    T A B L E ::::::
@@ -175,6 +176,13 @@ namespace Citadel {
         private m_selfModerationColumns : DataTables.ColumnSettings[];
         private m_selfModerationTable   : DataTables.Api;
 
+        /**
+         * TIME RESTRICTIONS
+         */
+        private m_timeRestrictionsSliderConfig: any;
+        private m_timeRestrictionConfigs: any;
+        private m_timeRestrictionSliders: any;
+
         private userData: any;
 
         // ─────────────────────────────────────────────────
@@ -185,6 +193,16 @@ namespace Citadel {
             super();
 
             this.m_selfModerationEditor = new SelfModerationEditor();
+            this.m_timeRestrictionsSliderConfig = {
+                start: [0, 24],
+                connect: true,
+                range: {
+                    'min': 0,
+                    'max': 24
+                },
+
+                step: 0.25
+            };
 
             this.ConstructFormReferences();
         }
@@ -291,6 +309,16 @@ namespace Citadel {
                 }
             } else {
                 this.selfModeration = [];
+            }
+
+            if(this.myConfigData && this.myConfigData.TimeRestrictions) {
+                this.timeRestrictions = {};
+
+                for(var day in this.myConfigData.TimeRestrictions) {
+                    this.timeRestrictions[day] = this.myConfigData.TimeRestrictions;
+                }
+            } else {
+                this.timeRestrictions = {};
             }
 
         }
@@ -404,6 +432,36 @@ namespace Citadel {
             }
 
             return options;
+        }
+
+        private InitTimeRestrictions(): void {
+            var days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+            var restrictionsElem = $("#time_restrictions");
+
+            var configs = {};
+            var sliders = {};
+
+            for(var day of days) {
+                configs[day] = JSON.parse(JSON.stringify(this.m_timeRestrictionsSliderConfig));
+
+                if(this.timeRestrictions && day in this.timeRestrictions && this.timeRestrictions[day].EnabledThrough) {
+                    configs[day].start = this.timeRestrictions[day].EnabledThrough;
+                }
+
+                let slider : any = restrictionsElem.find("#" + day).get(0);
+
+                if(slider && slider.noUiSlider) {
+                    slider.noUiSlider.destroy();
+                }
+
+                noUiSlider.create(slider, configs[day]);
+
+                sliders[day] = slider;
+            }
+
+            this.m_timeRestrictionConfigs = configs;
+            this.m_timeRestrictionSliders = sliders;
         }
 
         private InitSelfModerationTable() {
@@ -808,11 +866,13 @@ namespace Citadel {
                 this.m_id = userData['id'];
                 this.InitUserActivationTables();
                 this.InitSelfModerationTable();
+                this.InitTimeRestrictions();
             } else {
                 this.m_id = 0;
                 this.jsonData = [];
                 this.InitUserActivationTables();
                 this.InitSelfModerationTable();
+                this.InitTimeRestrictions();
             }
 
             $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);

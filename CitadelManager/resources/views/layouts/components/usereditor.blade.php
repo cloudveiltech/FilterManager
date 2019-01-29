@@ -49,6 +49,9 @@
                         <li>
                             <a href="#self_moderation_tab">User's self-moderation</a>
                         </li>
+                        <li>
+                            <a href="#time_restrictions_tab">User's Time Restrictions</a>
+                        </li>
                     </ul>
 
                     <div class="frames">
@@ -189,6 +192,24 @@
                                 <table id="self_moderation_table" class="table striped hovered border" style="width: 100%">
 
                                 </table>
+                            </div>
+                        </div>
+
+                        <div class="frame" id="time_restrictions_tab">
+                            <div class="grid">
+                                <h2>
+                                    <small>Time Restrictions</small>
+                                </h2>
+                                <hr class="thin" />
+                                <div id="time_restrictions">
+                                    <div class="slider" id="monday"></div>
+                                    <div class="slider" id="tuesday"></div>
+                                    <div class="slider" id="wednesday"></div>
+                                    <div class="slider" id="thursday"></div>
+                                    <div class="slider" id="friday"></div>
+                                    <div class="slider" id="saturday"></div>
+                                    <div class="slider" id="monday"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

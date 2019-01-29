@@ -1,9 +1,16 @@
-@extends('layouts.app') @section('navbar') @include('layouts.components.adminnav') @endsection @section('content')
+@extends('layouts.app') @section('navbar') @include('layouts.components.adminnav') @endsection
+
+@section('styles')
+    <link href="{{ asset('css/nouislider.min.css') }}" rel="stylesheet" />
+@endsection
+
+@section('content')
 
 <!-- Include BaseRecord Record Type JS. Must be done to serve any record type correctly. -->
 <script src="{{ asset('js/admin/records/baserecord.js') }}">
 </script>
 <script src="{{ asset('js/bindings.js') }}"></script>
+<script src="{{ asset('js/nouislider.min.js') }}"></script>
 
 <!-- Primary admin menu. -->
 <div class="fluent-menu" data-role="fluentmenu">
