@@ -1081,20 +1081,40 @@ User editor.
     margin-bottom: 0px !important;
 }
 
-#overlay_user_editor {
+.overlay {
+    position: fixed;
     width: 100%;
     height: 100%;
-    z-index: 1104;
-    position: fixed;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
     display: none;
-    overflow: auto
+    overflow: auto;
 }
 
-#div_08c2_0 {
+.bg-dark.overlay {
+    color: white;
+}
+
+#overlay_self_moderation_editor {
+    z-index: 3000;
+}
+
+#overlay_user_editor {
+    z-index: 1104;
+}
+
+#self_moderation_editor_body {
+    width: 200px;
+    margin: 50px auto 0 auto;
+}
+
+#self_moderation_title {
+    margin-bottom: 20px;
+}
+
+#user_editor_body {
     width: 90%;
     height: 500px;
     left: 5%;
@@ -1107,14 +1127,6 @@ User editor.
 
 #user_editing_title {
     text-align: center;
-}
-
-#div_08c2_1 {
-    padding: 20px;
-}
-
-#label_08c2_0 {
-    margin-left: 10px;
 }
 
 #div_08c2_2 {
@@ -1156,16 +1168,7 @@ Whitelist editor.
 */
 
 #overlay_application_editor {
-    width: 100%;
-    height: 100%;
     z-index: 1105;
-    position: fixed;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    display: none;
-    overflow: auto
 }
 
 #div_application_0 {

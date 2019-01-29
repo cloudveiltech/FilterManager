@@ -15,7 +15,6 @@ namespace Citadel {
         TITLE_EDIT_SITE = "Edit Site";
 
         FADE_IN_DELAY_TIME = 1000;
-        FADE_OUT_DELAY_TIME = 1000;
 
         private bindings : BindingInstance;
 
@@ -67,11 +66,13 @@ namespace Citadel {
                 this.title = this.TITLE_EDIT_SITE;
             }
 
+            this.bindings.Refresh();
+
             $(this.editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
 
         public StopEditing(): void {
-            $(this.editorOverlay).fadeOut(this.FADE_OUT_DELAY_TIME);
+            $(this.editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
             this.bindings.Unbind();
         }
     }
@@ -139,7 +140,7 @@ namespace Citadel {
         private m_emailInputId : string;
         private m_inputPasswordId : string;
         private m_inputPasswordConfirm  : HTMLInputElement;
-        private m_inputActivationCount  : HTMLInputElement;
+        private m_activationCountInputId : string;
         private m_inputCustomerId       : HTMLInputElement;
         private m_inputIsActive         : HTMLInputElement;
         private m_inputReportLevel      : HTMLInputElement;
@@ -182,6 +183,9 @@ namespace Citadel {
 
         constructor() {
             super();
+
+            this.m_selfModerationEditor = new SelfModerationEditor();
+
             this.ConstructFormReferences();
         }
 
@@ -198,8 +202,8 @@ namespace Citadel {
 
             this.m_emailInputId = "editor_user_input_username";
             this.m_inputPasswordId = "editor_user_input_password";
+            this.m_activationCountInputId = "editor_user_input_num_activations";
 
-            this.m_inputActivationCount = document.querySelector('#editor_user_input_num_activations') as HTMLInputElement;
             this.m_selectGroup      = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
             this.m_selectRole       = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
             this.m_inputIsActive    = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
@@ -296,7 +300,6 @@ namespace Citadel {
             this.m_groupId          = this.getValueFromSelect(this.m_selectGroup);
             this.m_roleId           = this.getValueFromSelect(this.m_selectRole);
             this.m_customerId       = this.m_inputCustomerId.value == "" ? null:this.m_inputCustomerId.valueAsNumber;
-            this.m_numActivations   = this.m_inputActivationCount.valueAsNumber;
             this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
             this.m_reportLevel      = this.m_inputReportLevel.checked == true ? 1 : 0;
 
@@ -352,7 +355,7 @@ namespace Citadel {
                 equalTo: '#' + this.m_inputPasswordId
             };
 
-            validationRules[this.m_inputActivationCount.id] = {
+            validationRules[this.m_activationCountInputId] = {
                 required: true,
                 number: true
             };
@@ -361,7 +364,7 @@ namespace Citadel {
             validationErrorMessages[this.m_emailInputId] = this.ERROR_MESSAGE_EMAIL;
             validationErrorMessages[this.m_inputPasswordId] = this.ERROR_MESSAGE_PASSWORD;
             validationErrorMessages[this.m_inputPasswordConfirm.id] = this.ERROR_MESSAGE_CONFIRM_PASSWORD;
-            validationErrorMessages[this.m_inputActivationCount.id] = this.ERROR_MESSAGE_ACTIVATION;
+            validationErrorMessages[this.m_activationCountInputId] = this.ERROR_MESSAGE_ACTIVATION;
 
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
@@ -476,14 +479,18 @@ namespace Citadel {
                         var $btn = $(this);
                         var rowId = $btn.attr("data-row-id");
 
-                        for(var i = 0; that.selfModeration && i < that.selfModeration.length; i++) {
+                        var i = 0;
+                        for(i = 0; that.selfModeration && i < that.selfModeration.length; i++) {
                             if(that.selfModeration[i].id === parseInt(rowId)) {
                                 break;
                             }
                         }
 
-                        this.StartEditingSelfModeration(that.selfModeration[i].site, function(site) {
+                        that.StartEditingSelfModeration(that.selfModeration[i].site, function(site) {
                             that.selfModeration[i].site = site;
+
+                            that.m_selfModerationTable.row(i).data(that.selfModeration[i]);
+                            that.m_selfModerationTable.draw();
                         });
                     })
                 })
@@ -492,9 +499,13 @@ namespace Citadel {
             this.m_selfModerationTable = $('#self_moderation_table').DataTable(this.m_selfModerationTableSettings);
 
             $("#self_moderation_table").on("click", "tbody td", function(e) {
-                this.StartEditingSelfModeration()
+                //this.StartEditingSelfModeration()
                 //this.m_selfModerationEditor.inline(this);
             })
+        }
+
+        private StartEditingSelfModeration(site: string, onComplete: any) {
+            this.m_selfModerationEditor.StartEditing(site, onComplete);
         }
 
         private InitUserActivationTables() {
@@ -678,12 +689,32 @@ namespace Citadel {
             this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
         }
 
-        public cancelClick(e: MouseEvent): void {
+        public addNewSelfModerationSite(): any {
+            // TODO: Figure out why this is triggering submit.
+            var that = this;
+
+            that.StartEditingSelfModeration(null, function(site) {
+                that.selfModeration.push({
+                    id: that.siteIdHash(site),
+                    site: site
+                });
+
+                that.m_selfModerationTable.clear();
+                that.m_selfModerationTable.rows.add(that.selfModeration);
+                that.m_selfModerationTable.draw();
+            });
+
+            return false;
+        }
+
+        public cancelClick(e: MouseEvent): any {
             if(this.m_actionCompleteCallback != null) {
                 this.m_actionCompleteCallback("Cancel");
             } else {
                 this.StopEditing();
             }
+
+            return false;
         }
 
         /*public StartEditingSelfModeration(site: string = null): void {
@@ -737,11 +768,7 @@ namespace Citadel {
                         this.m_editorTitleValue = this.TITLE_EDIT_USER;
                         this.m_btnSubmit.innerText = this.BTN_EDIT_USER;
 
-                        this.m_inputCustomerId.value = (this.m_customerId == null) ? '':this.m_customerId.toString();
-
                         this.m_inputPasswordConfirm.value = new Array(30).join("x");
-
-                        this.m_inputActivationCount.value = this.m_numActivations.toString();
 
                         if (this.m_groupId != -1) {
                             let optionInList = this.m_selectGroup.querySelector('option[value="' + this.m_groupId.toString() + '"]') as HTMLOptionElement;

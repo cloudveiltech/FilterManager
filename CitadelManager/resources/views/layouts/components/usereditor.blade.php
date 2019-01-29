@@ -2,40 +2,42 @@
 <script src="{{ asset('js/admin/records/userrecord.js') }}">
 </script>
 
-<div class="bg-dark" id="overlay_self_moderation_editor">
-    <div class="flex-grid">
-        <h1 id="self_moderation_title" text-bind="title">Edit Site</h1>
+<div class="bg-dark overlay" id="overlay_self_moderation_editor">
+    <div id="self_moderation_editor_body">
+        <div class="flex-grid">
+            <h1 id="self_moderation_title" text-bind="title">Edit Site</h1>
 
-        <form method="post" action="javascript:void(0)" elem-bind="form" event-submit="onSubmit" data-on-submit="submit">
-            <div class="grid">
-                <div class="row cell-auto-size">
-                    <div class="cell cell-auto-size">
-                        <div class="input-control text" data-role="input">
-                            <label for="editor_self_moderation_input_site">Site:</label>
-                            <input type="text" value-bind="site" name="editor_self_moderation_input_site" id="editor_self_moderation_input_site">
+            <form method="post" action="javascript:void(0)" elem-bind="form" event-submit="onSubmit" data-on-submit="submit">
+                <div class="grid">
+                    <div class="row cell-auto-size">
+                        <div class="cell cell-auto-size">
+                            <div class="input-control text" data-role="input">
+                                <label for="editor_self_moderation_input_site">Site:</label>
+                                <input type="text" value-bind="site" name="editor_self_moderation_input_site" id="editor_self_moderation_input_site">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row cell-auto-size">
+                        <div class="form-actions">
+                            <button id="self_moderation_submit" type="submit" class="button primary">Save</button>
+                            <button id="self_moderation_cancel" event-click="cancelClick" type="button" class="button link">Cancel</button>
                         </div>
                     </div>
                 </div>
-
-                <div class="row cell-auto-size">
-                    <div class="form-actions">
-                        <button id="self_moderation_submit" type="submit" class="button primary">Save</button>
-                        <button id="self_moderation_cancel" event-click="cancelClick" type="button" class="button link">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
 <!-- User Editing Overlay -->
-<div class="bg-dark" id="overlay_user_editor">
-    <div id="div_08c2_0">
+<div class="bg-dark overlay" id="overlay_user_editor">
+    <div id="user_editor_body">
         <div class="flex-grid">
 
             <h1 text-bind="m_editorTitleValue" id="user_editing_title">Create New User</h1>
             <br />
-            <form method="post" action="javascript:void(0)" event-click="onSubmit" id="editor_user_form" data-on-submit="submit">
+            <form method="post" action="javascript:void(0)" event-submit="onSubmit" id="editor_user_form" data-on-submit="submit">
                 <div class="tabcontrol" data-role="tabcontrol">
                     <ul class="tabs">
                         <li class="active">
@@ -115,7 +117,7 @@
                                     <div class="cell cell-auto-size">
                                         <div class="input-control text" data-role="input">
                                             <label for="editor_user_input_num_activations">Activations Permitted:</label>
-                                            <input type="number" name="editor_user_input_num_activations" id="editor_user_input_num_activations">
+                                            <input type="number" num-value-bind="m_numActivations" name="editor_user_input_num_activations" id="editor_user_input_num_activations">
                                             <button class="button helper-button clear" type="button">
                                                 <span class="mif-cross"></span>
                                             </button>
@@ -182,6 +184,8 @@
                                     <small>Self-moderation</small>
                                 </h2>
                                 <hr class="thin" />
+                                <button type="button" event-click="addNewSelfModerationSite" class="button primary">Add Site</button>
+
                                 <table id="self_moderation_table" class="table striped hovered border" style="width: 100%">
 
                                 </table>
@@ -191,7 +195,7 @@
                     <div class="row cell-auto-size">
                         <div class="form-actions">
                             <button id="user_editor_submit" type="submit" class="button primary">Create User</button>
-                            <button id="user_editor_cancel" type="button" class="button link">Cancel</button>
+                            <button id="user_editor_cancel" type="button" event-click="cancelClick" class="button link">Cancel</button>
                         </div>
                     </div>
                 </div>

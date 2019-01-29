@@ -9,6 +9,7 @@ var Citadel;
             this.eventListeners = [];
             this.bindingTypes = {
                 'value-bind': this.bindValueBinding,
+                'num-value-bind': this.bindNumValueBinding,
                 'elem-bind': this.bindElementBinding,
                 'text-bind': this.bindTextBinding
             };
@@ -16,18 +17,17 @@ var Citadel;
             this.model = model;
         }
         BindingInstance.prototype.Bind = function () {
-            this.valueBoundElements = this.element.querySelectorAll("[value-bind]");
-            this.elementBoundElements = this.element.querySelectorAll("[elem-bind]");
-            this.textBoundElements = this.element.querySelectorAll("[text-bind]");
+            this.boundElements = {};
             this.eventElements = {};
+            this.bindings = [];
+            for (var bindingType in this.bindingTypes) {
+                this.boundElements[bindingType] = this.element.querySelectorAll("[" + bindingType + "]");
+                this.buildBindings(this.boundElements[bindingType], this.bindings, bindingType);
+            }
             for (var _i = 0, _a = this.eventTypes; _i < _a.length; _i++) {
                 var eventType = _a[_i];
                 this.eventElements[eventType] = this.element.querySelectorAll("[event-" + eventType + "]");
             }
-            this.bindings = [];
-            this.buildBindings(this.valueBoundElements, this.bindings, this.VALUE_BIND);
-            this.buildBindings(this.elementBoundElements, this.bindings, this.ELEM_BIND);
-            this.buildBindings(this.textBoundElements, this.bindings, this.TEXT_BIND);
             this.triggerBindings(this.bindings);
             this.buildEventBindings();
         };
@@ -54,38 +54,34 @@ var Citadel;
                 var prop = attr.value;
                 var fn = new Function('_', 'e', '_.' + prop + '(e)');
                 return function (e) {
-                    fn(model, e);
+                    var r = fn(model, e);
+                    return r === undefined ? false : r;
                 };
             }
-            this.eventListeners = [];
             for (var eventType in this.eventElements) {
                 for (var _i = 0, _a = this.eventElements[eventType]; _i < _a.length; _i++) {
                     var elem = _a[_i];
                     var eventFn = generateEventBinding(this.model, elem, eventType);
-                    elem.addEventListener(eventType, eventFn);
-                    this.eventListeners.push({
-                        elem: elem,
-                        type: eventType,
-                        fn: eventFn
-                    });
+                    this.addListenerTo(elem, eventType, eventFn);
                 }
             }
         };
         BindingInstance.prototype.triggerBindings = function (bindings) {
             for (var _i = 0, bindings_1 = bindings; _i < bindings_1.length; _i++) {
                 var binding = bindings_1[_i];
-                switch (binding.bindingType) {
-                    case this.VALUE_BIND:
-                        this.bindValueBinding(binding);
-                        break;
-                    case this.ELEM_BIND:
-                        this.bindElementBinding(binding);
-                        break;
-                    case this.TEXT_BIND:
-                        this.bindTextBinding(binding);
-                        break;
+                if (binding.bindingType in this.bindingTypes) {
+                    this.bindingTypes[binding.bindingType].call(this, binding);
                 }
             }
+        };
+        BindingInstance.prototype.addListenerTo = function (elem, eventType, fn) {
+            this.eventListeners = this.eventListeners || [];
+            elem.addEventListener(eventType, fn);
+            this.eventListeners.push({
+                elem: elem,
+                type: eventType,
+                fn: fn
+            });
         };
         BindingInstance.prototype.bindValueBinding = function (binding) {
             var that = this;
@@ -99,7 +95,23 @@ var Citadel;
                     binding.set(that.model, viewValue);
                 }
             };
-            binding.target.addEventListener('input', function () {
+            that.addListenerTo(binding.target, 'input', function () {
+                binding.calls.onviewupdate();
+            });
+        };
+        BindingInstance.prototype.bindNumValueBinding = function (binding) {
+            var that = this;
+            binding.calls = {
+                onmodelupdate: function () {
+                    var newValue = binding.get(that.model);
+                    binding.target.value = newValue;
+                },
+                onviewupdate: function () {
+                    var viewValue = binding.target.valueAsNumber;
+                    binding.set(that.model, viewValue);
+                }
+            };
+            that.addListenerTo(binding.target, 'input', function () {
                 binding.calls.onviewupdate();
             });
         };

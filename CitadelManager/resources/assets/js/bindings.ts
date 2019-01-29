@@ -25,13 +25,13 @@ namespace Citadel {
         private eventTypes: Array<string> = ['click', 'submit'];
         private eventListeners: Array<any> = [];
 
-        private valueBoundElements: any;
-        private elementBoundElements: any;
-        private textBoundElements: any;
+        private boundElements: any;
+
         private eventElements: any;
 
         private bindingTypes: object = {
             'value-bind': this.bindValueBinding,
+            'num-value-bind': this.bindNumValueBinding,
             'elem-bind': this.bindElementBinding,
             'text-bind': this.bindTextBinding
         };
@@ -44,20 +44,18 @@ namespace Citadel {
         }
 
         public Bind(): void {
-            this.valueBoundElements = this.element.querySelectorAll("[value-bind]");
-            this.elementBoundElements = this.element.querySelectorAll("[elem-bind]");
-            this.textBoundElements = this.element.querySelectorAll("[text-bind]");
+            this.boundElements = {};
             this.eventElements = {};
+            this.bindings = [];
+
+            for(var bindingType in this.bindingTypes) {
+                this.boundElements[bindingType] = this.element.querySelectorAll("[" + bindingType + "]");
+                this.buildBindings(this.boundElements[bindingType], this.bindings, bindingType);
+            }
 
             for(var eventType of this.eventTypes) {
                 this.eventElements[eventType] = this.element.querySelectorAll("[event-" + eventType + "]");
             }
-
-            this.bindings = [];
-
-            this.buildBindings(this.valueBoundElements, this.bindings, this.VALUE_BIND);
-            this.buildBindings(this.elementBoundElements, this.bindings, this.ELEM_BIND);
-            this.buildBindings(this.textBoundElements, this.bindings, this.TEXT_BIND);
 
             this.triggerBindings(this.bindings);
 
@@ -89,44 +87,38 @@ namespace Citadel {
 
                 var fn = new Function('_', 'e', '_.' + prop + '(e)'); // equivalent to function(_, event) { _[prop](event); }
                 return function(e) {
-                    fn(model, e);
+                    var r = fn(model, e);
+                    return r === undefined ? false : r;
                 }
             }
-
-            this.eventListeners = [];
 
             for(var eventType in this.eventElements) {
                 for(var elem of this.eventElements[eventType]) {
                     var eventFn = generateEventBinding(this.model, elem, eventType);
 
-                    elem.addEventListener(eventType, eventFn);
-
-                    this.eventListeners.push({
-                        elem: elem,
-                        type: eventType,
-                        fn: eventFn
-                    });
+                    this.addListenerTo(elem, eventType, eventFn);
                 }
             }
         }
 
         private triggerBindings(bindings: Array<any>): void {
             for(var binding of bindings) {
-                // We need to figure out how and when to set binding actions (get and set actions)
-                switch(binding.bindingType) {
-                    case this.VALUE_BIND:
-                        this.bindValueBinding(binding);
-                        break;
-
-                    case this.ELEM_BIND:
-                        this.bindElementBinding(binding);
-                        break;
-
-                    case this.TEXT_BIND:
-                        this.bindTextBinding(binding);
-                        break;
+                if(binding.bindingType in this.bindingTypes) {
+                    this.bindingTypes[binding.bindingType].call(this, binding);
                 }
             }
+        }
+
+        private addListenerTo(elem: any, eventType: string, fn: any) {
+            this.eventListeners = this.eventListeners || [];
+
+            elem.addEventListener(eventType, fn);
+
+            this.eventListeners.push({
+                elem: elem,
+                type: eventType,
+                fn: fn
+            });
         }
 
         private bindValueBinding(binding: any): void {
@@ -145,7 +137,28 @@ namespace Citadel {
                 }
             };
 
-            binding.target.addEventListener('input', function() {
+            that.addListenerTo(binding.target, 'input', function() {
+                binding.calls.onviewupdate();
+            });
+        }
+
+        private bindNumValueBinding(binding: any): void {
+            let that = this;
+
+            binding.calls = {
+                onmodelupdate: function() {
+                    let newValue = binding.get(that.model);
+
+                    binding.target.value = newValue;
+                },
+
+                onviewupdate: function() {
+                    let viewValue = binding.target.valueAsNumber;
+                    binding.set(that.model, viewValue);
+                }
+            };
+
+            that.addListenerTo(binding.target, 'input', function() {
                 binding.calls.onviewupdate();
             });
         }
