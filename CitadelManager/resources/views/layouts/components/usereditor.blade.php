@@ -202,13 +202,38 @@
                                 </h2>
                                 <hr class="thin" />
                                 <div id="time_restrictions">
-                                    <div class="slider" id="monday"></div>
-                                    <div class="slider" id="tuesday"></div>
-                                    <div class="slider" id="wednesday"></div>
-                                    <div class="slider" id="thursday"></div>
+                                    <div class="restriction-row">
+                                        <div class="checkbox">
+                                            <input type="checkbox" id="monday_checkbox" value-bind="timeRestrictions.monday.RestrictionsEnabled" />
+                                            <label for="monday_checkbox">Monday</label>
+                                        </div>
+                                        <div class="slider" id="monday"></div>
+                                    </div>
+                                    <div>
+                                        <div>
+                                            <input type="checkbox" value-bind="timeRestrictions.tuesday.RestrictionsEnabled" />
+                                            <label>Tuesday</label>
+                                        </div>
+                                        <div class="slider" id="tuesday"></div>
+                                    </div>
+                                    <div>
+                                        <div>
+                                            <input type="checkbox" value-bind="timeRestrictions.wednesday.RestrictionsEnabled" />
+                                            <label>Wednesday</label>
+                                        </div>
+                                        <div class="slider" id="wednesday"></div>
+                                    </div>
+                                    <div>
+                                        <div>
+                                            <input type="checkbox" value-bind="timeRestrictions.thursday.RestrictionsEnabled" />
+                                            <label>Thursday</label>
+                                        </div>
+                                        <div class="slider" id="thursday"></div>
+                                    </div>
+
                                     <div class="slider" id="friday"></div>
                                     <div class="slider" id="saturday"></div>
-                                    <div class="slider" id="monday"></div>
+                                    <div class="slider" id="sunday"></div>
                                 </div>
                             </div>
                         </div>

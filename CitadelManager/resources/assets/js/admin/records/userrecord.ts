@@ -315,7 +315,7 @@ namespace Citadel {
                 this.timeRestrictions = {};
 
                 for(var day in this.myConfigData.TimeRestrictions) {
-                    this.timeRestrictions[day] = this.myConfigData.TimeRestrictions;
+                    this.timeRestrictions[day] = this.myConfigData.TimeRestrictions[day];
                 }
             } else {
                 this.timeRestrictions = {};
@@ -340,6 +340,14 @@ namespace Citadel {
             for(var o of this.selfModeration) {
                 this.myConfigData.SelfModeration.push(o.site);
             }
+
+            this.myConfigData.TimeRestrictions = {};
+
+            for(var day in this.timeRestrictions) {
+                var slider = this.m_timeRestrictionSliders[day];
+                this.myConfigData.TimeRestrictions[day] = { EnabledThrough: slider.noUiSlider.get() };
+            }
+
         }
 
         public ToObject(): Object {

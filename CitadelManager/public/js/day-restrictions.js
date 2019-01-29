@@ -8,7 +8,7 @@ Vue.component('day-restrictions', {
 					<span>{{ caption }}</span>\
 				</label>\
 			</div>\
-			<div class="slider inverse col-md-20">\
+			<div class="slider col-md-20">\
 				<no-ui-slider v-bind:slider-config="sliderConfig" :slider-value="sliderValue.EnabledThrough" @input="onSliderInput($event)"></no-ui-slider>\
 			</div>\
 			<div class="row">\
@@ -35,7 +35,7 @@ Vue.component('day-restrictions', {
 			this.$emit('input', this.sliderValue);
 		},
 
-		onSliderInput($event) {
+		onSliderInput: function($event) {
 			!this.sliderValue.EnabledThrough && Vue.set(this.sliderValue, 'EnabledThrough', [0, 24]);
 			Vue.set(this.sliderValue.EnabledThrough, $event.handle, $event.value[$event.handle]);
 

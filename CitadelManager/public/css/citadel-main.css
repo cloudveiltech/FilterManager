@@ -1907,3 +1907,13 @@ div.login-form button.helper-button {
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#44377D', endColorstr='#261E45', GradientType=0);
     /* ie6-9 */
 }
+
+.restriction-row .checkbox {
+    display: block;
+    float: left;
+}
+
+.restriction-row .slider {
+    display: block;
+    float: left;
+}
