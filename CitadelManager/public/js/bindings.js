@@ -5,7 +5,7 @@ var Citadel;
             this.VALUE_BIND = 'value-bind';
             this.ELEM_BIND = 'elem-bind';
             this.TEXT_BIND = 'text-bind';
-            this.eventTypes = ['click', 'submit'];
+            this.eventTypes = ['click', 'submit', 'change'];
             this.eventListeners = [];
             this.bindingTypes = {
                 'value-bind': this.bindValueBinding,
@@ -85,17 +85,20 @@ var Citadel;
         };
         BindingInstance.prototype.bindValueBinding = function (binding) {
             var that = this;
+            binding.isCheckbox = binding.target.attributes.type && binding.target.attributes.type.value == "checkbox";
             binding.calls = {
                 onmodelupdate: function () {
                     var newValue = binding.get(that.model);
-                    binding.target.value = newValue;
+                    var prop = binding.isCheckbox ? 'checked' : 'value';
+                    binding.target[prop] = newValue;
                 },
                 onviewupdate: function () {
-                    var viewValue = binding.target.value;
+                    var viewValue = (binding.isCheckbox) ? binding.target.checked : binding.target.value;
                     binding.set(that.model, viewValue);
                 }
             };
-            that.addListenerTo(binding.target, 'input', function () {
+            var eventType = binding.isCheckbox ? 'change' : 'input';
+            that.addListenerTo(binding.target, eventType, function () {
                 binding.calls.onviewupdate();
             });
         };

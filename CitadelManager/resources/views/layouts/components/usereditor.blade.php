@@ -196,46 +196,27 @@
                         </div>
 
                         <div class="frame" id="time_restrictions_tab">
+
                             <div class="grid">
                                 <h2>
                                     <small>Time Restrictions</small>
                                 </h2>
                                 <hr class="thin" />
                                 <div id="time_restrictions">
-                                    <div class="row">
-                                        <div class="cell-3 checkbox">
-                                            <input type="checkbox" id="monday_checkbox" value-bind="timeRestrictions.monday.RestrictionsEnabled" />
-                                            <label for="monday_checkbox">Monday</label>
-                                        </div>
-                                        <div class="cell-9">
-                                            <div class="slider" id="monday"></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div>
-                                            <input type="checkbox" value-bind="timeRestrictions.tuesday.RestrictionsEnabled" />
-                                            <label>Tuesday</label>
-                                        </div>
-                                        <div class="slider" id="tuesday"></div>
-                                    </div>
-                                    <div>
-                                        <div>
-                                            <input type="checkbox" value-bind="timeRestrictions.wednesday.RestrictionsEnabled" />
-                                            <label>Wednesday</label>
-                                        </div>
-                                        <div class="slider" id="wednesday"></div>
-                                    </div>
-                                    <div>
-                                        <div>
-                                            <input type="checkbox" value-bind="timeRestrictions.thursday.RestrictionsEnabled" />
-                                            <label>Thursday</label>
-                                        </div>
-                                        <div class="slider" id="thursday"></div>
-                                    </div>
+                                    @php
+                                    $days = [["monday", "Monday"], ["tuesday", "Tuesday"], ["wednesday", "Wednesday"], ["thursday", "Thursday"], ["friday", "Friday"], ["saturday", "Saturday"], ["sunday", "Sunday"]];
+                                    @endphp
 
-                                    <div class="slider" id="friday"></div>
-                                    <div class="slider" id="saturday"></div>
-                                    <div class="slider" id="sunday"></div>
+                                    @foreach($days as $day)
+                                        <div class="restrictions-row">
+                                            <div class="checkbox">
+                                                <input type="checkbox" id="{{$day[0]}}_checkbox" event-change="timeRestrictions.{{$day[0]}}.generateInternetLabel" value-bind="timeRestrictions.{{$day[0]}}.RestrictionsEnabled" />
+                                                <label for="{{$day[0]}}_checkbox">{{$day[1]}}</label>
+                                            </div>
+                                            <div class="slider" data-caption="{{$day[1]}}" id="{{$day[0]}}"></div>
+                                        </div>
+                                        <div class="restrictions-label" text-bind="timeRestrictions.{{$day[0]}}.internetLabel"></div>
+                                    @endforeach
                                 </div>
                             </div>
                         </div>

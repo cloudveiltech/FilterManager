@@ -345,9 +345,8 @@ namespace Citadel {
 
             for(var day in this.timeRestrictions) {
                 var slider = this.m_timeRestrictionSliders[day];
-                this.myConfigData.TimeRestrictions[day] = { EnabledThrough: slider.noUiSlider.get() };
+                this.myConfigData.TimeRestrictions[day] = { EnabledThrough: slider.noUiSlider.get(), RestrictionsEnabled: this.timeRestrictions[day].RestrictionsEnabled };
             }
-
         }
 
         public ToObject(): Object {
@@ -442,6 +441,52 @@ namespace Citadel {
             return options;
         }
 
+        private static timeOfDay(n) : string {
+            var minutes : any = Math.round((n % 1) * 60);
+            var hours = Math.floor(n);
+
+            var ampm = (hours % 24) >= 12 ? "PM" : "AM";
+
+            hours %= 12;
+            if(hours == 0) {
+                hours = 12;
+            }
+
+            if(minutes < 10) {
+                minutes = "0" + minutes;
+            }
+
+            return hours + ":" + minutes + ampm;
+        }
+
+        private generateInternetLabel(entry, sliderElem) {
+            var enabledTimes = entry.EnabledThrough || [0,24];
+            var caption = (sliderElem.attributes['data-caption']) ? sliderElem.attributes['data-caption'].value : "N/A";
+
+            if(!entry.RestrictionsEnabled) {
+                return "No restrictions for " + caption;
+            } else {
+                if(enabledTimes[0] == 0 && enabledTimes[1] == 24) {
+                    return "No restrictions for " + caption;
+                } else if(enabledTimes[0] == enabledTimes[1]) {
+                    return "Internet restricted all day";
+                } else {
+                    // enabledTimes[0]
+                    return "Internet allowed between " + UserRecord.timeOfDay(enabledTimes[0]) + " and " + UserRecord.timeOfDay(enabledTimes[1]);
+                }
+            }
+        }
+
+        private generateInternetLabelCallback(day, sliderElem): any {
+            var that = this;
+            return function(values, handle, unencoded, tap, positions) {
+                console.log(unencoded);
+                that.timeRestrictions[day].EnabledThrough = unencoded;
+                that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], sliderElem);
+                that.m_bindings.Refresh();
+            }
+        }
+
         private InitTimeRestrictions(): void {
             var days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -449,6 +494,13 @@ namespace Citadel {
 
             var configs = {};
             var sliders = {};
+
+            function generateLabelFn(that, day, slider) {
+                return function() {
+                    that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], slider);
+                    that.m_bindings.Refresh();
+                };
+            }
 
             for(var day of days) {
                 configs[day] = JSON.parse(JSON.stringify(this.m_timeRestrictionsSliderConfig));
@@ -464,12 +516,17 @@ namespace Citadel {
                 }
 
                 noUiSlider.create(slider, configs[day]);
+                slider.noUiSlider.on('set', this.generateInternetLabelCallback(day, slider));
 
                 sliders[day] = slider;
+
+                this.timeRestrictions[day].internetLabel = this.generateInternetLabel(this.timeRestrictions[day], slider);
+                this.timeRestrictions[day].generateInternetLabel = generateLabelFn(this, day, slider);
             }
 
             this.m_timeRestrictionConfigs = configs;
             this.m_timeRestrictionSliders = sliders;
+            this.m_bindings.Refresh();
         }
 
         private InitSelfModerationTable() {

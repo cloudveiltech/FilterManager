@@ -22,7 +22,7 @@ namespace Citadel {
         private element: any;
         private model: any;
 
-        private eventTypes: Array<string> = ['click', 'submit'];
+        private eventTypes: Array<string> = ['click', 'submit', 'change'];
         private eventListeners: Array<any> = [];
 
         private boundElements: any;
@@ -124,20 +124,23 @@ namespace Citadel {
         private bindValueBinding(binding: any): void {
             let that = this;
 
+            binding.isCheckbox = binding.target.attributes.type && binding.target.attributes.type.value == "checkbox";
+
             binding.calls = {
                 onmodelupdate: function() {
                     let newValue = binding.get(that.model);
-
-                    binding.target.value = newValue;
+                    let prop = binding.isCheckbox ? 'checked' : 'value';
+                    binding.target[prop] = newValue;
                 },
 
                 onviewupdate: function() {
-                    let viewValue = binding.target.value;
+                    let viewValue = (binding.isCheckbox) ? binding.target.checked : binding.target.value;
                     binding.set(that.model, viewValue);
                 }
             };
 
-            that.addListenerTo(binding.target, 'input', function() {
+            var eventType = binding.isCheckbox ? 'change' : 'input';
+            that.addListenerTo(binding.target, eventType, function() {
                 binding.calls.onviewupdate();
             });
         }
