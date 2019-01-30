@@ -202,12 +202,14 @@
                                 </h2>
                                 <hr class="thin" />
                                 <div id="time_restrictions">
-                                    <div class="restriction-row">
-                                        <div class="checkbox">
+                                    <div class="row">
+                                        <div class="cell-3 checkbox">
                                             <input type="checkbox" id="monday_checkbox" value-bind="timeRestrictions.monday.RestrictionsEnabled" />
                                             <label for="monday_checkbox">Monday</label>
                                         </div>
-                                        <div class="slider" id="monday"></div>
+                                        <div class="cell-9">
+                                            <div class="slider" id="monday"></div>
+                                        </div>
                                     </div>
                                     <div>
                                         <div>
