@@ -231,9 +231,7 @@ class AppUserActivationController extends Controller
                     $bypass_permitted = $app_cfg->BypassesPermitted;
                 }
 
-                $userConfig = json_decode($user->config_override);
-
-                if($userConfig->EnableRelaxedPolicyPasscode) {
+                if($user->enable_relaxed_policy_passcode) {
                     $passcodeEnabled = true;
                     $passcode = $user->relaxed_policy_passcode;
                 }
