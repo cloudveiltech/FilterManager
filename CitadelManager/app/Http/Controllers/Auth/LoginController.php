@@ -14,7 +14,12 @@ use App\Auth\AuthenticatesLicensedUsers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
-class LoginController extends Controller
+class LoginControllerBase extends Controller {
+    // LoginControllerBase -> LoginController allows us to override this trait.
+    use AuthenticatesLicensedUsers;
+}
+
+class LoginController extends LoginControllerBase
 {
     /*
     |--------------------------------------------------------------------------
@@ -26,8 +31,6 @@ class LoginController extends Controller
     | to conveniently provide its functionality to your applications.
     |
     */
-
-    use AuthenticatesLicensedUsers;
 
     /**
      * Where to redirect users after login.
