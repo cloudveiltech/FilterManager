@@ -13,6 +13,40 @@
 <script src="{{ asset('js/no-ui-slider.js') }}"></script>
 <script src="{{ asset('js/day-restrictions.js') }}"></script>
 <script src="{{ asset('js/self-moderation-entry.js') }}"></script>
+
+<script>
+    $(document).ready(function() {
+        var search = window.location.search.substring(1);
+        var searchParts = search.split('&');
+        var searchArray = $.map(searchParts, function(p, i) {
+            return p.split('=');
+        });
+
+        var search = {};
+
+        for(var i = 0; i < searchArray.length; i++) {
+            search[searchArray[0]] = searchArray[1];
+        }
+
+        if(search.tab) {
+            applyTab(search.tab);
+        }
+    });
+
+    function applyTab(tab) {
+        var tabList = $("#app [role='tablist']");
+        var tabContent = $("#app .tab-content");
+
+        tabList.find("li").removeClass("active");
+        tabContent.find("[role='tabpanel']").removeClass("active");
+
+        var a = tabList.find("li a[href='#" + tab + "']");
+        a.parent().addClass("active");
+
+        var pane = tabContent.find("#" + tab);
+        pane.addClass("active");
+    }
+</script>
 @endsection
 
 @section('content')

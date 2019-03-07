@@ -33,14 +33,31 @@ class LoginController extends Controller
      *
      * @var string
      */
+
+    protected $innerRedirectTo = null;
+
     protected function redirectTo() {
         $user = Auth::user();
+
+        if($this->innerRedirectTo !== null) {
+            return $this->innerRedirectTo;
+        }
 
         if($user->hasRole('user')) {
             return '/user';
         } else {
             return '/admin';
         }
+    }
+
+    public function login(Request $request) {
+        $redirect = $request->input('redirect');
+
+        if($redirect != null) {
+            $this->innerRedirectTo = $redirect;
+        }
+
+        return parent::login($request);
     }
 
     /**
