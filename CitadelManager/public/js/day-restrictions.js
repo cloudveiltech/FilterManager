@@ -8,7 +8,7 @@ Vue.component('day-restrictions', {
 					<span>{{ caption }}</span>\
 				</label>\
 			</div>\
-			<div class="slider inverse col-md-20">\
+			<div class="slider col-md-20">\
 				<no-ui-slider v-bind:slider-config="sliderConfig" :slider-value="sliderValue.EnabledThrough" @input="onSliderInput($event)"></no-ui-slider>\
 			</div>\
 			<div class="row">\
