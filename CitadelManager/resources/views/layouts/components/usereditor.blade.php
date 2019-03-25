@@ -2,34 +2,6 @@
 <script src="{{ asset('js/admin/records/userrecord.js') }}">
 </script>
 
-<div class="bg-dark overlay" id="overlay_self_moderation_editor">
-    <div id="self_moderation_editor_body">
-        <div class="flex-grid">
-            <h1 id="self_moderation_title" text-bind="title">Edit Site</h1>
-
-            <form method="post" action="javascript:void(0)" elem-bind="form" event-submit="onSubmit" data-on-submit="submit">
-                <div class="grid">
-                    <div class="row cell-auto-size">
-                        <div class="cell cell-auto-size">
-                            <div class="input-control text" data-role="input">
-                                <label for="editor_self_moderation_input_site">Site:</label>
-                                <input type="text" value-bind="site" name="editor_self_moderation_input_site" id="editor_self_moderation_input_site">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row cell-auto-size">
-                        <div class="form-actions">
-                            <button id="self_moderation_submit" type="submit" class="button primary">Save</button>
-                            <button id="self_moderation_cancel" event-click="cancelClick" type="button" class="button link">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <!-- User Editing Overlay -->
 <div class="bg-dark overlay" id="overlay_user_editor">
     <div id="user_editor_body">
@@ -162,6 +134,26 @@
                                         </label>
                                     </div>
                                 </div>
+
+                                <div class="row cell-auto-size">
+                                    <div class="cell cell-auto-size">
+                                        <div class="input-control password" data-role="input">
+                                            <label for="editor_user_relaxed_policy_passcode">Relaxed Policy Passcode:</label>
+                                            <input type="password" value-bind="m_relaxedPolicyPasscode"
+                                                name="editor_user_relaxed_policy_passcode"
+                                                id="editor_user_relaxed_policy_passcode" />
+                                        </div>
+                                    </div>
+
+                                    <div class="cell cell-auto-size">
+                                        <label class="option-label" for="editor_user_input_passcode_enabled">Enabled</label>
+                                        <label class="switch-original margin-left-add-30">
+                                            <input type="checkbox" id="editor_user_input_passcode_enabled">
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <div class="row cell-auto-size" id="div_08c2_2">
                                     <div id="user_form_errors">
                                     </div>
@@ -190,7 +182,16 @@
                                 <button type="button" event-click="addNewSelfModerationSite" class="button primary">Add Site</button>
 
                                 <table id="self_moderation_table" class="table striped hovered border" style="width: 100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Site</th>
+                                            <th>...</th>
+                                            <th>...</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="self_moderation_insert">
 
+                                    </tbody>
                                 </table>
                             </div>
                         </div>

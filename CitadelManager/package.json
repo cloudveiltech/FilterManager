@@ -11,15 +11,15 @@
   },
   "devDependencies": {
     "axios": "^0.15.3",
-    "bootstrap-sass": "^3.3.7",
+    "bootstrap-sass": "^3.4.1",
     "cross-env": "^3.2.3",
     "dragula": "3.7.2",
     "dropzone": "4.3.0",
     "jquery": "^3.1.1",
     "laravel-mix": "0.*",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.11",
     "typings": "2.1.1",
-    "vue": "^2.1.10"
+    "vue": "^2.6.10"
   },
   "dependencies": {
     "@types/datatables.net": "^1.10.14",
@@ -27,7 +27,7 @@
     "@types/dropzone": "^5.0.4",
     "@types/jquery": "^3.3.29",
     "@types/jquery.validation": "^1.16.5",
-    "@types/node": "^10.5.5",
+    "@types/node": "^10.14.3",
     "@types/nouislider": "^9.0.4",
     "jquery": "^3.2.1",
     "typescript": "^2.9.2"

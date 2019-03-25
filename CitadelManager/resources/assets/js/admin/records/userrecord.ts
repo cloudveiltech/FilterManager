@@ -8,72 +8,225 @@
 ///<reference path="../../progresswait.ts"/>
 
 namespace Citadel {
+    export class SelfModerationTable {
+        private table: HTMLTableElement;
+        private data: any;
+        private __nextId: number;
 
-    export class SelfModerationEditor {
-        // Constants
-        TITLE_NEW_SITE = "New Site";
-        TITLE_EDIT_SITE = "Edit Site";
+        private editInfo: any;
 
-        FADE_IN_DELAY_TIME = 1000;
+        public constructor(table: HTMLTableElement, data: any) {
+            this.__nextId = 1;
 
-        private bindings : BindingInstance;
-
-        // Editor HTML Elements
-        private form : HTMLFormElement;
-        private editorOverlay : HTMLDivElement;
-        private title: string;
-
-        private site : string;
-
-        private onComplete: any;
-
-        private submitText : string;
-
-        private btnSubmit             : HTMLButtonElement;
-        private btnCancel             : HTMLButtonElement;
-
-        private ConstructFormReferences(): void {
-            this.editorOverlay = document.querySelector("#overlay_self_moderation_editor") as HTMLDivElement;
-
-            this.bindings = new BindingInstance(this.editorOverlay, this);
-            this.bindings.Bind();
-            this.bindings.Refresh();
+            this.table = table;
+            this.data = this.fromStrings(data);
         }
 
-        public onSubmit(e: Event): any {
-            if(this.onComplete) {
-                this.onComplete(this.site);
+        private toStrings(): string[] {
+            var sites = [];
+            for(var i = 0; i < this.data.length; i++) {
+                sites.push(this.data[i].site);
             }
 
-            this.StopEditing();
-            return false;
+            return sites;
         }
 
-        public cancelClick(): void {
-            this.StopEditing();
-        }
+        private fromStrings(data: string[]): object[] {
+            var processed = [];
 
-        public StartEditing(site: string, onComplete: any): void {
-            this.onComplete = onComplete;
-
-            this.ConstructFormReferences();
-
-            this.site = site;
-
-            if(!site) {
-                this.title = this.TITLE_NEW_SITE;
-            } else {
-                this.title = this.TITLE_EDIT_SITE;
+            for(var i = 0; i < data.length; i++) {
+                processed.push({
+                    id: this.nextId(),
+                    site: data[i]
+                });
             }
 
-            this.bindings.Refresh();
-
-            $(this.editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
+            return processed;
         }
 
-        public StopEditing(): void {
-            $(this.editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
-            this.bindings.Unbind();
+        private findSiteObj(id: number): object {
+            for(var i = 0; i < this.data.length; i++) {
+                if(this.data[i].id === id) {
+                    return this.data[i];
+                }
+            }
+
+            return null;
+        }
+
+        private nextId(): number {
+            var n = this.__nextId;
+            this.__nextId += 1;
+            return n;
+        }
+
+        /* Taken from https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript */
+        /* Not currently used. Might want this? */
+        private siteIdHash(s: string): number {
+            let hash = 0;
+            if(s.length === 0) return hash;
+
+            let i = 0;
+            for(i = 0; i < s.length; i++) {
+                const chr = s.charCodeAt(i);
+                hash = ((hash << 5) - hash) + chr;
+                hash |= 0;
+            }
+
+            return hash;
+        }
+
+        public setData(data: any): void {
+            this.data = this.fromStrings(data);
+        }
+
+        public getData(): any {
+            return this.toStrings();
+        }
+
+        public add(): void {
+            this.data.push({
+                id: this.nextId(),
+                site: ""
+            });
+
+            this.render();
+        }
+
+        public remove(id: number): void {
+            for(var i = 0; i < this.data.length; i++) {
+                if(this.data[i].id == id) {
+                    break;
+                }
+            }
+
+            if(i < this.data.length) {
+                this.data.splice(i, 1);
+            }
+
+            this.render();
+        }
+
+        public edit(id: number): void {
+            if(this.editInfo && this.editInfo.inProgress) {
+                return;
+            }
+
+            var siteObj = this.findSiteObj(id);
+
+            var toEdit = this.table.querySelector("[data-id='" + id + "']");
+
+            this.editInfo = {
+                oldHtml: toEdit.innerHTML,
+                inProgress: true,
+                editor: this.editorRow(siteObj),
+                siteObj: siteObj
+            };
+
+            toEdit.innerHTML = "";
+            toEdit.parentNode.replaceChild(this.editInfo.editor, toEdit);
+
+            this.editInfo.editor.querySelector('input').focus();
+        }
+
+        public endEdit(): void {
+            if(!this.editInfo || !this.editInfo.inProgress) {
+                return;
+            }
+
+            var elem = this.editInfo.editor;
+
+            var siteObj = this.editInfo.siteObj;
+            elem.parentNode.replaceChild(this.renderRow(siteObj), elem);
+
+            this.editInfo = { inProgress: false };
+        }
+
+        private renderRow(siteObj): any {
+            var that = this;
+
+            var tr = document.createElement("tr");
+            tr.setAttribute("data-id", siteObj.id);
+
+            var siteTd = document.createElement("td");
+            var editTd = document.createElement("td");
+            var deleteTd = document.createElement("td");
+
+            siteTd.innerHTML = siteObj.site;
+
+            editTd.appendChild(this.button("Edit", function() {
+                that.edit(siteObj.id);
+            }));
+
+            deleteTd.appendChild(this.button("Delete", function() {
+                that.remove(siteObj.id);
+            }));
+
+            tr.appendChild(siteTd);
+            tr.appendChild(editTd);
+            tr.appendChild(deleteTd);
+
+            return tr;
+        }
+
+        private button(text: string, onclick: any): any {
+            var button = document.createElement("button");
+            button.setAttribute("type", "button");
+
+            button.innerHTML = text;
+            button.addEventListener("click", onclick);
+
+            return button;
+        }
+
+        public render(): void {
+            var table = this.table;
+            var tbody = this.table.querySelector("tbody");
+
+            tbody.innerHTML = "";
+
+            for(var i = 0; i < this.data.length; i++) {
+                var obj = this.data[i];
+
+                var tr = this.renderRow(obj);
+                tbody.appendChild(tr);
+            }
+        }
+
+        public editorRow(siteObj: any): any {
+            var that = this;
+
+            var site = siteObj.site;
+
+            var tr = document.createElement("tr");
+            tr.setAttribute("data-id", siteObj.id);
+            var inputTd = document.createElement("td");
+            var doneTd = document.createElement("td");
+            var deleteTd = document.createElement("td");
+
+            var input = document.createElement("input");
+            input.setAttribute("type", "text");
+            input.value = site;
+
+            var button = document.createElement("button");
+            button.innerHTML = "Done";
+
+            button.addEventListener("click", function() {
+                that.editInfo.siteObj.site = input.value;
+                that.endEdit();
+            });
+
+            inputTd.appendChild(input);
+            doneTd.appendChild(this.button("Done", function() {
+                that.editInfo.siteObj.site = input.value;
+                that.endEdit();
+            }));
+
+            tr.appendChild(inputTd);
+            tr.appendChild(doneTd);
+            tr.appendChild(deleteTd);
+
+            return tr;
         }
     }
 
@@ -130,7 +283,6 @@ namespace Citadel {
         private m_mainForm              : HTMLFormElement;
 
         private m_editorOverlay         : HTMLDivElement;
-        private m_selfModerationEditor : SelfModerationEditor;
 
         private m_editorTitleValue : string;
 
@@ -172,9 +324,7 @@ namespace Citadel {
         /**
          * SELF MODERATION TABLE
          */
-        private m_selfModerationTableSettings : DataTables.Settings;
-        private m_selfModerationColumns : DataTables.ColumnSettings[];
-        private m_selfModerationTable   : DataTables.Api;
+        private m_selfModerationTable : SelfModerationTable;
 
         /**
          * TIME RESTRICTIONS
@@ -192,7 +342,6 @@ namespace Citadel {
         constructor() {
             super();
 
-            this.m_selfModerationEditor = new SelfModerationEditor();
             this.m_timeRestrictionsSliderConfig = {
                 start: [0, 24],
                 connect: true,
@@ -268,19 +417,8 @@ namespace Citadel {
             }
         }
 
-        /* Taken from https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript */
-        private siteIdHash(s: string): number {
-            let hash = 0;
-            if(s.length === 0) return hash;
-
-            let i = 0;
-            for(i = 0; i < s.length; i++) {
-                const chr = s.charCodeAt(i);
-                hash = ((hash << 5) - hash) + chr;
-                hash |= 0;
-            }
-
-            return hash;
+        public addNewSelfModerationSite(): void {
+            this.m_selfModerationTable.add();
         }
 
         // ────────────────────────────────────────────────────
@@ -302,11 +440,7 @@ namespace Citadel {
             this.myConfigData       = data['config_override'] == null ? null : JSON.parse(data['config_override']);
 
             if(this.myConfigData && this.myConfigData.SelfModeration) {
-                this.selfModeration = [];
-
-                for(var site of this.myConfigData.SelfModeration) {
-                    this.selfModeration.push({site: site, id: this.siteIdHash(site) });
-                }
+                this.selfModeration = this.myConfigData.SelfModeration;
             } else {
                 this.selfModeration = [];
             }
@@ -331,15 +465,10 @@ namespace Citadel {
             this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
             this.m_reportLevel      = this.m_inputReportLevel.checked == true ? 1 : 0;
 
-            this.selfModeration = this.m_selfModerationTable.data().toArray();
+            this.selfModeration = this.m_selfModerationTable.getData();
             this.myConfigData = this.myConfigData || {};
 
-            this.myConfigData.SelfModeration = [];
-
-            // I know, I know, use .map(), but TS output -> ES5 doesn't support it.
-            for(var o of this.selfModeration) {
-                this.myConfigData.SelfModeration.push(o.site);
-            }
+            this.myConfigData.SelfModeration = this.selfModeration;
 
             this.myConfigData.TimeRestrictions = {};
 
@@ -532,103 +661,9 @@ namespace Citadel {
         private InitSelfModerationTable() {
             let that = this;
 
-            this.m_selfModerationColumns = [
-                {
-                    title: 'Site',
-                    data: 'site',
-                    name: 'site',
-                    visible: true
-                },
+            this.m_selfModerationTable = new SelfModerationTable(document.querySelector("#self_moderation_table"), this.selfModeration);
 
-                {
-                    width: "100px",
-                    render: function (data, type, row) {
-                        var strButtons = "";
-                        strButtons += "<button type='button' data-row-id='" + row.id + "' id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
-
-                        return strButtons;
-                    }
-                },
-
-                {
-                    width: "100px",
-                    render: function(data, type, row) {
-                        var strButtons = "";
-                        strButtons += "<button type='button' data-row-id='" + row.id + "' id='edit_" + row.id + "' class='btn-edit button primary'>Edit</button>";
-
-                        return strButtons;
-                    }
-                }
-            ];
-
-            if(!this.myConfigData || !this.myConfigData.SelfModeration) {
-                this.myConfigData = this.myConfigData || {};
-                this.myConfigData.SelfModeration = [];
-            }
-
-            this.m_selfModerationTableSettings = {
-                autoWidth: true,
-                stateSave: true,
-                responsive: true,
-                columns: this.m_selfModerationColumns,
-                data: this.selfModeration,
-                destroy: true,
-
-                rowCallback: ((row: Node, data: any[] | Object): void => {
-
-                }),
-
-                drawCallback: ((settings): void => {
-                    $("#self_moderation_table").off("click", "button.btn-delete");
-                    $("#self_moderation_table").on("click", "button.btn-delete", function() {
-                        var $btn = $(this);
-                        var rowId = $btn.attr("data-row-id");
-
-                        for(var i = 0; that.selfModeration && i < that.selfModeration.length; i++) {
-                            if(that.selfModeration[i].id === parseInt(rowId)) {
-                                break;
-                            }
-                        }
-
-                        that.selfModeration.splice(i, 1);
-
-                        that.m_selfModerationTable.clear();
-                        that.m_selfModerationTable.rows.add(that.selfModeration);
-                        that.m_selfModerationTable.draw();
-                    });
-
-                    $("#self_moderation_table").off("click", "button.btn-edit");
-                    $("#self_moderation_table").on("click", "button.btn-edit", function() {
-                        var $btn = $(this);
-                        var rowId = $btn.attr("data-row-id");
-
-                        var i = 0;
-                        for(i = 0; that.selfModeration && i < that.selfModeration.length; i++) {
-                            if(that.selfModeration[i].id === parseInt(rowId)) {
-                                break;
-                            }
-                        }
-
-                        that.StartEditingSelfModeration(that.selfModeration[i].site, function(site) {
-                            that.selfModeration[i].site = site;
-
-                            that.m_selfModerationTable.row(i).data(that.selfModeration[i]);
-                            that.m_selfModerationTable.draw();
-                        });
-                    })
-                })
-            };
-
-            this.m_selfModerationTable = $('#self_moderation_table').DataTable(this.m_selfModerationTableSettings);
-
-            $("#self_moderation_table").on("click", "tbody td", function(e) {
-                //this.StartEditingSelfModeration()
-                //this.m_selfModerationEditor.inline(this);
-            })
-        }
-
-        private StartEditingSelfModeration(site: string, onComplete: any) {
-            this.m_selfModerationEditor.StartEditing(site, onComplete);
+            this.m_selfModerationTable.render();
         }
 
         private InitUserActivationTables() {
@@ -812,24 +847,6 @@ namespace Citadel {
             this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
         }
 
-        public addNewSelfModerationSite(): any {
-            // TODO: Figure out why this is triggering submit.
-            var that = this;
-
-            that.StartEditingSelfModeration(null, function(site) {
-                that.selfModeration.push({
-                    id: that.siteIdHash(site),
-                    site: site
-                });
-
-                that.m_selfModerationTable.clear();
-                that.m_selfModerationTable.rows.add(that.selfModeration);
-                that.m_selfModerationTable.draw();
-            });
-
-            return false;
-        }
-
         public cancelClick(e: MouseEvent): any {
             if(this.m_actionCompleteCallback != null) {
                 this.m_actionCompleteCallback("Cancel");
@@ -839,13 +856,6 @@ namespace Citadel {
 
             return false;
         }
-
-        /*public StartEditingSelfModeration(site: string = null): void {
-            if(userData == null) {
-                this.m_selfModerationEditorTitle.innerText = this.TITLE_NEW_SELF_MODERATION_SITE;
-                this.m_selfModerationEditor
-            }
-        }*/
 
         public StartEditing(allGroups, userData: Object = null): void {
 
