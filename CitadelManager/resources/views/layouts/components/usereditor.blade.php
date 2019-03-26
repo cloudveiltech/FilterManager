@@ -142,15 +142,17 @@
                                             <input type="password" value-bind="m_relaxedPolicyPasscode"
                                                 name="editor_user_relaxed_policy_passcode"
                                                 id="editor_user_relaxed_policy_passcode" />
+                                            <button class="button helper-button reveal" tabindex="-1" type="button">
+                                                <span class="mif-looks"></span>
+                                            </button>
                                         </div>
-                                    </div>
-
-                                    <div class="cell cell-auto-size">
-                                        <label class="option-label" for="editor_user_input_passcode_enabled">Enabled</label>
-                                        <label class="switch-original margin-left-add-30">
-                                            <input type="checkbox" id="editor_user_input_passcode_enabled">
-                                            <span class="check"></span>
-                                        </label>
+                                        <div>
+                                            <label class="option-label" for="editor_user_input_passcode_enabled">Enabled</label>
+                                            <label class="switch-original">
+                                                <input type="checkbox" id="editor_user_input_passcode_enabled">
+                                                <span class="check"></span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 

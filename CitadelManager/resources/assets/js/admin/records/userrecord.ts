@@ -267,7 +267,7 @@ namespace Citadel {
         private m_id                    : number;
         private m_fullName              : string;
         private m_email                 : string;
-        private m_password ?            : string;
+        private m_password              : string;
         private m_groupId               : number;
         private m_roleId                : number;
         private m_numActivations        : number;
@@ -275,7 +275,8 @@ namespace Citadel {
         private m_isActive              : number;
         private m_reportLevel           : number;
         private m_registeredAt          : string;
-
+        private m_relaxedPolicyPasscode : string;
+        private m_relaxedPolicyPasscodeEnabled : number;
 
         // ─────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -296,6 +297,7 @@ namespace Citadel {
         private m_inputCustomerId       : HTMLInputElement;
         private m_inputIsActive         : HTMLInputElement;
         private m_inputReportLevel      : HTMLInputElement;
+        private m_inputRelaxedPolicyPasscodeEnabled : HTMLInputElement;
 
         // ───────────────────────────────────────────────
         //   ::::: S E L E C T    E L E M E N T S ::::::
@@ -376,6 +378,7 @@ namespace Citadel {
             this.m_inputIsActive    = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
             this.m_inputCustomerId  = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
             this.m_inputReportLevel = document.querySelector('#editor_user_report_level') as HTMLInputElement;
+            this.m_inputRelaxedPolicyPasscodeEnabled = document.querySelector('#editor_user_input_passcode_enabled') as HTMLInputElement;
             this.m_btnSubmit        = document.querySelector('#user_editor_submit') as HTMLButtonElement;
             this.m_btnCancel        = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
         }
@@ -436,6 +439,8 @@ namespace Citadel {
             this.m_isActive         = data['isactive'];
             this.m_registeredAt     = data['dt'] as string;
             this.m_reportLevel      = data['report_level'] as number;
+            this.m_relaxedPolicyPasscode = data['relaxed_policy_passcode'] as string;
+            this.m_relaxedPolicyPasscodeEnabled = data['enable_relaxed_policy_passcode'] as number;
             this.jsonData           = data['activations'];
             this.myConfigData       = data['config_override'] == null ? null : JSON.parse(data['config_override']);
 
@@ -464,6 +469,7 @@ namespace Citadel {
             this.m_customerId       = this.m_inputCustomerId.value == "" ? null:this.m_inputCustomerId.valueAsNumber;
             this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
             this.m_reportLevel      = this.m_inputReportLevel.checked == true ? 1 : 0;
+            this.m_relaxedPolicyPasscodeEnabled = this.m_inputRelaxedPolicyPasscodeEnabled.checked == true ? 1 : 0;
 
             this.selfModeration = this.m_selfModerationTable.getData();
             this.myConfigData = this.myConfigData || {};
@@ -490,6 +496,8 @@ namespace Citadel {
                 'isactive': this.m_isActive,
                 'dt': this.m_registeredAt,
                 'report_level': this.m_reportLevel,
+                'relaxed_policy_passcode': this.m_relaxedPolicyPasscode,
+                'enable_relaxed_policy_passcode': this.m_relaxedPolicyPasscodeEnabled,
                 'config_override': JSON.stringify(this.myConfigData)
             };
 
@@ -872,83 +880,74 @@ namespace Citadel {
 
             this.userData = userData;
 
-            switch (userData == null) {
+            if(userData == null) {
+                this.m_editorTitleValue = this.TITLE_NEW_USER;
+                this.m_btnSubmit.innerText = this.BTN_NEW_USER;
 
-                case true:
-                    {
-                        this.m_editorTitleValue = this.TITLE_NEW_USER;
-                        this.m_btnSubmit.innerText = this.BTN_NEW_USER;
+                this.m_mainForm.reset();
+                if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
+                    this.m_selectGroup.selectedIndex = 0;
+                } else {
+                    this.m_selectGroup.selectedIndex = -1;
+                }
 
-                        this.m_mainForm.reset();
-                        if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
-                            this.m_selectGroup.selectedIndex = 0;
-                        } else {
-                            this.m_selectGroup.selectedIndex = -1;
-                        }
+                if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
+                    this.m_selectRole.selectedIndex = 0;
+                } else {
+                    this.m_selectRole.selectedIndex = -1;
+                }
+            } else {
+                this.LoadFromObject(userData);
 
-                        if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
-                            this.m_selectRole.selectedIndex = 0;
-                        } else {
-                            this.m_selectRole.selectedIndex = -1;
-                        }
+                this.m_editorTitleValue = this.TITLE_EDIT_USER;
+                this.m_btnSubmit.innerText = this.BTN_EDIT_USER;
+
+                this.m_inputPasswordConfirm.value = new Array(30).join("x");
+                this.m_password = new Array(30).join("x");
+
+                if (this.m_groupId != -1) {
+                    let optionInList = this.m_selectGroup.querySelector('option[value="' + this.m_groupId.toString() + '"]') as HTMLOptionElement;
+                    if (optionInList != null) {
+                        this.m_selectGroup.selectedIndex = optionInList.index;
                     }
-                    break;
-
-                case false:
-                    {
-                        this.LoadFromObject(userData);
-
-                        this.m_editorTitleValue = this.TITLE_EDIT_USER;
-                        this.m_btnSubmit.innerText = this.BTN_EDIT_USER;
-
-                        this.m_inputPasswordConfirm.value = new Array(30).join("x");
-
-                        if (this.m_groupId != -1) {
-                            let optionInList = this.m_selectGroup.querySelector('option[value="' + this.m_groupId.toString() + '"]') as HTMLOptionElement;
-                            if (optionInList != null) {
-                                this.m_selectGroup.selectedIndex = optionInList.index;
-                            }
-                        } else {
-                            if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
-                                this.m_selectGroup.selectedIndex = 0;
-                            } else {
-                                this.m_selectGroup.selectedIndex = -1;
-                            }
-                        }
-
-                        if (this.m_roleId != -1) {
-                            let optionInList = this.m_selectRole.querySelector('option[value="' + this.m_roleId.toString() + '"]') as HTMLOptionElement;
-                            if (optionInList != null) {
-                                this.m_selectRole.selectedIndex = optionInList.index;
-                            }
-                        } else {
-                            if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
-                                this.m_selectRole.selectedIndex = 0;
-                            } else {
-                                this.m_selectRole.selectedIndex = -1;
-                            }
-                        }
-
-                        this.m_inputIsActive.checked = this.m_isActive != 0;
-                        this.m_inputReportLevel.checked = this.m_reportLevel != 0;
+                } else {
+                    if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
+                        this.m_selectGroup.selectedIndex = 0;
+                    } else {
+                        this.m_selectGroup.selectedIndex = -1;
                     }
-                    break;
+                }
+
+                if (this.m_roleId != -1) {
+                    let optionInList = this.m_selectRole.querySelector('option[value="' + this.m_roleId.toString() + '"]') as HTMLOptionElement;
+                    if (optionInList != null) {
+                        this.m_selectRole.selectedIndex = optionInList.index;
+                    }
+                } else {
+                    if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
+                        this.m_selectRole.selectedIndex = 0;
+                    } else {
+                        this.m_selectRole.selectedIndex = -1;
+                    }
+                }
+
+                this.m_inputIsActive.checked = this.m_isActive != 0;
+                this.m_inputReportLevel.checked = this.m_reportLevel != 0;
+                this.m_inputRelaxedPolicyPasscodeEnabled.checked = this.m_relaxedPolicyPasscodeEnabled != 0;
             }
 
             this.m_bindings.Refresh();
 
             if (userData != null) {
                 this.m_id = userData['id'];
-                this.InitUserActivationTables();
-                this.InitSelfModerationTable();
-                this.InitTimeRestrictions();
             } else {
                 this.m_id = 0;
                 this.jsonData = [];
-                this.InitUserActivationTables();
-                this.InitSelfModerationTable();
-                this.InitTimeRestrictions();
             }
+
+            this.InitUserActivationTables();
+            this.InitSelfModerationTable();
+            this.InitTimeRestrictions();
 
             $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
