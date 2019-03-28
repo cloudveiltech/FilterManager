@@ -116,8 +116,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
 // Users should only be able to pull list updates. The routes available to them
 // are routes to get the sum of the current user data server side, and to request
 // a download of their user data.
-Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin|user']], function () {
-
+Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin|user']], function () {    
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
     Route::post('/me/data/check', 'UserController@checkUserData');
     Route::post('/me/data/get', 'UserController@getUserData');
@@ -125,6 +124,8 @@ Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin
     Route::get('/time', 'UserController@getTime');
 
     // New dashboard API calls. These API calls access user data in a slightly different way than any other API calls.
+    Route::post('/me/password', 'UserController@changePassword');
+
     Route::get('/relaxed_policy/passcode_info', 'UserController@getRelaxedPolicyPasscode');
     Route::post('/relaxed_policy/passcode_info', 'UserController@setRelaxedPolicyPasscode');
 

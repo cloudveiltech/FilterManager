@@ -378,6 +378,32 @@ class UserController extends Controller
         return response()->json($responseArray);
     }
 
+    public function changePassword(Request $request) {
+        $user = \Auth::user();
+
+        if(!$request->has('current_password') || $request->input('current_password') == null || strlen($request->input('current_password')) == 0) {
+            return response()->json([
+                'error' => 'Current password not filled out'
+            ], 400);
+        }
+
+        if(!$request->has('new_password') || $request->input('new_password') == null || strlen($request->input('new_password')) < 4) {
+            return response()->json([
+                'error' => 'The new password you entered should be filled out and longer than 3 characters'
+            ], 400);
+        }
+
+        if(!Hash::check($request->input('current_password'), $user->password)) {
+            return response()->json([
+                'error' => 'The current password that you entered does not match your password'
+            ], 400);
+        }
+
+        $user->password = Hash::make($request->input('new_password'));
+
+        $user->save();
+    }
+
     /**
      * Request the current user data. This includes filter rules and
      * configuration data.  This is for versions <=1.6.  Version 1.7
