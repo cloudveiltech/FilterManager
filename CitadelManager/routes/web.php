@@ -24,6 +24,9 @@ Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
 Route::post('login', 'Auth\LoginController@login');
 Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 
+Route::get('/password/reset', 'Auth\ResetsPasswordController@showResetForm');
+Route::post('/password/reset', 'Auth\ResetsPasswordController@reset');
+
 Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () {
     Route::get('/', function () {
         $roles = Role::all();
@@ -62,3 +65,7 @@ Route::get('/download/latest/64', function() {
 Route::get('/download/latest/32', function() {
   return redirect('/releases/CloudVeil-1.6.31-winx86.msi');
 });
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
