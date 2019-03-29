@@ -7,7 +7,7 @@
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
                 <div class="panel panel-default">
-                    <h1 class="text-light">Administrator Login</h1>
+                    <h1 class="text-light">CloudVeil for Windows Login</h1>
                     <br>
                     <br>
                     <div class="panel-body">
