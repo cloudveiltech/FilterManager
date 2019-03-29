@@ -33,7 +33,8 @@
     <!-- <link href="{{ asset('css/responsive.datatables.min.css') }}" rel="stylesheet"> -->
 
     <!-- Scripts -->
-    <script src="{{ asset('js/vue.js') }}"></script>
+    @yield('prescripts')
+    
     <script src="{{ asset('js/dragula.min.js') }}"></script>
     <!-- Require for form/data validation. -->
     <script src="{{ asset('js/vendor/jquery.min.js') }}" crossorigin="anonymous"></script>

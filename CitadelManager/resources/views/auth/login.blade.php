@@ -74,12 +74,13 @@
                                 </div>
                             </div>
 
+                            <a style="display: block; margin-bottom: 10px;" href="{{ route('password.request') }}">Forgot Password?</a>
+
                             <div class="form-group">
-                                <div class="col-md-8 col-md-offset-4">
-                                    <button type="submit" class="button primary">
-                                        Login
-                                    </button>
-                                </div>
+                                <button style="float: left; margin-right: 10px;" type="submit" class="button primary">Login</button>
+                                <button onclick="window.location.href = '{{ route('login.wordpress') }}';" style="float: left;" type="button" class="button secondary">
+                                    Login With CloudVeil
+                                </button>
                             </div>
                         </form>
                     </div>

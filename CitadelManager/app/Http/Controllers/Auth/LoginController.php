@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use App\Auth\AuthenticatesLicensedUsers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Socialite;
 
 class LoginControllerBase extends Controller {
     // LoginControllerBase -> LoginController allows us to override this trait.
@@ -62,6 +63,22 @@ class LoginController extends LoginControllerBase
         }
 
         return parent::login($request);
+    }
+
+    public function loginWithWordpress(Request $request) {
+        return Socialite::driver('wordpress')->redirect();
+    }
+
+    public function wordpressCallback(Request $request) {
+        $user = Socialite::driver('wordpress')->user();
+
+        $redirect = $request->input('redirect');
+
+        if($redirect != null) {
+            $this->innerRedirectTo = $redirect;
+        }
+
+        return redirect($this->redirectTo());
     }
 
     /**

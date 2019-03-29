@@ -1,4 +1,4 @@
-@extends('layouts.appWithBootstrap') @section('navbar') @include('layouts.components.usernav') @endsection
+@extends('layouts.appWithBootstrapAndVue') @section('navbar') @include('layouts.components.usernav') @endsection
 
 @section('styles')
 <link href="{{ asset('css/toastr.min.css') }}" rel="stylesheet" />

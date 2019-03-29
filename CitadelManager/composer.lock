@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "c0bfac45d37552f8bdd88717f403e26e",
+    "content-hash": "661a2dc2d9fb743c58ae902de5cb1c94",
     "packages": [
         {
             "name": "clue/stream-filter",
@@ -3614,6 +3614,60 @@
                 "uuid"
             ],
             "time": "2018-07-19T23:38:55+00:00"
+        },
+        {
+            "name": "revolution/socialite-wordpress",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kawax/socialite-wordpress.git",
+                "reference": "59a66e3efbefd10cabb621de91ac0a96a9d2e99e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kawax/socialite-wordpress/zipball/59a66e3efbefd10cabb621de91ac0a96a9d2e99e",
+                "reference": "59a66e3efbefd10cabb621de91ac0a96a9d2e99e",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "laravel/socialite": "*",
+                "php": ">=7.1.3"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.0",
+                "phpunit/phpunit": "^7.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Revolution\\Socialite\\WordPress\\WordPressServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Revolution\\Socialite\\WordPress\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "kawax",
+                    "email": "kawaxbiz@gmail.com"
+                }
+            ],
+            "description": "Socialite for WordPress",
+            "keywords": [
+                "laravel",
+                "socialite",
+                "wordpress"
+            ],
+            "time": "2019-03-01T06:05:56+00:00"
         },
         {
             "name": "sentry/sdk",
