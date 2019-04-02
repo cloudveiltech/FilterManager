@@ -259,7 +259,7 @@ namespace Citadel {
         URL_UPDATE_CHECK_IN_DAYS            = 'api/admin/activations/update_check_in_days';
         URL_DELETE_ACTIVATION               = 'api/admin/user_activations/delete';
         URL_BLOCK_ACTIVATION                = 'api/admin/user_activations/block';
-
+        WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
         // ───────────────────────────────────────────────────
         //   :::::: U S E R   D A T A   M E M B E R S ::::::
@@ -458,6 +458,13 @@ namespace Citadel {
                 }
             } else {
                 this.timeRestrictions = {};
+
+                for(var day in this.WEEKDAYS) {
+                    this.timeRestrictions[day] = {
+                        EnabledThrough: [0, 24],
+                        RestrictionsEnabled: false
+                    };
+                }
             }
 
         }
@@ -603,7 +610,7 @@ namespace Citadel {
                     RestrictionsEnabled: false
                 }
             };
-            
+
             var enabledTimes = (entry && entry.EnabledThrough) ? entry.EnabledThrough : [0, 24];
             var caption = (sliderElem.attributes['data-caption']) ? sliderElem.attributes['data-caption'].value : "N/A";
 
@@ -632,7 +639,7 @@ namespace Citadel {
         }
 
         private InitTimeRestrictions(): void {
-            var days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+            var days = this.WEEKDAYS;
 
             var restrictionsElem = $("#time_restrictions");
 
