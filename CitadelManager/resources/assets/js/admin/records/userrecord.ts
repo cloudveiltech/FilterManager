@@ -597,7 +597,7 @@ namespace Citadel {
         }
 
         private generateInternetLabel(entry, sliderElem) {
-            var enabledTimes = entry.EnabledThrough || [0,24];
+            var enabledTimes = (entry && entry.EnabledThrough) ? entry.EnabledThrough : [0, 24];
             var caption = (sliderElem.attributes['data-caption']) ? sliderElem.attributes['data-caption'].value : "N/A";
 
             if(!entry.RestrictionsEnabled) {
