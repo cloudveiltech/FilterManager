@@ -459,7 +459,7 @@ namespace Citadel {
             } else {
                 this.timeRestrictions = {};
 
-                for(var day in this.WEEKDAYS) {
+                for(var day of this.WEEKDAYS) {
                     this.timeRestrictions[day] = {
                         EnabledThrough: [0, 24],
                         RestrictionsEnabled: false
