@@ -513,7 +513,7 @@ class UserController extends Controller
 
         foreach($lists as $listName) {
             $trimmed = trim($listName, '/');
-            $keyParts = explode('/', $trimmed);
+            $nameParts = explode('/', $trimmed);
 
             $namespace = $nameParts[0];
             $category = $nameParts[1];
