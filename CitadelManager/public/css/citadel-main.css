@@ -1909,24 +1909,29 @@ div.login-form button.helper-button {
 }
 
 .restrictions-row {
-    overflow: hidden;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.restrictions-row .noUi-horizontal .noUi-handle {
+
+    height: 24px;
+    top: -4px;
 }
 
 .restrictions-label {
-    margin-bottom: 10px;
-    margin-left: 110px;
+    margin: 5px 0px 10px 110px;
 }
 
 .restrictions-row .checkbox {
     display: block;
     float: left;
     width: 110px;
+    margin-right: 20px;
 }
 
 .restrictions-row .slider {
     display: block;
     float: left;
-    width: calc(100% - 110px);
+    width: calc(100% - 130px);
     min-width: 300px;
 }

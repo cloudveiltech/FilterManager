@@ -70,7 +70,7 @@ class LoginController extends LoginControllerBase
     }
 
     public function wordpressCallback(Request $request) {
-        $user = Socialite::driver('wordpress')->user();
+        //$user = Socialite::driver('wordpress')->user();
 
         $redirect = $request->input('redirect');
 

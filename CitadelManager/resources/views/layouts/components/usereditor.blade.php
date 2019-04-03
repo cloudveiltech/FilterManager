@@ -218,6 +218,7 @@
                                             </div>
                                             <div class="slider" data-caption="{{$day[1]}}" id="{{$day[0]}}"></div>
                                         </div>
+                                        <div style="clear: both;"></div>
                                         <div class="restrictions-label" text-bind="timeRestrictions.{{$day[0]}}.internetLabel"></div>
                                     @endforeach
                                 </div>

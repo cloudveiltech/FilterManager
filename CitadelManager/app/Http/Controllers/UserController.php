@@ -497,19 +497,55 @@ class UserController extends Controller
     }
 
     public function getRules(Request $request) {
-        $globalFilterRules = new FilterRulesManager();
+        // POST should be a key-value pair list that has the following attributes
+        // It should be in the format
+        /*
+        {
+            "/default/adult_pornography/rules": "sha1HashHere...",
+            "/default/adult_gambling/rules": "sha1HashHere..."
+        }
+        */
 
-        $dataPath = $globalFilterRules->getRuleDataPath();
-        
-        if(!file_exists($dataPath)) {
-            $globalFilterRules->buildRuleData();
+        $post = $request->json()->all();
+        $responseArray = [];
+
+        $filterRulesManager = new FilterRulesManager();
+
+        foreach($post as $key => $value) {
+            $etag = $value;
+
+            list($namespace, $category, $type) = explode("/", ltrim($key, '/'));
+            $internalType = $this->getInternalType($type);
+            if($internalType == null) {
+                return response("No such type defined", 500);
+            }
+
+            $filterList = FilterList::where('namespace', $namespace)
+                ->where('category', $category)
+                ->where('type', $internalType)
+                ->first();
+
+            if($filterList === null) {
+                $responseArray[$key] = 404;
+            }
+
+            if($etag !== null && strtolower($etag) === strtolower($filterList->file_sha1)) {
+                $responseArray[$key] = 304;
+            }
+
+            // If the SHA hashes don't match, load the ruleset from the disk cache.
+            $hashExists = strlen($filterList->file_sha1) > 0;
+            $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
+
+            if(!$hashExists || !file_exists($rulesetFilePath) || filesize($rulesetFilePath) == 0) {
+                $rulesetFilePath = $filterRulesManager->buildRuleset($namespace, $category, $type, $filterList);
+            }
+
+            $rulesetFileContents = file_get_contents($rulesetFilePath);
+            $responseArray[$key] = $rulesetFileContents;
         }
 
-        if(file_exists($dataPath) && filesize($dataPath) > 0) {
-            return response()->download($dataPath);
-        }
-
-        return response($dataPath, 200);
+        return response()->json($responseArray);
     }
 
     /**
