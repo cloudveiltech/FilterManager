@@ -500,21 +500,19 @@ class UserController extends Controller
         // POST should be a key-value pair list that has the following attributes
         // It should be in the format
         /*
-        {
-            "/default/adult_pornography/rules": "sha1HashHere...",
-            "/default/adult_gambling/rules": "sha1HashHere..."
-        }
+        { "lists": ["/default/adult_pornography/rules", "/default/adult_gambling/rules", ...] }
         */
 
         $post = $request->json()->all();
+
+        $lists = $post['lists'];
+
         $responseArray = [];
 
         $filterRulesManager = new FilterRulesManager();
 
-        foreach($post as $key => $value) {
-            $etag = $value;
-
-            list($namespace, $category, $type) = explode("/", ltrim($key, '/'));
+        foreach($lists as $listName) {
+            list($namespace, $category, $type) = explode("/", ltrim($listName, '/'));
             $internalType = $this->getInternalType($type);
             if($internalType == null) {
                 return response("No such type defined", 500);
@@ -526,11 +524,11 @@ class UserController extends Controller
                 ->first();
 
             if($filterList === null) {
-                $responseArray[$key] = 404;
+                $responseArray[$listName] = 404;
             }
 
             if($etag !== null && strtolower($etag) === strtolower($filterList->file_sha1)) {
-                $responseArray[$key] = 304;
+                $responseArray[$listName] = 304;
             }
 
             // If the SHA hashes don't match, load the ruleset from the disk cache.
@@ -542,7 +540,7 @@ class UserController extends Controller
             }
 
             $rulesetFileContents = file_get_contents($rulesetFilePath);
-            $responseArray[$key] = $rulesetFileContents;
+            $responseArray[$listName] = $rulesetFileContents;
         }
 
         return response()->json($responseArray);
