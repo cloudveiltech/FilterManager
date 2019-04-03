@@ -527,10 +527,6 @@ class UserController extends Controller
                 $responseArray[$listName] = 404;
             }
 
-            if($etag !== null && strtolower($etag) === strtolower($filterList->file_sha1)) {
-                $responseArray[$listName] = 304;
-            }
-
             // If the SHA hashes don't match, load the ruleset from the disk cache.
             $hashExists = strlen($filterList->file_sha1) > 0;
             $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
