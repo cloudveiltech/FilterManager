@@ -15,7 +15,14 @@ class AuthenticateOnceWithBasicAuth
      */
     public function handle($request, $next)
     {
-        return Auth::onceBasic() ?: $next($request);
+        try {
+            $ret = Auth::onceBasic();
+        } catch(\Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException $e) {
+            return response($e->message, 401);
+        }
+
+        // Of course, if unauthorized HTTP exception did not occur, run next middleware.
+        return $next($request);
     }
 
 }
