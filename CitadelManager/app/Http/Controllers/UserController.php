@@ -371,7 +371,16 @@ class UserController extends Controller
             } else if(strtolower($filterList->file_sha1) === $value) {
                 $responseArray[$key] = true;
             } else {
-                $responseArray[$key] = false;
+                // If the SHA hashes don't match, load the ruleset from the disk cache.
+                $hashExists = strlen($filterList->file_sha1) > 0;
+                $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
+
+                if(!$hashExists || !file_exists($rulesetFilePath) || filesize($rulesetFilePath) == 0) {
+                    $rulesetFilePath = $filterRulesManager->buildRuleset($namespace, $category, $type, $filterList);
+                }
+
+                $rulesetFileContents = file_get_contents($rulesetFilePath);
+                $responseArray[$key] = $rulesetFileContents;
             }
         }
 
@@ -512,7 +521,12 @@ class UserController extends Controller
         $filterRulesManager = new FilterRulesManager();
 
         foreach($lists as $listName) {
-            list($namespace, $category, $type) = explode("/", ltrim($listName, '/'));
+            $trimmed = trim($listName, '/');
+            $nameParts = explode('/', $trimmed);
+
+            $namespace = $nameParts[0];
+            $category = $nameParts[1];
+            $type = explode('.', $nameParts[2])[0];
             $internalType = $this->getInternalType($type);
             if($internalType == null) {
                 return response("No such type defined", 500);
