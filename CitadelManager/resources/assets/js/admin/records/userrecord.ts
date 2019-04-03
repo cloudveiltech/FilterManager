@@ -16,6 +16,8 @@ namespace Citadel {
         private editInfo: any;
 
         public constructor(table: HTMLTableElement, data: any) {
+            data = data || [];
+
             this.__nextId = 1;
 
             this.table = table;
@@ -424,6 +426,17 @@ namespace Citadel {
             this.m_selfModerationTable.add();
         }
 
+        protected initEmptyTimeRestrictionsObject(): void {
+            this.timeRestrictions = {};
+
+            for(var day of this.WEEKDAYS) {
+                this.timeRestrictions[day] = {
+                    EnabledThrough: [0, 24],
+                    RestrictionsEnabled: false
+                };
+            }
+        }
+
         // ────────────────────────────────────────────────────
         //   ::::: C O N V E R T     F U N C T I O N S ::::::
         // ────────────────────────────────────────────────────
@@ -457,14 +470,7 @@ namespace Citadel {
                     this.timeRestrictions[day] = this.myConfigData.TimeRestrictions[day];
                 }
             } else {
-                this.timeRestrictions = {};
-
-                for(var day of this.WEEKDAYS) {
-                    this.timeRestrictions[day] = {
-                        EnabledThrough: [0, 24],
-                        RestrictionsEnabled: false
-                    };
-                }
+                this.initEmptyTimeRestrictionsObject();
             }
 
         }
@@ -958,6 +964,11 @@ namespace Citadel {
                 this.m_id = 0;
                 this.jsonData = [];
             }
+
+            // Covers creation of new users, because this doesn't get assigned to in that circumstance.
+            if(!this.timeRestrictions) {
+                this.initEmptyTimeRestrictionsObject();
+            } 
 
             this.InitUserActivationTables();
             this.InitSelfModerationTable();
