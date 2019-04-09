@@ -196,13 +196,21 @@ class AppUserActivationController extends Controller
             'identifier' => 'required',
         ]);
 
-        Log::info($request);
+        $input = $request->input();
 
         $passcodeEnabled = false;
         $passcode = null;
 
+        $args = [$input['identifier']];
+        $whereStatement = "identifier = ?";
+
+        if(!empty($input['device_id'])) {
+            $whereStatement .= " and device_id = ?";
+            $args[] = $input['device_id'];
+        }
+
         // Get Specific Activation with $identifier
-        $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
+        $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
         if (!$activation) {
             return response('', 401);
         }

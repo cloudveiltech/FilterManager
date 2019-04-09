@@ -811,7 +811,18 @@ class UserController extends Controller
         // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
         // If the identifier doesn't exist in the system we create a new activation.
         if ($request->has('identifier')) {
-            $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
+            $input = $request->input();
+
+            $args = [$input['identifier']];
+            $whereStatement = "identifier = ?";
+
+            if(!empty($input['device_id'])) {
+                $whereStatement .= " and device_id = ?";
+                $args[] = $input['device_id'];
+            }
+
+            // Get Specific Activation with $identifier
+            $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
             if($activation) {
                 $activation->updated_at = Carbon::now()->timestamp;
                 $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';
