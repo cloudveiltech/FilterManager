@@ -571,13 +571,17 @@ class UserController extends Controller
                 $userGroup->rebuildGroupData();
             }
 
-            $configuration = $userGroup->config_cache;
+            $configuration = json_decode($userGroup->config_cache, true);
+            if($configuration == null) {
+                $configuration = [];
+            }
+
 
             if ($thisUser->config_override) {
-                $configuration = array_merge(json_decode($configuration, true), json_decode($thisUser->config_override, true));
+                $configuration = array_merge($configuration, json_decode($thisUser->config_override, true));
             }
             if ($activation->config_override) {
-                $configuration = array_merge(json_decode($configuration, true), json_decode($activation->config_override, true));
+                $configuration = array_merge($configuration, json_decode($activation->config_override, true));
             }
 
             if($thisUser->enable_relaxed_policy_passcode) {

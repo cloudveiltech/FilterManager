@@ -241,6 +241,8 @@ class Group extends Model
                 'config_cache' => $serializedFinalConfiguration,
             ]
         );
+
+        $this->config_cache = $serializedFinalConfiguration;
     }
 
     public function destroyGroupData()
