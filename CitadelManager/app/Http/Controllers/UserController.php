@@ -224,7 +224,7 @@ class UserController extends Controller
             ]);
         }
 
-        $input = $request->except(['password', 'password_verify', 'role_id']);
+	$input = $request->only(['id','name','email','group_id','customer_id','activations_allowed','isactive','report_level']);
 
         if ($inclPassword) {
             $pInput = $request->only(['password', 'password_verify']);
