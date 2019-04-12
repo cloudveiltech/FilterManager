@@ -14,6 +14,8 @@
                         <form class="form-horizontal" id="login_form" role="form" method="POST" action="{{ route('login') }}">
                             {{ csrf_field() }}
 
+                            {{ redirect_field() }}
+
                             <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
 
                                 <div class="col-md-6">
