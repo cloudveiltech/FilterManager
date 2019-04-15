@@ -544,7 +544,7 @@ class UserController extends Controller
             $responseArray[$listName] = $rulesetFileContents;
         }
 
-        return response()->json($responseArray);
+        return response(json_encode($responseArray, JSON_FORCE_OBJECT))->header('Content-Type', 'application/json');
     }
 
     /**
