@@ -206,6 +206,10 @@
                                 </h2>
                                 <hr class="thin" />
                                 <div id="time_restrictions">
+                                    <button class="button" type="button" event-click="eveningRestrictionsPreset">Evening</button>
+                                    <button class="button" type="button" event-click="officeRestrictionsPreset">Office</button>
+                                    <button class="button" type="button" event-click="noneRestrictionsPreset">None</button>
+
                                     @php
                                     $days = [["monday", "Monday"], ["tuesday", "Tuesday"], ["wednesday", "Wednesday"], ["thursday", "Thursday"], ["friday", "Friday"], ["saturday", "Saturday"], ["sunday", "Sunday"]];
                                     @endphp

@@ -87,12 +87,20 @@ namespace Citadel {
         }
 
         public add(): void {
+            var that = this;
+
+            var id = this.nextId();
+
             this.data.push({
-                id: this.nextId(),
+                id: id,
                 site: ""
             });
 
             this.render();
+
+            setTimeout(function() {
+                that.edit(id);
+            });
         }
 
         public remove(id: number): void {
@@ -209,6 +217,15 @@ namespace Citadel {
             var input = document.createElement("input");
             input.setAttribute("type", "text");
             input.value = site;
+
+            input.addEventListener("keypress", function(e) {
+                if(e.which == 13) {
+                    that.editInfo.siteObj.site = input.value;
+                    that.endEdit();
+                    e.preventDefault();
+                    return false;
+                }
+            });
 
             var button = document.createElement("button");
             button.innerHTML = "Done";
@@ -337,6 +354,39 @@ namespace Citadel {
         private m_timeRestrictionConfigs: any;
         private m_timeRestrictionSliders: any;
 
+        private savedCustom: any;
+        private timeRestrictionsPresets: any = {
+            evening: {
+                monday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                tuesday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                wednesday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                thursday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                friday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                saturday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                sunday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] }
+            },
+
+            office: {
+                monday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                tuesday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                wednesday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                thursday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                friday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                saturday: { RestrictionsEnabled: true, EnabledThrough: [10, 15] },
+                sunday: { RestrictionsEnabled: true, EnabledThrough: [0, 0] }
+            },
+
+            none: {
+                monday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                tuesday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                wednesday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                thursday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                friday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                saturday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                sunday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] }
+            }
+        };
+
         private userData: any;
 
         // ─────────────────────────────────────────────────
@@ -361,6 +411,30 @@ namespace Citadel {
         }
 
         private m_bindings : BindingInstance;
+
+        private loadTimeRestrictionsFrom(obj): void {
+            this.savedCustom = JSON.parse(JSON.stringify(this.timeRestrictions));
+
+            for(var i in this.timeRestrictions) {
+                this.timeRestrictions[i] = JSON.parse(JSON.stringify(obj[i]));
+            }
+
+            this.m_bindings.Refresh();
+            this.updateTimeRestrictionsSliders();
+        }
+
+        // Someday these will need to be loaded from a database, but for now, we'll just hard code them.
+        private eveningRestrictionsPreset(): void {
+            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.evening);
+        }
+
+        private officeRestrictionsPreset(): void {
+            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.office);
+        }
+
+        private noneRestrictionsPreset(): void {
+            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.none);
+        }
 
         private ConstructFormReferences(): void {
             this.m_editorOverlay    = document.querySelector('#overlay_user_editor') as HTMLDivElement;
@@ -684,6 +758,22 @@ namespace Citadel {
             this.m_timeRestrictionConfigs = configs;
             this.m_timeRestrictionSliders = sliders;
             this.m_bindings.Refresh();
+        }
+
+        private updateTimeRestrictionsSliders(): void {
+            var days = this.WEEKDAYS;
+
+            var sliders = this.m_timeRestrictionSliders;
+            var restrictionsElem = $("#time_restrictions");
+
+            for(var day of days) {
+                let slider: any = restrictionsElem.find("#" + day).get(0);
+
+                if(slider && slider.noUiSlider) {
+                    let restrictionData: any = this.timeRestrictions[day].EnabledThrough;
+                    slider.noUiSlider.set(restrictionData);
+                }
+            }
         }
 
         private InitSelfModerationTable() {

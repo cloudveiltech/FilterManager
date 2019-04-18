@@ -140,7 +140,8 @@ function timeRestrictionsModel() {
 				that.applySetting(that.data[i], false, 0, 24);
 			}
 		}
-	}
+	};
+	
 	that.setTimes = function(day, event) {
 		that.data[day] = that.data[day] || {};
 		that.data[day].EnabledThrough = that.data[day].EnabledThrough || [0, 24];

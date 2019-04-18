@@ -1114,6 +1114,10 @@ User editor.
     margin-bottom: 20px;
 }
 
+#self_moderation_table tbody tr:nth-child(odd) {
+    background-color: #444;
+}
+
 #user_editor_body {
     width: 90%;
     height: 500px;
