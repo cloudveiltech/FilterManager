@@ -852,8 +852,8 @@ namespace Citadel {
                     width: "300px",
                     render: function (data, type, row) {
                         var strButtons = "";
-                        strButtons += "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
-                        strButtons += " &nbsp;<button id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
+                        strButtons += "<button type='button' id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
+                        strButtons += " &nbsp;<button type='button' id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
 
                         return strButtons;
                     }
