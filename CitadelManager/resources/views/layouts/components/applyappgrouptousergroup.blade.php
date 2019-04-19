@@ -20,7 +20,7 @@
             </div>
             <div class="row">
                 <div class="cell colspan5">
-                    <label>Exist User Groups</label>
+                    <label>Available User Groups</label>
                     <select id="apply_app_group_to_user_group_source_list" multiple>
                     </select>
                 </div>
