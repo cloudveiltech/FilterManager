@@ -240,7 +240,7 @@ class GroupController extends Controller
             GroupFilterAssignment::insertIgnore($groupListAssignmentMassInsert);
         }
 
-        if (is_array($assignedAppgroups['assigned_app_groups'])) {
+        if (in_array('assigned_app_groups', $assignedAppgroups) && is_array($assignedAppgroups['assigned_app_groups'])) {
             $arr_app_groups = array();
             foreach ($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
                 $arr = array(
@@ -317,7 +317,7 @@ class GroupController extends Controller
         }
 
         UserGroupToAppGroup::where('user_group_id', $id)->delete();
-        if (is_array($assignedAppgroups['assigned_app_groups'])) {
+        if (in_array('assigned_app_groups', $assignedAppgroups) && is_array($assignedAppgroups['assigned_app_groups'])) {
             $arr_app_groups = array();
             foreach ($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
                 $arr = array(

@@ -19,6 +19,7 @@ $(document).ready(function() {
 		el: '#app',
 		data: {},
 		computed: {},
+		watch: {},
 
 		destroyed: function() {
 			if(vueOptions.$unwatchers) {
@@ -37,6 +38,12 @@ $(document).ready(function() {
 			vueOptions.computed[modelKey] = model.computed;
 		} else {
 			vueOptions.data[modelKey] = model;
+		}
+
+		if(typeof model == 'object' && 'watch' in model) {
+			for(var i in model.watch) {
+				vueOptions.watch[i] = model.watch[i];
+			}
 		}
 	}
 
@@ -221,6 +228,18 @@ function relaxedPolicyModel() {
 	that.data = {
 		enable_relaxed_policy_passcode: false,
 		relaxed_policy_passcode: ""
+	};
+
+	that.$onApplyRef = function() {
+		that.$watch(function() {
+			return that.data.relaxed_policy_passcode;
+		}, function(value) {
+			if(value && value.length > 0) {
+				Vue.set(that.data, 'enable_relaxed_policy_passcode', true);
+			} else {
+				Vue.set(that.data, 'enable_relaxed_policy_passcode', false);
+			}
+		});
 	};
 
 	that.fetch = function() {
