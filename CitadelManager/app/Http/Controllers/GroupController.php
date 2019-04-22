@@ -286,7 +286,8 @@ class GroupController extends Controller
             'name' => 'required',
         ]);
 
-        $groupInput = $request->except(['assigned_filter_ids', 'assigned_app_groups']);
+        //$groupInput = $request->except(['assigned_filter_ids', 'assigned_app_groups']);
+	$groupInput = $request->only(['name','app_cfg','isactive']);
         $groupListAssigments = $request->only('assigned_filter_ids');
         $assignedAppgroups = $request->only('assigned_app_groups');
 
