@@ -926,6 +926,7 @@ namespace Citadel {
                     responsive: true,
                     deferLoading: 0,
                     columns: appListTableColumns,
+                    order: [[ 1, "asc" ]], // Should be the name column.
                     ajax: appListTablesLoadFromAjaxSettings,
                     rowCallback: ((row: Node, data: any[] | Object): void => {
                         this.OnTableRowCreated(row, data);
