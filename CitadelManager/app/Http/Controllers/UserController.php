@@ -564,9 +564,6 @@ class UserController extends Controller
         $activation = $this->getActivation($thisUser, $request, $token);
         $userGroup = $thisUser->group()->first();
         if (!is_null($userGroup)) {
-            Log::debug($activation);
-            Log::debug($thisUser);
-
             if($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
                 $userGroup->rebuildGroupData();
             }
