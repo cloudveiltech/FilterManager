@@ -15,6 +15,7 @@ use App\GroupFilterAssignment;
 use App\ImageFilteringRule;
 use App\NlpFilteringRule;
 use App\TextFilteringRule;
+use App\FilterRulesManager;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -560,7 +561,7 @@ class FilterListController extends Controller
             $content = $lineFeedFunc($content);
 
             if (strlen($content) > 0) {
-                array_push($fillArr, ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt]);
+                $fillArr[] = ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt];
                 $count++;
             }
 
