@@ -9,6 +9,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use App\FilterList;
 use App\Group;
 use App\GroupFilterAssignment;
@@ -254,6 +255,9 @@ class FilterListController extends Controller
      */
     public function processUploadedFilterLists(Request $request)
     {
+		set_time_limit(480);
+		error_reporting(E_ALL);
+
         $this->validate($request, [
             'overwrite' => 'required|boolean',
             'namespace' => 'required|string|min:1|max:64',
@@ -272,7 +276,6 @@ class FilterListController extends Controller
         foreach ($listFile as $file) {
             switch (strtolower($file->getClientOriginalExtension())) {
                 case 'zip':{
-
                         $success = $this->processTextFilterArchive($listNamespace, $file, $shouldOverwrite);
                     }
                     break;
@@ -345,6 +348,19 @@ class FilterListController extends Controller
         return response('Namespace parameter, which is required, was null.', 400);
     }
 
+	private function loopIterator($itr, $leafFunction) {
+		if(!$itr->hasChildren()) {
+			$leafFunction($itr->current(), true);
+		} else {
+			$leafFunction($itr->current(), false);
+			
+			foreach($itr->getChildren() as $childItr) {
+				$this->loopIterator($itr, $leafFunction);
+			}
+
+		}
+	}
+
     /**
      * Processes an uploaded archive, extracting the text files inside and processing
      * them according to their type and category.
@@ -381,14 +397,19 @@ class FilterListController extends Controller
         // models, because there can only be 1 per category.
         $purgedCategories = array();
 
+		$pharData = new \PharData($tmpArchiveLoc);
+		Log::debug("Phar data location $tmpArchiveLoc");
         $pharIterator = new \RecursiveIteratorIterator(new \PharData($tmpArchiveLoc), \RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($pharIterator as $pharFileInfo) {
+			Log::debug("Phar internal data location " . $pharFileInfo->getPath());
+
             if (!$pharFileInfo->isDir()) {
                 $categoryName = strtolower(basename(dirname($pharFileInfo->getPathname())));
 
                 if ($categoryName == '/' || $categoryName == '\\' || $categoryName == '.' || $categoryName == '..') {
                     // This is an improperly formatted zip.
                     // This is a file inside the root directory.
+					Log::debug("improperly formatted");
                     continue;
                 }
 
@@ -396,6 +417,7 @@ class FilterListController extends Controller
                     // This is an improperly formatted zip. This means that we have
                     // filter/trigger/nlp model stuff in the root of the zip structure
                     // and this cannot be allowed.
+					Log::debug("improperly formatted2");
                     continue;
                 }
 
@@ -409,6 +431,7 @@ class FilterListController extends Controller
                 $categoryName = preg_replace('/\s+/', '_', strtolower($categoryName));
 
                 $fileName = strtolower(basename($pharFileInfo->getPathname()));
+				Log::debug("filename = $fileName");
 
                 $finalListType = null;
                 $convertToAbp = false;
@@ -442,6 +465,7 @@ class FilterListController extends Controller
                 }
 
                 if (is_null($finalListType)) {
+					Log::debug("invalid/improperly named/unrecognized file");
                     // Invalid/improperly named/unrecognized file.
                     continue;
                 }
@@ -532,52 +556,61 @@ class FilterListController extends Controller
      */
     private function processTextFilterFile(\SplFileObject $file, bool $convertToAbp, int $parentListId)
     {
-        $lineFeedFunc = null;
+		Log::debug("processTextFilterFile");
 
-        switch ($convertToAbp) {
-            case true:{
-                    $lineFeedFunc = function (string $in): string {
-                        return $this->formatStringAsAbpFilter(trim($in));
-                    };
-                }
-                break;
+		try {
+			$lineFeedFunc = null;
 
-            case false:{
-                    $lineFeedFunc = function (string $in): string {
-                        return trim($in);
-                    };
-                }
-                break;
-        }
+			switch ($convertToAbp) {
+				case true:{
+						$lineFeedFunc = function (string $in): string {
+							return $this->formatStringAsAbpFilter(trim($in));
+						};
+					}
+					break;
 
-        $fillArr = array();
-        $createdAt = Carbon::now();
-        $updatedAt = Carbon::now();
+				case false:{
+						$lineFeedFunc = function (string $in): string {
+							return trim($in);
+						};
+					}
+					break;
+			}
 
-        $count = 0;
+			$fillArr = array();
+			$createdAt = Carbon::now();
+			$updatedAt = Carbon::now();
 
-        foreach ($file as $lineNumber => $content) {
+			$count = 0;
 
-            $content = $lineFeedFunc($content);
 
-            if (strlen($content) > 0) {
-                $fillArr[] = ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt];
-                $count++;
-            }
+			foreach ($file as $lineNumber => $content) {
 
-            // Doing a mass insert of 5K at a time seems to be best.
-            if ($count > 4999) {
-                TextFilteringRule::insertIgnore($fillArr);
-                $fillArr = array();
-                $count = 0;
-            }
-        }
+				$content = $lineFeedFunc($content);
 
-        if ($count > 0) {
-            TextFilteringRule::insertIgnore($fillArr);
-            $fillArr = array();
-            $count = 0;
-        }
+				if (strlen($content) > 0) {
+					$fillArr[] = ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt];
+					$count++;
+				}
+
+				// Doing a mass insert of 5K at a time seems to be best.
+				if ($count > 4999) {
+					TextFilteringRule::insertIgnore($fillArr);
+
+					$fillArr = array();
+					$count = 0;
+				}
+			}
+
+			if ($count > 0) {
+				TextFilteringRule::insertIgnore($fillArr);
+				$fillArr = array();
+				$count = 0;
+			}
+		} catch(Exception $ex) {
+			Log::error("Error occurred while processing text filter file $ex");
+			throw $ex;
+		}
     }
 
     /**
