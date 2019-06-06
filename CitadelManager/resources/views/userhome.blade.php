@@ -292,7 +292,7 @@
                         Edit Activation
                     </h4>
                 </div>
-                <form class="form" @submit="activationEditor.save()">
+                <form class="form" v-on:submit.prevent="activationEditor.save()">
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="activation_device_id">Computer Name</label>
