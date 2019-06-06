@@ -152,6 +152,7 @@ Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:a
     Route::delete('deactivations/{id}', 'BusinessController@deleteDeactivationRequest');
     
     Route::get('activations', 'BusinessController@getActivations');
+    Route::put('activations/{id}', 'AppUserActivationController@update');
 
     Route::delete('activations/{id}/delete', 'BusinessController@destroyActivation');
     Route::delete('activations/{id}/block', 'BusinessController@blockActivation');

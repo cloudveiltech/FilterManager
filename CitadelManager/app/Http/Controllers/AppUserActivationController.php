@@ -169,15 +169,22 @@ class AppUserActivationController extends Controller
 
     public function update(Request $request, $id)
     {
+        $user = $request->user();
+        $activation = AppUserActivation::where('id', $id)->first();
 
-        // The javascript side/admin UI will not send
-        // password or password_verify unless they are
-        // intentionally trying to change a user's password.
+        if(!$user->can('all')) {
+            if(!$user->can('manage-own-activations')) {
+                return response(json_encode(['error' => 'You do not have permission to manage your own activations.']), 400);
+            } else if($activation->user_id != $user->id) {
+                // Can manage own activations.
+                return response(json_encode(['error' => 'You only have permission to manage your own activations.']), 400);
+            }
+        }
 
         $input = $request->only(['bypass_quantity', 'bypass_period', 'report_level']);
         AppUserActivation::where('id', $id)->update($input);
 
-        return response('', 204);
+        return response('', 204);        
     }
 
     public function show($id)

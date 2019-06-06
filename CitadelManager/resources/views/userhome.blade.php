@@ -222,6 +222,9 @@
                 <thead>
                     <tr>
                         <th>Computer</th>
+                        <th>IP Address</th>
+                        <th>Version</th>
+                        <th>Updated At</th>
                         <th>...</th>
                         <th>...</th>
                     </tr>
@@ -229,14 +232,17 @@
                 <tbody>
                     <tr v-for="(item, index) in activations.data">
                         <td>@{{item.device_id}}</td>
+                        <td>@{{item.ip_address}}</td>
+                        <td>@{{item.app_version}}</td>
+                        <td>@{{item.updated_at}}</td>
                         <td>
                             <button class="btn btn-warning" @click="activations.blockActivation(item)">
-                                <span class="glyphicon glyphicon-ban"></span> Block
+                                <span class="glyph glyph-cancel"></span> Block
                             </button>
                         </td>
                         <td>
                             <button class="btn btn-danger" @click="activations.deleteActivation(item)">
-                                <span class="glyphicon glyphicon-trash"></span> Delete
+                                <span class="glyph glyph-remove"></span> Delete
                             </button>
                         </td>
                     </tr>
@@ -245,6 +251,110 @@
         </div>
     </div>
 
+    <div class="modal" id="deleteModal"
+         tabindex="-1" role="dialog"
+         aria-labelledby="modalDeleteLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modalDeleteLabel">
+                        @{{deleteModal.title}}
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    @{{deleteModal.body}}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">
+                        @{{deleteModal.confirmButtonText}}
+                    </button>
+                    <button type="button" class="btn btn-secondary">
+                        @{{deleteModal.cancelButtonText}}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editActivationModal"
+         tabindex="-1" role="dialog"
+         aria-labelledby="editActivationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="editActivationModalLabel">
+                        Edit Activation
+                    </h4>
+                </div>
+                <form class="form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="activation_device_id">Computer Name</label>
+                            <input id="activation_device_id" class="form-control" type="text" v-model="activationEditor.data.device_id"
+                                    readonly="readonly" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activation_identifier">Identifier</label>
+                            <input id="activation_identifier" class="form-control" type="text" v-model="activationEditor.data.identifier"
+                                    readonly="readonly" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activation_ip_address">IP Address</label>
+                            <input id="activation_ip_address" class="form-control" type="text" v-model="activationEditor.data.ip_address"
+                                    readonly="readonly" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activation_bypass_quantity">Relaxed Policy Bypasses Allowed</label>
+                            <input id="activation_bypass_quantity" class="form-control" type="number" v-model="activationEditor.data.bypass_quantity" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activation_bypass_duration">Relaxed Policy Period (minutes)</label>
+                            <input id="activation_bypass_duration" class="form-control" type="number" v-model="activationEditor.data.bypass_period" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activation_bypass_used">Relaxed Policy Bypasses Used</label>
+                            <input id="activation_bypass_used" class="form-control" type="number" v-model="activationeditor.data.bypass_used"
+                                    readonly="readonly" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-sample"
+         tabindex="-1" role="dialog"
+         aria-labelledby="modal-sample-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modal-sample-label">
+                        Dialog title
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    Lorem ipsum dolor sit amet.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">
+                        Button
+                    </button>
+                    <button type="button" class="btn btn-info"
+                            data-dismiss="modal">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @endsection

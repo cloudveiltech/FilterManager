@@ -118,6 +118,8 @@ $(document).ready(function() {
 	applyModel(vueOptions, 'relaxedPolicy', relaxedPolicyModel());
 	applyModel(vueOptions, 'deactivationRequests', deactivationRequestsModel());
 	applyModel(vueOptions, 'activations', activationsModel());
+	applyModel(vueOptions, 'deleteModal', deleteModalModel());
+	applyModel(vueOptions, 'activationEditor', activationEditorModel());
 
 	app = new Vue(vueOptions);
 
@@ -349,10 +351,17 @@ function deactivationRequestsModel() {
 	};
 
 	that.deny = function(request) {
-		$.ajax('/api/business/deactivations/' + request.id, {
-			method: "DELETE"
-		}).done(function() {
-			that.fetch();
+		app.deleteModal.open({
+			title: "Deny Request",
+			body: "Do you want to deny this deactivation request? The user will need to request it again before it can be granted.",
+			confirmButtonText: "Yes, Deny",
+			confirmButtonText: "No, Cancel Denial"
+		}, function() {
+			$.ajax('/api/business/deactivations/' + request.id, {
+				method: "DELETE"
+			}).done(function() {
+				that.fetch();
+			});
 		});
 	};
 
@@ -373,26 +382,108 @@ function activationsModel() {
 	};
 
 	that.blockActivation = function(activation) {
-		$.ajax('/api/business/activations/' + activation.id + '/block', {
-			method: "DELETE"
-		}).done(function() {
-			that.fetch();
-		}).fail(function() {
-			toastr.error("Failed to block activation.");
+		app.deleteModal.open({
+			title: "Block Activation",
+			body: "Do you want to block this activation?",
+			confirmButtonText: "Yes, Block",
+			cancelButtonText: "No, Don't Block"
+		}, function() {
+			$.ajax('/api/business/activations/' + activation.id + '/block', {
+				method: "DELETE"
+			}).done(function() {
+				that.fetch();
+			}).fail(function() {
+				toastr.error("Failed to block activation.");
+			});
 		});
 	};
 
 	that.deleteActivation = function(activation) {
-		$.ajax('/api/business/activations/' + activation.id + '/delete', {
-			method: "DELETE"
-		}).done(function() {
-			that.fetch();
-		}).fail(function() {
-			toastr.error("Failed to delete activation.");
+		app.deleteModal.open({
+			title: "Delete Activation",
+			body: "Do you want to delete this activation?",
+			confirmButtonText: "Yes, Delete",
+			cancelButtonText: "No, Don't Delete"
+		}, function() {
+			$.ajax('/api/business/activations/' + activation.id + '/delete', {
+				method: "DELETE"
+			}).done(function() {
+				that.fetch();
+			}).fail(function() {
+				toastr.error("Failed to delete activation.");
+			});
 		});
 	};
 
 	that.fetch();
+
+	return that;
+}
+
+function deleteModalModel() {
+	var that = {};
+
+	that.data = {
+		title: "Delete",
+		body: "Do you want to delete this thing?",
+		confirmButtonText: "OK",
+		cancelButtonText: "Cancel"
+	};
+
+	that.open = function(data, yesCallback) {
+		that.yesCallback = yesCallback;
+
+		for(var i in data) {
+			Vue.set(that.data, i, data[i]);
+		}
+
+		$("#deleteModal").modal('show');
+	};
+
+	that.onConfirm = function() {
+		if(that.yesCallback) {
+			that.yesCallback();
+		}
+
+		that.close();
+	};
+
+	that.close = function() {
+		$("#deleteModal").modal("hide");
+	};
+
+	return that;
+}
+
+function activationEditorModel() {
+	var that = {};
+
+	that.data = {};
+
+	that.open = function(data) {
+		Vue.set(that, 'data', data);
+
+		$("#editActivationModal").modal("show");
+	};
+
+	that.close = function() {
+		$("#editActivationModal").modal("hide");
+	};
+
+	that.save = function() {
+		// TODO: App user activation API
+		$.ajax("/api/business/activations/" + that.data.id, {
+			method: "PUT",
+			data: JSON.stringify(that.data),
+			dataType: "json"
+		}).done(function() {
+			that.close();
+
+			toastr.info("Saved activation");
+		}).fail(function() {
+			toastr.error("Failed to save computer activation settings.");
+		})
+	};
 
 	return that;
 }
