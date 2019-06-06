@@ -265,10 +265,10 @@
                     @{{deleteModal.body}}
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary">
+                    <button type="button" class="btn btn-primary" @click="deleteModal.onConfirm()">
                         @{{deleteModal.confirmButtonText}}
                     </button>
-                    <button type="button" class="btn btn-secondary">
+                    <button type="button" class="btn btn-secondary" @click="deleteModal.close()">
                         @{{deleteModal.cancelButtonText}}
                     </button>
                 </div>
@@ -286,7 +286,7 @@
                         Edit Activation
                     </h4>
                 </div>
-                <form class="form">
+                <form class="form" @submit="activationEditor.save()">
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="activation_device_id">Computer Name</label>
@@ -323,7 +323,9 @@
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Submit</button>
 
+                        <button type="button" class="btn btn-secondary" @click="activationEditor.close()">Cancel</button>
                     </div>
                 </form>
             </div>
