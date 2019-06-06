@@ -1,13 +1,49 @@
 var app = null;
 
-$(document).ready(function() {
-	$.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
+var user = null;
 
-        contentType: "application/json; charset=utf-8"
-    });
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    },
+
+    contentType: "application/json; charset=utf-8"
+});
+
+$.ajax('/api/user/me', {
+	method: "GET"
+}).done(function(data, textStatus, xhr) {
+	console.log(data);
+	user = data;
+
+	if(user && user.roles) {
+		user.isBusinessOwner = false;
+
+		for(var i in user.roles) {
+			var role = user.roles[i];
+
+			if(role.name == "business-owner" || role.name == "admin") {
+				user.isBusinessOwner = true;
+				break;
+			}
+		}
+	}
+
+	if(app) {
+		app.isBusinessOwner = user.isBusinessOwner;
+	}
+
+	if(window.onUserLoad) {
+		Vue.nextTick(function() {
+			window.onUserLoad(user);
+		});
+	}
+}).fail(function(xhr, textStatus, errorThrown) {
+
+})
+
+$(document).ready(function() {
+	
 
 	$("#logout_button").click(function() {
 		$.post('logout', function (data, textStatus, jqXHR) {
@@ -17,7 +53,9 @@ $(document).ready(function() {
 
 	var vueOptions = {
 		el: '#app',
-		data: {},
+		data: {
+			isBusinessOwner: false
+		},
 		computed: {},
 		watch: {},
 
@@ -78,11 +116,17 @@ $(document).ready(function() {
 	applyModel(vueOptions, 'timeRestrictions', timeRestrictionsModel());
 	applyModel(vueOptions, 'selfModeration', selfModerationModel());
 	applyModel(vueOptions, 'relaxedPolicy', relaxedPolicyModel());
+	applyModel(vueOptions, 'deactivationRequests', deactivationRequestsModel());
+	applyModel(vueOptions, 'activations', activationsModel());
 
 	app = new Vue(vueOptions);
 
 	for(var i in vueOptions.data) {
 		applyVmRef(vueOptions.data[i], app);
+	}
+
+	if(user != null) {
+		app.isBusinessOwner = user.isBusinessOwner;
 	}
 });
 
@@ -184,11 +228,44 @@ function timeRestrictionsModel() {
 function selfModerationModel() {
 	var that = {};
 
+	that.whitelist = selfModerationListModel();
+	that.blacklist = selfModerationListModel();
+
 	that.fetch = function() {
 		$.get('/api/user/self_moderation').done(function(data) {
-			Vue.set(that, 'data', data);
+			if(data.whitelist) {
+				that.whitelist.data = data.whitelist;
+			}
+
+			if(data.blacklist) {
+				that.blacklist.data = data.blacklist;
+			}
 		});
 	};
+
+	that.save = function() {
+		$.ajax('/api/user/self_moderation', {
+			data: JSON.stringify({
+				blacklist: that.blacklist.data,
+				whitelist: that.whitelist.data
+			}),
+			dataType: "json",
+			method: "POST"
+		}).done(function(data) {
+			toastr.info("Changes saved");
+		}).fail(function() {
+			toastr.error("Failed to save your changes. Please contact support.");
+		});
+	};
+
+	that.fetch();
+	return that;
+}
+
+function selfModerationListModel() {
+	var that = {};
+
+	that.data = [];
 
 	that.removeUrl = function(url) {
 		for(var i in that.data) {
@@ -204,21 +281,6 @@ function selfModerationModel() {
 		that.data.push("");
 	};
 
-	that.save = function() {
-		$.ajax('/api/user/self_moderation', {
-			data: JSON.stringify({
-				self_moderation: that.data
-			}),
-			dataType: "json",
-			method: "POST"
-		}).done(function(data) {
-			toastr.info("Changes saved");
-		}).fail(function() {
-			toastr.error("Failed to save your changes. Please contact support.");
-		});
-	};
-
-	that.fetch();
 	return that;
 }
 
@@ -261,5 +323,74 @@ function relaxedPolicyModel() {
 	};
 
 	that.fetch();
+	return that;
+}
+
+function deactivationRequestsModel() {
+	var that = {};
+
+	that.data = [];
+
+	that.fetch = function() {
+		$.get('/api/business/deactivations').done(function(data) {
+			Vue.set(that, 'data', data);
+		});
+	};
+
+	that.grant = function(request) {
+		$.ajax('/api/business/deactivations/' + request.id + '/grant', {
+			method: "POST"
+		}).done(function() {
+			request.granted = 1;
+			toastr.info("Granted deactivation request.");
+		}).fail(function() {
+			toastr.error("Was not able to grant deactivation request.");
+		})
+	};
+
+	that.deny = function(request) {
+		$.ajax('/api/business/deactivations/' + request.id, {
+			method: "DELETE"
+		}).done(function() {
+			that.fetch();
+		});
+	};
+
+	that.fetch();
+
+	return that;
+}
+
+function activationsModel() {
+	var that = {};
+
+	that.data = [];
+
+	that.fetch = function() {
+		$.get('/api/business/activations').done(function(data) {
+			Vue.set(that, 'data', data);
+		});
+	};
+
+	that.blockActivation = function(activation) {
+		$.ajax('/api/business/activations/' + activation.id + '/block', {
+			method: "DELETE"
+		}).done(function() {
+			that.fetch();
+		}).fail(function() {
+			toastr.error("Failed to block activation.");
+		});
+	};
+
+	that.deleteActivation = function(activation) {
+		$.ajax('/api/business/activations/' + activation.id + '/delete', {
+			method: "DELETE"
+		}).done(function() {
+			that.fetch();
+		}).fail(function() {
+			toastr.error("Failed to delete activation.");
+		});
+	};
+
 	return that;
 }

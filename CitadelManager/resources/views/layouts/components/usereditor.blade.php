@@ -135,6 +135,22 @@
                                     </div>
                                 </div>
 
+                                <div class="row cells3">
+                                    <div class="cell">
+                                        <div class="input-control text" data-role="input">
+                                            <label for="editor_cfg_bypasses_allowed_input">Bypasses Allowed Per Day</label>
+                                            <input type="number" id="editor_cfg_bypasses_allowed_input" name="editor_cfg_bypasses_allowed_input" num-value-bind="m_numBypassesPermitted">
+                                        </div>
+                                    </div>
+
+                                    <div class="cell">
+                                        <div class="input-control text" data-role="input">
+                                            <label for="editor_cfg_bypass_duration_input" title="Bypass Period (Minutes)">Bypass Period</label>
+                                            <input type="number" id="editor_cfg_bypass_duration_input" name="editor_cfg_bypass_duration_input" num-value-bind="m_bypassDuration">
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="row cell-auto-size">
                                     <div class="cell cell-auto-size">
                                         <div class="input-control password" data-role="input">

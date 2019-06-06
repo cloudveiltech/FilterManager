@@ -294,6 +294,8 @@ namespace Citadel {
         private m_isActive              : number;
         private m_reportLevel           : number;
         private m_registeredAt          : string;
+        private m_numBypassesPermitted  : number;
+        private m_bypassDuration        : number;
         private m_relaxedPolicyPasscode : string;
         private m_relaxedPolicyPasscodeEnabled : number;
 
@@ -531,6 +533,11 @@ namespace Citadel {
             this.jsonData           = data['activations'];
             this.myConfigData       = data['config_override'] == null ? null : JSON.parse(data['config_override']);
 
+            if(this.myConfigData) {
+                this.m_numBypassesPermitted = this.myConfigData.BypassesPermitted;
+                this.m_bypassDuration = this.myConfigData.BypassDuration;
+            }
+
             if(this.myConfigData && this.myConfigData.SelfModeration) {
                 this.selfModeration = this.myConfigData.SelfModeration;
             } else {
@@ -569,9 +576,25 @@ namespace Citadel {
                 var slider = this.m_timeRestrictionSliders[day];
                 this.myConfigData.TimeRestrictions[day] = { EnabledThrough: slider.noUiSlider.get(), RestrictionsEnabled: this.timeRestrictions[day].RestrictionsEnabled };
             }
+
+            this.myConfigData.BypassesPermitted = this.m_numBypassesPermitted;
+            this.myConfigData.BypassDuration = this.m_bypassDuration;
         }
 
         public ToObject(): Object {
+            if(this.myConfigData) {
+                this.myConfigData.BypassesPermitted = this.m_numBypassesPermitted;
+                this.myConfigData.BypassDuration = this.m_bypassDuration;
+
+                if(!this.myConfigData.BypassesPermitted) {
+                    delete this.myConfigData.BypassesPermitted;
+                }
+
+                if(!this.myConfigData.BypassDuration) {
+                    delete this.myConfigData.BypassDuration;
+                }
+            }
+
             let obj = {
                 'id': this.m_id,
                 'name': this.m_fullName,
@@ -585,6 +608,8 @@ namespace Citadel {
                 'report_level': this.m_reportLevel,
                 'relaxed_policy_passcode': this.m_relaxedPolicyPasscode,
                 'enable_relaxed_policy_passcode': this.m_relaxedPolicyPasscodeEnabled,
+                'bypasses_permitted': this.m_numBypassesPermitted,
+                'bypass_duration': this.m_bypassDuration,
                 'config_override': JSON.stringify(this.myConfigData)
             };
 

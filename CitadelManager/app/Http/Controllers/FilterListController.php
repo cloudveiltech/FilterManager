@@ -355,6 +355,8 @@ class FilterListController extends Controller
     private function processTextFilterArchive(string $namespace, UploadedFile $file, bool $overwrite)
     {
 
+        $totalTime = 0;
+
         $affectedGroups = array();
 
         // Zipped filter lists are expected to use the following
@@ -474,7 +476,12 @@ class FilterListController extends Controller
                 // In case this is existing, pull group assignment of this filter.
                 $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
 
+                $__a0 = microtime(true);
                 $this->processTextFilterFile($pharFileInfo->openFile('r'), $convertToAbp, $newFilterListEntry->id);
+                $__a1 = microtime(true);
+
+                $totalTime += ($__a1 - $__a0);
+                error_log("processTextFilterFile $categoryName/$fileName" . ($__a1 - $__a0));
 
                 // Update updated_at timestamps.
                 $newFilterListEntry->touch();
@@ -515,6 +522,8 @@ class FilterListController extends Controller
                 }
             }
         }
+
+        error_log("Total processTextFilterFile Time " . $totalTime);
 
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
