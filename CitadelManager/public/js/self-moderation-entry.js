@@ -3,7 +3,8 @@
 Vue.component('editable-span', {
 	template: "<div>\
 		<span name='viewer' v-if='!isEditing' @click='edit()' v-bind:class='{ placeholder: value && value.length > 0 }'>{{ value || placeholder }}</span>\
-		<input name='editor' v-if='isEditing' type='text' @blur='doneEditing()' @keyup='onKeyUp' @input='onInput()' class='form-control' v-model='innerValue' />\
+		<input name='editor' v-if='isEditing' type='text' @blur='doneEditing()' @keyup='onKeyUp' @input='onInput()' style='margin-bottom: 0; margin-top: 0;'\
+			class='form-control' v-model='innerValue' />\
 	</div>",
 
 	props: ['value', 'placeholder'],

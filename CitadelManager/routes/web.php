@@ -39,7 +39,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () 
     });
 });
 
-Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user']], function() {
+Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user|business-owner']], function() {
     Route::get('/', function() {
         $roles = Role::all();
         return view('userhome')->with('roles', $roles);

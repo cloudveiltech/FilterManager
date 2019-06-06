@@ -143,3 +143,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 	left: -5px;
 	top: -13px;
 }
+
+table.no-button-margins button {
+	margin: 0px;
+}

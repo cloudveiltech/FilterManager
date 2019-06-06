@@ -371,6 +371,8 @@ class FilterListController extends Controller
     private function processTextFilterArchive(string $namespace, UploadedFile $file, bool $overwrite)
     {
 
+        $totalTime = 0;
+
         $affectedGroups = array();
 
         // Zipped filter lists are expected to use the following
@@ -543,6 +545,8 @@ class FilterListController extends Controller
                 }
             }
         }
+
+        error_log("Total processTextFilterFile Time " . $totalTime);
 
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);

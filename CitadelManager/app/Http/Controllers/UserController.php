@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright © 2017 Jesse Nicholson
+ * Copyright © 2017 Jesse Nicholson, 2019 CloudVeil Technology, Inc.
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -227,7 +227,7 @@ class UserController extends Controller
             ]);
         }
 
-	$input = $request->only(['id','name','email','group_id','customer_id','activations_allowed','isactive','report_level']);
+	$input = $request->only(['id','name','email','group_id','customer_id','activations_allowed','isactive','report_level', 'config_override']);
 
         if ($inclPassword) {
             $pInput = $request->only(['password', 'password_verify']);
@@ -870,6 +870,15 @@ class UserController extends Controller
             'relaxed_policy_passcode' => $user->relaxed_policy_passcode
         ];
 
+        if($user->can(['all', 'manage-relaxed-policy'])) {
+            $config = json_decode($user->config_override);
+
+            if(json_last_error() == JSON_ERROR_NONE) {
+                $result['bypasses_permitted'] = isset($config->BypassesPermitted) ? $config->BypassesPermitted : null;
+                $result['bypass_duration'] = isset($config->BypassDuration) ? $config->BypassDuration : null;
+            }
+        }
+
         return $result;
     }
 
@@ -884,6 +893,24 @@ class UserController extends Controller
             $user->relaxed_policy_passcode = $request->input('relaxed_policy_passcode');
         }
 
+        if($user->can(['all', 'manage-relaxed-policy'])) {
+            $config = json_decode($user->config_override);
+
+            if(json_last_error() != JSON_ERROR_NONE) {
+                $config = new \stdClass();
+            }
+
+            if($request->has('bypasses_permitted')) {
+                $config->BypassesPermitted = $request->input('bypasses_permitted');
+            }
+
+            if($request->has('bypass_duration')) {
+                $config->BypassDuration = $request->input('bypass_duration');
+            }
+
+            $user->config_override = json_encode($config);
+        }
+
         $user->save();
 
         return '{}';
@@ -894,11 +921,17 @@ class UserController extends Controller
 
         $config = json_decode($user->config_override);
 
-        if(json_last_error() != JSON_ERROR_NONE || !isset($config->SelfModeration)) {
-            return [];
+        $data = [];
+
+        if(json_last_error() != JSON_ERROR_NONE) {
+            $data['whitelist'] = [];
+            $data['blacklist'] = [];
+        } else {
+            $data['whitelist'] = isset($config->CustomWhitelist) ? $config->CustomWhitelist : [];
+            $data['blacklist'] = isset($config->SelfModeration) ? $config->SelfModeration : [];
         }
 
-        return $config->SelfModeration;
+        return $data;
     }
 
     public function addSelfModeratedWebsite(Request $request) {
@@ -914,10 +947,35 @@ class UserController extends Controller
             $config->SelfModeration = [];
         }
 
-        if($request->has('url')) {
-            $config->SelfModeration[] = $request->input('url');
+        $listType = 'blacklist';
+        if($request->has('list_type')) {
+            $listType = $request->input('list_type');
+        }
+
+        if($listType == 'whitelist') {
+            if($user->can(['all', 'manage-whitelisted-sites'])) {
+                if(!isset($config->CustomWhitelist)) {
+                    $config->CustomWhitelist = [];
+                }
+
+                if($request->has('url')) {
+                    $config->CustomWhitelist[] = $request->input('url');
+                } else {
+                    return response(json_encode(['error' => 'Please specify a URL.']), 400);
+                }
+            } else {
+                return response(json_encode(["error" => "You do not have permission to manage your whitelist"]), 400);
+            }
         } else {
-            return response('{ "error": "Please specify a URL." }');
+            if(!isset($config->SelfModeration)) {
+                $config->SelfModeration = [];
+            }
+
+            if($request->has('url')) {
+                $config->SelfModeration[] = $request->input('url');
+            } else {
+                return response(json_encode(['error' => 'Please specify a URL.']), 400);
+            }
         }
 
         $user->config_override = json_encode($config);
@@ -935,11 +993,17 @@ class UserController extends Controller
             $config = new \stdClass();
         }
 
-        if($request->has('self_moderation')) {
-            $config->SelfModeration = $request->input('self_moderation');
+        if($user->can(['all', 'manage-whitelisted-sites'])) {
+            if($request->has('whitelist')) {
+                $config->CustomWhitelist = $request->input('whitelist');
+            } else {
+                $config->CustomWhitelist = [];
+            }
         }
 
-        if(!isset($config->SelfModeration)) {
+        if($request->has('blacklist')) {
+            $config->SelfModeration = $request->input('blacklist');
+        } else {
             $config->SelfModeration = [];
         }
 

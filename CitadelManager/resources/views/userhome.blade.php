@@ -15,6 +15,8 @@
 <script src="{{ asset('js/self-moderation-entry.js') }}"></script>
 
 <script>
+    window.onUserLoad = null;
+
     $(document).ready(function() {
         var search = window.location.search.substring(1);
         var searchParts = search.split('&');
@@ -29,7 +31,23 @@
         }
 
         if(search.tab) {
-            applyTab(search.tab);
+            // Handles special case where we try to navigate to deactivation requests or activations.
+            // Those tabs may not exist because the user might not be a business user.
+            switch(search.tab) {
+                default:
+                    applyTab(search.tab);
+                    break;
+
+                case 'deactivation-requests':
+                case 'activations':
+                    window.onUserLoad = function(user) {
+                        if(user.isBusinessOwner) {
+                            applyTab(search.tab);
+                        }
+                    };
+
+                    break;
+            }
         }
     });
 
@@ -56,6 +74,8 @@
         <li role="presentation" class="active"><a aria-controls="time-restrictions" role="tab" data-toggle="tab" href="#time-restrictions">Time Restrictions</a></li>
         <li role="presentation"><a aria-controls="self-moderation" role="tab" data-toggle="tab" href="#self-moderation">Self-moderation</a></li>
         <li role="presentation"><a aria-controls="relaxed-policy" role="tab" data-toggle="tab" href="#relaxed-policy">Relaxed Policy</a></li>
+        <li v-if="isBusinessOwner" role="presentation"><a aria-controls="deactivation-requests" role="tab" data-toggle="tab" href="#deactivation-requests">Deactivation Requests</a></li>
+        <li v-if="isBusinessOwner" role="presentation"><a aria-controls="activations" role="tab" data-toggle="tab" href="#activations">Activations</a></li>
     </ul>
 
     <div class="tab-content">
@@ -85,24 +105,45 @@
             <!-- TODO: Notify user that changes are saved when they finish editing -->
             
             <div class="row">
-                <ul class="list-items self-moderation col-md-9 col-sm-12 col-xs-24">
-                    <li class="list-items-row" v-for="(item, index) in selfModeration.data" @click="selfModeration.editItem(index)">
-                        <div class="row">
-                            <div class="site-text col-xs-20">
-                                <editable-span v-model="selfModeration.data[index]" placeholder="(click here to edit)">
-                                </editable-span>
-                            </div>
-                            <div class="col-xs-4">
-                                <button class="btn btn-danger" @click="selfModeration.removeUrl(item)"><span class="glyph glyph-remove"></span></button>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
+                <div class="col-md-12 col-sm-12 col-xs-24">
+                    <div class="row">
+                        <ul class="col-xs-24 list-items self-moderation">
+                            <li class="list-items-row" v-for="(item, index) in selfModeration.blacklist.data" @click="selfModeration.blacklist.editItem(index)">
+                                <div class="row">
+                                    <div class="site-text col-xs-20">
+                                        <editable-span v-model="selfModeration.blacklist.data[index]" placeholder="(click here to edit)">
+                                        </editable-span>
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <button class="btn btn-danger" @click="selfModeration.blacklist.removeUrl(item)"><span class="glyph glyph-remove"></span></button>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
 
-            </div>
+                        <button class="col-xs-24 btn btn-primary" @click="selfModeration.blacklist.addUrlEntry()"><span class="glyph glyph-add"></span> Block Site</button>
+                    </div>
+                </div>
 
-            <div class="row">
-                <div class="col-md-9 col-sm-12 col-xs-24"><button class="btn btn-primary" @click="selfModeration.addUrlEntry()"><span class="glyph glyph-add"></span> Add Site or URL</button></div>
+                <div class="col-md-12 col-sm-12 col-xs-24">
+                    <div class="row">
+                        <ul class="col-xs-24 list-items self-moderation">
+                            <li class="list-items-row" v-for="(item, index) in selfModeration.whitelist.data" @click="selfModeration.whitelist.editItem(index)">
+                                <div class="row">
+                                    <div class="site-text col-xs-20">
+                                        <editable-span v-model="selfModeration.whitelist.data[index]" placeholder="(click here to edit)">
+                                        </editable-span>
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <button class="btn btn-danger" @click="selfModeration.whitelist.removeUrl(item)"><span class="glyph glyph-remove"></span></button>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+
+                        <button class="col-xs-24 btn btn-primary" @click="selfModeration.whitelist.addUrlEntry()"><span class="glyph glyph-add"></span> Allow Site</button>
+                    </div>
+                </div>
             </div>
 
             <div class="btn-group">
@@ -128,11 +169,79 @@
                     <swappable-password-box v-model="relaxedPolicy.data.relaxed_policy_passcode"></swappable-password-box>
                 </div>
 
+                <div v-if="isBusinessOwner">
+                    <div class="form-group">
+                        <label for="edit_bypasses_permitted">Bypasses Allowed Per Day</label>
+                        <input id="edit_bypasses_permitted" class="form-control" type="number" v-model="relaxedPolicy.data.bypasses_permitted"
+                                placeholder="(group default)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_bypass_duration">Relaxed Policy Period (minutes)</label>
+                        <input id="edit_bypass_duration" class="form-control" type="number" v-model="relaxedPolicy.data.bypass_duration"
+                                placeholder="(group default)" />
+                    </div>
+                </div>
+
                 <div class="btn-group">
                     <button class="btn btn-primary" @click="relaxedPolicy.save">Save Changes</button>
                     <button class="btn btn-secondary" @click="relaxedPolicy.fetch">Cancel</button>
                 </div>
             </div>
+        </div>
+
+        <div v-if="isBusinessOwner" role="tabpanel" class="tab-pane" id="deactivation-requests">
+            <p>Use this screen to process deactivation requests from your computers</p>
+            <table class="table no-button-margins">
+                <thead>
+                    <tr>
+                        <th>Computer</th>
+                        <th>...</th>
+                        <th>...</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item, index) in deactivationRequests.data">
+                        <td>@{{item.device_id}}</td>
+                        <td>
+                            <button v-show="!item.granted" class="btn btn-primary" @click="deactivationRequests.grant(item)">Grant</button>
+                            <button v-show="item.granted" class="btn btn-primary" disabled="disabled">Granted</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-secondary" @click="deactivationRequests.deny(item)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div v-if="isBusinessOwner" role="tabpanel" class="tab-pane" id="activations">
+            <p>Use this screen to keep track of your computers that have CloudVeil for Windows products installed</p>
+
+            <table class="table no-button-margins">
+                <thead>
+                    <tr>
+                        <th>Computer</th>
+                        <th>...</th>
+                        <th>...</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item, index) in activations.data">
+                        <td>@{{item.device_id}}</td>
+                        <td>
+                            <button class="btn btn-warning" @click="activations.blockActivation(item)">
+                                <span class="glyphicon glyphicon-ban"></span> Block
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" @click="activations.deleteActivation(item)">
+                                <span class="glyphicon glyphicon-trash"></span> Delete
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 

@@ -116,12 +116,21 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
 // Users should only be able to pull list updates. The routes available to them
 // are routes to get the sum of the current user data server side, and to request
 // a download of their user data.
-Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin|user']], function () {    
+Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin|user|business-owner']], function () {    
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
     Route::post('/me/data/check', 'UserController@checkUserData');
     Route::post('/me/data/get', 'UserController@getUserData');
     Route::post('/me/terms', 'UserController@getUserTerms');
     Route::get('/time', 'UserController@getTime');
+
+    Route::get('/me', function (Request $request) {
+        $user = $request->user();
+
+        // Lazy population, so we need to access the roles property.
+        $roles = $user->roles;
+
+        return $user;
+    });
 
     // New dashboard API calls. These API calls access user data in a slightly different way than any other API calls.
     Route::post('/me/password', 'UserController@changePassword');
@@ -134,6 +143,18 @@ Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin
 
     Route::get('/time_restrictions', 'UserController@getTimeRestrictions');
     Route::post('/time_restrictions', 'UserController@setTimeRestrictions');
+});
+
+Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:admin|business-owner']], function() {
+    Route::get('deactivations', 'BusinessController@getDeactivationRequests');
+
+    Route::post('deactivations/{id}/grant', 'BusinessController@grantDeactivationRequest');
+    Route::delete('deactivations/{id}', 'BusinessController@deleteDeactivationRequest');
+    
+    Route::get('activations', 'BusinessController@getActivations');
+
+    Route::delete('activations/{id}/delete', 'BusinessController@destroyActivation');
+    Route::delete('activations/{id}/block', 'BusinessController@blockActivation');
 });
 
 /**

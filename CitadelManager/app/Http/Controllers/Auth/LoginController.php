@@ -50,6 +50,8 @@ class LoginController extends LoginControllerBase
 
         if($user->hasRole('user')) {
             return '/user';
+        } else if($user->hasRole('business-owner')) {
+            return '/user';
         } else {
             return '/admin';
         }
