@@ -392,5 +392,7 @@ function activationsModel() {
 		});
 	};
 
+	that.fetch();
+
 	return that;
 }
