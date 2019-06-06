@@ -381,6 +381,10 @@ function activationsModel() {
 		});
 	};
 
+	that.editActivation = function(activation) {
+		app.activationEditor.open(activation);
+	};
+
 	that.blockActivation = function(activation) {
 		app.deleteModal.open({
 			title: "Block Activation",
@@ -421,9 +425,7 @@ function activationsModel() {
 }
 
 function deleteModalModel() {
-	var that = {};
-
-	that.data = {
+	var that = {
 		title: "Delete",
 		body: "Do you want to delete this thing?",
 		confirmButtonText: "OK",
@@ -434,7 +436,7 @@ function deleteModalModel() {
 		that.yesCallback = yesCallback;
 
 		for(var i in data) {
-			Vue.set(that.data, i, data[i]);
+			Vue.set(that, i, data[i]);
 		}
 
 		$("#deleteModal").modal('show');

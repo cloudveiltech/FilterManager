@@ -236,6 +236,11 @@
                         <td>@{{item.app_version}}</td>
                         <td>@{{item.updated_at}}</td>
                         <td>
+                            <button class="btn btn-primary" @click="activations.editActivation(item)">
+                                <span class="glyph glyph-edit"></span> Edit
+                            </button>
+                        </td>
+                        <td>
                             <button class="btn btn-warning" @click="activations.blockActivation(item)">
                                 <span class="glyph glyph-cancel"></span> Block
                             </button>
