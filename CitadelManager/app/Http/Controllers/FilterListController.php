@@ -384,6 +384,8 @@ class FilterListController extends Controller
 
         $storageDir = storage_path();
         $tmpArchiveLoc = $storageDir . DIRECTORY_SEPARATOR . basename($file->getPathname()) . '.' . $file->getClientOriginalExtension();
+		$tmpArchiveDir = "$tmpArchiveLoc-dir";
+
         move_uploaded_file($file->getPathname(), $tmpArchiveLoc);
 
         // Sometimes, a category can have more than one file that is treated
@@ -398,8 +400,10 @@ class FilterListController extends Controller
         $purgedCategories = array();
 
 		$pharData = new \PharData($tmpArchiveLoc);
+		$pharData->extractTo($tmpArchiveDir);
+
 		Log::debug("Phar data location $tmpArchiveLoc");
-        $pharIterator = new \RecursiveIteratorIterator(new \PharData($tmpArchiveLoc), \RecursiveIteratorIterator::CHILD_FIRST);
+        $pharIterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($tmpArchiveDir), \RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($pharIterator as $pharFileInfo) {
 			Log::debug("Phar internal data location " . $pharFileInfo->getPath());
 
@@ -442,63 +446,63 @@ class FilterListController extends Controller
                     case 'urls.txt':{
                             // These rules get converted to ABP filters.
                             $finalListType = 'Filters';
-                            $convertToAbp = true;
-                        }
-                        break;
+							$convertToAbp = true;
+									}
+									break;
 
-                    case 'triggers':
-                    case 'triggers.txt':{
-                            // These rules are untouched.
-                            $finalListType = 'Triggers';
-                        }
-                        break;
+					case 'triggers':
+					case 'triggers.txt':{
+											// These rules are untouched.
+											$finalListType = 'Triggers';
+										}
+										break;
 
-                    case 'rules':
-                    case 'filters':
-                    case 'filters.txt':
-                    case 'rules.txt':{
-                            // These rules are untouched. Assumed to already
-                            // be in ABP filter format.
-                            $finalListType = 'Filters';
-                        }
-                        break;
-                }
+					case 'rules':
+					case 'filters':
+					case 'filters.txt':
+					case 'rules.txt':{
+										 // These rules are untouched. Assumed to already
+										 // be in ABP filter format.
+										 $finalListType = 'Filters';
+									 }
+									 break;
+				}
 
-                if (is_null($finalListType)) {
+				if (is_null($finalListType)) {
 					Log::debug("invalid/improperly named/unrecognized file");
-                    // Invalid/improperly named/unrecognized file.
-                    continue;
-                }
+					// Invalid/improperly named/unrecognized file.
+					continue;
+				}
 
-                // Delete existing if overwrite is true.
-                if ($overwrite) {
+				// Delete existing if overwrite is true.
+				if ($overwrite) {
 
-                    $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
-                    if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
-                        TextFilteringRule::where('filter_list_id', '=', $existingList->id)->forceDelete();
+					$existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
+					if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
+						TextFilteringRule::where('filter_list_id', '=', $existingList->id)->forceDelete();
 
-                        array_push($purgedCategories, $existingList->id);
+						array_push($purgedCategories, $existingList->id);
 
-                        // DON'T DELETE THIS ACTUAL FILTER LIST ENTRY!!
-                        // If we do that, then we have to manually rebuild
-                        // filter list assignments. Leave it the same. Only
-                        // delete actual text lines for it.
-                    }
-                }
+						// DON'T DELETE THIS ACTUAL FILTER LIST ENTRY!!
+						// If we do that, then we have to manually rebuild
+						// filter list assignments. Leave it the same. Only
+						// delete actual text lines for it.
+					}
+				}
 
-                $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
+				$newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
 
-                // We have to do this for the event where the user selects overwrite on the upload,
-                // yet one or more of the lists didn't exist already. Otherwise, same problem will
-                // arise as described in the comments above purgedCategories var creation above.
-                if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
-                    array_push($purgedCategories, $newFilterListEntry->id);
-                }
+				// We have to do this for the event where the user selects overwrite on the upload,
+				// yet one or more of the lists didn't exist already. Otherwise, same problem will
+				// arise as described in the comments above purgedCategories var creation above.
+				if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
+					array_push($purgedCategories, $newFilterListEntry->id);
+				}
 
-                // In case this is existing, pull group assignment of this filter.
-                $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
+				// In case this is existing, pull group assignment of this filter.
+				$affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
 
-                $this->processTextFilterFile($pharFileInfo->openFile('r'), $convertToAbp, $newFilterListEntry->id);
+				$this->processTextFilterFile($pharFileInfo->openFile('r'), $convertToAbp, $newFilterListEntry->id);
 
                 // Update updated_at timestamps.
                 $newFilterListEntry->touch();
