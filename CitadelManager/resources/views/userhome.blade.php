@@ -318,7 +318,7 @@
 
                         <div class="form-group">
                             <label for="activation_bypass_used">Relaxed Policy Bypasses Used</label>
-                            <input id="activation_bypass_used" class="form-control" type="number" v-model="activationeditor.data.bypass_used"
+                            <input id="activation_bypass_used" class="form-control" type="number" v-model="activationEditor.data.bypass_used"
                                     readonly="readonly" />
                         </div>
                     </div>
