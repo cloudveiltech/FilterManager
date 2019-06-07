@@ -29,6 +29,8 @@ Vue.component('editable-span', {
 
 			this.$nextTick(function() {
 				var editor = this.$el.querySelector("[name='editor']");
+				editor.value = this.value;
+
 				editor.focus();
 			});
 		},

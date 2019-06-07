@@ -105,10 +105,10 @@
             <!-- TODO: Notify user that changes are saved when they finish editing -->
             
             <div class="row">
-                <div class="col-md-12 col-sm-12 col-xs-24">
+                <div class="col-md-8 col-sm-8 col-xs-24">
                     <div class="row">
                         <ul class="col-xs-24 list-items self-moderation">
-                            <li class="list-items-row" v-for="(item, index) in selfModeration.blacklist.data" @click="selfModeration.blacklist.editItem(index)">
+                            <li class="list-items-row" v-for="(item, index) in selfModeration.blacklist.data">
                                 <div class="row">
                                     <div class="site-text col-xs-20">
                                         <editable-span v-model="selfModeration.blacklist.data[index]" placeholder="(click here to edit)">
@@ -125,10 +125,30 @@
                     </div>
                 </div>
 
-                <div class="col-md-12 col-sm-12 col-xs-24">
+                <div class="col-md-8 col-sm-8 col-xs-24">
                     <div class="row">
                         <ul class="col-xs-24 list-items self-moderation">
-                            <li class="list-items-row" v-for="(item, index) in selfModeration.whitelist.data" @click="selfModeration.whitelist.editItem(index)">
+                            <li class="list-items-row" v-for="(item, index) in selfModeration.triggerBlacklist.data">
+                                <div class="row">
+                                    <div class="site-text col-xs-20">
+                                        <editable-span v-model="selfModeration.triggerBlacklist.data[index]" placeholder="(click here to edit)">
+                                        </editable-span>
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <button class="btn btn-danger" @click="selfModeration.triggerBlacklist.removeUrl(item)"><span class="glyph glyph-remove"></span></button>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+
+                        <button class="col-xs-24 btn btn-primary" @click="selfModeration.triggerBlacklist.addUrlEntry()"><span class="glyph glyph-add"></span> Block Text Trigger</button>
+                    </div>
+                </div>
+
+                <div v-show="isBusinessOwner" class="col-md-8 col-sm-8 col-xs-24">
+                    <div class="row">
+                        <ul class="col-xs-24 list-items self-moderation">
+                            <li class="list-items-row" v-for="(item, index) in selfModeration.whitelist.data">
                                 <div class="row">
                                     <div class="site-text col-xs-20">
                                         <editable-span v-model="selfModeration.whitelist.data[index]" placeholder="(click here to edit)">

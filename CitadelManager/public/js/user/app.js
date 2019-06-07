@@ -232,6 +232,7 @@ function selfModerationModel() {
 
 	that.whitelist = selfModerationListModel();
 	that.blacklist = selfModerationListModel();
+	that.triggerBlacklist = selfModerationListModel();
 
 	that.fetch = function() {
 		$.get('/api/user/self_moderation').done(function(data) {
@@ -242,6 +243,10 @@ function selfModerationModel() {
 			if(data.blacklist) {
 				that.blacklist.data = data.blacklist;
 			}
+
+			if(data.triggerBlacklist) {
+				that.triggerBlacklist.data = data.triggerBlacklist;
+			}
 		});
 	};
 
@@ -249,7 +254,8 @@ function selfModerationModel() {
 		$.ajax('/api/user/self_moderation', {
 			data: JSON.stringify({
 				blacklist: that.blacklist.data,
-				whitelist: that.whitelist.data
+				whitelist: that.whitelist.data,
+				triggerBlacklist: that.triggerBlacklist.data
 			}),
 			dataType: "json",
 			method: "POST"

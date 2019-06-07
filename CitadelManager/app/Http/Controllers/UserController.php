@@ -926,9 +926,11 @@ class UserController extends Controller
         if(json_last_error() != JSON_ERROR_NONE) {
             $data['whitelist'] = [];
             $data['blacklist'] = [];
+            $data['triggerBlacklist'] = [];
         } else {
             $data['whitelist'] = isset($config->CustomWhitelist) ? $config->CustomWhitelist : [];
             $data['blacklist'] = isset($config->SelfModeration) ? $config->SelfModeration : [];
+            $data['triggerBlacklist'] = isset($config->CustomTriggerBlacklist) ? $config->CustomTriggerBlacklist : [];
         }
 
         return $data;
@@ -967,12 +969,17 @@ class UserController extends Controller
                 return response(json_encode(["error" => "You do not have permission to manage your whitelist"]), 400);
             }
         } else {
-            if(!isset($config->SelfModeration)) {
-                $config->SelfModeration = [];
+            $key = "SelfModeration";
+            if($listType == "triggerBlacklist") {
+                $key = "CustomTriggerBlacklist";
+            }
+
+            if(!isset($config->$key)) {
+                $config->$key = [];
             }
 
             if($request->has('url')) {
-                $config->SelfModeration[] = $request->input('url');
+                $config->$key[] = $request->input('url');
             } else {
                 return response(json_encode(['error' => 'Please specify a URL.']), 400);
             }
@@ -1005,6 +1012,12 @@ class UserController extends Controller
             $config->SelfModeration = $request->input('blacklist');
         } else {
             $config->SelfModeration = [];
+        }
+
+        if($request->has('triggerBlacklist')) {
+            $config->CustomTriggerBlacklist = $request->input('triggerBlacklist');
+        } else {
+            $config->CustomTriggerBlacklist = [];
         }
 
         $user->config_override = json_encode($config);
