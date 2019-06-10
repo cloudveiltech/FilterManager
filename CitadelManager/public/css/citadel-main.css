@@ -1114,7 +1114,7 @@ User editor.
     margin-bottom: 20px;
 }
 
-#self_moderation_table tbody tr:nth-child(odd) {
+.table.striped.black-background tbody tr:nth-child(odd) {
     background-color: #444;
 }
 
@@ -1145,7 +1145,7 @@ User editor.
     background: transparent;
 }
 
-#self_moderation_table .odd {
+.black-background .odd {
     background: transparent;
 }
 

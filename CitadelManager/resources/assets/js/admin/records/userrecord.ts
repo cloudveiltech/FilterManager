@@ -335,6 +335,8 @@ namespace Citadel {
         private jsonData                : any[];
         private myConfigData            : any;
         private selfModeration          : any;
+        private customWhitelist : any;
+        private customTriggers : any;
         private timeRestrictions : any;
 
         // ─────────────────────────────────────────────────
@@ -348,6 +350,8 @@ namespace Citadel {
          * SELF MODERATION TABLE
          */
         private m_selfModerationTable : SelfModerationTable;
+        private m_customWhitelistTable : SelfModerationTable;
+        private m_textTriggerTable : SelfModerationTable;
 
         /**
          * TIME RESTRICTIONS
@@ -502,6 +506,14 @@ namespace Citadel {
             this.m_selfModerationTable.add();
         }
 
+        public addNewWhitelistSite(): void {
+            this.m_customWhitelistTable.add();
+        }
+
+        public addNewCustomTextTrigger(): void {
+            this.m_textTriggerTable.add();
+        }
+
         protected initEmptyTimeRestrictionsObject(): void {
             this.timeRestrictions = {};
 
@@ -544,6 +556,18 @@ namespace Citadel {
                 this.selfModeration = [];
             }
 
+            if(this.myConfigData && this.myConfigData.CustomWhitelist) {
+                this.customWhitelist = this.myConfigData.CustomWhitelist;
+            } else {
+                this.customWhitelist = [];
+            }
+
+            if(this.myConfigData && this.myConfigData.CustomTriggerBlacklist) {
+                this.customTriggers = this.myConfigData.CustomTriggerBlacklist;
+            } else {
+                this.customTriggers = [];
+            }
+
             if(this.myConfigData && this.myConfigData.TimeRestrictions) {
                 this.timeRestrictions = {};
 
@@ -566,9 +590,14 @@ namespace Citadel {
             this.m_relaxedPolicyPasscodeEnabled = this.m_inputRelaxedPolicyPasscodeEnabled.checked == true ? 1 : 0;
 
             this.selfModeration = this.m_selfModerationTable.getData();
+            this.customWhitelist = this.m_customWhitelistTable.getData();
+            this.customTriggers = this.m_textTriggerTable.getData();
+            
             this.myConfigData = this.myConfigData || {};
 
             this.myConfigData.SelfModeration = this.selfModeration;
+            this.myConfigData.CustomWhitelist = this.customWhitelist;
+            this.myConfigData.CustomTriggerBlacklist = this.customTriggers;
 
             this.myConfigData.TimeRestrictions = {};
 
@@ -805,8 +834,12 @@ namespace Citadel {
             let that = this;
 
             this.m_selfModerationTable = new SelfModerationTable(document.querySelector("#self_moderation_table"), this.selfModeration);
+            this.m_customWhitelistTable = new SelfModerationTable(document.querySelector("#custom_whitelist_table"), this.customWhitelist);
+            this.m_textTriggerTable = new SelfModerationTable(document.querySelector("#custom_trigger_table"), this.customTriggers);
 
             this.m_selfModerationTable.render();
+            this.m_customWhitelistTable.render();
+            this.m_textTriggerTable.render();
         }
 
         private InitUserActivationTables() {

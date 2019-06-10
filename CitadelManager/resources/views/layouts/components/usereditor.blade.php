@@ -19,7 +19,13 @@
                             <a href="#user_activation_tab">Activations</a>
                         </li>
                         <li>
-                            <a href="#self_moderation_tab">User's self-moderation</a>
+                            <a href="#self_moderation_tab">User's Blocked Sites</a>
+                        </li>
+                        <li>
+                            <a href="#custom_whitelist_tab">User's Allowed Sites</a>
+                        </li>
+                        <li>
+                            <a href="#trigger_blacklist_tab">User's Blocked Triggers</a>
                         </li>
                         <li>
                             <a href="#time_restrictions_tab">User's Time Restrictions</a>
@@ -194,12 +200,12 @@
                         <div class="frame" id="self_moderation_tab">
                             <div class="grid" id="self_moderation_list">
                                 <h2>
-                                    <small>Self-moderation</small>
+                                    <small>User's Blocked Sites</small>
                                 </h2>
                                 <hr class="thin" />
                                 <button type="button" event-click="addNewSelfModerationSite" class="button primary">Add Site</button>
 
-                                <table id="self_moderation_table" class="table striped hovered border" style="width: 100%">
+                                <table id="self_moderation_table" class="table striped hovered border black-background" style="width: 100%">
                                     <thead>
                                         <tr>
                                             <th>Site</th>
@@ -208,6 +214,52 @@
                                         </tr>
                                     </thead>
                                     <tbody id="self_moderation_insert">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="frame" id="custom_whitelist_tab">
+                            <div class="grid">
+                                <h2>
+                                    <small>User's Allowed Sites</small>
+                                </h2>
+                                <hr class="thin" />
+                                <button type="button" event-click="addNewWhitelistSite" class="button primary">Add Site</button>
+
+                                <table id="custom_whitelist_table" class="table striped hovered border black-background" style="width: 100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Site</th>
+                                            <th>...</th>
+                                            <th>...</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="custom_whitelist_insert">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="frame" id="trigger_blacklist_tab">
+                            <div class="grid">
+                                <h2>
+                                    <small>User's Blocked Triggers</small>
+                                </h2>
+                                <hr class="thin" />
+                                <button type="button" event-click="addNewCustomTextTrigger" class="button primary">Add Site</button>
+
+                                <table id="custom_trigger_table" class="table striped hovered border black-background" style="width: 100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Text Trigger</th>
+                                            <th>...</th>
+                                            <th>...</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="custom_trigger_insert">
 
                                     </tbody>
                                 </table>
