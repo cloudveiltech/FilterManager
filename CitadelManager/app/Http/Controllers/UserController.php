@@ -547,11 +547,11 @@ class UserController extends Controller
 		$responseOutput = "";
 		foreach($responseArray as $listName => $list) {
 			$responseOutput .= "--startlist $listName";
-			$responseOutput .= $list;
+			$responseOutput .= "$list\n";
 			$responseOutput .= "--endlist";
 		}
 
-		return response($responseOutput)->header('Content-Type', 'text/plain'));
+		return response($responseOutput)->header('Content-Type', 'text/plain');
     }
 
     /**
