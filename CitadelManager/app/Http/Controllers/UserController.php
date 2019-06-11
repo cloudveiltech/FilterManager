@@ -546,7 +546,7 @@ class UserController extends Controller
 
 		$responseOutput = "";
 		foreach($responseArray as $listName => $list) {
-			$responseOutput .= "--startlist $listName";
+			$responseOutput .= "--startlist $listName\n";
 			$responseOutput .= "$list\n";
 			$responseOutput .= "--endlist";
 		}
