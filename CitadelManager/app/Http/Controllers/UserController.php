@@ -529,7 +529,7 @@ class UserController extends Controller
                 ->first();
 
             if($filterList === null) {
-                $responseArray[$listName] = 404;
+                $responseArray[$listName] = "http-result 404";
             }
 
             // If the SHA hashes don't match, load the ruleset from the disk cache.
@@ -544,7 +544,14 @@ class UserController extends Controller
             $responseArray[$listName] = $rulesetFileContents;
         }
 
-        return response(json_encode($responseArray, JSON_FORCE_OBJECT))->header('Content-Type', 'application/json');
+		$responseOutput = "";
+		foreach($responseArray as $listName => $list) {
+			$responseOutput .= "--startlist $listName";
+			$responseOutput .= $list;
+			$responseOutput .= "--endlist";
+		}
+
+		return response($responseOutput)->header('Content-Type', 'text/plain'));
     }
 
     /**
