@@ -548,7 +548,7 @@ class UserController extends Controller
 		foreach($responseArray as $listName => $list) {
 			$responseOutput .= "--startlist $listName\n";
 			$responseOutput .= "$list\n";
-			$responseOutput .= "--endlist";
+			$responseOutput .= "--endlist\n";
 		}
 
 		return response($responseOutput)->header('Content-Type', 'text/plain');
