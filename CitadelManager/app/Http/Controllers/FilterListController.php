@@ -400,9 +400,14 @@ class FilterListController extends Controller
         // This is not necessary for other types of filter data, such as NLP
         // models, because there can only be 1 per category.
         $purgedCategories = array();
+		
+		$zippedData = new \ZipArchive;
+		$result = $zippedData->open($tmpArchiveLoc);
+		if($result !== true) {
+			return;
+		}
 
-		$pharData = new \PharData($tmpArchiveLoc);
-		$pharData->extractTo($tmpArchiveDir);
+		$zippedData->extractTo($tmpArchiveDir);
 
 		Log::debug("Phar data location $tmpArchiveLoc");
         $pharIterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($tmpArchiveDir), \RecursiveIteratorIterator::CHILD_FIRST);
@@ -545,8 +550,6 @@ class FilterListController extends Controller
                 }
             }
         }
-
-        error_log("Total processTextFilterFile Time " . $totalTime);
 
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
