@@ -10,8 +10,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-
 use App\FilterList;
 use App\Group;
 use App\GroupFilterAssignment;
@@ -402,9 +400,14 @@ class FilterListController extends Controller
         // This is not necessary for other types of filter data, such as NLP
         // models, because there can only be 1 per category.
         $purgedCategories = array();
+		
+		$zippedData = new \ZipArchive;
+		$result = $zippedData->open($tmpArchiveLoc);
+		if($result !== true) {
+			return;
+		}
 
-		$pharData = new \PharData($tmpArchiveLoc);
-		$pharData->extractTo($tmpArchiveDir);
+		$zippedData->extractTo($tmpArchiveDir);
 
 		Log::debug("Phar data location $tmpArchiveLoc");
         $pharIterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($tmpArchiveDir), \RecursiveIteratorIterator::CHILD_FIRST);
@@ -548,8 +551,6 @@ class FilterListController extends Controller
             }
         }
 
-        error_log("Total processTextFilterFile Time " . $totalTime);
-
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
         $this->forceRebuildOnGroups($affectedGroups);
@@ -567,8 +568,6 @@ class FilterListController extends Controller
     private function processTextFilterFile(\SplFileObject $file, bool $convertToAbp, int $parentListId)
     {
 		Log::debug("processTextFilterFile");
-
-        $__a = microtime(true);
 
 		try {
 			$lineFeedFunc = null;
@@ -595,19 +594,12 @@ class FilterListController extends Controller
 
 			$count = 0;
 
-            $dataFilePath = tempnam(storage_path(), "data");
-            $dataFile = fopen($dataFilePath, "w");
-            if($dataFile === false) {
-                throw Exception("Could not open data file.");
-            }
 
 			foreach ($file as $lineNumber => $content) {
 
 				$content = $lineFeedFunc($content);
 
-                fprintf($dataFile, "%d,\"%s\",\"%s\",%l,%l\n", $parentListId, sha1($content), $content, $createdAt, $updatedAt);
-
-				/*if (strlen($content) > 0) {
+				if (strlen($content) > 0) {
 					$fillArr[] = ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt];
 					$count++;
 				}
@@ -618,28 +610,14 @@ class FilterListController extends Controller
 
 					$fillArr = array();
 					$count = 0;
-				}*/
+				}
 			}
 
-			/*if ($count > 0) {
+			if ($count > 0) {
 				TextFilteringRule::insertIgnore($fillArr);
 				$fillArr = array();
 				$count = 0;
-			}*/
-
-            fclose($dataFile);
-            chmod($dataFilePath, 0644);
-
-            // Run a LOAD DATA LOCAL INFILE query.
-            DB::statement("LOAD DATA INFILE '$dataFilePath' IGNORE INTO TABLE text_filtering_rules
-                FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"'
-                (filter_list_id, sha1, rule, created_at, updated_at)");
-
-            unlink($dataFilePath);
-
-            $__b = microtime(true);
-
-            Log::debug("LOAD DATA INFILE took " . ($__b - $__a));
+			}
 		} catch(Exception $ex) {
 			Log::error("Error occurred while processing text filter file $ex");
 			throw $ex;
