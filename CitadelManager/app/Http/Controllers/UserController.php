@@ -227,7 +227,7 @@ class UserController extends Controller
             ]);
         }
 
-	$input = $request->only(['id','name','email','group_id','customer_id','activations_allowed','isactive','report_level', 'config_override']);
+	$input = $request->only(['id','name','email','group_id','customer_id','activations_allowed','isactive','report_level', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode']);
 
         if ($inclPassword) {
             $pInput = $request->only(['password', 'password_verify']);
