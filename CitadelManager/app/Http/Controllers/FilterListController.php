@@ -10,6 +10,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use App\FilterList;
 use App\Group;
 use App\GroupFilterAssignment;
@@ -20,6 +21,7 @@ use App\FilterRulesManager;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use App\Jobs\ProcessTextFilterArchiveUpload;
 
 class FilterListController extends Controller
 {
@@ -255,9 +257,6 @@ class FilterListController extends Controller
      */
     public function processUploadedFilterLists(Request $request)
     {
-		set_time_limit(480);
-		error_reporting(E_ALL);
-
         $this->validate($request, [
             'overwrite' => 'required|boolean',
             'namespace' => 'required|string|min:1|max:64',
@@ -276,7 +275,10 @@ class FilterListController extends Controller
         foreach ($listFile as $file) {
             switch (strtolower($file->getClientOriginalExtension())) {
                 case 'zip':{
-                        $success = $this->processTextFilterArchive($listNamespace, $file, $shouldOverwrite);
+                        $storedFile = $file->store('zip_uploads');
+                        //dd($storedFile);
+                        $success = ProcessTextFilterArchiveUpload::dispatch($listNamespace, $storedFile, $shouldOverwrite);
+                        //$success = $this->processTextFilterArchive($listNamespace, $file, $shouldOverwrite);
                     }
                     break;
 
@@ -365,10 +367,10 @@ class FilterListController extends Controller
      * Processes an uploaded archive, extracting the text files inside and processing
      * them according to their type and category.
      * @param string $namespace     The namespace of the parent filter list.
-     * @param UploadedFile $file    The uploaded archive.
+     * @param string $file    The location of the file to be processed.
      * @param bool $overwrite       Whether or not to overwrite.
      */
-    private function processTextFilterArchive(string $namespace, UploadedFile $file, bool $overwrite)
+    public function processTextFilterArchive(string $namespace, string $tmpArchiveLoc, bool $overwrite)
     {
 
         $totalTime = 0;
@@ -384,11 +386,13 @@ class FilterListController extends Controller
         // /category_name/filters[none|.txt]
         // /category_name/rules[none|.txt]
 
-        $storageDir = storage_path();
-        $tmpArchiveLoc = $storageDir . DIRECTORY_SEPARATOR . basename($file->getPathname()) . '.' . $file->getClientOriginalExtension();
+        //$storageDir = storage_path();
+        //$tmpArchiveLoc = $storageDir . DIRECTORY_SEPARATOR . basename($file->getPathname()) . '.' . $file->getClientOriginalExtension();
+        //$tmpArchiveLoc = basename($file->getPathname()) . '.' . $file->getClientOriginalExtension();
+        Log::info('Processing textFilterArchive located at: ' . $tmpArchiveLoc);
 		$tmpArchiveDir = "$tmpArchiveLoc-dir";
 
-        move_uploaded_file($file->getPathname(), $tmpArchiveLoc);
+        //move_uploaded_file($file->getPathname(), $tmpArchiveLoc);
 
         // Sometimes, a category can have more than one file that is treated
         // the same. domains and urls files will both get pushed into a list

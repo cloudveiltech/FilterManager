@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Log;
 
 class ProcessTextFilterArchiveUpload implements ShouldQueue
 {
@@ -35,7 +36,8 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
      */
     public function handle()
     {
+        Log::info('Running processTextFilterArchive Job.');
         $flc = new \App\Http\Controllers\FilterListController;
-        $flc->processTextFilterArchive($event->listNamespace, $event->file, $event->shouldOverwrite);
+        $flc->processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
     }
 }
