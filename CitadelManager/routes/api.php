@@ -116,30 +116,76 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
 // Users should only be able to pull list updates. The routes available to them
 // are routes to get the sum of the current user data server side, and to request
 // a download of their user data.
-Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin|user']], function () {
-
+Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin|user|business-owner']], function () {    
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
     Route::post('/me/data/check', 'UserController@checkUserData');
     Route::post('/me/data/get', 'UserController@getUserData');
     Route::post('/me/terms', 'UserController@getUserTerms');
     Route::get('/time', 'UserController@getTime');
 
+    Route::get('/me', function (Request $request) {
+        $user = $request->user();
+
+        // Lazy population, so we need to access the roles property.
+        $roles = $user->roles;
+
+        return $user;
+    });
+
+    // New dashboard API calls. These API calls access user data in a slightly different way than any other API calls.
+    Route::post('/me/password', 'UserController@changePassword');
+
+    Route::get('/relaxed_policy/passcode_info', 'UserController@getRelaxedPolicyPasscode');
+    Route::post('/relaxed_policy/passcode_info', 'UserController@setRelaxedPolicyPasscode');
+
+    Route::get('/self_moderation', 'UserController@getSelfModerationInfo');
+    Route::post('/self_moderation', 'UserController@setSelfModerationInfo');
+
+    Route::get('/time_restrictions', 'UserController@getTimeRestrictions');
+    Route::post('/time_restrictions', 'UserController@setTimeRestrictions');
+});
+
+Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:admin|business-owner']], function() {
+    Route::get('deactivations', 'BusinessController@getDeactivationRequests');
+
+    Route::post('deactivations/{id}/grant', 'BusinessController@grantDeactivationRequest');
+    Route::delete('deactivations/{id}', 'BusinessController@deleteDeactivationRequest');
+    
+    Route::get('activations', 'BusinessController@getActivations');
+    Route::put('activations/{id}', 'AppUserActivationController@update');
+
+    Route::delete('activations/{id}/delete', 'BusinessController@destroyActivation');
+    Route::delete('activations/{id}/block', 'BusinessController@blockActivation');
 });
 
 /**
  * Version 2 of the API.  This version relies upon basic authentication to retrieve a token and then
  * token authentication via headers for other requests.
  */
-Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api']], function () {
+Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api', 'throttle:300,1']], function () {
 
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
     Route::post('/me/data/check', 'UserController@checkUserData');
     Route::post('/me/data/get', 'UserController@getUserData');
-    Route::post('/me/data/getconfigonly', 'UserController@getUserDataConfigOnly');
+
     Route::post('/me/terms', 'UserController@getUserTerms');
     Route::post('/me/revoketoken', 'UserController@revokeUserToken');
     Route::post('/me/bypass', 'AppUserActivationController@bypass');
     Route::post('/me/accountability', 'AccountabilityController@index');
+
+    // START - New Requests for 1.7.
+    Route::post('/me/config/get','UserController@getConfig'); //This will get the configuration JSON file for the currently authenticated user.
+    Route::post('/me/config/check', 'UserController@checkConfig'); //This will return a checksum for the above-mentioned configuration file.
+    Route::get('/rules/{namespace}/{category}/{type}.txt', 'UserController@getRuleset'); // This returns a specific ruleset file.
+    Route::post('/rules/get', 'UserController@getRules'); //This will return each file listed in its own key in a JSON request.
+    Route::post('/rules/check', 'UserController@checkRules'); //This will return a checksum for all rules listed in the POST request
+    Route::post('/rules/rebuild', 'UserController@rebuildRules');
+
+    // New feature API calls.
+    Route::post('/me/self_moderation/add', 'UserController@addSelfModeratedWebsite'); // This adds a website to the user's sef moderation list.
+    Route::get('/me/time_restrictions', 'UserController@getTimeRestrictions');
+    // END - New Requests for 1.7
+
     Route::get('/time', 'UserController@getTime');
     Route::get('/me/user', function (Request $request) {
         return $request->user();

@@ -8,6 +8,246 @@
 ///<reference path="../../progresswait.ts"/>
 
 namespace Citadel {
+    export class SelfModerationTable {
+        private table: HTMLTableElement;
+        private data: any;
+        private __nextId: number;
+
+        private editInfo: any;
+
+        public constructor(table: HTMLTableElement, data: any) {
+            data = data || [];
+
+            this.__nextId = 1;
+
+            this.table = table;
+            this.data = this.fromStrings(data);
+        }
+
+        private toStrings(): string[] {
+            var sites = [];
+            for(var i = 0; i < this.data.length; i++) {
+                sites.push(this.data[i].site);
+            }
+
+            return sites;
+        }
+
+        private fromStrings(data: string[]): object[] {
+            var processed = [];
+
+            for(var i = 0; i < data.length; i++) {
+                processed.push({
+                    id: this.nextId(),
+                    site: data[i]
+                });
+            }
+
+            return processed;
+        }
+
+        private findSiteObj(id: number): object {
+            for(var i = 0; i < this.data.length; i++) {
+                if(this.data[i].id === id) {
+                    return this.data[i];
+                }
+            }
+
+            return null;
+        }
+
+        private nextId(): number {
+            var n = this.__nextId;
+            this.__nextId += 1;
+            return n;
+        }
+
+        /* Taken from https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript */
+        /* Not currently used. Might want this? */
+        private siteIdHash(s: string): number {
+            let hash = 0;
+            if(s.length === 0) return hash;
+
+            let i = 0;
+            for(i = 0; i < s.length; i++) {
+                const chr = s.charCodeAt(i);
+                hash = ((hash << 5) - hash) + chr;
+                hash |= 0;
+            }
+
+            return hash;
+        }
+
+        public setData(data: any): void {
+            this.data = this.fromStrings(data);
+        }
+
+        public getData(): any {
+            return this.toStrings();
+        }
+
+        public add(): void {
+            var that = this;
+
+            var id = this.nextId();
+
+            this.data.push({
+                id: id,
+                site: ""
+            });
+
+            this.render();
+
+            setTimeout(function() {
+                that.edit(id);
+            });
+        }
+
+        public remove(id: number): void {
+            for(var i = 0; i < this.data.length; i++) {
+                if(this.data[i].id == id) {
+                    break;
+                }
+            }
+
+            if(i < this.data.length) {
+                this.data.splice(i, 1);
+            }
+
+            this.render();
+        }
+
+        public edit(id: number): void {
+            if(this.editInfo && this.editInfo.inProgress) {
+                return;
+            }
+
+            var siteObj = this.findSiteObj(id);
+
+            var toEdit = this.table.querySelector("[data-id='" + id + "']");
+
+            this.editInfo = {
+                oldHtml: toEdit.innerHTML,
+                inProgress: true,
+                editor: this.editorRow(siteObj),
+                siteObj: siteObj
+            };
+
+            toEdit.innerHTML = "";
+            toEdit.parentNode.replaceChild(this.editInfo.editor, toEdit);
+
+            this.editInfo.editor.querySelector('input').focus();
+        }
+
+        public endEdit(): void {
+            if(!this.editInfo || !this.editInfo.inProgress) {
+                return;
+            }
+
+            var elem = this.editInfo.editor;
+
+            var siteObj = this.editInfo.siteObj;
+            elem.parentNode.replaceChild(this.renderRow(siteObj), elem);
+
+            this.editInfo = { inProgress: false };
+        }
+
+        private renderRow(siteObj): any {
+            var that = this;
+
+            var tr = document.createElement("tr");
+            tr.setAttribute("data-id", siteObj.id);
+
+            var siteTd = document.createElement("td");
+            var editTd = document.createElement("td");
+            var deleteTd = document.createElement("td");
+
+            siteTd.innerHTML = siteObj.site;
+
+            editTd.appendChild(this.button("Edit", function() {
+                that.edit(siteObj.id);
+            }));
+
+            deleteTd.appendChild(this.button("Delete", function() {
+                that.remove(siteObj.id);
+            }));
+
+            tr.appendChild(siteTd);
+            tr.appendChild(editTd);
+            tr.appendChild(deleteTd);
+
+            return tr;
+        }
+
+        private button(text: string, onclick: any): any {
+            var button = document.createElement("button");
+            button.setAttribute("type", "button");
+
+            button.innerHTML = text;
+            button.addEventListener("click", onclick);
+
+            return button;
+        }
+
+        public render(): void {
+            var table = this.table;
+            var tbody = this.table.querySelector("tbody");
+
+            tbody.innerHTML = "";
+
+            for(var i = 0; i < this.data.length; i++) {
+                var obj = this.data[i];
+
+                var tr = this.renderRow(obj);
+                tbody.appendChild(tr);
+            }
+        }
+
+        public editorRow(siteObj: any): any {
+            var that = this;
+
+            var site = siteObj.site;
+
+            var tr = document.createElement("tr");
+            tr.setAttribute("data-id", siteObj.id);
+            var inputTd = document.createElement("td");
+            var doneTd = document.createElement("td");
+            var deleteTd = document.createElement("td");
+
+            var input = document.createElement("input");
+            input.setAttribute("type", "text");
+            input.value = site;
+
+            input.addEventListener("keypress", function(e) {
+                if(e.which == 13) {
+                    that.editInfo.siteObj.site = input.value;
+                    that.endEdit();
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            var button = document.createElement("button");
+            button.innerHTML = "Done";
+
+            button.addEventListener("click", function() {
+                that.editInfo.siteObj.site = input.value;
+                that.endEdit();
+            });
+
+            inputTd.appendChild(input);
+            doneTd.appendChild(this.button("Done", function() {
+                that.editInfo.siteObj.site = input.value;
+                that.endEdit();
+            }));
+
+            tr.appendChild(inputTd);
+            tr.appendChild(doneTd);
+            tr.appendChild(deleteTd);
+
+            return tr;
+        }
+    }
 
     export class UserRecord extends BaseRecord {
         // ───────────────────────────────────────────────────
@@ -38,7 +278,7 @@ namespace Citadel {
         URL_UPDATE_CHECK_IN_DAYS            = 'api/admin/activations/update_check_in_days';
         URL_DELETE_ACTIVATION               = 'api/admin/user_activations/delete';
         URL_BLOCK_ACTIVATION                = 'api/admin/user_activations/block';
-
+        WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
         // ───────────────────────────────────────────────────
         //   :::::: U S E R   D A T A   M E M B E R S ::::::
@@ -46,7 +286,7 @@ namespace Citadel {
         private m_id                    : number;
         private m_fullName              : string;
         private m_email                 : string;
-        private m_password ?            : string;
+        private m_password              : string;
         private m_groupId               : number;
         private m_roleId                : number;
         private m_numActivations        : number;
@@ -54,6 +294,10 @@ namespace Citadel {
         private m_isActive              : number;
         private m_reportLevel           : number;
         private m_registeredAt          : string;
+        private m_numBypassesPermitted  : number;
+        private m_bypassDuration        : number;
+        private m_relaxedPolicyPasscode : string;
+        private m_relaxedPolicyPasscodeEnabled : number;
 
         // ─────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -61,19 +305,20 @@ namespace Citadel {
         private m_mainForm              : HTMLFormElement;
 
         private m_editorOverlay         : HTMLDivElement;
-        private m_editorTitle           : HTMLHeadingElement;
+
+        private m_editorTitleValue : string;
 
         // ─────────────────────────────────────────────
         //   ::::: I N P U T    E L E M E N T S ::::::
         // ─────────────────────────────────────────────
-        private m_inputFullName         : HTMLInputElement;
-        private m_inputEmail            : HTMLInputElement;
-        private m_inputPassword         : HTMLInputElement;
+        private m_emailInputId : string;
+        private m_inputPasswordId : string;
         private m_inputPasswordConfirm  : HTMLInputElement;
-        private m_inputActivationCount  : HTMLInputElement;
+        private m_activationCountInputId : string;
         private m_inputCustomerId       : HTMLInputElement;
         private m_inputIsActive         : HTMLInputElement;
         private m_inputReportLevel      : HTMLInputElement;
+        private m_inputRelaxedPolicyPasscodeEnabled : HTMLInputElement;
 
         // ───────────────────────────────────────────────
         //   ::::: S E L E C T    E L E M E N T S ::::::
@@ -88,6 +333,11 @@ namespace Citadel {
         private m_btnCancel             : HTMLButtonElement;
 
         private jsonData                : any[];
+        private myConfigData            : any;
+        private selfModeration          : any;
+        private customWhitelist : any;
+        private customTriggers : any;
+        private timeRestrictions : any;
 
         // ─────────────────────────────────────────────────
         //   ::::: A C T I V A T I O N    T A B L E ::::::
@@ -96,34 +346,123 @@ namespace Citadel {
         private m_tableColumns          : DataTables.ColumnSettings[];
         private m_ActivationTables      : DataTables.Api;
 
+        /**
+         * SELF MODERATION TABLE
+         */
+        private m_selfModerationTable : SelfModerationTable;
+        private m_customWhitelistTable : SelfModerationTable;
+        private m_textTriggerTable : SelfModerationTable;
+
+        /**
+         * TIME RESTRICTIONS
+         */
+        private m_timeRestrictionsSliderConfig: any;
+        private m_timeRestrictionConfigs: any;
+        private m_timeRestrictionSliders: any;
+
+        private savedCustom: any;
+        private timeRestrictionsPresets: any = {
+            evening: {
+                monday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                tuesday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                wednesday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                thursday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                friday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                saturday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
+                sunday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] }
+            },
+
+            office: {
+                monday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                tuesday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                wednesday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                thursday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                friday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
+                saturday: { RestrictionsEnabled: true, EnabledThrough: [10, 15] },
+                sunday: { RestrictionsEnabled: true, EnabledThrough: [0, 0] }
+            },
+
+            none: {
+                monday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                tuesday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                wednesday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                thursday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                friday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                saturday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
+                sunday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] }
+            }
+        };
+
+        private userData: any;
+
         // ─────────────────────────────────────────────────
         //   ::::: M E M B E R     F U N C T I O N S ::::::
         // ─────────────────────────────────────────────────
 
         constructor() {
             super();
+
+            this.m_timeRestrictionsSliderConfig = {
+                start: [0, 24],
+                connect: true,
+                range: {
+                    'min': 0,
+                    'max': 24
+                },
+
+                step: 0.25
+            };
+
             this.ConstructFormReferences();
         }
 
+        private m_bindings : BindingInstance;
+
+        private loadTimeRestrictionsFrom(obj): void {
+            this.savedCustom = JSON.parse(JSON.stringify(this.timeRestrictions));
+
+            for(var i in this.timeRestrictions) {
+                this.timeRestrictions[i] = JSON.parse(JSON.stringify(obj[i]));
+            }
+
+            this.m_bindings.Refresh();
+            this.updateTimeRestrictionsSliders();
+        }
+
+        // Someday these will need to be loaded from a database, but for now, we'll just hard code them.
+        private eveningRestrictionsPreset(): void {
+            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.evening);
+        }
+
+        private officeRestrictionsPreset(): void {
+            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.office);
+        }
+
+        private noneRestrictionsPreset(): void {
+            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.none);
+        }
+
         private ConstructFormReferences(): void {
-            this.m_mainForm         = document.querySelector('#editor_user_form') as HTMLFormElement;
-            this.m_editorTitle      = document.querySelector('#user_editing_title') as HTMLHeadingElement;
             this.m_editorOverlay    = document.querySelector('#overlay_user_editor') as HTMLDivElement;
 
-            this.m_inputEmail       = document.querySelector('#editor_user_input_username') as HTMLInputElement;
-            this.m_inputFullName    = document.querySelector('#editor_user_input_user_full_name') as HTMLInputElement;
-            this.m_inputPassword    = document.querySelector('#editor_user_input_password') as HTMLInputElement;
-            this.m_inputPasswordConfirm = document.querySelector('#editor_user_input_password_confirm') as HTMLInputElement;
-            this.m_inputActivationCount = document.querySelector('#editor_user_input_num_activations') as HTMLInputElement;
+            this.m_bindings = new BindingInstance(this.m_editorOverlay, this);
+            this.m_bindings.Bind();
+            this.m_bindings.Refresh();
+
+            this.m_mainForm         = document.querySelector('#editor_user_form') as HTMLFormElement;
+
+            this.m_emailInputId = "editor_user_input_username";
+            this.m_inputPasswordId = "editor_user_input_password";
+            this.m_activationCountInputId = "editor_user_input_num_activations";
+
             this.m_selectGroup      = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
             this.m_selectRole       = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
             this.m_inputIsActive    = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
             this.m_inputCustomerId  = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
             this.m_inputReportLevel = document.querySelector('#editor_user_report_level') as HTMLInputElement;
+            this.m_inputRelaxedPolicyPasscodeEnabled = document.querySelector('#editor_user_input_passcode_enabled') as HTMLInputElement;
             this.m_btnSubmit        = document.querySelector('#user_editor_submit') as HTMLButtonElement;
             this.m_btnCancel        = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
-
-            this.InitButtonHandlers();
         }
 
         public get RecordRoute(): string {
@@ -163,6 +502,29 @@ namespace Citadel {
             }
         }
 
+        public addNewSelfModerationSite(): void {
+            this.m_selfModerationTable.add();
+        }
+
+        public addNewWhitelistSite(): void {
+            this.m_customWhitelistTable.add();
+        }
+
+        public addNewCustomTextTrigger(): void {
+            this.m_textTriggerTable.add();
+        }
+
+        protected initEmptyTimeRestrictionsObject(): void {
+            this.timeRestrictions = {};
+
+            for(var day of this.WEEKDAYS) {
+                this.timeRestrictions[day] = {
+                    EnabledThrough: [0, 24],
+                    RestrictionsEnabled: false
+                };
+            }
+        }
+
         // ────────────────────────────────────────────────────
         //   ::::: C O N V E R T     F U N C T I O N S ::::::
         // ────────────────────────────────────────────────────
@@ -178,22 +540,90 @@ namespace Citadel {
             this.m_isActive         = data['isactive'];
             this.m_registeredAt     = data['dt'] as string;
             this.m_reportLevel      = data['report_level'] as number;
+            this.m_relaxedPolicyPasscode = data['relaxed_policy_passcode'] as string;
+            this.m_relaxedPolicyPasscodeEnabled = data['enable_relaxed_policy_passcode'] as number;
             this.jsonData           = data['activations'];
+            this.myConfigData       = data['config_override'] == null ? null : JSON.parse(data['config_override']);
+
+            if(this.myConfigData) {
+                this.m_numBypassesPermitted = this.myConfigData.BypassesPermitted;
+                this.m_bypassDuration = this.myConfigData.BypassDuration;
+            }
+
+            if(this.myConfigData && this.myConfigData.SelfModeration) {
+                this.selfModeration = this.myConfigData.SelfModeration;
+            } else {
+                this.selfModeration = [];
+            }
+
+            if(this.myConfigData && this.myConfigData.CustomWhitelist) {
+                this.customWhitelist = this.myConfigData.CustomWhitelist;
+            } else {
+                this.customWhitelist = [];
+            }
+
+            if(this.myConfigData && this.myConfigData.CustomTriggerBlacklist) {
+                this.customTriggers = this.myConfigData.CustomTriggerBlacklist;
+            } else {
+                this.customTriggers = [];
+            }
+
+            if(this.myConfigData && this.myConfigData.TimeRestrictions) {
+                this.timeRestrictions = {};
+
+                for(var day in this.myConfigData.TimeRestrictions) {
+                    this.timeRestrictions[day] = this.myConfigData.TimeRestrictions[day];
+                }
+            } else {
+                this.initEmptyTimeRestrictionsObject();
+            }
+
         }
 
         protected LoadFromForm(): void {
-            this.m_fullName         = this.m_inputFullName.value;
-            this.m_email            = this.m_inputEmail.value;
-            this.m_password         = this.m_inputPassword.value;
+            console.log(this.m_fullName);
             this.m_groupId          = this.getValueFromSelect(this.m_selectGroup);
             this.m_roleId           = this.getValueFromSelect(this.m_selectRole);
             this.m_customerId       = this.m_inputCustomerId.value == "" ? null:this.m_inputCustomerId.valueAsNumber;
-            this.m_numActivations   = this.m_inputActivationCount.valueAsNumber;
             this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
             this.m_reportLevel      = this.m_inputReportLevel.checked == true ? 1 : 0;
+            this.m_relaxedPolicyPasscodeEnabled = this.m_inputRelaxedPolicyPasscodeEnabled.checked == true ? 1 : 0;
+
+            this.selfModeration = this.m_selfModerationTable.getData();
+            this.customWhitelist = this.m_customWhitelistTable.getData();
+            this.customTriggers = this.m_textTriggerTable.getData();
+            
+            this.myConfigData = this.myConfigData || {};
+
+            this.myConfigData.SelfModeration = this.selfModeration;
+            this.myConfigData.CustomWhitelist = this.customWhitelist;
+            this.myConfigData.CustomTriggerBlacklist = this.customTriggers;
+
+            this.myConfigData.TimeRestrictions = {};
+
+            for(var day in this.timeRestrictions) {
+                var slider = this.m_timeRestrictionSliders[day];
+                this.myConfigData.TimeRestrictions[day] = { EnabledThrough: slider.noUiSlider.get(), RestrictionsEnabled: this.timeRestrictions[day].RestrictionsEnabled };
+            }
+
+            this.myConfigData.BypassesPermitted = this.m_numBypassesPermitted;
+            this.myConfigData.BypassDuration = this.m_bypassDuration;
         }
 
         public ToObject(): Object {
+            if(this.myConfigData) {
+                this.myConfigData.BypassesPermitted = this.m_numBypassesPermitted;
+                this.myConfigData.BypassDuration = this.m_bypassDuration;
+
+                if(!this.myConfigData.BypassesPermitted) {
+                    delete this.myConfigData.BypassesPermitted;
+                }
+
+                if(!this.myConfigData.BypassDuration) {
+                    delete this.myConfigData.BypassDuration;
+                }
+            }
+
             let obj = {
                 'id': this.m_id,
                 'name': this.m_fullName,
@@ -205,6 +635,11 @@ namespace Citadel {
                 'isactive': this.m_isActive,
                 'dt': this.m_registeredAt,
                 'report_level': this.m_reportLevel,
+                'relaxed_policy_passcode': this.m_relaxedPolicyPasscode,
+                'enable_relaxed_policy_passcode': this.m_relaxedPolicyPasscodeEnabled,
+                'bypasses_permitted': this.m_numBypassesPermitted,
+                'bypass_duration': this.m_bypassDuration,
+                'config_override': JSON.stringify(this.myConfigData)
             };
 
             if (this.m_password != null && this.m_password.length > 0 && (this.m_password != Array(30).join("x"))) {
@@ -218,31 +653,31 @@ namespace Citadel {
         protected get ValidationOptions(): JQueryValidation.ValidationOptions {
             let validationRules: JQueryValidation.RulesDictionary = {};
 
-            validationRules[this.m_inputEmail.id] = {
+            validationRules[this.m_emailInputId] = {
                 required: true,
                 email: true
             };
 
-            validationRules[this.m_inputPassword.id] = {
+            validationRules[this.m_inputPasswordId] = {
                 required: true,
                 equalTo: '#' + this.m_inputPasswordConfirm.id
             };
 
             validationRules[this.m_inputPasswordConfirm.id] = {
                 required: true,
-                equalTo: '#' + this.m_inputPassword.id
+                equalTo: '#' + this.m_inputPasswordId
             };
 
-            validationRules[this.m_inputActivationCount.id] = {
+            validationRules[this.m_activationCountInputId] = {
                 required: true,
                 number: true
             };
 
             let validationErrorMessages = {};
-            validationErrorMessages[this.m_inputEmail.id] = this.ERROR_MESSAGE_EMAIL;
-            validationErrorMessages[this.m_inputPassword.id] = this.ERROR_MESSAGE_PASSWORD;
+            validationErrorMessages[this.m_emailInputId] = this.ERROR_MESSAGE_EMAIL;
+            validationErrorMessages[this.m_inputPasswordId] = this.ERROR_MESSAGE_PASSWORD;
             validationErrorMessages[this.m_inputPasswordConfirm.id] = this.ERROR_MESSAGE_CONFIRM_PASSWORD;
-            validationErrorMessages[this.m_inputActivationCount.id] = this.ERROR_MESSAGE_ACTIVATION;
+            validationErrorMessages[this.m_activationCountInputId] = this.ERROR_MESSAGE_ACTIVATION;
 
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
@@ -259,6 +694,154 @@ namespace Citadel {
         // ───────────────────────────────────────────────
         //   ::::: C L A S S      H A N D L E R S ::::::
         // ───────────────────────────────────────────────
+        private generateAjaxSettings(url, data, otherOptions = null): JQueryAjaxSettings {
+            var options = {
+                method: "POST",
+                timeout: 60000,
+                url: url,
+                data: data,
+
+                success: (data: any): any => {
+                    return false;
+                },
+
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(errorThrown);
+                }
+            };
+
+            if(otherOptions) {
+                for(var i in otherOptions) {
+                    options[i] = otherOptions[i];
+                }
+            }
+
+            return options;
+        }
+
+        private static timeOfDay(n) : string {
+            var minutes : any = Math.round((n % 1) * 60);
+            var hours = Math.floor(n);
+
+            var ampm = (hours % 24) >= 12 ? "PM" : "AM";
+
+            hours %= 12;
+            if(hours == 0) {
+                hours = 12;
+            }
+
+            if(minutes < 10) {
+                minutes = "0" + minutes;
+            }
+
+            return hours + ":" + minutes + ampm;
+        }
+
+        private generateInternetLabel(entry, sliderElem) {
+            if(!entry) {
+                entry = {
+                    EnabledThrough: [0, 24],
+                    RestrictionsEnabled: false
+                }
+            };
+
+            var enabledTimes = (entry && entry.EnabledThrough) ? entry.EnabledThrough : [0, 24];
+            var caption = (sliderElem.attributes['data-caption']) ? sliderElem.attributes['data-caption'].value : "N/A";
+
+            if(!entry.RestrictionsEnabled) {
+                return "No restrictions for " + caption;
+            } else {
+                if(enabledTimes[0] == 0 && enabledTimes[1] == 24) {
+                    return "No restrictions for " + caption;
+                } else if(enabledTimes[0] == enabledTimes[1]) {
+                    return "Internet restricted all day";
+                } else {
+                    // enabledTimes[0]
+                    return "Internet allowed between " + UserRecord.timeOfDay(enabledTimes[0]) + " and " + UserRecord.timeOfDay(enabledTimes[1]);
+                }
+            }
+        }
+
+        private generateInternetLabelCallback(day, sliderElem): any {
+            var that = this;
+            return function(values, handle, unencoded, tap, positions) {
+                console.log(unencoded);
+                that.timeRestrictions[day].EnabledThrough = unencoded;
+                that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], sliderElem);
+                that.m_bindings.Refresh();
+            }
+        }
+
+        private InitTimeRestrictions(): void {
+            var days = this.WEEKDAYS;
+
+            var restrictionsElem = $("#time_restrictions");
+
+            var configs = {};
+            var sliders = {};
+
+            function generateLabelFn(that, day, slider) {
+                return function() {
+                    that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], slider);
+                    that.m_bindings.Refresh();
+                };
+            }
+
+            for(var day of days) {
+                configs[day] = JSON.parse(JSON.stringify(this.m_timeRestrictionsSliderConfig));
+
+                if(this.timeRestrictions && day in this.timeRestrictions && this.timeRestrictions[day].EnabledThrough) {
+                    configs[day].start = this.timeRestrictions[day].EnabledThrough;
+                }
+
+                let slider : any = restrictionsElem.find("#" + day).get(0);
+
+                if(slider && slider.noUiSlider) {
+                    slider.noUiSlider.destroy();
+                }
+
+                noUiSlider.create(slider, configs[day]);
+                slider.noUiSlider.on('set', this.generateInternetLabelCallback(day, slider));
+
+                sliders[day] = slider;
+
+                this.timeRestrictions[day].internetLabel = this.generateInternetLabel(this.timeRestrictions[day], slider);
+                this.timeRestrictions[day].generateInternetLabel = generateLabelFn(this, day, slider);
+            }
+
+            this.m_timeRestrictionConfigs = configs;
+            this.m_timeRestrictionSliders = sliders;
+            this.m_bindings.Refresh();
+        }
+
+        private updateTimeRestrictionsSliders(): void {
+            var days = this.WEEKDAYS;
+
+            var sliders = this.m_timeRestrictionSliders;
+            var restrictionsElem = $("#time_restrictions");
+
+            for(var day of days) {
+                let slider: any = restrictionsElem.find("#" + day).get(0);
+
+                if(slider && slider.noUiSlider) {
+                    let restrictionData: any = this.timeRestrictions[day].EnabledThrough;
+                    slider.noUiSlider.set(restrictionData);
+                }
+            }
+        }
+
+        private InitSelfModerationTable() {
+            let that = this;
+
+            this.m_selfModerationTable = new SelfModerationTable(document.querySelector("#self_moderation_table"), this.selfModeration);
+            this.m_customWhitelistTable = new SelfModerationTable(document.querySelector("#custom_whitelist_table"), this.customWhitelist);
+            this.m_textTriggerTable = new SelfModerationTable(document.querySelector("#custom_trigger_table"), this.customTriggers);
+
+            this.m_selfModerationTable.render();
+            this.m_customWhitelistTable.render();
+            this.m_textTriggerTable.render();
+        }
+
         private InitUserActivationTables() {
             let that = this;
             let id = (this.m_id === undefined) ? 0 : this.m_id;
@@ -327,8 +910,8 @@ namespace Citadel {
                     width: "300px",
                     render: function (data, type, row) {
                         var strButtons = "";
-                        strButtons += "<button id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
-                        strButtons += " &nbsp;<button id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
+                        strButtons += "<button type='button' id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
+                        strButtons += " &nbsp;<button type='button' id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
 
                         return strButtons;
                     }
@@ -346,30 +929,16 @@ namespace Citadel {
 
                 }),
                 drawCallback: ((settings): void => {
-                    let that = this;
-
                     $("#user_activation_table").off("change", "input[type='checkbox']");
                     $("#user_activation_table").on("change", "input[type='checkbox']", function () {
                         let id = $(this).attr("data-id");
                         let val = 0;
                         if (this['checked']) val = 1;
 
-                        let checkAjaxSettings: JQueryAjaxSettings = {
-                            method: "POST",
-                            timeout: 60000,
-                            url: that.URL_UPDATE_ALERT,
-                            data: {
-                                id: id,
-                                value: val
-                            },
-                            success: (data: any): any => {
-                                return false;
-                            },
-                            error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                                console.log(errorThrown);
-                                if (jqXHR.status > 399 && jqXHR.status < 500) {} else {}
-                            }
-                        }
+                        let checkAjaxSettings: JQueryAjaxSettings = that.generateAjaxSettings(this.URL_UPDATE_ALERT, {
+                            id: id,
+                            value: val
+                        });
 
                         $.ajax(checkAjaxSettings);
                     });
@@ -383,21 +952,11 @@ namespace Citadel {
                             $(this).val(0);
                             return;
                         }
-                        let checkAjaxSettings: JQueryAjaxSettings = {
-                            method: "POST",
-                            timeout: 60000,
-                            url: that.URL_UPDATE_CHECK_IN_DAYS,
-                            data: {
-                                id: id,
-                                value: val
-                            },
-                            success: (data: any): any => {
-                                return false;
-                            },
-                            error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                                console.log(errorThrown);
-                            }
-                        }
+
+                        let checkAjaxSettings: JQueryAjaxSettings = that.generateAjaxSettings(this.URL_UPDATE_CHECK_IN_DAYS, {
+                            id: id,
+                            value: val
+                        });
 
                         $.ajax(checkAjaxSettings);
                     });
@@ -409,17 +968,14 @@ namespace Citadel {
                             let dataObject = {};
                             let id = that.getIdFromElementId(e.target['id']);
 
-                            let ajaxSettings: JQueryAjaxSettings = {
-                                method: "POST",
-                                timeout: 60000,
-                                url: that.URL_DELETE_ACTIVATION + '/' + id,
-                                data: dataObject,
+                            let ajaxSettings: JQueryAjaxSettings = that.generateAjaxSettings(that.URL_DELETE_ACTIVATION + '/' + id, dataObject, {
                                 success: (data: any): any => {
                                     that.removeActivationById(id);
                                     that.InitUserActivationTables();
 
                                     return false;
                                 },
+
                                 error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
                                     that.m_progressWait.Show(that.TITLE_ACTION_FAILED, that.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
 
@@ -427,7 +983,7 @@ namespace Citadel {
                                         that.m_progressWait.Hide();
                                     }, that.ERROR_MESSAGE_DELAY_TIME);
                                 }
-                            }
+                            });
 
                             $.ajax(ajaxSettings);
                         }
@@ -467,14 +1023,14 @@ namespace Citadel {
             this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
         }
 
-        private InitButtonHandlers(): void {
-            this.m_btnCancel.onclick = ((e: MouseEvent): any => {
-                if (this.m_actionCompleteCallback != null) {
-                    this.m_actionCompleteCallback("Cancel");
-                } else {
-                    this.StopEditing();
-                }
-            });
+        public cancelClick(e: MouseEvent): any {
+            if(this.m_actionCompleteCallback != null) {
+                this.m_actionCompleteCallback("Cancel");
+            } else {
+                this.StopEditing();
+            }
+
+            return false;
         }
 
         public StartEditing(allGroups, userData: Object = null): void {
@@ -490,100 +1046,99 @@ namespace Citadel {
                 this.m_selectGroup.options.add(option);
             }
 
-            switch (userData == null) {
+            this.userData = userData;
 
-                case true:
-                    {
-                        this.m_editorTitle.innerText = this.TITLE_NEW_USER;
-                        this.m_btnSubmit.innerText = this.BTN_NEW_USER;
+            if(userData == null) {
+                this.m_editorTitleValue = this.TITLE_NEW_USER;
+                this.m_btnSubmit.innerText = this.BTN_NEW_USER;
 
-                        this.m_mainForm.reset();
-                        if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
-                            this.m_selectGroup.selectedIndex = 0;
-                        } else {
-                            this.m_selectGroup.selectedIndex = -1;
-                        }
-
-                        if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
-                            this.m_selectRole.selectedIndex = 0;
-                        } else {
-                            this.m_selectRole.selectedIndex = -1;
-                        }
-                    }
-                    break;
-
-                case false:
-                    {
-                        this.LoadFromObject(userData);
-
-                        this.m_editorTitle.innerText = this.TITLE_EDIT_USER;
-                        this.m_btnSubmit.innerText = this.BTN_EDIT_USER;
-
-                        this.m_inputFullName.value = this.m_fullName;
-                        this.m_inputEmail.value = this.m_email;
-                        this.m_inputCustomerId.value = (this.m_customerId == null) ? '':this.m_customerId.toString();
-
-                        this.m_inputPassword.value = new Array(30).join("x");
-                        this.m_inputPasswordConfirm.value = new Array(30).join("x");
-
-                        this.m_inputActivationCount.value = this.m_numActivations.toString();
-
-                        if (this.m_groupId != -1) {
-                            let optionInList = this.m_selectGroup.querySelector('option[value="' + this.m_groupId.toString() + '"]') as HTMLOptionElement;
-                            if (optionInList != null) {
-                                this.m_selectGroup.selectedIndex = optionInList.index;
-                            }
-                        } else {
-                            if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
-                                this.m_selectGroup.selectedIndex = 0;
-                            } else {
-                                this.m_selectGroup.selectedIndex = -1;
-                            }
-                        }
-
-                        if (this.m_roleId != -1) {
-                            let optionInList = this.m_selectRole.querySelector('option[value="' + this.m_roleId.toString() + '"]') as HTMLOptionElement;
-                            if (optionInList != null) {
-                                this.m_selectRole.selectedIndex = optionInList.index;
-                            }
-                        } else {
-                            if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
-                                this.m_selectRole.selectedIndex = 0;
-                            } else {
-                                this.m_selectRole.selectedIndex = -1;
-                            }
-                        }
-
-                        this.m_inputIsActive.checked = this.m_isActive != 0;
-                        this.m_inputReportLevel.checked = this.m_reportLevel != 0;
-                    }
-                    break;
-            }
-
-            this.m_mainForm.onsubmit = ((e: Event): any => {
-                let validateOpts = this.ValidationOptions;
-                let validresult = $(this.m_mainForm).validate(validateOpts).form();
-
-                if ($(this.m_mainForm).validate(validateOpts).valid()) {
-                    return this.OnFormSubmitClicked(e, userData == null);
+                this.m_mainForm.reset();
+                if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
+                    this.m_selectGroup.selectedIndex = 0;
+                } else {
+                    this.m_selectGroup.selectedIndex = -1;
                 }
 
-                return false;
-            });
+                if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
+                    this.m_selectRole.selectedIndex = 0;
+                } else {
+                    this.m_selectRole.selectedIndex = -1;
+                }
+            } else {
+                this.LoadFromObject(userData);
+
+                this.m_editorTitleValue = this.TITLE_EDIT_USER;
+                this.m_btnSubmit.innerText = this.BTN_EDIT_USER;
+
+                this.m_inputPasswordConfirm.value = new Array(30).join("x");
+                this.m_password = new Array(30).join("x");
+
+                if (this.m_groupId != -1) {
+                    let optionInList = this.m_selectGroup.querySelector('option[value="' + this.m_groupId.toString() + '"]') as HTMLOptionElement;
+                    if (optionInList != null) {
+                        this.m_selectGroup.selectedIndex = optionInList.index;
+                    }
+                } else {
+                    if (this.m_selectGroup.options != null && this.m_selectGroup.options.length > 0) {
+                        this.m_selectGroup.selectedIndex = 0;
+                    } else {
+                        this.m_selectGroup.selectedIndex = -1;
+                    }
+                }
+
+                if (this.m_roleId != -1) {
+                    let optionInList = this.m_selectRole.querySelector('option[value="' + this.m_roleId.toString() + '"]') as HTMLOptionElement;
+                    if (optionInList != null) {
+                        this.m_selectRole.selectedIndex = optionInList.index;
+                    }
+                } else {
+                    if (this.m_selectRole.options != null && this.m_selectRole.options.length > 0) {
+                        this.m_selectRole.selectedIndex = 0;
+                    } else {
+                        this.m_selectRole.selectedIndex = -1;
+                    }
+                }
+
+                this.m_inputIsActive.checked = this.m_isActive != 0;
+                this.m_inputReportLevel.checked = this.m_reportLevel != 0;
+                this.m_inputRelaxedPolicyPasscodeEnabled.checked = this.m_relaxedPolicyPasscodeEnabled != 0;
+            }
+
+            this.m_bindings.Refresh();
 
             if (userData != null) {
                 this.m_id = userData['id'];
-                this.InitUserActivationTables();
             } else {
                 this.m_id = 0;
                 this.jsonData = [];
-                this.InitUserActivationTables();
             }
+
+            // Covers creation of new users, because this doesn't get assigned to in that circumstance.
+            if(!this.timeRestrictions) {
+                this.initEmptyTimeRestrictionsObject();
+            } 
+
+            this.InitUserActivationTables();
+            this.InitSelfModerationTable();
+            this.InitTimeRestrictions();
 
             $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
 
+
+        private onSubmit(e: Event): any {
+            let validateOpts = this.ValidationOptions;
+            let validresult = $(this.m_mainForm).validate(validateOpts).form();
+
+            if ($(this.m_mainForm).validate(validateOpts).valid()) {
+                return this.OnFormSubmitClicked(e, this.userData == null);
+            }
+
+            return false;
+        }
+
         public StopEditing(): void {
+            this.m_bindings.Unbind();
             $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }
     }

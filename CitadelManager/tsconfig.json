@@ -17,15 +17,13 @@
     },
     "exclude": [
         "vendor/**/*.ts",
-        "node_modules**/*.ts"
+        "typings"
     ],
     "include": [
-        "resources/assets/js/**/*.ts",
-        "typings/**/*.d.ts"
+        "resources/assets/js/**/*.ts"
     ],
     "typeRoots": [
-        "typings/global",
-        "typings/modules",
+        "typings/custom",
         "node_modules/@types"
     ]
 }

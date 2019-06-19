@@ -92,7 +92,7 @@
                                 <div class="cell">
                                     <div class="input-control text" data-role="input">
                                         <label for="editor_cfg_nlp_threshold_input" title="NLP Threshold (Percent, 0.0 to 1.0)">NLP Threshold (Percent...</label>
-                                        <input type="number" id="editor_cfg_nlp_threshold_input" name="editor_cfg_nlp_threshold_input" min="0" max="1" value="0">
+                                        <input type="number" id="editor_cfg_nlp_threshold_input" name="editor_cfg_nlp_threshold_input" min="0" max="1" step="0.01" value="0">
                                     </div>
                                 </div>
                             </div>

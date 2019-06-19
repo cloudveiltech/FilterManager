@@ -23,6 +23,8 @@
     <link href="{{ asset('css/dragula.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/citadel-main.css') }}" rel="stylesheet">
 
+    @yield('styles')
+
     <link href="{{ asset('plugins/datetimepicker-2.2.4/jquery.datetimepicker.css') }}" rel="stylesheet">
     <!-- re-enable these when we manage to make datatables.responsive work properly.. -->
     <!-- <link href="{{ asset('css/datatables.min.css') }}" rel="stylesheet"> -->
@@ -31,7 +33,7 @@
     <!-- Scripts -->
     <script src="{{ asset('js/dragula.min.js') }}"></script>
     <!-- Require for form/data validation. -->
-    <script src="{{ asset('js/jquery-2.2.4.min.js') }}" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="{{ asset('js/jquery-2.2.4.min.js') }}" crossorigin="anonymous"></script>
     <script src="{{ asset('js/jquery.validate.min.js') }}"></script>
     <script src="{{ asset('js/additional-methods.min.js') }}"></script>
 

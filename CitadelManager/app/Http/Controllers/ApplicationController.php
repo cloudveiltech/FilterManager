@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Log;
+
 use App\App;
 use App\AppGroup;
 use App\AppGroupToApp;
@@ -28,7 +30,7 @@ class ApplicationController extends Controller
         $length = $request->input('length') ? $request->input('length') : 10;
         $search = $request->input('search')['value'];
         $order = $request->input('order')[0]['column'];
-        $order_name = $request->input('columns')[intval($order)]['data'] ? $request->input('columns')[intval($order)]['data'] : 'email';
+        $order_name = $request->input('columns')[intval($order)]['data'] ? $request->input('columns')[intval($order)]['data'] : 'name';
         $order_str = $request->input('order')[0]['dir'] ? $request->input('order')[0]['dir'] : 'ASC';
 
         $recordsTotal = App::count();
@@ -82,7 +84,7 @@ class ApplicationController extends Controller
 
     public function get_application()
     {
-        return App::get();
+        return App::orderBy('name', 'asc')->get();
     }
 
     /**
@@ -104,7 +106,7 @@ class ApplicationController extends Controller
 
         $assigned_groups = $request->only('assigned_appgroup');
 
-        if (is_array($assigned_groups['assigned_appgroup'])) {
+        if (array_key_exists('assigned_appgroup', $assigned_groups) && is_array($assigned_groups['assigned_appgroup'])) {
             $arr_assigned_groups = array();
 
             foreach ($assigned_groups['assigned_appgroup'] as $group_id) {

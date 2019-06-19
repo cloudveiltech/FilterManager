@@ -33,9 +33,15 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $exception)
     {
-        if (app()->bound('sentry') && $this->shouldReport($exception)) {
-            app('sentry')->captureException($exception);
-        }
+        try {
+			if (app()->bound('sentry') && $this->shouldReport($exception)) {
+            	app('sentry')->captureException($exception);
+        	}
+		} catch(Exception $sentryEx) {
+			Log::error("Reported exception $exception");
+			Log::error("Sentry exception $sentryEx");
+		}
+
         parent::report($exception);
     }
 
@@ -50,7 +56,7 @@ class Handler extends ExceptionHandler
     {
         // 403 errors should be redirected to login.
         if ($exception instanceof HttpException && $exception->getStatusCode() == 403) {
-            return redirect('/login');
+            return redirect('/login?redirect=' . urlencode($request->fullUrl()));
         }
         // XXX TODO - We don't want the ugly laravel exception pages.
         // In the parent, I think it's just the $exception->getResponse() that
