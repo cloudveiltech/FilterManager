@@ -134,10 +134,6 @@ return [
     |
     */
 
-    'log' => env('APP_LOG', 'single'),
-
-    'log_level' => env('APP_LOG_LEVEL', 'debug'),
-
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
@@ -193,8 +189,7 @@ return [
 	RachidLaasri\LaravelInstaller\Providers\LaravelInstallerServiceProvider::class,
         Zizaco\Entrust\EntrustServiceProvider::class,
         Mnabialek\LaravelSqlLogger\Providers\ServiceProvider::class,
-        Laravel\Passport\PassportServiceProvider::class,
-        Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
+        Laravel\Passport\PassportServiceProvider::class
     ],
 
     /*

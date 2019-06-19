@@ -34,5 +34,13 @@ return [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
     ],
-
+    
+    'wordpress' => [
+        'host' => env('WORDPRESS_HOST'),
+        'api_me' => env('WORDPRESS_API_ME', env('WORDPRESS_HOST') . '/me/'),
+    
+        'client_id' => env('WORDPRESS_CLIENT_ID'),
+        'client_secret' => env('WORDPRESS_CLIENT_SECRET'),
+        'redirect' => env('WORDPRESS_REDIRECT')
+    ],
 ];

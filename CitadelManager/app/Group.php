@@ -36,7 +36,7 @@ class Group extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'isactive', 'app_cfg', 'data_sha1',
+        'name', 'isactive', 'app_cfg', 'data_sha1', 'config_cache'
     ];
 
     /**
@@ -235,7 +235,14 @@ class Group extends Model
         $zip->close();
 
         // Lastly, update this group's data hash.
-        Group::where('id', $this->id)->update(['data_sha1' => sha1_file($groupDataZipPath)]);
+        Group::where('id', $this->id)->update(
+            [
+                'data_sha1' => sha1_file($groupDataZipPath),
+                'config_cache' => $serializedFinalConfiguration,
+            ]
+        );
+
+        $this->config_cache = $serializedFinalConfiguration;
     }
 
     public function destroyGroupData()

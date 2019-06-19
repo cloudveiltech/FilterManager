@@ -7,12 +7,14 @@
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
                 <div class="panel panel-default">
-                    <h1 class="text-light">Administrator Login</h1>
+                    <h1 class="text-light">CloudVeil for Windows Login</h1>
                     <br>
                     <br>
                     <div class="panel-body">
                         <form class="form-horizontal" id="login_form" role="form" method="POST" action="{{ route('login') }}">
                             {{ csrf_field() }}
+
+                            {{ redirect_field() }}
 
                             <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
 
@@ -74,12 +76,13 @@
                                 </div>
                             </div>
 
+                            <a style="display: block; margin-bottom: 10px;" href="{{ route('password.request') }}">Forgot Password?</a>
+
                             <div class="form-group">
-                                <div class="col-md-8 col-md-offset-4">
-                                    <button type="submit" class="button primary">
-                                        Login
-                                    </button>
-                                </div>
+                                <button style="float: left; margin-right: 10px;" type="submit" class="button primary">Login</button>
+                                <button onclick="window.location.href = '{{ route('login.wordpress') }}';" style="float: left;" type="button" class="button secondary">
+                                    Login With CloudVeil
+                                </button>
                             </div>
                         </form>
                     </div>

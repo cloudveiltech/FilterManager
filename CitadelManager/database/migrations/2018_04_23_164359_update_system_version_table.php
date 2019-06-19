@@ -26,6 +26,8 @@ class UpdateSystemVersionTable extends Migration
      */
     public function down()
     {
-        
+        Schema::table('system_versions', function (Blueprint $table) {
+            $table->dropForeign(['platform_id']);
+        });
     }
 }

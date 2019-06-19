@@ -4,7 +4,7 @@
 
 
 <!-- application Editing Overlay -->
-<div class="bg-dark" id="overlay_application_editor">
+<div class="bg-dark overlay" id="overlay_application_editor">
     <div id="div_application_0">
         <div class="flex-grid">
             <h1 id="application_editing_title">Add Application</h1>

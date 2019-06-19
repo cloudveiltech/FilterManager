@@ -1,8 +1,16 @@
-@extends('layouts.app') @section('navbar') @include('layouts.components.adminnav') @endsection @section('content')
+@extends('layouts.app') @section('navbar') @include('layouts.components.adminnav') @endsection
+
+@section('styles')
+    <link href="{{ asset('css/nouislider.min.css') }}" rel="stylesheet" />
+@endsection
+
+@section('content')
 
 <!-- Include BaseRecord Record Type JS. Must be done to serve any record type correctly. -->
 <script src="{{ asset('js/admin/records/baserecord.js') }}">
 </script>
+<script src="{{ asset('js/bindings.js') }}"></script>
+<script src="{{ asset('js/nouislider.min.js') }}"></script>
 
 <!-- Primary admin menu. -->
 <div class="fluent-menu" data-role="fluentmenu">
@@ -202,14 +210,14 @@
                         <!-- Default state of all delete buttons should be disabled. -->
                         <button id="btn_delete_activation" class="fluent-big-button" disabled>
                             <span class="mif-cancel"></span>
-                            <span class="label">Retire
-                                <br/>Activations</span>
+                            <span class="label">Delete
+                                <br/>Activation</span>
                         </button>
                         <div class="tab-content-segment">
                             <button id="btn_block_activations" class="fluent-big-button">
                                 <span class="mif-blocked"></span>
                                 <span class="label">Block
-                                    <br/>Activations</span>
+                                    <br/>Activation</span>
                             </button>
                         </div>
                     </div>

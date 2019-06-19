@@ -11,8 +11,16 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Auth\AuthenticatesLicensedUsers;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Socialite;
 
-class LoginController extends Controller
+class LoginControllerBase extends Controller {
+    // LoginControllerBase -> LoginController allows us to override this trait.
+    use AuthenticatesLicensedUsers;
+}
+
+class LoginController extends LoginControllerBase
 {
     /*
     |--------------------------------------------------------------------------
@@ -25,14 +33,55 @@ class LoginController extends Controller
     |
     */
 
-    use AuthenticatesLicensedUsers;
-
     /**
      * Where to redirect users after login.
      *
      * @var string
      */
-    protected $redirectTo = '/admin';
+
+    protected $innerRedirectTo = null;
+
+    protected function redirectTo() {
+        $user = Auth::user();
+
+        if($this->innerRedirectTo !== null) {
+            return $this->innerRedirectTo;
+        }
+
+        if($user->hasRole('user')) {
+            return '/user';
+        } else if($user->hasRole('business-owner')) {
+            return '/user';
+        } else {
+            return '/admin';
+        }
+    }
+
+    public function login(Request $request) {
+        $redirect = $request->input('redirect');
+
+        if($redirect != null) {
+            $this->innerRedirectTo = $redirect;
+        }
+
+        return parent::login($request);
+    }
+
+    public function loginWithWordpress(Request $request) {
+        return Socialite::driver('wordpress')->redirect();
+    }
+
+    public function wordpressCallback(Request $request) {
+        //$user = Socialite::driver('wordpress')->user();
+
+        $redirect = $request->input('redirect');
+
+        if($redirect != null) {
+            $this->innerRedirectTo = $redirect;
+        }
+
+        return redirect($this->redirectTo());
+    }
 
     /**
      * Create a new controller instance.
