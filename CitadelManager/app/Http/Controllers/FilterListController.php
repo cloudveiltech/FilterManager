@@ -276,9 +276,11 @@ class FilterListController extends Controller
             switch (strtolower($file->getClientOriginalExtension())) {
                 case 'zip':{
                         $storedFile = $file->store('zip_uploads');
-                        //dd($storedFile);
-                        $success = ProcessTextFilterArchiveUpload::dispatch($listNamespace, $storedFile, $shouldOverwrite);
-                        //$success = $this->processTextFilterArchive($listNamespace, $file, $shouldOverwrite);
+                        $success = ProcessTextFilterArchiveUpload::dispatch(
+                            $listNamespace,
+                            storage_path('app/' . $storedFile),
+                            $shouldOverwrite
+                        );
                     }
                     break;
 
