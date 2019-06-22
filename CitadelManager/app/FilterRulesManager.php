@@ -59,6 +59,8 @@ namespace App {
         }
 
         public function buildRuleData() {
+            DB::connection()->getPdo()->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
+
             $rulesZipPath = $this->getRuleDataPath();
 
             $zip = new \ZipArchive();

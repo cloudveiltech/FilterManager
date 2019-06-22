@@ -238,8 +238,16 @@ class AppUserActivationController extends Controller
             } else {
                 // group is assigned
                 $group = $user->group()->first();
+
+                $user_config_str = $user->config_override;
                 $app_cfg_str = $group->app_cfg;
+
+                $user_config = json_decode($user_config_str);
                 $app_cfg = json_decode($app_cfg_str);
+
+                foreach($user_config as $key => $value) {
+                    $app_cfg->$key = $value;
+                }
 
                 if (is_null($app_cfg->BypassesPermitted)) {
                     $bypass_permitted = 0;
