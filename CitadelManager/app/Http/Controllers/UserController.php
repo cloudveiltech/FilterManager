@@ -831,9 +831,14 @@ class UserController extends Controller
 
             // Get Specific Activation with $identifier
             $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
+			$hasAppVersion = $request->has('app_version');
+
             if($activation) {
-                $activation->updated_at = Carbon::now()->timestamp;
-                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';
+                if($hasAppVersion) {
+					$activation->app_version = $request->input('app_version');
+				}
+
+				$activation->updated_at = Carbon::now()->timestamp;
                 $activation->ip_address = $request->ip();
                 if ($token) {
                     $activation->token_id = $token->id;
@@ -843,7 +848,7 @@ class UserController extends Controller
             } else {
                 $activation = new AppUserActivation;
                 $activation->updated_at = Carbon::now()->timestamp;
-                $activation->app_version = $request->has('app_version')?$request->input('app_version'): 'none';                
+                $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';                
                 $activation->user_id = $user->id;
                 $activation->device_id = $request->input('device_id');
                 $activation->identifier = $request->input('identifier');

@@ -20,6 +20,7 @@ npm-debug.log
 
 # Ignore uploaded tmp files
 /storage/*.zip
+/storage/*.zip-dir
 
 # Ignore 1.7 ruleset cache files.
 /storage/.*.txt
