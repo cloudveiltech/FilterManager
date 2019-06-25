@@ -245,8 +245,10 @@ class AppUserActivationController extends Controller
                 $user_config = json_decode($user_config_str);
                 $app_cfg = json_decode($app_cfg_str);
 
-                foreach($user_config as $key => $value) {
-                    $app_cfg->$key = $value;
+                if(!is_null($user_config)) {
+                    foreach($user_config as $key => $value) {
+                        $app_cfg->$key = $value;
+                    }
                 }
 
                 if (is_null($app_cfg->BypassesPermitted)) {
