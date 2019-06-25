@@ -3,8 +3,6 @@
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 
-define("__LOG_LEVEL__", env("APP_LOG_LEVEL", "debug"));
-
 return [
     /*
     |--------------------------------------------------------------------------
