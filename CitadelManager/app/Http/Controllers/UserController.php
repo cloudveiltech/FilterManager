@@ -588,6 +588,14 @@ class UserController extends Controller
                 $configuration = array_merge($configuration, json_decode($activation->config_override, true));
             }
 
+            if ($activation->bypass_quantity) {
+                $configuration['BypassesPermitted'] = $activation->bypass_quantity;
+            }
+
+            if($activation->bypass_period) {
+                $configuration['BypassDuration'] = $activation->bypass_period;
+            }
+
             if($thisUser->enable_relaxed_policy_passcode) {
                 $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
             }
