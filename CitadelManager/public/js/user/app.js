@@ -10,7 +10,7 @@ $.ajaxSetup({
     contentType: "application/json; charset=utf-8"
 });
 
-$.ajax('/api/user/me', {
+$.ajax('api/user/me', {
 	method: "GET"
 }).done(function(data, textStatus, xhr) {
 	console.log(data);
@@ -202,7 +202,7 @@ function timeRestrictionsModel() {
 	};
 
 	that.fetch = function() {
-		$.get('/api/user/time_restrictions', "", null, "json").done(function(data) {
+		$.get('api/user/time_restrictions', "", null, "json").done(function(data) {
 			for(var i in that.data) {
 				that.data[i] = data[i] || { EnabledThrough: [0, 24] };
 			}
@@ -210,7 +210,7 @@ function timeRestrictionsModel() {
 	};
 
 	that.save = function() {
-		$.ajax('/api/user/time_restrictions', {
+		$.ajax('api/user/time_restrictions', {
 			data: JSON.stringify({
 				time_restrictions: that.data
 			}),
@@ -235,7 +235,7 @@ function selfModerationModel() {
 	that.triggerBlacklist = selfModerationListModel();
 
 	that.fetch = function() {
-		$.get('/api/user/self_moderation').done(function(data) {
+		$.get('api/user/self_moderation').done(function(data) {
 			if(data.whitelist) {
 				that.whitelist.data = data.whitelist;
 			}
@@ -251,7 +251,7 @@ function selfModerationModel() {
 	};
 
 	that.save = function() {
-		$.ajax('/api/user/self_moderation', {
+		$.ajax('api/user/self_moderation', {
 			data: JSON.stringify({
 				blacklist: that.blacklist.data,
 				whitelist: that.whitelist.data,
@@ -313,13 +313,13 @@ function relaxedPolicyModel() {
 	};
 
 	that.fetch = function() {
-		$.get('/api/user/relaxed_policy/passcode_info').done(function(data) {
+		$.get('api/user/relaxed_policy/passcode_info').done(function(data) {
 			Vue.set(that, 'data', data);
 		});
 	};
 
 	that.save = function() {
-		$.ajax('/api/user/relaxed_policy/passcode_info', {
+		$.ajax('api/user/relaxed_policy/passcode_info', {
 			data: JSON.stringify(that.data),
 			dataType: "json",
 			method: "POST"
@@ -340,13 +340,13 @@ function deactivationRequestsModel() {
 	that.data = [];
 
 	that.fetch = function() {
-		$.get('/api/business/deactivations').done(function(data) {
+		$.get('api/business/deactivations').done(function(data) {
 			Vue.set(that, 'data', data);
 		});
 	};
 
 	that.grant = function(request) {
-		$.ajax('/api/business/deactivations/' + request.id + '/grant', {
+		$.ajax('api/business/deactivations/' + request.id + '/grant', {
 			method: "POST"
 		}).done(function() {
 			request.granted = 1;
@@ -363,7 +363,7 @@ function deactivationRequestsModel() {
 			confirmButtonText: "Yes, Deny",
 			confirmButtonText: "No, Cancel Denial"
 		}, function() {
-			$.ajax('/api/business/deactivations/' + request.id, {
+			$.ajax('api/business/deactivations/' + request.id, {
 				method: "DELETE"
 			}).done(function() {
 				that.fetch();
@@ -382,7 +382,7 @@ function activationsModel() {
 	that.data = [];
 
 	that.fetch = function() {
-		$.get('/api/business/activations').done(function(data) {
+		$.get('api/business/activations').done(function(data) {
 			Vue.set(that, 'data', data);
 		});
 	};
@@ -398,7 +398,7 @@ function activationsModel() {
 			confirmButtonText: "Yes, Block",
 			cancelButtonText: "No, Don't Block"
 		}, function() {
-			$.ajax('/api/business/activations/' + activation.id + '/block', {
+			$.ajax('api/business/activations/' + activation.id + '/block', {
 				method: "DELETE"
 			}).done(function() {
 				that.fetch();
@@ -415,7 +415,7 @@ function activationsModel() {
 			confirmButtonText: "Yes, Delete",
 			cancelButtonText: "No, Don't Delete"
 		}, function() {
-			$.ajax('/api/business/activations/' + activation.id + '/delete', {
+			$.ajax('api/business/activations/' + activation.id + '/delete', {
 				method: "DELETE"
 			}).done(function() {
 				that.fetch();
@@ -480,7 +480,7 @@ function activationEditorModel() {
 
 	that.save = function() {
 		// TODO: App user activation API
-		$.ajax("/api/business/activations/" + that.data.id, {
+		$.ajax("api/business/activations/" + that.data.id, {
 			method: "PUT",
 			data: JSON.stringify(that.data),
 			dataType: "json"
