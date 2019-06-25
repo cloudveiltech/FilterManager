@@ -30,13 +30,13 @@ return [
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
-            'level' => __LOG_LEVEL__
+            'level' => env('LOG_LEVEL'),
         ],
 
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
-            'level' => __LOG_LEVEL__,
+            'level' => env('LOG_LEVEL'),
             'days' => 14,
         ],
 
@@ -69,11 +69,11 @@ return [
 
         'syslog' => [
             'driver' => 'syslog',
-            'level' => __LOG_LEVEL__,
+            'level' => env('LOG_LEVEL'),
         ],
 
         'errorlog' => [
-            'driver' => __LOG_LEVEL__,
+            'driver' => env('LOG_LEVEL'),
             'level' => 'debug',
         ],
     ],
