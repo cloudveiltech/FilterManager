@@ -101,11 +101,19 @@ class BusinessController extends Controller {
 		$user = \Auth::user();
 
 		$activation = AppUserActivation::where('id', $id)->first();
-		if($user->can(['all', 'manage-own-activations']) && $this->verifyAppUserActivation($user, $activation)) {
+		if ($user->can(['all', 'manage-own-activations']) && $this->verifyAppUserActivation($user, $activation)) {
+			// If we're blocking the activation we go in and revoke the token for that installation.
+			if (!is_null($activation->token_id)) {
+				$token = \App\OauthAccessToken::where('id', $activation->token_id)->first();
+				if (!is_null($token)) {
+					$token->revoked = 1;
+					$token->save();
+				}
+			}
 			$activation->delete();
 			return response('', 204);
 		} else {
-			return response(json_encode(['error' => 'You do not have permission to manage your activations.']), 400);
+			return response(json_encode(['error' => 'You do not have permission to manage your activations.']), 400)
 		}
 	}
 
