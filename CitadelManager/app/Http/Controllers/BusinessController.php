@@ -113,7 +113,7 @@ class BusinessController extends Controller {
 			$activation->delete();
 			return response('', 204);
 		} else {
-			return response(json_encode(['error' => 'You do not have permission to manage your activations.']), 400)
+			return response(json_encode(['error' => 'You do not have permission to manage your activations.']), 400);
 		}
 	}
 
