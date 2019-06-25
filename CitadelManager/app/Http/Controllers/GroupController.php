@@ -66,36 +66,43 @@ class GroupController extends Controller
             $user_count = count($rows[$key]->userCount);
             $app_cfg = json_decode($group->app_cfg);
             $terminate = "";
-            if ($app_cfg->CannotTerminate) {
+
+            if (!empty($app_cfg->CannotTerminate)) {
                 $terminate .= "1";
             } else {
                 $terminate .= "0";
             }
-            if ($app_cfg->BlockInternet) {
+
+            if (!empty($app_cfg->BlockInternet)) {
                 $terminate .= "1";
             } else {
                 $terminate .= "0";
             }
-            if ($app_cfg->UseThreshold) {
+
+            if (!empty($app_cfg->UseThreshold)) {
                 $terminate .= "1";
             } else {
                 $terminate .= "0";
             }
+
             $bypass = "";
-            if ($app_cfg->BypassesPermitted == null) {
+            if (!isset($app_cfg->BypassesPermitted) || $app_cfg->BypassesPermitted == null) {
                 $bypass .= "000";
             } else {
                 $bypass .= str_pad($app_cfg->BypassesPermitted, 3, '0', STR_PAD_LEFT);
             }
-            if ($app_cfg->BypassDuration == null) {
+
+            if (!isset($app_cfg->BypassDuration) || $app_cfg->BypassDuration == null) {
                 $bypass .= "000";
             } else {
                 $bypass .= str_pad($app_cfg->BypassDuration, 3, '0', STR_PAD_LEFT);
             }
+
             $report_level = 0;
             if (isset($app_cfg->ReportLevel)) {
                 $report_level = $app_cfg->ReportLevel;
             }
+
             $group_data[] = array(
                 "id" => $group->id,
                 "name" => $group->name,
@@ -105,8 +112,8 @@ class GroupController extends Controller
                 "assigned_filter_ids" => $group->assignedFilterIds,
                 "created_at" => $group->created_at->toDateTimeString(),
                 "updated_at" => $group->updated_at->toDateTimeString(),
-                "primary_dns" => $app_cfg->PrimaryDns,
-                "secondary_dns" => $app_cfg->SecondaryDns,
+                "primary_dns" => $app_cfg->PrimaryDns ?? null,
+                "secondary_dns" => $app_cfg->SecondaryDns ?? null,
                 "terminate" => $terminate,
                 "bypass" => $bypass,
                 "report_level" => $report_level,
@@ -212,7 +219,7 @@ class GroupController extends Controller
             'name' => 'required',
         ]);
 
-        $groupInput = $request->except(['assigned_filter_ids', 'assigned_app_groups']);
+        $groupInput = $request->except(['/api/admin/groups','assigned_filter_ids', 'assigned_app_groups']);
         $groupListAssigments = $request->only('assigned_filter_ids');
         $assignedAppgroups = $request->only('assigned_app_groups');
 
@@ -233,7 +240,7 @@ class GroupController extends Controller
             GroupFilterAssignment::insertIgnore($groupListAssignmentMassInsert);
         }
 
-        if (is_array($assignedAppgroups['assigned_app_groups'])) {
+        if (array_key_exists('assigned_app_groups', $assignedAppgroups) && is_array($assignedAppgroups['assigned_app_groups'])) {
             $arr_app_groups = array();
             foreach ($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
                 $arr = array(
@@ -286,7 +293,8 @@ class GroupController extends Controller
             'name' => 'required',
         ]);
 
-        $groupInput = $request->except(['assigned_filter_ids', 'assigned_app_groups']);
+        //$groupInput = $request->except(['assigned_filter_ids', 'assigned_app_groups']);
+	$groupInput = $request->only(['name','app_cfg','isactive']);
         $groupListAssigments = $request->only('assigned_filter_ids');
         $assignedAppgroups = $request->only('assigned_app_groups');
 
@@ -310,7 +318,7 @@ class GroupController extends Controller
         }
 
         UserGroupToAppGroup::where('user_group_id', $id)->delete();
-        if (is_array($assignedAppgroups['assigned_app_groups'])) {
+        if (array_key_exists('assigned_app_groups', $assignedAppgroups) && is_array($assignedAppgroups['assigned_app_groups'])) {
             $arr_app_groups = array();
             foreach ($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
                 $arr = array(

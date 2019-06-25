@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright © 2017 Jesse Nicholson
+ * Copyright © 2017 Jesse Nicholson, 2019 CloudVeil Technology, Inc.
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,6 +9,7 @@
 
 namespace App\Http\Controllers;
 
+use App\FilterRulesManager;
 use App\AppUserActivation;
 use App\DeactivationRequest;
 use App\Events\DeactivationRequestReceived;
@@ -16,6 +17,7 @@ use App\Group;
 use App\Role;
 use App\User;
 use App\UserActivationAttemptResult;
+use App\FilterList;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -173,6 +175,7 @@ class UserController extends Controller
             "success" => true,
         ]);
     }
+    
     /**
      * Update the specified resource in storage.
      *
@@ -224,7 +227,7 @@ class UserController extends Controller
             ]);
         }
 
-        $input = $request->except(['password', 'password_verify', 'role_id']);
+	$input = $request->only(['id','name','email','group_id','customer_id','activations_allowed','isactive','report_level', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode']);
 
         if ($inclPassword) {
             $pInput = $request->only(['password', 'password_verify']);
@@ -303,34 +306,7 @@ class UserController extends Controller
     {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
-        // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
-        // If the identifier doesn't exist in the system we create a new activation.
-        if ($request->has('identifier')) {
-            $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
-            if ($activation) {
-                $activation->updated_at = Carbon::now()->timestamp;
-                $activation->app_version = $request->has('app_version') ? $request->input('app_version') : 'none';
-                $activation->ip_address = $request->ip();
-                if ($token) {
-                    $activation->token_id = $token->id;
-                }
-                $activation->save();
-                //Log::debug('Activation Exists.  Saved');
-            } else {
-                $activation = new AppUserActivation;
-                $activation->updated_at = Carbon::now()->timestamp;
-                $activation->app_version = $request->has('app_version') ? $request->input('app_version') : 'none';
-                $activation->user_id = $thisUser->id;
-                $activation->device_id = $request->input('device_id');
-                $activation->identifier = $request->input('identifier');
-                $activation->ip_address = $request->ip();
-                if ($token) {
-                    $activation->token_id = $token->id;
-                }
-                $activation->bypass_used = 0;
-                $activation->save();
-            }
-        }
+        $activation = $this->getActivation($thisUser, $request, $token);
         $userGroup = $thisUser->group()->first();
         if (!is_null($userGroup)) {
             if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
@@ -340,22 +316,327 @@ class UserController extends Controller
         return response('', 204);
     }
 
+    public function rebuildRules(Request $request) {
+        $globalFilterRules = new FilterRulesManager();
+        
+        $globalFilterRules->buildRuleData();
+
+        return response('', 204);
+    }
+
     /**
-     * Request the current user data. This includes filter rules and
-     * configuration data.
+     * Return the SHA1 hash of the rule zip. This is for versions >=1.7
      *
      * @return \Illuminate\Http\Response
      */
-    public function getUserData(Request $request)
-    {
+    /*public function checkRules(Request $request) {
+        $globalFilterRules = new FilterRulesManager();
+
+        $dataPath = $globalFilterRules->getRuleDataPath();
+
+        // TODO: Add an SHA1 cache mechanism. Do we want to do this in the DB or in the FS?
+        if(file_exists($dataPath)) {
+            $hash = hash("sha1", $dataPath);
+            return $hash;
+        }
+
+        return response('', 204);
+    }*/
+
+    public function checkRules(Request $request) {
+        $array = $request->all();
+        $responseArray = [];
+
+        // format of each array key: /{namespace}/{category}/{type}.txt
+        foreach($array as $key => $value) {
+            if($key == 'identifier' || $key == 'device_id') {
+                continue;
+            }
+
+            $keyTrimmed = trim($key, '/');
+            $keyParts = explode('/', $keyTrimmed);
+
+            $namespace = $keyParts[0];
+            $category = $keyParts[1];
+            $type = explode('.', $keyParts[2])[0];
+            $internalType = $this->getInternalType($type);
+            
+            $filterList = FilterList::where('namespace', $namespace)
+                ->where('category', $category)
+                ->where('type', $internalType)
+                ->first();
+            
+            if($filterList == null) {
+                $responseArray[$key] = null;
+            } else if(strtolower($filterList->file_sha1) === $value) {
+                $responseArray[$key] = true;
+            } else {
+                $responseArray[$key] = false;
+            }
+        }
+
+        return response()->json($responseArray);
+    }
+
+    public function changePassword(Request $request) {
+        $user = \Auth::user();
+
+        if(!$request->has('current_password') || $request->input('current_password') == null || strlen($request->input('current_password')) == 0) {
+            return response()->json([
+                'error' => 'Current password not filled out'
+            ], 400);
+        }
+
+        if(!$request->has('new_password') || $request->input('new_password') == null || strlen($request->input('new_password')) < 4) {
+            return response()->json([
+                'error' => 'The new password you entered should be filled out and longer than 3 characters'
+            ], 400);
+        }
+
+        if(!Hash::check($request->input('current_password'), $user->password)) {
+            return response()->json([
+                'error' => 'The current password that you entered does not match your password'
+            ], 400);
+        }
+
+        $user->password = Hash::make($request->input('new_password'));
+
+        $user->save();
+    }
+
+    /**
+     * Request the current user data. This includes filter rules and
+     * configuration data.  This is for versions <=1.6.  Version 1.7
+     * changes the way configuration is handled.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getUserData(Request $request) {
+        $this->validate($request, [
+            'identifier' => 'required',
+            'device_id' => 'required'
+        ]);
         $thisUser = \Auth::user();
         //Log::debug($request);
+        $token = $thisUser->token();
+        $activation = $this->getActivation($thisUser, $request, $token);
         $userGroup = $thisUser->group()->first();
         if (!is_null($userGroup)) {
             $groupDataPayloadPath = $userGroup->getGroupDataPayloadPath();
             if (file_exists($groupDataPayloadPath) && filesize($groupDataPayloadPath) > 0) {
                 return response()->download($groupDataPayloadPath);
             }
+        }
+
+        return response('', 204);
+    }
+    
+    private function getInternalType($type) {
+        $internalType = null;
+        switch($type) {
+            case 'rules':
+                $internalType = 'Filters';
+                break;
+
+            case 'triggers':
+                $internalType = 'Triggers';
+                break;
+        }
+
+        return $internalType;
+    }
+
+    public function getRuleset(Request $request, $namespace, $category, $type) {
+        $filterRulesManager = new FilterRulesManager();
+        
+        // Get etag from request and compare it against the cached file SHA1 for the matched ruleset.
+        $etag = $request->header('ETag');
+        
+        $internalType = $this->getInternalType($type);
+        if($internalType == null) {
+            return response('No such type defined', 500);
+        }
+
+        $filterList = FilterList::where('namespace', $namespace)
+            ->where('category', $category)
+            ->where('type', $internalType)
+            ->first();
+        
+        if($filterList === null) {
+            return response('', 404);
+        }
+
+        if($etag !== null && strtolower($etag) === strtolower($filterList->file_sha1)) {
+            return response('', 304);
+        }
+
+        // If they don't match, load the ruleset from the disk cache.
+        $hashExists = strlen($filterList->file_sha1) > 0;
+
+        $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
+        
+        if($hashExists && file_exists($rulesetFilePath) && filesize($rulesetFilePath) > 0) {
+            $response = response()->download($rulesetFilePath);
+            
+            $serverEtag = $filterRulesManager->getEtag($rulesetFilePath);
+            $response->setEtag($serverEtag);
+
+            return $response;
+        }
+
+        // If the ruleset does not exist on the disk cache, create it.
+        $rulesetFilePath = $filterRulesManager->buildRuleset($namespace, $category, $type, $filterList);
+       
+        // return the ruleset.
+        $response = response()->download($rulesetFilePath);
+
+        $serverEtag = $filterRulesManager->getEtag($rulesetFilePath);
+        $response->setEtag($serverEtag);
+
+        return $response;
+    }
+
+    public function getRules(Request $request) {
+        // POST should be a key-value pair list that has the following attributes
+        // It should be in the format
+        /*
+        { "lists": ["/default/adult_pornography/rules", "/default/adult_gambling/rules", ...] }
+        */
+
+        $post = $request->json()->all();
+
+        $lists = $post['lists'];
+
+        $responseArray = [];
+
+        $filterRulesManager = new FilterRulesManager();
+
+        foreach($lists as $listName) {
+            $trimmed = trim($listName, '/');
+            $nameParts = explode('/', $trimmed);
+
+            $namespace = $nameParts[0];
+            $category = $nameParts[1];
+            $type = explode('.', $nameParts[2])[0];
+            $internalType = $this->getInternalType($type);
+            if($internalType == null) {
+                return response("No such type defined", 500);
+            }
+
+            $filterList = FilterList::where('namespace', $namespace)
+                ->where('category', $category)
+                ->where('type', $internalType)
+                ->first();
+
+            if($filterList === null) {
+                $responseArray[$listName] = "http-result 404";
+            }
+
+            // If the SHA hashes don't match, load the ruleset from the disk cache.
+            $hashExists = strlen($filterList->file_sha1) > 0;
+            $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
+
+            if(!$hashExists || !file_exists($rulesetFilePath) || filesize($rulesetFilePath) == 0) {
+                $rulesetFilePath = $filterRulesManager->buildRuleset($namespace, $category, $type, $filterList);
+            }
+
+            $rulesetFileContents = file_get_contents($rulesetFilePath);
+            $responseArray[$listName] = $rulesetFileContents;
+        }
+
+		$responseOutput = "";
+		foreach($responseArray as $listName => $list) {
+			$responseOutput .= "--startlist $listName\n";
+			$responseOutput .= "$list\n";
+			$responseOutput .= "--endlist\n";
+		}
+
+		return response($responseOutput)->header('Content-Type', 'text/plain');
+    }
+
+    /**
+     * Request the current activation configuration.  
+     * This is for versions >=1.7.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getConfig(Request $request) {
+        $this->validate($request, [
+            'identifier' => 'required',
+            'device_id' => 'required'
+        ]);
+        $thisUser = \Auth::user();
+        //Log::debug($request);
+        $token = $thisUser->token();
+        $activation = $this->getActivation($thisUser, $request, $token);
+        $userGroup = $thisUser->group()->first();
+        if (!is_null($userGroup)) {
+            if($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
+                $userGroup->rebuildGroupData();
+            }
+
+            $configuration = json_decode($userGroup->config_cache, true);
+            if($configuration == null) {
+                $configuration = [];
+            }
+
+
+            if ($thisUser->config_override) {
+                $configuration = array_merge($configuration, json_decode($thisUser->config_override, true));
+            }
+            if ($activation->config_override) {
+                $configuration = array_merge($configuration, json_decode($activation->config_override, true));
+            }
+
+            if ($activation->bypass_quantity) {
+                $configuration['BypassesPermitted'] = $activation->bypass_quantity;
+            }
+
+            if($activation->bypass_period) {
+                $configuration['BypassDuration'] = $activation->bypass_period;
+            }
+
+            if($thisUser->enable_relaxed_policy_passcode) {
+                $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
+            }
+
+            return $configuration;
+        }
+
+        return response('', 204);
+    }
+
+    /**
+     * Request the checksum for current activation configuration.  
+     * This is for versions >=1.7.  
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function checkConfig(Request $request) {
+        $this->validate($request, [
+            'identifier' => 'required',
+            'device_id' => 'required'
+        ]);
+        $thisUser = \Auth::user();
+        //Log::debug($request);
+        $token = $thisUser->token();
+        $activation = $this->getActivation($thisUser, $request, $token);
+        $userGroup = $thisUser->group()->first();
+        if (!is_null($userGroup)) {
+            Log::debug($activation);
+            Log::debug($thisUser);
+            $configuration = $userGroup->config_cache;
+
+            if ($thisUser->config_override) {
+                $configuration = array_merge(json_decode($configuration, true), json_decode($thisUser->config_override, true));
+            }
+            if ($activation->config_override) {
+                $configuration = array_merge(json_decode($configuration, true), json_decode($activation->config_override, true));
+            }
+
+            return [
+                'sha1' => sha1(json_encode($configuration))
+            ];
         }
 
         return response('', 204);
@@ -376,7 +657,6 @@ class UserController extends Controller
 
         if (!$validator->fails()) {
             $thisUser = \Auth::user();
-
             $reqArgs = $request->only(['identifier', 'device_id']);
 
             $reqArgs['user_id'] = $thisUser->id;
@@ -543,6 +823,54 @@ class UserController extends Controller
         return AppUserActivation::where('user_id', $id)->get();
     }
 
+    private function getActivation(User $user, Request $request, $token) {
+        // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
+        // If the identifier doesn't exist in the system we create a new activation.
+        if ($request->has('identifier')) {
+            $input = $request->input();
+
+            $args = [$input['identifier']];
+            $whereStatement = "identifier = ?";
+
+            if(!empty($input['device_id'])) {
+                $whereStatement .= " and device_id = ?";
+                $args[] = $input['device_id'];
+            }
+
+            // Get Specific Activation with $identifier
+            $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
+			$hasAppVersion = $request->has('app_version');
+
+            if($activation) {
+                if($hasAppVersion) {
+					$activation->app_version = $request->input('app_version');
+				}
+
+				$activation->updated_at = Carbon::now()->timestamp;
+                $activation->ip_address = $request->ip();
+                if ($token) {
+                    $activation->token_id = $token->id;
+                }
+                $activation->save();
+                //Log::debug('Activation Exists.  Saved'); 
+            } else {
+                $activation = new AppUserActivation;
+                $activation->updated_at = Carbon::now()->timestamp;
+                $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';                
+                $activation->user_id = $user->id;
+                $activation->device_id = $request->input('device_id');
+                $activation->identifier = $request->input('identifier');
+                $activation->ip_address = $request->ip();
+                if ($token) {
+                    $activation->token_id = $token->id;
+                }
+                $activation->bypass_used = 0;
+                $activation->save();                
+            }
+            return $activation;
+        }
+    }
+
     /**
      * response server time
      * @return [ server_time => '2018-07-24T18:58:04Z' ]
@@ -552,5 +880,204 @@ class UserController extends Controller
             "server_time" => date('Y-m-d\Th:i:s\Z')
         ];
         return response($time, 200);
+    }
+
+    public function getRelaxedPolicyPasscode() {
+        $user = \Auth::user();
+
+        $result = [
+            'enable_relaxed_policy_passcode' => $user->enable_relaxed_policy_passcode,
+            'relaxed_policy_passcode' => $user->relaxed_policy_passcode
+        ];
+
+        if($user->can(['all', 'manage-relaxed-policy'])) {
+            $config = json_decode($user->config_override);
+
+            if(json_last_error() == JSON_ERROR_NONE) {
+                $result['bypasses_permitted'] = isset($config->BypassesPermitted) ? $config->BypassesPermitted : null;
+                $result['bypass_duration'] = isset($config->BypassDuration) ? $config->BypassDuration : null;
+            }
+        }
+
+        return $result;
+    }
+
+    public function setRelaxedPolicyPasscode(Request $request) {
+        $user = \Auth::user();
+
+        if($request->has('enable_relaxed_policy_passcode')) {
+            $user->enable_relaxed_policy_passcode = $request->input('enable_relaxed_policy_passcode');
+        }
+
+        if($request->has('relaxed_policy_passcode')) {
+            $user->relaxed_policy_passcode = $request->input('relaxed_policy_passcode');
+        }
+
+        if($user->can(['all', 'manage-relaxed-policy'])) {
+            $config = json_decode($user->config_override);
+
+            if(json_last_error() != JSON_ERROR_NONE) {
+                $config = new \stdClass();
+            }
+
+            if($request->has('bypasses_permitted')) {
+                $config->BypassesPermitted = $request->input('bypasses_permitted');
+            }
+
+            if($request->has('bypass_duration')) {
+                $config->BypassDuration = $request->input('bypass_duration');
+            }
+
+            $user->config_override = json_encode($config);
+        }
+
+        $user->save();
+
+        return '{}';
+    }
+
+    public function getSelfModerationInfo(Request $request) {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        $data = [];
+
+        if(json_last_error() != JSON_ERROR_NONE) {
+            $data['whitelist'] = [];
+            $data['blacklist'] = [];
+            $data['triggerBlacklist'] = [];
+        } else {
+            $data['whitelist'] = isset($config->CustomWhitelist) ? $config->CustomWhitelist : [];
+            $data['blacklist'] = isset($config->SelfModeration) ? $config->SelfModeration : [];
+            $data['triggerBlacklist'] = isset($config->CustomTriggerBlacklist) ? $config->CustomTriggerBlacklist : [];
+        }
+
+        return $data;
+    }
+
+    public function addSelfModeratedWebsite(Request $request) {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        if(json_last_error() != JSON_ERROR_NONE ) {
+            $config = new \stdClass();
+        }
+
+        if(!isset($config->SelfModeration)) {
+            $config->SelfModeration = [];
+        }
+
+        $listType = 'blacklist';
+        if($request->has('list_type')) {
+            $listType = $request->input('list_type');
+        }
+
+        if($listType == 'whitelist') {
+            if($user->can(['all', 'manage-whitelisted-sites'])) {
+                if(!isset($config->CustomWhitelist)) {
+                    $config->CustomWhitelist = [];
+                }
+
+                if($request->has('url')) {
+                    $config->CustomWhitelist[] = $request->input('url');
+                } else {
+                    return response(json_encode(['error' => 'Please specify a URL.']), 400);
+                }
+            } else {
+                return response(json_encode(["error" => "You do not have permission to manage your whitelist"]), 400);
+            }
+        } else {
+            $key = "SelfModeration";
+            if($listType == "triggerBlacklist") {
+                $key = "CustomTriggerBlacklist";
+            }
+
+            if(!isset($config->$key)) {
+                $config->$key = [];
+            }
+
+            if($request->has('url')) {
+                $config->$key[] = $request->input('url');
+            } else {
+                return response(json_encode(['error' => 'Please specify a URL.']), 400);
+            }
+        }
+
+        $user->config_override = json_encode($config);
+        $user->save();
+
+        return response('', 204);
+    }
+
+    public function setSelfModerationInfo(Request $request) {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        if(json_last_error() != JSON_ERROR_NONE) {
+            $config = new \stdClass();
+        }
+
+        if($user->can(['all', 'manage-whitelisted-sites'])) {
+            if($request->has('whitelist')) {
+                $config->CustomWhitelist = $request->input('whitelist');
+            } else {
+                $config->CustomWhitelist = [];
+            }
+        }
+
+        if($request->has('blacklist')) {
+            $config->SelfModeration = $request->input('blacklist');
+        } else {
+            $config->SelfModeration = [];
+        }
+
+        if($request->has('triggerBlacklist')) {
+            $config->CustomTriggerBlacklist = $request->input('triggerBlacklist');
+        } else {
+            $config->CustomTriggerBlacklist = [];
+        }
+
+        $user->config_override = json_encode($config);
+        $user->save();
+
+        return '{}';
+    }
+
+    public function getTimeRestrictions() {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        if(json_last_error() != JSON_ERROR_NONE || !isset($config->TimeRestrictions)) {
+            return "{}";
+        }
+
+        return json_encode($config->TimeRestrictions);
+    }
+
+    public function setTimeRestrictions(Request $request) {
+        $user = \Auth::user();
+
+        $config = json_decode($user->config_override);
+
+        if(json_last_error() != JSON_ERROR_NONE) {
+            $config = new \stdClass();
+        }
+
+        if($request->has('time_restrictions')) {
+            $config->TimeRestrictions = $request->input('time_restrictions');
+        }
+
+        if(!isset($config->TimeRestrictions)) {
+            $config->TimeRestrictions = [];
+        }
+
+        $user->config_override = json_encode($config);
+        $user->save();
+
+        return '{}';
     }
 }

@@ -20,9 +20,17 @@ use App\Role;
 |
  */
 
+Route::get('password/reset', 'Auth\ForgotPasswordController@showLinkRequestForm')->name('password.request');
+Route::post('password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail')->name('password.email');
+Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.reset');
+Route::post('password/reset', 'Auth\ResetPasswordController@reset')->name('password.update');
+
 Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
 Route::post('login', 'Auth\LoginController@login');
 Route::post('logout', 'Auth\LoginController@logout')->name('logout');
+
+Route::get('login/wordpress', 'Auth\LoginController@loginWithWordpress')->name('login.wordpress');
+Route::get('login/callbacks/wordpress', 'Auth\LoginController@wordpressCallback')->name('callback.wordpress');
 
 Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () {
     Route::get('/', function () {
@@ -31,9 +39,22 @@ Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () 
     });
 });
 
+Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user|business-owner']], function() {
+    Route::get('/', function() {
+        $roles = Role::all();
+        return view('userhome')->with('roles', $roles);
+    });
+});
+
 Route::get('/', function () {
     if (Auth::check()) {
-        return redirect('/admin');
+        $user = Auth::user();
+
+        if($user->hasRole('user')) {
+            return redirect('/user');
+        } else {
+            return redirect('/admin');
+        }
     } else {
         return redirect('/login');
     }
@@ -43,9 +64,21 @@ Route::get('/update/{platform}/update.xml', 'UpdateController@retrieve');
 Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions');
 
 Route::get('/download/latest/64', function() {
-  return redirect('/releases/CloudVeil-1.6.28-x64.msi');
+  return redirect('/releases/CloudVeil-1.6.31-winx64.msi');
 });
 
 Route::get('/download/latest/32', function() {
-  return redirect('/releases/CloudVeil-1.6.28-x86.msi');
+  return redirect('/releases/CloudVeil-1.6.31-winx86.msi');
 });
+
+Route::get('/home', 'HomeController@index')->name('home');
+
+
+
+
+
+
+
+
+
+

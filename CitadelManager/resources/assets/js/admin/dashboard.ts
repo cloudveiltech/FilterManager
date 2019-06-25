@@ -926,6 +926,7 @@ namespace Citadel {
                     responsive: true,
                     deferLoading: 0,
                     columns: appListTableColumns,
+                    order: [[ 1, "asc" ]], // Should be the name column.
                     ajax: appListTablesLoadFromAjaxSettings,
                     rowCallback: ((row: Node, data: any[] | Object): void => {
                         this.OnTableRowCreated(row, data);
@@ -1856,7 +1857,7 @@ namespace Citadel {
                 this.ForceTableRedraw(this.m_tableGroups);
             });
 
-            groupRecord.StartEditing(this.m_tableFilterLists.data());
+            groupRecord.StartEditing(this.m_allFilters);
         }
 
         private OnDeleteGroupClicked(e: MouseEvent): any {
@@ -1888,7 +1889,7 @@ namespace Citadel {
             let selectedItem = this.m_tableGroups.row('.selected').data();
             if (selectedItem != null) {
                 let groupRecord = new GroupRecord();
-                groupRecord.StartEditing(this.m_tableFilterLists.data(), null, selectedItem);
+                groupRecord.StartEditing(this.m_allFilters, null, selectedItem);
                 groupRecord.ActionCompleteCallback = ((action: string): void => {
                     groupRecord.StopEditing();
                     this.ForceTableRedraw(this.m_tableGroups);

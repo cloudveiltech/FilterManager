@@ -1,12 +1,16 @@
 version: '3.1'
 
+volumes:
+  mariadb_data:
+    external: true
 
 services:
   database:
-    image: mariadb:10-jessie
+    image: mariadb:10.4
     restart: always
     volumes:
-      - "~/.filtermanager-db:/var/lib/mysql"
+      - mariadb_data:/var/lib/mysql
+      - ./share:/root/share
     environment:
       MYSQL_ROOT_PASSWORD: testpassword
       MYSQL_USER: test_user

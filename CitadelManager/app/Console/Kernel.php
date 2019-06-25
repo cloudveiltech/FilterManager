@@ -15,7 +15,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+       Commands\FilterUpload::class,
+       //
     ];
 
     /**
@@ -39,6 +40,11 @@ class Kernel extends ConsoleKernel
             DB::table('app_user_activations')
                 ->update(['bypass_used' => 0]);
         })->dailyAt(config('app.bypass_used_delete_time'));
+
+        $schedule->command('queue:work --daemon --tries=3 --timeout=2400')
+            ->name('queue')
+            ->everyMinute()
+            ->withoutOverlapping();
     } 
 
     /**

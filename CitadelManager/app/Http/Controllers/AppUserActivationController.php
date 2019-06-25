@@ -65,7 +65,8 @@ class AppUserActivationController extends Controller
             ->select('app_user_activations.*', 'users.name')
             ->when($search, function ($query) use ($search) {
                 return $query->where('users.name', 'like', "%$search%")
-                    ->orWhere('app_user_activations.device_id', 'like', "%$search%");
+                    ->orWhere('app_user_activations.device_id', 'like', "%$search%")
+                    ->orWhere('app_user_activations.identifier', 'like', "%$search%");
             }, function ($query) use ($order_str, $order_name) {
                 return $query->orderBy($order_name, $order_str);
             });
@@ -168,15 +169,22 @@ class AppUserActivationController extends Controller
 
     public function update(Request $request, $id)
     {
+        $user = $request->user();
+        $activation = AppUserActivation::where('id', $id)->first();
 
-        // The javascript side/admin UI will not send
-        // password or password_verify unless they are
-        // intentionally trying to change a user's password.
+        if(!$user->can('all')) {
+            if(!$user->can('manage-own-activations')) {
+                return response(json_encode(['error' => 'You do not have permission to manage your own activations.']), 400);
+            } else if($activation->user_id != $user->id) {
+                // Can manage own activations.
+                return response(json_encode(['error' => 'You only have permission to manage your own activations.']), 400);
+            }
+        }
 
         $input = $request->only(['bypass_quantity', 'bypass_period', 'report_level']);
         AppUserActivation::where('id', $id)->update($input);
 
-        return response('', 204);
+        return response('', 204);        
     }
 
     public function show($id)
@@ -196,10 +204,21 @@ class AppUserActivationController extends Controller
             'identifier' => 'required',
         ]);
 
-        Log::info($request);
+        $input = $request->input();
+
+        $passcodeEnabled = false;
+        $passcode = null;
+
+        $args = [$input['identifier']];
+        $whereStatement = "identifier = ?";
+
+        if(!empty($input['device_id'])) {
+            $whereStatement .= " and device_id = ?";
+            $args[] = $input['device_id'];
+        }
 
         // Get Specific Activation with $identifier
-        $activation = AppUserActivation::where('identifier', $request->input('identifier'))->first();
+        $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
         if (!$activation) {
             return response('', 401);
         }
@@ -219,13 +238,28 @@ class AppUserActivationController extends Controller
             } else {
                 // group is assigned
                 $group = $user->group()->first();
+
+                $user_config_str = $user->config_override;
                 $app_cfg_str = $group->app_cfg;
+
+                $user_config = json_decode($user_config_str);
                 $app_cfg = json_decode($app_cfg_str);
+
+                if(!is_null($user_config)) {
+                    foreach($user_config as $key => $value) {
+                        $app_cfg->$key = $value;
+                    }
+                }
 
                 if (is_null($app_cfg->BypassesPermitted)) {
                     $bypass_permitted = 0;
                 } else {
                     $bypass_permitted = $app_cfg->BypassesPermitted;
+                }
+
+                if($user->enable_relaxed_policy_passcode) {
+                    $passcodeEnabled = true;
+                    $passcode = $user->relaxed_policy_passcode;
                 }
             }
 
@@ -241,43 +275,74 @@ class AppUserActivationController extends Controller
                 "permitted" => $bypass_permitted,
             );
             return response()->json($arr_output);
-        } elseif ($bypass_permitted > $bypass_used) {
-
-            $activation->bypass_used++;
-            $activation->save();
-
-            // status : granted
-            $arr_output = array(
-                "allowed" => true,
-                "message" => "Request granted. Used " . $activation->bypass_used . " out of " . $bypass_permitted . ".",
-                "used" => $activation->bypass_used,
-                "permitted" => $bypass_permitted,
-            );
-
-            // Trigger of bypass_granted
-            try {
-                event(new ActivationBypassGranted($activation));
-            } catch (\Exception $e) {
-                Log::error($e);
-            }
-
-            return response()->json($arr_output);
         } else {
-            // status: denied
-            $arr_output = array(
-                "allowed" => false,
-                "message" => "Request denied. You have already used  " . $bypass_used . " out of " . $bypass_permitted . ".",
-                "used" => $bypass_used,
-                "permitted" => $bypass_permitted,
-            );
-            // Trigger of bypass_denied
-            try {
-                event(new ActivationBypassDenied($activation));
-            } catch (\Exception $e) {
-                Log::error($e);
+            // Check to see if user has passcode.
+            $isAuthorized = false;
+            if($passcodeEnabled) {
+                $enteredPasscode = null;
+                if($request->has('passcode')) {
+                    $enteredPasscode = $request->input('passcode');
+                }
+
+                if($passcode == $enteredPasscode) {
+                    $isAuthorized = true;
+                }
+            } else {
+                $isAuthorized = true;
             }
 
-            return response()->json($arr_output);
+            if(!$isAuthorized) {
+                $arr_output = array(
+                    "allowed" => false,
+                    "message" => "Request denied. You entered an incorrect passcode.",
+                    "used" => $activation->bypass_used,
+                    "permitted" => $bypass_permitted
+                );
+
+                try {
+                    event(new ActivationBypassDenied($activation));
+                } catch (\Exception $e) {
+                    Log::error($e);
+                }
+
+                return response()->json($arr_output);
+            } elseif($bypass_permitted > $bypass_used) {
+                $activation->bypass_used++;
+                $activation->save();
+
+                // status : granted
+                $arr_output = array(
+                    "allowed" => true,
+                    "message" => "Request granted. Used " . $activation->bypass_used . " out of " . $bypass_permitted . ".",
+                    "used" => $activation->bypass_used,
+                    "permitted" => $bypass_permitted,
+                );
+
+                // Trigger of bypass_granted
+                try {
+                    event(new ActivationBypassGranted($activation));
+                } catch (\Exception $e) {
+                    Log::error($e);
+                }
+
+                return response()->json($arr_output);
+            } else {
+                // status: denied
+                $arr_output = array(
+                    "allowed" => false,
+                    "message" => "Request denied. You have already used  " . $bypass_used . " out of " . $bypass_permitted . ".",
+                    "used" => $bypass_used,
+                    "permitted" => $bypass_permitted,
+                );
+                // Trigger of bypass_denied
+                try {
+                    event(new ActivationBypassDenied($activation));
+                } catch (\Exception $e) {
+                    Log::error($e);
+                }
+
+                return response()->json($arr_output);
+            }
         }
     }
 }
