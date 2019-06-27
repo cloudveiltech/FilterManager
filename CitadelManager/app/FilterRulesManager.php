@@ -7,8 +7,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-namespace App {
-    class FilterRulesManager {
+namespace App;
+
+use Illuminate\Support\Facades\DB;
+
+class FilterRulesManager 
+{
         public function getRuleDataPath(): string
         {
             $storageDir = storage_path();
@@ -142,5 +146,5 @@ namespace App {
 
             $zip->close();
         }
-    }
 }
+
