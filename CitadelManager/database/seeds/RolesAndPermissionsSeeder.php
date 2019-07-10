@@ -33,11 +33,18 @@ class RolesAndPermissionsSeeder extends Seeder
             'description' => 'User is allowed to delete entries from his self-moderation list'
         ]);
 
+        $manageActivations = Permission::firstOrCreate([
+            'name' => 'manage-own-activations',
+            'display_name' => 'Manage Own Activations',
+            'description' => 'User is allowed to manage their own activations.'
+        ]);
+
         $user->detachPermissions();
         $user->attachPermission($timeRestrictions);
         $user->attachPermission($relaxedPolicyPassword);
         $user->attachPermission($addSelfModerated);
-        
+        $user->attachPermission($manageActivations);
+
         $owner = Role::firstOrCreate([
             'name' => "business-owner",
             'display_name' => "Business Owner",
@@ -68,10 +75,16 @@ class RolesAndPermissionsSeeder extends Seeder
             'description' => 'User is allowed to manage all of their own relaxed policy settings.',
         ]);
 
-        $manageActivations = Permission::firstOrCreate([
-            'name' => 'manage-own-activations',
-            'display_name' => 'Manage Own Activations',
-            'description' => 'User is allowed to manage their own activations.'
+        $deleteOrBlockActivations = Permission::firstOrCreate([
+            'name' => 'delete-activations',
+            'display_name' => 'Revoke Activations',
+            'description' => 'User is allowed to delete or block their activations.'
+        ]);
+
+        $setActivationReportLevel = Permission::firstOrCreate([
+            'name' => 'set-activation-report-level',
+            'display_name' => 'Set Activation Report Level',
+            'description' => 'User is allowed to set report levels for their activations.'
         ]);
 
         $owner->detachPermissions();
@@ -83,6 +96,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $owner->attachPermission($manageUserWhitelist);
         $owner->attachPermission($manageRelaxedPolicySettings);
         $owner->attachPermission($manageActivations);
+        $owner->attachPermission($deleteOrBlockActivations);
+        $owner->attachPermission($setActivationReportLevel);
         
         $admin = Role::firstOrCreate([
             'name'         => 'admin',

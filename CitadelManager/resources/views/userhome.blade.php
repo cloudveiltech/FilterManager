@@ -75,7 +75,7 @@
         <li role="presentation"><a aria-controls="self-moderation" role="tab" data-toggle="tab" href="#self-moderation">Self-moderation</a></li>
         <li role="presentation"><a aria-controls="relaxed-policy" role="tab" data-toggle="tab" href="#relaxed-policy">Relaxed Policy</a></li>
         <li v-if="isBusinessOwner" role="presentation"><a aria-controls="deactivation-requests" role="tab" data-toggle="tab" href="#deactivation-requests">Deactivation Requests</a></li>
-        <li v-if="isBusinessOwner" role="presentation"><a aria-controls="activations" role="tab" data-toggle="tab" href="#activations">Activations</a></li>
+        <li role="presentation"><a aria-controls="activations" role="tab" data-toggle="tab" href="#activations">Activations</a></li>
     </ul>
 
     <div class="tab-content">
@@ -106,63 +106,21 @@
             
             <div class="row">
                 <div class="col-md-8 col-sm-8 col-xs-24">
-                    <div class="row">
-                        <ul class="col-xs-24 list-items self-moderation">
-                            <li class="list-items-row" v-for="(item, index) in selfModeration.blacklist.data">
-                                <div class="row">
-                                    <div class="site-text col-xs-20">
-                                        <editable-span v-model="selfModeration.blacklist.data[index]" placeholder="(click here to edit)">
-                                        </editable-span>
-                                    </div>
-                                    <div class="col-xs-4">
-                                        <button class="btn btn-danger" @click="selfModeration.blacklist.removeUrl(item)"><span class="glyph glyph-remove"></span></button>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-
-                        <button class="col-xs-24 btn btn-primary" @click="selfModeration.blacklist.addUrlEntry()"><span class="glyph glyph-add"></span> Block Site</button>
-                    </div>
+                    <self-moderation-list
+                        v-model="selfModeration.blacklist"
+                        add-button-text="Block Site"></self-moderation-list>
                 </div>
 
                 <div class="col-md-8 col-sm-8 col-xs-24">
-                    <div class="row">
-                        <ul class="col-xs-24 list-items self-moderation">
-                            <li class="list-items-row" v-for="(item, index) in selfModeration.triggerBlacklist.data">
-                                <div class="row">
-                                    <div class="site-text col-xs-20">
-                                        <editable-span v-model="selfModeration.triggerBlacklist.data[index]" placeholder="(click here to edit)">
-                                        </editable-span>
-                                    </div>
-                                    <div class="col-xs-4">
-                                        <button class="btn btn-danger" @click="selfModeration.triggerBlacklist.removeUrl(item)"><span class="glyph glyph-remove"></span></button>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-
-                        <button class="col-xs-24 btn btn-primary" @click="selfModeration.triggerBlacklist.addUrlEntry()"><span class="glyph glyph-add"></span> Block Text Trigger</button>
-                    </div>
+                    <self-moderation-list
+                        v-model="selfModeration.triggerBlacklist"
+                        add-button-text="Block Text Trigger"></self-moderation-list>
                 </div>
 
                 <div v-show="isBusinessOwner" class="col-md-8 col-sm-8 col-xs-24">
-                    <div class="row">
-                        <ul class="col-xs-24 list-items self-moderation">
-                            <li class="list-items-row" v-for="(item, index) in selfModeration.whitelist.data">
-                                <div class="row">
-                                    <div class="site-text col-xs-20">
-                                        <editable-span v-model="selfModeration.whitelist.data[index]" placeholder="(click here to edit)">
-                                        </editable-span>
-                                    </div>
-                                    <div class="col-xs-4">
-                                        <button class="btn btn-danger" @click="selfModeration.whitelist.removeUrl(item)"><span class="glyph glyph-remove"></span></button>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-
-                        <button class="col-xs-24 btn btn-primary" @click="selfModeration.whitelist.addUrlEntry()"><span class="glyph glyph-add"></span> Allow Site</button>
-                    </div>
+                    <self-moderation-list
+                        v-model="selfModeration.whitelist"
+                        add-button-text="Allow Site"></self-moderation-list>
                 </div>
             </div>
 
@@ -235,7 +193,7 @@
             </table>
         </div>
 
-        <div v-if="isBusinessOwner" role="tabpanel" class="tab-pane" id="activations">
+        <div role="tabpanel" class="tab-pane" id="activations">
             <p>Use this screen to keep track of your computers that have CloudVeil for Windows products installed</p>
 
             <table class="table no-button-margins">
@@ -246,8 +204,8 @@
                         <th>Version</th>
                         <th>Updated At</th>
                         <th>...</th>
-                        <th>...</th>
-                        <th>...</th>
+                        <th v-if="isBusinessOwner">...</th>
+                        <th v-if="isBusinessOwner">...</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -261,12 +219,12 @@
                                 <span class="glyph glyph-edit"></span> Edit
                             </button>
                         </td>
-                        <td>
+                        <td v-if="isBusinessOwner">
                             <button class="btn btn-warning" @click="activations.blockActivation(item)">
                                 <span class="glyph glyph-cancel"></span> Block
                             </button>
                         </td>
-                        <td>
+                        <td v-if="isBusinessOwner">
                             <button class="btn btn-danger" @click="activations.deleteActivation(item)">
                                 <span class="glyph glyph-remove"></span> Delete
                             </button>
@@ -302,87 +260,8 @@
         </div>
     </div>
 
-    <div class="modal" id="editActivationModal"
-         tabindex="-1" role="dialog"
-         aria-labelledby="editActivationModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="editActivationModalLabel">
-                        Edit Activation
-                    </h4>
-                </div>
-                <form class="form" v-on:submit.prevent="activationEditor.save()">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="activation_device_id">Computer Name</label>
-                            <input id="activation_device_id" class="form-control" type="text" v-model="activationEditor.data.device_id"
-                                    readonly="readonly" />
-                        </div>
+    @include('layouts.components.userhome.activationeditormodal')
 
-                        <div class="form-group">
-                            <label for="activation_identifier">Identifier</label>
-                            <input id="activation_identifier" class="form-control" type="text" v-model="activationEditor.data.identifier"
-                                    readonly="readonly" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="activation_ip_address">IP Address</label>
-                            <input id="activation_ip_address" class="form-control" type="text" v-model="activationEditor.data.ip_address"
-                                    readonly="readonly" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="activation_bypass_quantity">Relaxed Policy Bypasses Allowed</label>
-                            <input id="activation_bypass_quantity" class="form-control" type="number" v-model="activationEditor.data.bypass_quantity" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="activation_bypass_duration">Relaxed Policy Period (minutes)</label>
-                            <input id="activation_bypass_duration" class="form-control" type="number" v-model="activationEditor.data.bypass_period" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="activation_bypass_used">Relaxed Policy Bypasses Used</label>
-                            <input id="activation_bypass_used" class="form-control" type="number" v-model="activationEditor.data.bypass_used"
-                                    readonly="readonly" />
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Submit</button>
-
-                        <button type="button" class="btn btn-secondary" @click="activationEditor.close()">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="modal-sample"
-         tabindex="-1" role="dialog"
-         aria-labelledby="modal-sample-label" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="modal-sample-label">
-                        Dialog title
-                    </h4>
-                </div>
-                <div class="modal-body">
-                    Lorem ipsum dolor sit amet.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary">
-                        Button
-                    </button>
-                    <button type="button" class="btn btn-info"
-                            data-dismiss="modal">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 @endsection
