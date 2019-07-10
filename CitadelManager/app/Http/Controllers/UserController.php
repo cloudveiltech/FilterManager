@@ -977,7 +977,7 @@ class UserController extends Controller
     public function addSelfModeratedWebsite(Request $request) {
         $user = \Auth::user();
 
-        $token = $thisUser->token();
+        $token = $user->token();
         $activation = $this->getActivation($user, $request, $token);
 
         $config = json_decode($activation->config_override);
