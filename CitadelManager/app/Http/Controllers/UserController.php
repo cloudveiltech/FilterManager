@@ -585,6 +585,24 @@ class UserController extends Controller
                 $configuration = array_merge($configuration, json_decode($thisUser->config_override, true));
             }
             if ($activation->config_override) {
+                if($activation->SelfModeration && $configuration->SelfModeration) {
+                    $selfModeration = $configuration->SelfModeration;
+                } else {
+                    $selfModeration = null;
+                }
+
+                if($activation->CustomWhitelist && $configuration->CustomWhitelist) {
+                    $customWhitelist = $configuration->CustomWhitelist;
+                } else {
+                    $customWhitelist = null;
+                }
+
+                if($activation->CustomTriggerBlacklist && $configuration->CustomTriggerBlacklist) {
+                    $customTriggerBlacklist = $configuration->CustomTriggerBlacklist;
+                } else {
+                    $customTriggerBlacklist = null;
+                }
+
                 $configuration = array_merge($configuration, json_decode($activation->config_override, true));
             }
 
@@ -959,7 +977,10 @@ class UserController extends Controller
     public function addSelfModeratedWebsite(Request $request) {
         $user = \Auth::user();
 
-        $config = json_decode($user->config_override);
+        $token = $thisUser->token();
+        $activation = $this->getActivation($user, $request, $token);
+
+        $config = json_decode($activation->config_override);
 
         if(json_last_error() != JSON_ERROR_NONE ) {
             $config = new \stdClass();
@@ -1005,8 +1026,8 @@ class UserController extends Controller
             }
         }
 
-        $user->config_override = json_encode($config);
-        $user->save();
+        $activation->config_override = json_encode($config);
+        $activation->save();
 
         return response('', 204);
     }

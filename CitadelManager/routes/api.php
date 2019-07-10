@@ -143,6 +143,9 @@ Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin
 
     Route::get('/time_restrictions', 'UserController@getTimeRestrictions');
     Route::post('/time_restrictions', 'UserController@setTimeRestrictions');
+
+    Route::get('activations', 'BusinessController@getActivations');
+    Route::put('activations/{id}', 'AppUserActivationController@update');
 });
 
 Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:admin|business-owner']], function() {
@@ -150,9 +153,6 @@ Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:a
 
     Route::post('deactivations/{id}/grant', 'BusinessController@grantDeactivationRequest');
     Route::delete('deactivations/{id}', 'BusinessController@deleteDeactivationRequest');
-    
-    Route::get('activations', 'BusinessController@getActivations');
-    Route::put('activations/{id}', 'AppUserActivationController@update');
 
     Route::delete('activations/{id}/delete', 'BusinessController@destroyActivation');
     Route::delete('activations/{id}/block', 'BusinessController@blockActivation');

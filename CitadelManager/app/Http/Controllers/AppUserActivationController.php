@@ -181,7 +181,18 @@ class AppUserActivationController extends Controller
             }
         }
 
-        $input = $request->only(['bypass_quantity', 'bypass_period', 'report_level']);
+        $fields = ['config_override'];
+
+        if($user->can(['all', 'manage-relaxed-policy'])) {
+            $fields[] = 'bypass_quantity';
+            $fields[] = 'bypass_period';
+        }
+
+        if($user->can(['all', 'set-activation-report-level'])) {
+            $fields[] = 'report_level';
+        }
+
+        $input = $request->only($fields);
         AppUserActivation::where('id', $id)->update($input);
 
         return response('', 204);        
