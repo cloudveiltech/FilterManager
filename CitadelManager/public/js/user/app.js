@@ -482,7 +482,7 @@ function activationEditorModel() {
 	function convertConfigOverride(overrideString) {
 		if(overrideString) {
 			try {
-				return JSON.parse(data.config_override);
+				return JSON.parse(overrideString);
 			} catch(e) {
 				return null;
 			}
@@ -498,8 +498,8 @@ function activationEditorModel() {
 			var configOverride = convertConfigOverride(data.config_override);
 
 			if(configOverride) {
-				that.whitelist = configOverride.CustomWhitelist;
-				that.blacklist = configOverride.SelfModeration;
+				that.whitelist = configOverride.CustomWhitelist || [];
+				that.blacklist = configOverride.SelfModeration || [];
 			}
 		} else {
 			that.whitelist = [];

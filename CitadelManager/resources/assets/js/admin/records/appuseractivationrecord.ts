@@ -127,6 +127,9 @@ namespace Citadel {
         private InitSelfModerationTables(): void {
             this.m_blacklistTable = new SelfModerationTable(document.querySelector('#activation_self_moderation_table'), this.selfModeration);
             this.m_whitelistTable = new SelfModerationTable(document.querySelector('#activation_whitelist_table'), this.activationWhitelist);
+
+            this.m_blacklistTable.render();
+            this.m_whitelistTable.render();
         }
 
         private InitButtonHandlers(): void {

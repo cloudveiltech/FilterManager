@@ -112,18 +112,6 @@
 
                             <br/>
                             <br/>
-
-                            <div class="row cell-auto-size">
-                                <div class="form-actions">
-                                    <button id="activation_editor_submit" type="submit" class="button primary">Save</button>
-                                    <button id="activation_editor_cancel" type="button" class="button link">Cancel</button>
-                                </div>
-                            </div>
-
-                            <div class="row cell-auto-size">
-                                <div id="activation_form_errors">
-                                </div>
-                            </div>
                         </div>
 
                         <div class="frame" id="activation_self_moderation_tab">
@@ -170,6 +158,18 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row cell-auto-size">
+                        <div class="form-actions">
+                            <button id="activation_editor_submit" type="submit" class="button primary">Save</button>
+                            <button id="activation_editor_cancel" type="button" class="button link">Cancel</button>
+                        </div>
+                    </div>
+
+                    <div class="row cell-auto-size">
+                        <div id="activation_form_errors">
                         </div>
                     </div>
                 </div>
