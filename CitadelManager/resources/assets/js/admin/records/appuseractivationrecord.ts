@@ -185,10 +185,10 @@ namespace Citadel {
             this.selfModeration = this.m_blacklistTable.getData();
             this.activationWhitelist = this.m_whitelistTable.getData();
 
-            this.configOverride = {
+            this.configOverride = JSON.stringify({
                 SelfModeration: this.selfModeration,
                 CustomWhitelist: this.activationWhitelist
-            };
+            });
         }
 
         public StartEditing(userData: Object = null): void {
