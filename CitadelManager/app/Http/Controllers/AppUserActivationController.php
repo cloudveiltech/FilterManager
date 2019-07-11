@@ -14,6 +14,7 @@ use App\Events\ActivationBypassDenied;
 use App\Events\ActivationBypassGranted;
 use App\Group;
 use App\User;
+use App\Utils;
 use Illuminate\Http\Request;
 use Log;
 use Validator;
@@ -193,6 +194,15 @@ class AppUserActivationController extends Controller
         }
 
         $input = $request->only($fields);
+
+        if(isset($input['config_override'])) {
+            $configOverride = json_decode($input['config_override'], true);
+
+            if($configOverride) {
+                $configOverride = Utils::purgeNullsFromSelfModerationArrays($configOverride);
+            }
+        }
+
         AppUserActivation::where('id', $id)->update($input);
 
         return response('', 204);        

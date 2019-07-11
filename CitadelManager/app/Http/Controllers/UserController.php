@@ -18,6 +18,7 @@ use App\Role;
 use App\User;
 use App\UserActivationAttemptResult;
 use App\FilterList;
+use App\Utils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -602,6 +603,8 @@ class UserController extends Controller
 				if($customTriggerBlacklist != null) {
 					$configuration['CustomTriggerBlacklist'] = array_merge($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
 				}
+
+                $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
             }
 
             if ($activation->bypass_quantity) {
@@ -1014,7 +1017,7 @@ class UserController extends Controller
                     $config->CustomWhitelist = [];
                 }
 
-                if($request->has('url')) {
+                if($request->has('url') && !empty($request->input('url')) {
                     $config->CustomWhitelist[] = $request->input('url');
                 } else {
                     return response(json_encode(['error' => 'Please specify a URL.']), 400);
@@ -1032,7 +1035,7 @@ class UserController extends Controller
                 $config->$key = [];
             }
 
-            if($request->has('url')) {
+            if($request->has('url') && !empty($request->input('url'))) {
                 $config->$key[] = $request->input('url');
             } else {
                 return response(json_encode(['error' => 'Please specify a URL.']), 400);
@@ -1056,20 +1059,20 @@ class UserController extends Controller
 
         if($user->can(['all', 'manage-whitelisted-sites'])) {
             if($request->has('whitelist')) {
-                $config->CustomWhitelist = $request->input('whitelist');
+                $config->CustomWhitelist = Utils::purgeNulls($request->input('whitelist'));
             } else {
                 $config->CustomWhitelist = [];
             }
         }
 
         if($request->has('blacklist')) {
-            $config->SelfModeration = $request->input('blacklist');
+            $config->SelfModeration = Utils::purgeNulls($request->input('blacklist'));
         } else {
             $config->SelfModeration = [];
         }
 
         if($request->has('triggerBlacklist')) {
-            $config->CustomTriggerBlacklist = $request->input('triggerBlacklist');
+            $config->CustomTriggerBlacklist = Utils::purgeNulls($request->input('triggerBlacklist'));
         } else {
             $config->CustomTriggerBlacklist = [];
         }
