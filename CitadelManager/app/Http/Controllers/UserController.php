@@ -1017,7 +1017,7 @@ class UserController extends Controller
                     $config->CustomWhitelist = [];
                 }
 
-                if($request->has('url') && !empty($request->input('url')) {
+                if($request->has('url') && !empty($request->input('url'))) {
                     $config->CustomWhitelist[] = $request->input('url');
                 } else {
                     return response(json_encode(['error' => 'Please specify a URL.']), 400);
