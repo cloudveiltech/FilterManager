@@ -10,11 +10,13 @@
 namespace App\Auth;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\User;
 use App\UserActivationAttemptResult;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Description of AthenticatesLicensedUsers
@@ -53,7 +55,6 @@ trait AuthenticatesLicensedUsers {
     public function login(Request $request)
     {
         if (Auth::check()) {
-            
             $validator = Validator::make($request->all(), [
                     'identifier' => 'required',
                     'device_id' => 'required'
@@ -61,6 +62,7 @@ trait AuthenticatesLicensedUsers {
 
             if (!$validator->fails()) {
                 $thisUser = Auth::user();
+                // This looks like a client app request. Make sure the app can access the API.
                 return $this->handleAppUserValidation($request, $thisUser);
             }
             
@@ -79,6 +81,15 @@ trait AuthenticatesLicensedUsers {
         }
 
         if ($this->attemptLogin($request)) {
+            $thisUser = Auth::user();
+
+            Log::debug(print_r($thisUser, true));
+            
+            if(getenv("IS_DEBUG") !== 1 && !$thisUser->can('all')) {
+                $this->logout($request);
+                return $this->sendEmailLoginDisabledResponse($request);
+            }
+
             return $this->sendLoginResponse($request);
         }
 
@@ -90,6 +101,13 @@ trait AuthenticatesLicensedUsers {
         return $this->sendFailedLoginResponse($request);
     }
     
+    protected function sendEmailLoginDisabledResponse(Request $request)
+    {
+        throw ValidationException::withMessages([
+            $this->username() => [trans('auth.email_login_banned')],
+        ]);
+    }
+
     /**
      * Log the user out of the application.
      *
