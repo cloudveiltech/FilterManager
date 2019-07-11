@@ -604,6 +604,18 @@ class UserController extends Controller
                 }
 
                 $configuration = array_merge($configuration, json_decode($activation->config_override, true));
+
+				if($selfModeration != null) {
+					array_merge($configuration->SelfModeration, $selfModeration);
+				}
+
+				if($customWhitelist != null) {
+					array_merge($configuration->CustomWhitelist, $customWhitelist);
+				}
+
+				if($customTriggerBlacklist != null) {
+					array_merge($configuration->CustomTriggerBlacklist, $customTriggerBlacklist);
+				}
             }
 
             if ($activation->bypass_quantity) {
