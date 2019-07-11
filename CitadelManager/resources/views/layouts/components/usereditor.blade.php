@@ -249,7 +249,7 @@
                                     <small>User's Blocked Triggers</small>
                                 </h2>
                                 <hr class="thin" />
-                                <button type="button" event-click="addNewCustomTextTrigger" class="button primary">Add Site</button>
+                                <button type="button" event-click="addNewCustomTextTrigger" class="button primary">Add Text Trigger</button>
 
                                 <table id="custom_trigger_table" class="table striped hovered border black-background" style="width: 100%">
                                     <thead>

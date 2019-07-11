@@ -196,11 +196,7 @@ class AppUserActivationController extends Controller
         $input = $request->only($fields);
 
         if(isset($input['config_override'])) {
-            $configOverride = json_decode($input['config_override'], true);
-
-            if($configOverride) {
-                $configOverride = Utils::purgeNullsFromSelfModerationArrays($configOverride);
-            }
+            $input['config_override'] = Utils::purgeNullsFromJSONSelfModeration($input['config_override']);
         }
 
         AppUserActivation::where('id', $id)->update($input);
