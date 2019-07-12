@@ -402,10 +402,10 @@ function activationsModel() {
 
 	that.blockActivation = function(activation) {
 		app.deleteModal.open({
-			title: "Block Activation",
-			body: "Do you want to block this activation?",
-			confirmButtonText: "Yes, Block",
-			cancelButtonText: "No, Don't Block"
+			title: "Revoke Activation",
+			body: "Do you want to revoke this activation?",
+			confirmButtonText: "Yes, Revoke",
+			cancelButtonText: "No, Don't Revoke"
 		}, function() {
 			$.ajax('api/business/activations/' + activation.id + '/block', {
 				method: "DELETE"

@@ -205,7 +205,6 @@
                         <th>Updated At</th>
                         <th>...</th>
                         <th v-if="isBusinessOwner">...</th>
-                        <th v-if="isBusinessOwner">...</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -221,12 +220,7 @@
                         </td>
                         <td v-if="isBusinessOwner">
                             <button class="btn btn-warning" @click="activations.blockActivation(item)">
-                                <span class="glyph glyph-cancel"></span> Block
-                            </button>
-                        </td>
-                        <td v-if="isBusinessOwner">
-                            <button class="btn btn-danger" @click="activations.deleteActivation(item)">
-                                <span class="glyph glyph-remove"></span> Delete
+                                <span class="glyph glyph-cancel"></span> Revoke Activation
                             </button>
                         </td>
                     </tr>
