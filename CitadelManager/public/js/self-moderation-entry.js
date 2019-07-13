@@ -1,9 +1,54 @@
 // The attempt for swappable-element is to specify two elements that you want to swap on a certain condition.
 //
+
+Vue.component('self-moderation-list', {
+	template: '<div class="row"><ul class="col-xs-24 list-items self-moderation">\
+					<li class="list-items-row" v-for="(item, index) in value">\
+	                	<div class="row">\
+	                    	<div class="site-text col-xs-20">\
+	                        	<editable-span v-model="value[index]" placeholder="(click here to edit)">\
+	                        	</editable-span>\
+	                    	</div>\
+	                    	<div class="col-xs-4">\
+	                        	<button class="btn btn-danger" @click="removeUrl(index)"><span class="glyph glyph-remove"></span></button>\
+	                    	</div>\
+	                	</div>\
+	            	</li>\
+	            </ul>\
+	            <button type="button" class="col-xs-24 btn btn-primary" @click="addUrlEntry()">\
+	            	<span class="glyph glyph-add"></span> {{addButtonText}}\
+	            </button>\
+	            </div>',
+
+	props: ['value', 'addButtonText'],
+
+	data: function() {
+		return {
+
+		};
+	},
+
+	watch: {
+		value: function(newVal) {
+
+		}
+	},
+
+	methods: {
+		removeUrl: function(index) {
+			this.value.splice(index, 1);
+		},
+
+		addUrlEntry: function() {
+			this.value.push("");
+		}
+	}
+});
+
 Vue.component('editable-span', {
 	template: "<div>\
 		<span name='viewer' v-if='!isEditing' @click='edit()' v-bind:class='{ placeholder: value && value.length > 0 }'>{{ value || placeholder }}</span>\
-		<input name='editor' v-if='isEditing' type='text' @blur='doneEditing()' @keyup='onKeyUp' @input='onInput()' style='margin-bottom: 0; margin-top: 0;'\
+		<input name='editor' v-if='isEditing' type='text' @blur='doneEditing()' @keydown='onKeyDown' @input='onInput()' style='margin-bottom: 0; margin-top: 0;'\
 			class='form-control' v-model='innerValue' />\
 	</div>",
 
@@ -43,9 +88,12 @@ Vue.component('editable-span', {
 			this.$emit('input', this.innerValue);
 		},
 
-		onKeyUp: function($event) {
-			if(event.code == "Enter") {
+		onKeyDown: function($event) {
+			var code = $event.charCode || $event.keyCode || $event.which;
+
+			if(code == 13) {
 				this.doneEditing();
+				$event.preventDefault();
 			}
 		}
 	},

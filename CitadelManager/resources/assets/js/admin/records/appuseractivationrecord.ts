@@ -42,6 +42,10 @@ namespace Citadel {
         private m_bypassUsed                : number;
         private m_reportLevel               : number;
 
+        private configOverride : any;
+        private selfModeration : any;
+        private activationWhitelist : any;
+
         // ──────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
         // ──────────────────────────────────────────────────────────
@@ -60,8 +64,13 @@ namespace Citadel {
         private m_inputReportLevel          : HTMLInputElement;
         private m_labelReportLevel          : HTMLLabelElement;
 
+        private m_blacklistTable            : SelfModerationTable;
+        private m_whitelistTable            : SelfModerationTable;
+
         private m_btnSubmit                 : HTMLButtonElement;
         private m_btnCancel                 : HTMLButtonElement;
+
+        private m_bindings                  : BindingInstance;
 
         constructor() {
             super();
@@ -93,6 +102,11 @@ namespace Citadel {
         private ConstructFormReferences(): void {
             this.m_mainForm             = document.querySelector('#editor_activation_form') as HTMLFormElement;
             this.m_editorOverlay        = document.querySelector('#overlay_activation_editor') as HTMLDivElement;
+
+            this.m_bindings = new BindingInstance(this.m_editorOverlay, this);
+            this.m_bindings.Bind();
+            this.m_bindings.Refresh();
+
             this.m_inputUserName        = document.querySelector('#editor_activation_input_user_full_name') as HTMLInputElement;
             this.m_inputIdentifier      = document.querySelector('#editor_activation_input_identifier') as HTMLInputElement;
             this.m_inputDeviceId        = document.querySelector('#editor_activation_input_device_id') as HTMLInputElement;
@@ -108,6 +122,14 @@ namespace Citadel {
             this.m_btnCancel            = document.querySelector('#activation_editor_cancel') as HTMLButtonElement;
 
             this.InitButtonHandlers();
+        }
+
+        private InitSelfModerationTables(): void {
+            this.m_blacklistTable = new SelfModerationTable(document.querySelector('#activation_self_moderation_table'), this.selfModeration);
+            this.m_whitelistTable = new SelfModerationTable(document.querySelector('#activation_whitelist_table'), this.activationWhitelist);
+
+            this.m_blacklistTable.render();
+            this.m_whitelistTable.render();
         }
 
         private InitButtonHandlers(): void {
@@ -135,12 +157,38 @@ namespace Citadel {
             this.m_bypassPeriod     = (data['bypass_period'] != null) ? data['bypass_period'] as number : null;
             this.m_bypassUsed       = data['bypass_used'] as number;
             this.m_reportLevel      = data['report_level'] as number;
+
+            if('config_override' in data && data['config_override'] != null) {
+                try {
+                    this.configOverride = JSON.parse(data['config_override']);
+                } catch(e) {
+                    this.configOverride = null;
+                }
+            } else {
+                this.configOverride = null;
+            }
+
+            if(this.configOverride) {
+                this.selfModeration = this.configOverride.SelfModeration;
+                this.activationWhitelist = this.configOverride.CustomWhitelist;
+            } else {
+                this.selfModeration = null;
+                this.activationWhitelist = null;
+            }
         }
 
         protected LoadFromForm(): void {
             this.m_bypassQuantity   = this.m_inputBPQuantity.value == "" ? null : parseInt(this.m_inputBPQuantity.value);
             this.m_bypassPeriod     = this.m_inputBPPeriod.value == "" ? null : parseInt(this.m_inputBPPeriod.value);
             this.m_reportLevel      = this.m_inputReportLevel.checked ? 1 : 0;
+
+            this.selfModeration = this.m_blacklistTable.getData();
+            this.activationWhitelist = this.m_whitelistTable.getData();
+
+            this.configOverride = JSON.stringify({
+                SelfModeration: this.selfModeration,
+                CustomWhitelist: this.activationWhitelist
+            });
         }
 
         public StartEditing(userData: Object = null): void {
@@ -162,6 +210,8 @@ namespace Citadel {
                 this.m_labelReportLevel.innerHTML = this.MESSAGE_NO_REPORT_LABEL;
             }
 
+            this.InitSelfModerationTables();
+
             this.m_mainForm.onsubmit = ((e: Event): any => {
                 return this.OnFormSubmitClicked(e, userData == null);
             });
@@ -179,6 +229,7 @@ namespace Citadel {
                 'bypass_quantity'   : this.m_bypassQuantity,
                 'bypass_period'     : this.m_bypassPeriod,
                 'report_level'      : this.m_reportLevel,
+                'config_override'   : this.configOverride
             };
 
             return obj;
@@ -212,6 +263,14 @@ namespace Citadel {
             }
 
             $.ajax(ajaxSettings);
+        }
+
+        public addNewSelfModerationSite(): void {
+            this.m_blacklistTable.add();
+        }
+
+        public addNewWhitelistSite(): void {
+            this.m_whitelistTable.add();
         }
     }
 }

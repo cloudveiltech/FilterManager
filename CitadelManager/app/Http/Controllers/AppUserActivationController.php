@@ -14,6 +14,7 @@ use App\Events\ActivationBypassDenied;
 use App\Events\ActivationBypassGranted;
 use App\Group;
 use App\User;
+use App\Utils;
 use Illuminate\Http\Request;
 use Log;
 use Validator;
@@ -181,7 +182,23 @@ class AppUserActivationController extends Controller
             }
         }
 
-        $input = $request->only(['bypass_quantity', 'bypass_period', 'report_level']);
+        $fields = ['config_override'];
+
+        if($user->can(['all', 'manage-relaxed-policy'])) {
+            $fields[] = 'bypass_quantity';
+            $fields[] = 'bypass_period';
+        }
+
+        if($user->can(['all', 'set-activation-report-level'])) {
+            $fields[] = 'report_level';
+        }
+
+        $input = $request->only($fields);
+
+        if(isset($input['config_override'])) {
+            $input['config_override'] = Utils::purgeNullsFromJSONSelfModeration($input['config_override']);
+        }
+
         AppUserActivation::where('id', $id)->update($input);
 
         return response('', 204);        

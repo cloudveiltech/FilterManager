@@ -89,7 +89,7 @@ class BusinessController extends Controller {
 		$user = \Auth::user();
 
 		$activation = AppUserActivation::where('id', $id)->first();
-		if($user->can(['all', 'manage-own-activations']) && $this->verifyAppUserActivation($user, $activation)) {
+		if($user->can(['all', 'delete-activations']) && $this->verifyAppUserActivation($user, $activation)) {
 			$activation->delete();
 			return response('', 204);
 		} else {
@@ -101,7 +101,7 @@ class BusinessController extends Controller {
 		$user = \Auth::user();
 
 		$activation = AppUserActivation::where('id', $id)->first();
-		if ($user->can(['all', 'manage-own-activations']) && $this->verifyAppUserActivation($user, $activation)) {
+		if ($user->can(['all', 'delete-activations']) && $this->verifyAppUserActivation($user, $activation)) {
 			// If we're blocking the activation we go in and revoke the token for that installation.
 			if (!is_null($activation->token_id)) {
 				$token = \App\OauthAccessToken::where('id', $activation->token_id)->first();

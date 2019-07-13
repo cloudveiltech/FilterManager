@@ -18,6 +18,7 @@ use App\Role;
 use App\User;
 use App\UserActivationAttemptResult;
 use App\FilterList;
+use App\Utils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -120,8 +121,12 @@ class UserController extends Controller
             'group_id' => 'required|exists:groups,id',
         ]);
 
-        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id', 'customer_id', 'activations_allowed', 'isactive', 'report_level']);
+        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id', 'customer_id', 'activations_allowed', 'isactive', 'report_level', 'config_override']);
         $input['password'] = Hash::make($input['password']);
+
+        if(isset($input['config_override'])) {
+            $input['config_override'] = Utils::purgeNullsFromJSONSelfModeration($input['config_override']);
+        }
 
         $user = User::create($input);
 
@@ -228,6 +233,10 @@ class UserController extends Controller
         }
 
 	$input = $request->only(['id','name','email','group_id','customer_id','activations_allowed','isactive','report_level', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode']);
+
+        if(isset($input['config_override'])) {
+            $input['config_override'] = Utils::purgeNullsFromJSONSelfModeration($input['config_override']);
+        }
 
         if ($inclPassword) {
             $pInput = $request->only(['password', 'password_verify']);
@@ -554,6 +563,76 @@ class UserController extends Controller
 		return response($responseOutput)->header('Content-Type', 'text/plain');
     }
 
+	private function mergeConfigurations($userGroup, $thisUser, $activation) {
+        if (!is_null($userGroup)) {
+            if($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
+                $userGroup->rebuildGroupData();
+            }
+
+            $configuration = json_decode($userGroup->config_cache, true);
+            if($configuration == null) {
+                $configuration = [];
+            }
+
+            if ($thisUser->config_override) {
+                $configuration = array_merge($configuration, json_decode($thisUser->config_override, true));
+            }
+            if ($activation->config_override) {
+				$activationConfig = json_decode($activation->config_override, true);
+
+				if(isset($activationConfig['SelfModeration']) && isset($configuration['SelfModeration'])) {
+					$selfModeration = $configuration['SelfModeration'];
+				} else {
+					$selfModeration = null;
+				}
+
+				if(isset($activationConfig['CustomWhitelist']) && isset($configuration['CustomWhitelist'])) {
+					$customWhitelist = $configuration['CustomWhitelist'];
+				} else {
+					$customWhitelist = null;
+				}
+
+				if(isset($activationConfig['CustomTriggerBlacklist']) && isset($configuration['CustomTriggerBlacklist'])) {
+					$customTriggerBlacklist = $configuration->CustomTriggerBlacklist;
+				} else {
+					$customTriggerBlacklist = null;
+				}
+
+                $configuration = array_merge($configuration, $activationConfig);
+
+				if($selfModeration != null) {
+					$configuration['SelfModeration'] = array_merge($configuration['SelfModeration'], $selfModeration);
+				}
+
+				if($customWhitelist != null) {
+					$configuration['CustomWhitelist'] = array_merge($configuration['CustomWhitelist'], $customWhitelist);
+				}
+
+				if($customTriggerBlacklist != null) {
+					$configuration['CustomTriggerBlacklist'] = array_merge($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
+				}
+
+                $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
+            }
+
+            if ($activation->bypass_quantity) {
+                $configuration['BypassesPermitted'] = $activation->bypass_quantity;
+            }
+
+            if($activation->bypass_period) {
+                $configuration['BypassDuration'] = $activation->bypass_period;
+            }
+
+            if($thisUser->enable_relaxed_policy_passcode) {
+                $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
+            }
+
+			return $configuration;
+		} else {
+			return null;
+		}
+	}
+
     /**
      * Request the current activation configuration.  
      * This is for versions >=1.7.
@@ -570,40 +649,14 @@ class UserController extends Controller
         $token = $thisUser->token();
         $activation = $this->getActivation($thisUser, $request, $token);
         $userGroup = $thisUser->group()->first();
-        if (!is_null($userGroup)) {
-            if($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
-                $userGroup->rebuildGroupData();
-            }
 
-            $configuration = json_decode($userGroup->config_cache, true);
-            if($configuration == null) {
-                $configuration = [];
-            }
+		$configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
-
-            if ($thisUser->config_override) {
-                $configuration = array_merge($configuration, json_decode($thisUser->config_override, true));
-            }
-            if ($activation->config_override) {
-                $configuration = array_merge($configuration, json_decode($activation->config_override, true));
-            }
-
-            if ($activation->bypass_quantity) {
-                $configuration['BypassesPermitted'] = $activation->bypass_quantity;
-            }
-
-            if($activation->bypass_period) {
-                $configuration['BypassDuration'] = $activation->bypass_period;
-            }
-
-            if($thisUser->enable_relaxed_policy_passcode) {
-                $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
-            }
-
-            return $configuration;
-        }
-
-        return response('', 204);
+		if(!is_null($configuration)) {
+			return $configuration;
+		} else {
+			return response('', 204);
+		}
     }
 
     /**
@@ -622,24 +675,13 @@ class UserController extends Controller
         $token = $thisUser->token();
         $activation = $this->getActivation($thisUser, $request, $token);
         $userGroup = $thisUser->group()->first();
-        if (!is_null($userGroup)) {
-            Log::debug($activation);
-            Log::debug($thisUser);
-            $configuration = $userGroup->config_cache;
-
-            if ($thisUser->config_override) {
-                $configuration = array_merge(json_decode($configuration, true), json_decode($thisUser->config_override, true));
-            }
-            if ($activation->config_override) {
-                $configuration = array_merge(json_decode($configuration, true), json_decode($activation->config_override, true));
-            }
-
-            return [
-                'sha1' => sha1(json_encode($configuration))
-            ];
-        }
-
-        return response('', 204);
+        
+		$configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
+		if(!is_null($configuration)) {
+			return [ 'sha1' => sha1(json_encode($configuration)) ];
+		} else {
+			return response('', 204);
+		}
     }
 
     /**
@@ -959,7 +1001,10 @@ class UserController extends Controller
     public function addSelfModeratedWebsite(Request $request) {
         $user = \Auth::user();
 
-        $config = json_decode($user->config_override);
+        $token = $user->token();
+        $activation = $this->getActivation($user, $request, $token);
+
+        $config = json_decode($activation->config_override);
 
         if(json_last_error() != JSON_ERROR_NONE ) {
             $config = new \stdClass();
@@ -980,7 +1025,7 @@ class UserController extends Controller
                     $config->CustomWhitelist = [];
                 }
 
-                if($request->has('url')) {
+                if($request->has('url') && !empty($request->input('url'))) {
                     $config->CustomWhitelist[] = $request->input('url');
                 } else {
                     return response(json_encode(['error' => 'Please specify a URL.']), 400);
@@ -998,15 +1043,15 @@ class UserController extends Controller
                 $config->$key = [];
             }
 
-            if($request->has('url')) {
+            if($request->has('url') && !empty($request->input('url'))) {
                 $config->$key[] = $request->input('url');
             } else {
                 return response(json_encode(['error' => 'Please specify a URL.']), 400);
             }
         }
 
-        $user->config_override = json_encode($config);
-        $user->save();
+        $activation->config_override = json_encode($config);
+        $activation->save();
 
         return response('', 204);
     }
@@ -1022,20 +1067,20 @@ class UserController extends Controller
 
         if($user->can(['all', 'manage-whitelisted-sites'])) {
             if($request->has('whitelist')) {
-                $config->CustomWhitelist = $request->input('whitelist');
+                $config->CustomWhitelist = Utils::purgeNulls($request->input('whitelist'));
             } else {
                 $config->CustomWhitelist = [];
             }
         }
 
         if($request->has('blacklist')) {
-            $config->SelfModeration = $request->input('blacklist');
+            $config->SelfModeration = Utils::purgeNulls($request->input('blacklist'));
         } else {
             $config->SelfModeration = [];
         }
 
         if($request->has('triggerBlacklist')) {
-            $config->CustomTriggerBlacklist = $request->input('triggerBlacklist');
+            $config->CustomTriggerBlacklist = Utils::purgeNulls($request->input('triggerBlacklist'));
         } else {
             $config->CustomTriggerBlacklist = [];
         }

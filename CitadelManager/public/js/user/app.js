@@ -230,22 +230,31 @@ function timeRestrictionsModel() {
 function selfModerationModel() {
 	var that = {};
 
+	that.whitelist = [];
+	that.blacklist = [];
+	that.triggerBlacklist = [];
+
+	/*
 	that.whitelist = selfModerationListModel();
 	that.blacklist = selfModerationListModel();
-	that.triggerBlacklist = selfModerationListModel();
+	that.triggerBlacklist = selfModerationListModel();*/
 
 	that.fetch = function() {
 		$.get('api/user/self_moderation').done(function(data) {
 			if(data.whitelist) {
-				that.whitelist.data = data.whitelist;
+				//Vue.set(that, 'whitelist', data.whitelist);
+				that.whitelist = data.whitelist;
+				//that.whitelist.data = data.whitelist;
 			}
 
 			if(data.blacklist) {
-				that.blacklist.data = data.blacklist;
+				that.blacklist = data.blacklist;
+				//that.blacklist.data = data.blacklist;
 			}
 
 			if(data.triggerBlacklist) {
-				that.triggerBlacklist.data = data.triggerBlacklist;
+				that.triggerBlacklist = data.triggerBlacklist;
+				//that.triggerBlacklist.= = data.triggerBlacklist;
 			}
 		});
 	};
@@ -253,9 +262,9 @@ function selfModerationModel() {
 	that.save = function() {
 		$.ajax('api/user/self_moderation', {
 			data: JSON.stringify({
-				blacklist: that.blacklist.data,
-				whitelist: that.whitelist.data,
-				triggerBlacklist: that.triggerBlacklist.data
+				blacklist: that.blacklist,
+				whitelist: that.whitelist,
+				triggerBlacklist: that.triggerBlacklist
 			}),
 			dataType: "json",
 			method: "POST"
@@ -382,7 +391,7 @@ function activationsModel() {
 	that.data = [];
 
 	that.fetch = function() {
-		$.get('api/business/activations').done(function(data) {
+		$.get('api/user/activations').done(function(data) {
 			Vue.set(that, 'data', data);
 		});
 	};
@@ -393,10 +402,10 @@ function activationsModel() {
 
 	that.blockActivation = function(activation) {
 		app.deleteModal.open({
-			title: "Block Activation",
-			body: "Do you want to block this activation?",
-			confirmButtonText: "Yes, Block",
-			cancelButtonText: "No, Don't Block"
+			title: "Revoke Activation",
+			body: "Do you want to revoke this activation?",
+			confirmButtonText: "Yes, Revoke",
+			cancelButtonText: "No, Don't Revoke"
 		}, function() {
 			$.ajax('api/business/activations/' + activation.id + '/block', {
 				method: "DELETE"
@@ -467,9 +476,35 @@ function activationEditorModel() {
 	var that = {};
 
 	that.data = {};
+	that.whitelist = [];
+	that.blacklist = [];
+
+	function convertConfigOverride(overrideString) {
+		if(overrideString) {
+			try {
+				return JSON.parse(overrideString);
+			} catch(e) {
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
 
 	that.open = function(data) {
 		Vue.set(that, 'data', data);
+
+		if(data.config_override) {
+			var configOverride = convertConfigOverride(data.config_override);
+
+			if(configOverride) {
+				that.whitelist = configOverride.CustomWhitelist || [];
+				that.blacklist = configOverride.SelfModeration || [];
+			}
+		} else {
+			that.whitelist = [];
+			that.blacklist = [];
+		}
 
 		$("#editActivationModal").modal("show");
 	};
@@ -479,8 +514,15 @@ function activationEditorModel() {
 	};
 
 	that.save = function() {
+		var configOverride = convertConfigOverride(that.data.config_override) || {};
+
+		configOverride.CustomWhitelist = that.whitelist;
+		configOverride.SelfModeration = that.blacklist;
+
+		that.data.config_override = JSON.stringify(configOverride);
+		
 		// TODO: App user activation API
-		$.ajax("api/business/activations/" + that.data.id, {
+		$.ajax("api/user/activations/" + that.data.id, {
 			method: "PUT",
 			data: JSON.stringify(that.data),
 			dataType: "json"
