@@ -158,7 +158,6 @@ class BusinessOwnerRolesAndPermissions extends Migration
         DB::table('permission_role')->insert(['role_id' => $ownerId, 'permission_id' => $relaxedPolicyPasswordId]);
         DB::table('permission_role')->insert(['role_id' => $ownerId, 'permission_id' => $selfModeratedId]);
         DB::table('permission_role')->insert(['role_id' => $ownerId, 'permission_id' => $manageDeactivations]);
-        DB::table('permission_role')->insert(['role_id' => $ownerId, 'permission_id' => $deleteSelfModeratedId]);
         DB::table('permission_role')->insert(['role_id' => $ownerId, 'permission_id' => $manageUserWhitelist]);
         DB::table('permission_role')->insert(['role_id' => $ownerId, 'permission_id' => $manageRelaxedPolicySettings]);
         DB::table('permission_role')->insert(['role_id' => $ownerId, 'permission_id' => $manageOwnActivationsId]);
@@ -175,7 +174,11 @@ class BusinessOwnerRolesAndPermissions extends Migration
     {
         // Roll back business owner permission role relationships
         $owner = DB::table('roles')->where('name', 'business-owner')->first();
-        DB::table('permission_role')->where('role_id', $owner->id)->delete();
+
+        if($owner) {
+            DB::table('permission_role')->where('role_id', $owner->id)->delete();
+        }
+
         DB::table('roles')->where('name', 'business-owner')->delete();
 
         // Roll back user permission role relationships
@@ -194,11 +197,11 @@ class BusinessOwnerRolesAndPermissions extends Migration
         );
 
         // Roll back business owner permissions
-        DB::table('permission_role')->where('name', 'manage-deactivations')->delete();
-        DB::table('permission_role')->where('name', 'delete-self-moderated')->delete();
-        DB::table('permission_role')->where('name', 'manage-whitelisted-sites')->delete();
-        DB::table('permission_role')->where('name', 'manage-relaxed-policy')->delete();
-        DB::table('permission_role')->where('name', 'delete-activations')->delete();
-        DB::table('permission_role')->where('name', 'set-activation-report-level')->delete();
+        DB::table('permissions')->where('name', 'manage-deactivations')->delete();
+        DB::table('permissions')->where('name', 'delete-self-moderated')->delete();
+        DB::table('permissions')->where('name', 'manage-whitelisted-sites')->delete();
+        DB::table('permissions')->where('name', 'manage-relaxed-policy')->delete();
+        DB::table('permissions')->where('name', 'delete-activations')->delete();
+        DB::table('permissions')->where('name', 'set-activation-report-level')->delete();
     }
 }
