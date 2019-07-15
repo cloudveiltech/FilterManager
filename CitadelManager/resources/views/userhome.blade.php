@@ -260,46 +260,40 @@
                 </table>
             </div>
 
-            <div role="tabpanel" class="tab-pane" id="activations">
-                <p>Use this screen to keep track of your computers that have CloudVeil for Windows products installed</p>
+			<div role="tabpanel" class="tab-pane" id="activations">
+				<p>Use this screen to keep track of your computers that have CloudVeil for Windows products installed</p>
 
-                <table class="table no-button-margins">
-                    <thead>
-                        <tr>
-                            <th>Computer</th>
-                            <th>IP Address</th>
-                            <th>Version</th>
-                            <th>Updated At</th>
-                            <th>...</th>
-                            <th v-if="isBusinessOwner">...</th>
-                            <th v-if="isBusinessOwner">...</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in activations.data">
-                            <td>@{{item.device_id}}</td>
-                            <td>@{{item.ip_address}}</td>
-                            <td>@{{item.app_version}}</td>
-                            <td>@{{item.updated_at}}</td>
-                            <td>
-                                <button class="btn btn-primary" @click="activations.editActivation(item)">
-                                    <span class="glyph glyph-edit"></span> Edit
-                                </button>
-                            </td>
-                            <td v-if="isBusinessOwner">
-                                <button class="btn btn-warning" @click="activations.blockActivation(item)">
-                                    <span class="glyph glyph-cancel"></span> Block
-                                </button>
-                            </td>
-                            <td v-if="isBusinessOwner">
-                                <button class="btn btn-danger" @click="activations.deleteActivation(item)">
-                                    <span class="glyph glyph-remove"></span> Delete
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+				<table class="table no-button-margins">
+					<thead>
+						<tr>
+							<th>Computer</th>
+							<th>IP Address</th>
+							<th>Version</th>
+							<th>Updated At</th>
+							<th>...</th>
+							<th v-if="isBusinessOwner">...</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(item, index) in activations.data">
+							<td>@{{item.device_id}}</td>
+							<td>@{{item.ip_address}}</td>
+							<td>@{{item.app_version}}</td>
+							<td>@{{item.updated_at}}</td>
+							<td>
+								<button class="btn btn-primary" @click="activations.editActivation(item)">
+									<span class="glyph glyph-edit"></span> Edit
+								</button>
+							</td>
+							<td v-if="isBusinessOwner">
+								<button class="btn btn-warning" @click="activations.blockActivation(item)">
+									<span class="glyph glyph-cancel"></span> Revoke Activation
+								</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
         </div>
     </div>
 
