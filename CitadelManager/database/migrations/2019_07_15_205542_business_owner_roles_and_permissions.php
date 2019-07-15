@@ -198,7 +198,7 @@ class BusinessOwnerRolesAndPermissions extends Migration
 
         // Roll back business owner permissions
         DB::table('permissions')->where('name', 'manage-deactivations')->delete();
-        DB::table('permissions')->where('name', 'delete-self-moderated')->delete();
+        DB::table('permissions')->where('name', 'add-self-moderated')->delete();
         DB::table('permissions')->where('name', 'manage-whitelisted-sites')->delete();
         DB::table('permissions')->where('name', 'manage-relaxed-policy')->delete();
         DB::table('permissions')->where('name', 'delete-activations')->delete();
