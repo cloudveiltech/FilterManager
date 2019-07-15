@@ -185,7 +185,7 @@ table.no-button-margins button {
 	width: 100%;
 }
 
-.sidenav-container .side-navigation li.active, .topnav-container .nav-tabs li.active {
+.sidenav-container .side-navigation li.active, .topnav-container .nav-tabs li.active, .nav-tabs.cv4w li.active {
 	background-color: #1c8cbc;
 }
 
@@ -244,4 +244,42 @@ body, html {
 
 .smaller-0_5x {
 	font-size: 0.5em;
+}
+
+.modal-content.with-tabs {
+	padding: 0;
+}
+
+.modal-content.with-tabs .modal-header {
+	padding-top: 20px;
+	padding-left: 24px;
+	padding-right: 24px;
+}
+
+.modal-content.with-tabs .modal-body {
+	margin-top: 0;
+}
+
+.modal-content.with-tabs .modal-body .nav-tabs {
+	margin-left: 0;
+	margin-right: 0;
+
+	padding-left: 24px;
+	padding-right: 24px;
+
+	margin-bottom: 12px;
+}
+
+.modal-content.with-tabs .modal-body .tab-content {
+	padding-left: 24px;
+	padding-right: 24px;
+}
+
+.nav-tabs.cv4w {
+	background-color: #444;
+}
+
+.modal-header.cv4w {
+	background-color: #444;
+	color: #fff;
 }
