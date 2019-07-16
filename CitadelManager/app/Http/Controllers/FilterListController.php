@@ -352,18 +352,18 @@ class FilterListController extends Controller
         return response('Namespace parameter, which is required, was null.', 400);
     }
 
-	private function loopIterator($itr, $leafFunction) {
-		if(!$itr->hasChildren()) {
-			$leafFunction($itr->current(), true);
-		} else {
-			$leafFunction($itr->current(), false);
-			
-			foreach($itr->getChildren() as $childItr) {
-				$this->loopIterator($itr, $leafFunction);
-			}
+    private function loopIterator($itr, $leafFunction) {
+        if(!$itr->hasChildren()) {
+            $leafFunction($itr->current(), true);
+        } else {
+            $leafFunction($itr->current(), false);
+            
+            foreach($itr->getChildren() as $childItr) {
+                $this->loopIterator($itr, $leafFunction);
+            }
 
-		}
-	}
+        }
+    }
 
     /**
      * Processes an uploaded archive, extracting the text files inside and processing
@@ -392,7 +392,7 @@ class FilterListController extends Controller
         //$tmpArchiveLoc = $storageDir . DIRECTORY_SEPARATOR . basename($file->getPathname()) . '.' . $file->getClientOriginalExtension();
         //$tmpArchiveLoc = basename($file->getPathname()) . '.' . $file->getClientOriginalExtension();
         Log::info('Processing textFilterArchive located at: ' . $tmpArchiveLoc);
-		$tmpArchiveDir = "$tmpArchiveLoc-dir";
+        $tmpArchiveDir = "$tmpArchiveLoc-dir";
 
         //move_uploaded_file($file->getPathname(), $tmpArchiveLoc);
 
@@ -406,12 +406,12 @@ class FilterListController extends Controller
         // This is not necessary for other types of filter data, such as NLP
         // models, because there can only be 1 per category.
         $purgedCategories = array();
-		
-		$zippedData = new \PharData($tmpArchiveLoc);
+        
+        $zippedData = new \PharData($tmpArchiveLoc);
 
         $pharIterator = new \RecursiveIteratorIterator($zippedData, \RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($pharIterator as $pharFileInfo) {
-			Log::debug("Phar internal data location " . $pharFileInfo->getPath());
+            Log::debug("Phar internal data location " . $pharFileInfo->getPath());
 
             if (!$pharFileInfo->isDir()) {
                 $categoryName = strtolower(basename(dirname($pharFileInfo->getPathname())));
@@ -419,7 +419,7 @@ class FilterListController extends Controller
                 if ($categoryName == '/' || $categoryName == '\\' || $categoryName == '.' || $categoryName == '..') {
                     // This is an improperly formatted zip.
                     // This is a file inside the root directory.
-					Log::debug("improperly formatted");
+                    Log::debug("improperly formatted");
                     continue;
                 }
 
@@ -427,7 +427,7 @@ class FilterListController extends Controller
                     // This is an improperly formatted zip. This means that we have
                     // filter/trigger/nlp model stuff in the root of the zip structure
                     // and this cannot be allowed.
-					Log::debug("improperly formatted2");
+                    Log::debug("improperly formatted2");
                     continue;
                 }
 
@@ -441,7 +441,7 @@ class FilterListController extends Controller
                 $categoryName = preg_replace('/\s+/', '_', strtolower($categoryName));
 
                 $fileName = strtolower(basename($pharFileInfo->getPathname()));
-				Log::debug("filename = $fileName");
+                Log::debug("filename = $fileName");
 
                 $finalListType = null;
                 $convertToAbp = false;
@@ -452,63 +452,63 @@ class FilterListController extends Controller
                     case 'urls.txt':{
                             // These rules get converted to ABP filters.
                             $finalListType = 'Filters';
-							$convertToAbp = true;
-									}
-									break;
+                            $convertToAbp = true;
+                                    }
+                                    break;
 
-					case 'triggers':
-					case 'triggers.txt':{
-											// These rules are untouched.
-											$finalListType = 'Triggers';
-										}
-										break;
+                    case 'triggers':
+                    case 'triggers.txt':{
+                                            // These rules are untouched.
+                                            $finalListType = 'Triggers';
+                                        }
+                                        break;
 
-					case 'rules':
-					case 'filters':
-					case 'filters.txt':
-					case 'rules.txt':{
-										 // These rules are untouched. Assumed to already
-										 // be in ABP filter format.
-										 $finalListType = 'Filters';
-									 }
-									 break;
-				}
+                    case 'rules':
+                    case 'filters':
+                    case 'filters.txt':
+                    case 'rules.txt':{
+                                         // These rules are untouched. Assumed to already
+                                         // be in ABP filter format.
+                                         $finalListType = 'Filters';
+                                     }
+                                     break;
+                }
 
-				if (is_null($finalListType)) {
-					Log::debug("invalid/improperly named/unrecognized file");
-					// Invalid/improperly named/unrecognized file.
-					continue;
-				}
+                if (is_null($finalListType)) {
+                    Log::debug("invalid/improperly named/unrecognized file");
+                    // Invalid/improperly named/unrecognized file.
+                    continue;
+                }
 
-				// Delete existing if overwrite is true.
-				if ($overwrite) {
+                // Delete existing if overwrite is true.
+                if ($overwrite) {
 
-					$existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
-					if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
-						TextFilteringRule::where('filter_list_id', '=', $existingList->id)->forceDelete();
+                    $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
+                    if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
+                        TextFilteringRule::where('filter_list_id', '=', $existingList->id)->forceDelete();
 
-						array_push($purgedCategories, $existingList->id);
+                        array_push($purgedCategories, $existingList->id);
 
-						// DON'T DELETE THIS ACTUAL FILTER LIST ENTRY!!
-						// If we do that, then we have to manually rebuild
-						// filter list assignments. Leave it the same. Only
-						// delete actual text lines for it.
-					}
-				}
+                        // DON'T DELETE THIS ACTUAL FILTER LIST ENTRY!!
+                        // If we do that, then we have to manually rebuild
+                        // filter list assignments. Leave it the same. Only
+                        // delete actual text lines for it.
+                    }
+                }
 
-				$newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
+                $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
 
-				// We have to do this for the event where the user selects overwrite on the upload,
-				// yet one or more of the lists didn't exist already. Otherwise, same problem will
-				// arise as described in the comments above purgedCategories var creation above.
-				if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
-					array_push($purgedCategories, $newFilterListEntry->id);
-				}
+                // We have to do this for the event where the user selects overwrite on the upload,
+                // yet one or more of the lists didn't exist already. Otherwise, same problem will
+                // arise as described in the comments above purgedCategories var creation above.
+                if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
+                    array_push($purgedCategories, $newFilterListEntry->id);
+                }
 
-				// In case this is existing, pull group assignment of this filter.
-				$affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
+                // In case this is existing, pull group assignment of this filter.
+                $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
 
-				$this->processTextFilterFile($pharFileInfo->openFile('r'), $convertToAbp, $newFilterListEntry->id);
+                $this->processTextFilterFile($pharFileInfo->openFile('r'), $convertToAbp, $newFilterListEntry->id);
 
                 // Update updated_at timestamps.
                 $newFilterListEntry->touch();
@@ -566,61 +566,61 @@ class FilterListController extends Controller
      */
     private function processTextFilterFile(\SplFileObject $file, bool $convertToAbp, int $parentListId)
     {
-		Log::debug("processTextFilterFile");
+        Log::debug("processTextFilterFile");
 
-		try {
-			$lineFeedFunc = null;
+        try {
+            $lineFeedFunc = null;
 
-			switch ($convertToAbp) {
-				case true:{
-						$lineFeedFunc = function (string $in): string {
-							return $this->formatStringAsAbpFilter(trim($in));
-						};
-					}
-					break;
+            switch ($convertToAbp) {
+                case true:{
+                        $lineFeedFunc = function (string $in): string {
+                            return $this->formatStringAsAbpFilter(trim($in));
+                        };
+                    }
+                    break;
 
-				case false:{
-						$lineFeedFunc = function (string $in): string {
-							return trim($in);
-						};
-					}
-					break;
-			}
+                case false:{
+                        $lineFeedFunc = function (string $in): string {
+                            return trim($in);
+                        };
+                    }
+                    break;
+            }
 
-			$fillArr = array();
-			$createdAt = Carbon::now();
-			$updatedAt = Carbon::now();
+            $fillArr = array();
+            $createdAt = Carbon::now();
+            $updatedAt = Carbon::now();
 
-			$count = 0;
+            $count = 0;
 
 
-			foreach ($file as $lineNumber => $content) {
+            foreach ($file as $lineNumber => $content) {
 
-				$content = $lineFeedFunc($content);
+                $content = $lineFeedFunc($content);
 
-				if (strlen($content) > 0) {
-					$fillArr[] = ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt];
-					$count++;
-				}
+                if (strlen($content) > 0) {
+                    $fillArr[] = ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt];
+                    $count++;
+                }
 
-				// Doing a mass insert of 5K at a time seems to be best.
-				if ($count > 4999) {
-					TextFilteringRule::insertIgnore($fillArr);
+                // Doing a mass insert of 5K at a time seems to be best.
+                if ($count > 4999) {
+                    TextFilteringRule::insertIgnore($fillArr);
 
-					$fillArr = array();
-					$count = 0;
-				}
-			}
+                    $fillArr = array();
+                    $count = 0;
+                }
+            }
 
-			if ($count > 0) {
-				TextFilteringRule::insertIgnore($fillArr);
-				$fillArr = array();
-				$count = 0;
-			}
-		} catch(Exception $ex) {
-			Log::error("Error occurred while processing text filter file $ex");
-			throw $ex;
-		}
+            if ($count > 0) {
+                TextFilteringRule::insertIgnore($fillArr);
+                $fillArr = array();
+                $count = 0;
+            }
+        } catch(Exception $ex) {
+            Log::error("Error occurred while processing text filter file $ex");
+            throw $ex;
+        }
     }
 
     /**

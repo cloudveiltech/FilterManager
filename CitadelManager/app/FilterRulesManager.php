@@ -48,7 +48,7 @@ namespace App {
         }
 
         public function buildRuleset($namespace, $category, $type, $filterList) {
-			$filename = $this->getFilename($namespace, $category, "$type.txt");
+            $filename = $this->getFilename($namespace, $category, "$type.txt");
 
             $filePath = $this->buildFile($filename, TextFilteringRule::where('filter_list_id', '=', $filterList->id)->cursor());
             
@@ -71,14 +71,14 @@ namespace App {
                         case 'Filters':{
                                 $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'rules.txt', '/');
                                 
-								$entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'rules', $list);
+                                $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'rules', $list);
                             }
                             break;
 
                         case 'Triggers':{
                                 $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'triggers.txt', '/');
-								
-								$entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'triggers', $list);
+                                
+                                $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'triggers', $list);
                             }
                             break;
 
