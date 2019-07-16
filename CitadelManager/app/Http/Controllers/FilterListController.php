@@ -407,16 +407,9 @@ class FilterListController extends Controller
         // models, because there can only be 1 per category.
         $purgedCategories = array();
 		
-		$zippedData = new \ZipArchive;
-		$result = $zippedData->open($tmpArchiveLoc);
-		if($result !== true) {
-			return;
-		}
+		$zippedData = new \PharData($tmpArchiveLoc);
 
-		$zippedData->extractTo($tmpArchiveDir);
-
-		Log::debug("Phar data location $tmpArchiveLoc");
-        $pharIterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($tmpArchiveDir), \RecursiveIteratorIterator::CHILD_FIRST);
+        $pharIterator = new \RecursiveIteratorIterator($zippedData, \RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($pharIterator as $pharFileInfo) {
 			Log::debug("Phar internal data location " . $pharFileInfo->getPath());
 
