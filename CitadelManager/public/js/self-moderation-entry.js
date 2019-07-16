@@ -2,22 +2,20 @@
 //
 
 Vue.component('self-moderation-list', {
-	template: '<div class="row"><ul class="col-xs-24 list-items self-moderation">\
-					<li class="list-items-row" v-for="(item, index) in value">\
-	                	<div class="row">\
-	                    	<div class="site-text col-xs-20">\
-	                        	<editable-span v-model="value[index]" placeholder="(click here to edit)">\
-	                        	</editable-span>\
-	                    	</div>\
-	                    	<div class="col-xs-4">\
-	                        	<button class="btn btn-danger" @click="removeUrl(index)"><span class="glyph glyph-remove"></span></button>\
-	                    	</div>\
-	                	</div>\
-	            	</li>\
-	            </ul>\
-	            <button type="button" class="col-xs-24 btn btn-primary" @click="addUrlEntry()">\
+	template: '<div class="self-moderation-list"><button type="button" class="add-url btn btn-primary" @click="addUrlEntry()">\
 	            	<span class="glyph glyph-add"></span> {{addButtonText}}\
 	            </button>\
+				<ul class="list-items self-moderation">\
+					<li class="list-items-row" v-for="(item, index) in value">\
+                    	<div class="site-text">\
+                        	<editable-span v-model="value[index]" placeholder="(click here to edit)">\
+                        	</editable-span>\
+                    	</div>\
+                    	<div class="remove-button-container">\
+                        	<button class="btn btn-danger" @click="removeUrl(index)"><span class="glyph glyph-remove"></span></button>\
+                    	</div>\
+	            	</li>\
+	            </ul>\
 	            </div>',
 
 	props: ['value', 'addButtonText'],
@@ -46,8 +44,8 @@ Vue.component('self-moderation-list', {
 });
 
 Vue.component('editable-span', {
-	template: "<div>\
-		<span name='viewer' v-if='!isEditing' @click='edit()' v-bind:class='{ placeholder: value && value.length > 0 }'>{{ value || placeholder }}</span>\
+	template: "<div class='editable-span'>\
+		<span name='viewer' v-if='!isEditing' @click='edit()' class='viewer' v-bind:class='{ placeholder: !value || value.length == 0 }'>{{ value || placeholder }}</span>\
 		<input name='editor' v-if='isEditing' type='text' @blur='doneEditing()' @keydown='onKeyDown' @input='onInput()' style='margin-bottom: 0; margin-top: 0;'\
 			class='form-control' v-model='innerValue' />\
 	</div>",

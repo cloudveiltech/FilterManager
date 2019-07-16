@@ -172,19 +172,19 @@
                 <!-- TODO: Notify user that changes are saved when they finish editing -->
                 
                 <div class="row">
-                    <div class="col-md-8 col-sm-8 col-xs-24">
+                    <div class="col-md-8 col-sm-8 col-xs-24 self-moderation-container">
                         <self-moderation-list
                             v-model="selfModeration.blacklist"
                             add-button-text="Block Site"></self-moderation-list>
                     </div>
 
-                    <div class="col-md-8 col-sm-8 col-xs-24">
+                    <div class="col-md-8 col-sm-8 col-xs-24 self-moderation-container">
                         <self-moderation-list
                             v-model="selfModeration.triggerBlacklist"
                             add-button-text="Block Text Trigger"></self-moderation-list>
                     </div>
 
-                    <div v-show="isBusinessOwner" class="col-md-8 col-sm-8 col-xs-24">
+                    <div v-show="isBusinessOwner" class="col-md-8 col-sm-8 col-xs-24 self-moderation-container">
                         <self-moderation-list
                             v-model="selfModeration.whitelist"
                             add-button-text="Allow Site"></self-moderation-list>
