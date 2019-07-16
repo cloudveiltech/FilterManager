@@ -1,4 +1,4 @@
-<nav class="navbar navbar-default">
+<nav id="usernav" class="navbar navbar-default">
 	<div class="navbar-global theme-default">
 		<div class="container">
 			<div class="navbar-header">

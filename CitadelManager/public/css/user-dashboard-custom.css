@@ -147,3 +147,139 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 table.no-button-margins button {
 	margin: 0px;
 }
+
+.topnav-container {
+	background-color: #444;
+}
+
+.topnav-container .nav-tabs {
+	line-height: 48px;
+	height: 48px;
+}
+
+.topnav-container .nav-tabs li > a {
+	display: block;
+	float: left;
+	line-height: 48px;
+}
+
+.sidenav-container {
+	float: left;
+	display: none;
+	background-color: #444;
+	height: 100%;
+}
+
+.sidenav-container .nav-tabs, .topnav-container .nav-tabs {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.sidenav-container .side-navigation li {
+	width: 100%;
+}
+.sidenav-container .side-navigation li > a {
+	display: block;
+	line-height: 48px;
+	padding-left: 24px;
+	width: 100%;
+}
+
+.sidenav-container .side-navigation li.active, .topnav-container .nav-tabs li.active, .nav-tabs.cv4w li.active {
+	background-color: #1c8cbc;
+}
+
+@media(min-width: 768px) {
+	.topnav-container {
+		display: none;
+	}
+
+	.sidenav-container {
+		padding-top: 48px;
+		display: block;
+		float: left;
+		width: 300px;
+	}
+
+	.sidenav-container .side-navigation.side-navigation-large {
+		max-width: 300px;
+	}
+
+	#app > .row .tab-content {
+		width: calc(100% - 300px);
+	}
+}
+
+body, html {
+	height: 100%;
+}
+
+#usernav .container {
+	width: 100%;
+	max-width: none;
+}
+
+#app.container {
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	padding: 0;
+	margin-left: 0px !important;
+	margin-right: 0px !important;
+}
+
+#app > .row {
+	height: 100%;
+}
+
+#app > .row > .tab-content {
+	height: 100%;
+	overflow: auto;
+	float: left;
+}
+
+.fa-stack.custom {
+	width: 1em;
+}
+
+.smaller-0_5x {
+	font-size: 0.5em;
+}
+
+.modal-content.with-tabs {
+	padding: 0;
+}
+
+.modal-content.with-tabs .modal-header {
+	padding-top: 20px;
+	padding-left: 24px;
+	padding-right: 24px;
+}
+
+.modal-content.with-tabs .modal-body {
+	margin-top: 0;
+}
+
+.modal-content.with-tabs .modal-body .nav-tabs {
+	margin-left: 0;
+	margin-right: 0;
+
+	padding-left: 24px;
+	padding-right: 24px;
+
+	margin-bottom: 12px;
+}
+
+.modal-content.with-tabs .modal-body .tab-content {
+	padding-left: 24px;
+	padding-right: 24px;
+}
+
+.nav-tabs.cv4w {
+	background-color: #444;
+}
+
+.modal-header.cv4w {
+	background-color: #444;
+	color: #fff;
+}

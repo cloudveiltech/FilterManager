@@ -2,8 +2,8 @@
      tabindex="-1" role="dialog"
      aria-labelledby="editActivationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content with-tabs">
+            <div class="modal-header cv4w">
                 <h4 class="modal-title" id="editActivationModalLabel">
                     Edit Activation
                 </h4>
@@ -11,7 +11,7 @@
             <form class="form" v-on:submit.prevent="activationEditor.save()">
 
                 <div class="modal-body">
-                    <ul class="nav nav-tabs" role="tablist">
+                    <ul class="nav nav-tabs cv4w theme-alt" role="tablist">
                         <li role="presentation" class="active">
                             <a href="#mainEditor" aria-controls="mainEditor" role="tab" data-toggle="tab">Edit</a>
                         </li>
