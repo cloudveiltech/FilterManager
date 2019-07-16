@@ -1,56 +1,5 @@
 <?php
 
-/*
-
-    public function run()
-    {
-        $owner = new Role();
-        $owner->name         = 'user';
-        $owner->display_name = 'Application User'; // optional
-        $owner->description  = 'User is a registered application user.';
-        $owner->save();
-
-        $timeRestrictions = new Permission();
-        $timeRestrictions->name = 'can-edit-own-time-restrictions';
-        $timeRestrictions->display_name = 'Can Edit Time Restrictions';
-        $timeRestrictions->description = 'User is allowed to edit his own time restrictions settings';
-        $timeRestrictions->save();
-
-        $relaxedPolicyPassword = new Permission();
-        $relaxedPolicyPassword->name = 'can-set-relaxed-policy-password';
-        $relaxedPolicyPassword->display_name = 'Relaxed Policy Password';
-        $relaxedPolicyPassword->description = 'User is allowed to set his own relaxed policy password.';
-        $relaxedPolicyPassword->save();
-
-        $deleteSelfModerated = new Permission();
-        $deleteSelfModerated->name = 'delete-self-moderated';
-        $deleteSelfModerated->display_name = 'Delete Self-moderated Site Entries';
-        $deleteSelfModerated->description = 'User is allowed to delete entries from his self-moderation list';
-        $deleteSelfModerated->save();
-
-        $owner->attachPermission($timeRestrictions);
-        $owner->attachPermission($relaxedPolicyPassword);
-        $owner->attachPermission($deleteSelfModerated);
-        
-        $admin = new Role();
-        $admin->name         = 'admin';
-        $admin->display_name = 'Administrator'; // optional
-        $admin->description  = 'User is allowed to manage and edit the settings for all other users';
-        $admin->save();
-        
-        $fullAdmin = new Permission();
-        $fullAdmin->name         = 'all';
-        $fullAdmin->display_name = 'Full Admin Permissions'; // optional        
-        $fullAdmin->description  = 'Unrestricted access for Admins.'; // optional
-        $fullAdmin->save();
-
-        $admin->attachPermission($fullAdmin);
-
-
-    }
-}
-*/
-
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -64,34 +13,24 @@ class BusinessOwnerRolesAndPermissions extends Migration
      */
     public function up()
     {
-        /*
 
-        $deleteSelfModerated = new Permission();
-        $deleteSelfModerated->name = 'delete-self-moderated';
-        $deleteSelfModerated->display_name = 'Delete Self-moderated Site Entries';
-        $deleteSelfModerated->description = 'User is allowed to delete entries from his self-moderation list';
-        $deleteSelfModerated->save();
+        $timeRestrictionsId = DB::table('permissions')->insert([
+            'name' => 'can-edit-own-time-restrictions',
+            'display_name' => 'Can Edit Time Restrictions',
+            'description' => 'User is allowed to edit his own time restrictions settings'
+        ]);
 
-        $owner->attachPermission($timeRestrictions);
-        $owner->attachPermission($relaxedPolicyPassword);
-        $owner->attachPermission($deleteSelfModerated);
-        
-        $admin = new Role();
-        $admin->name         = 'admin';
-        $admin->display_name = 'Administrator'; // optional
-        $admin->description  = 'User is allowed to manage and edit the settings for all other users';
-        $admin->save();
-        
-        $fullAdmin = new Permission();
-        $fullAdmin->name         = 'all';
-        $fullAdmin->display_name = 'Full Admin Permissions'; // optional        
-        $fullAdmin->description  = 'Unrestricted access for Admins.'; // optional
-        $fullAdmin->save();
-        */
+        $relaxedPolicyPasswordId = DB::table('permissions')->insert([
+            'name' => 'can-set-relaxed-policy-password',
+            'display_name' => 'Relaxed Policy Password',
+            'description' => 'User is allowed to set his own relaxed policy password.'
+        ]);
 
-        $timeRestrictionsId = DB::table('permissions')->where('name', 'can-edit-own-time-restrictions')->first()->id;
-        $relaxedPolicyPasswordId = DB::table('permissions')->where('name', 'can-set-relaxed-policy-password')->first()->id;
-        $deleteSelfModeratedId = DB::table('permissions')->where('name', 'delete-self-moderated')->first()->id;
+        $deleteSelfModeratedId = DB::table('permissions')-> = Permission::firstOrCreate([
+            'name' => 'delete-self-moderated',
+            'display_name' => 'Delete Self-moderated Site Entries',
+            'description' => 'User is allowed to delete entries from his self-moderation list',
+        ]);
 
         $selfModeratedId = DB::table('permissions')->insertGetId([
             'name' => 'add-self-moderated',
@@ -180,23 +119,12 @@ class BusinessOwnerRolesAndPermissions extends Migration
         }
 
         DB::table('roles')->where('name', 'business-owner')->delete();
-
-        // Roll back user permission role relationships
-        $user = DB::table('roles')->where('name', 'user')->first();
-        $timeRestrictionsId = DB::table('permissions')->where('name', 'can-edit-own-time-restrictions')->first()->id;
-        $relaxedPolicyPasswordId = DB::table('permissions')->where('name', 'can-set-relaxed-policy-password')->first()->id;
-        $deleteSelfModeratedId = DB::table('permissions')->where('name', 'delete-self-moderated')->first()->id;
-
         DB::table('permission_role')->where('role_id', $user->id)->delete();
 
-        $id = $user->id;
-        DB::table('permission_role')->insert(
-            ['role_id' => $id, 'permission_id' => $timeRestrictionsId],
-            ['role_id' => $id, 'permission_id' => $relaxedPolicyPasswordId],
-            ['role_id' => $id, 'permission_id' => $deleteSelfModeratedId]
-        );
-
         // Roll back business owner permissions
+        DB::table('permissions')->where('name', 'can-edit-own-time-restrictions')->delete();
+        DB::table('permissions')->where('name', 'can-set-relaxed-policy-password')->delete();
+        DB::table('permissions')->where('name', 'delete-self-moderated')->delete();
         DB::table('permissions')->where('name', 'manage-deactivations')->delete();
         DB::table('permissions')->where('name', 'add-self-moderated')->delete();
         DB::table('permissions')->where('name', 'manage-own-activations')->delete();
