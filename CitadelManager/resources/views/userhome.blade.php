@@ -237,6 +237,7 @@
 
             <div v-if="isBusinessOwner" role="tabpanel" class="tab-pane" id="deactivation-requests">
                 <p>Use this screen to process deactivation requests from your computers</p>
+                <button class="btn btn-primary" @click="deactivationRequests.fetch()"><span class="glyph glyph-refresh"></span> Refresh</button>
                 <table class="table no-button-margins">
                     <thead>
                         <tr>
