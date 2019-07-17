@@ -1,3 +1,7 @@
+.hidden {
+	display: none;
+}
+
 /* start time restrictions */
 
 .timepickers input[type="text"] {
@@ -355,3 +359,5 @@ body, html {
 .editable-span input.form-control {
 	max-width: none;
 }
+
+/* end editable span */

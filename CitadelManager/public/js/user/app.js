@@ -2,6 +2,14 @@ var app = null;
 
 var user = null;
 
+function onXHRFailure(xhr) {
+	if(xhr.status == 419 || xhr.status == 401) {
+		var currentLocation = window.location.href;
+
+		window.location.href = "login?redirect=" + encodeURIComponent(currentLocation);
+	}
+}
+
 $.ajaxSetup({
     headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -18,19 +26,31 @@ $.ajax('api/user/me', {
 
 	if(user && user.roles) {
 		user.isBusinessOwner = false;
+		user.isAdmin = false;
 
 		for(var i in user.roles) {
 			var role = user.roles[i];
+
+			if(role.name == "admin") {
+				user.isAdmin = true;
+			}
 
 			if(role.name == "business-owner" || role.name == "admin") {
 				user.isBusinessOwner = true;
 				break;
 			}
 		}
+
+		if(user.isAdmin) {
+			$("#admin_link").removeClass("hidden");
+		} else {
+			$("#admin_link").addClass("hidden");
+		}
 	}
 
 	if(app) {
 		app.isBusinessOwner = user.isBusinessOwner;
+		app.isAdmin = user.isAdmin;
 	}
 
 	if(window.onUserLoad) {
@@ -39,22 +59,21 @@ $.ajax('api/user/me', {
 		});
 	}
 }).fail(function(xhr, textStatus, errorThrown) {
-
+	onXHRFailure(xhr);
 })
 
 $(document).ready(function() {
-	
-
 	$("#logout_button").click(function() {
-		$.post('logout', function (data, textStatus, jqXHR) {
-            location.reload();
-        });
+		$.post('logout').done(function(data) {
+			window.location.reload();
+		}, onXHRFailure);
 	});
 
 	var vueOptions = {
 		el: '#app',
 		data: {
-			isBusinessOwner: false
+			isBusinessOwner: false,
+			isAdmin: false
 		},
 		computed: {},
 		watch: {},

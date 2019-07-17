@@ -15,7 +15,7 @@
 			<div class="collapse navbar-collapse" id="navbar-collapse">
 				<ul class="nav navbar-nav">
 					<li class="active"><a href="#">Dashboard</a></li>
-					<li><a href="admin">Admin</a></li>
+					<li id="admin_link" class="hidden"><a href="admin">Admin</a></li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Logged in as: {{ Auth::user()->name }} <span class="glyph glyph-chevron-down"></span></a>
