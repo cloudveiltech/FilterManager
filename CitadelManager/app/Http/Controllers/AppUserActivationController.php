@@ -184,6 +184,10 @@ class AppUserActivationController extends Controller
 
         $fields = ['config_override'];
 
+        if($user->can(['all', 'manage-checkin-days'])) {
+            $fields[] = 'check_in_days';
+        }
+        
         if($user->can(['all', 'manage-relaxed-policy'])) {
             $fields[] = 'bypass_quantity';
             $fields[] = 'bypass_period';

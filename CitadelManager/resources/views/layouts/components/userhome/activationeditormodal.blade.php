@@ -58,6 +58,11 @@
                                 <input id="activation_bypass_used" class="form-control" type="number" v-model="activationEditor.data.bypass_used"
                                         readonly="readonly" />
                             </div>
+
+                            <div class="form-group" v-if="isBusinessOwner">
+                                <label for="activation_check_in_days">Time until Offline Report (in days)</label>
+                                <input id="activation_check_in_days" class="form-control" type="number" min="0" v-model="activationEditor.data.check_in_days" />
+                            </div>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="activationBlacklist">
                             <self-moderation-list
