@@ -63,13 +63,6 @@ class FilterRulesManager
         }
 
         public function buildRuleData() {
-            DB::connection()->getPdo()->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
-
-            $rulesZipPath = $this->getRuleDataPath();
-
-            $zip = new \ZipArchive();
-            $zip->open($rulesZipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-
             foreach(FilterList::cursor() as $list) {
                 if (!is_null($list)) {
 
@@ -81,19 +74,15 @@ class FilterRulesManager
                     switch ($listType) {
                         case 'Filters':{
                                 $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'rules.txt', '/');
-                                $entryCacheFilename = $this->getFilename($listNamespace, $listCategory, 'rules.txt', '.');
-
-                                $entryCachePath = $this->buildFile($entryCacheFilename, TextFilteringRule::where('filter_list_id', '=', $listId)->cursor());
-                                $zip->addFile($entryCachePath, $entryRelativePath);
+                                
+                                $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'rules', $list);
                             }
                             break;
 
                         case 'Triggers':{
                                 $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'triggers.txt', '/');
-                                $entryCacheFilename = $this->getFilename($listNamespace, $listCategory, 'triggers.txt', '.');
-
-                                $entryCachePath = $this->buildFile($entryCacheFilename, TextFilteringRule::where('filter_list_id', '=', $listId)->cursor());
-                                $zip->addFile($entryCachePath, $entryRelativePath);
+                                
+                                $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'triggers', $list);
                             }
                             break;
 
@@ -116,10 +105,6 @@ class FilterRulesManager
                                         }
                                     }
 
-                                    // We have not discovered this NLP model file yet, so add it to the zip
-                                    // and create a new array key using the ZIP relative path.
-                                    $zip->addFromString($entryRelativePath, $filter->data);
-
                                     $nlpEnabledCategories[$entryRelativePath] = array();
                                 }
 
@@ -136,15 +121,11 @@ class FilterRulesManager
                                 $filter = TextFilteringRule::where('filter_list_id', '=', $listId)->first();
 
                                 $entryRelativePath = '/' . $listNamespace . '/visual/' . '/visual.vv';
-
-                                $zip->addFromString($entryRelativePath, $filter->data);
                             }
                             break;
                     }
                 }
             }
-
-            $zip->close();
         }
 }
 

@@ -14,19 +14,19 @@ class BusinessOwnerRolesAndPermissions extends Migration
     public function up()
     {
 
-        $timeRestrictionsId = DB::table('permissions')->insert([
+        $timeRestrictionsId = DB::table('permissions')->insertGetId([
             'name' => 'can-edit-own-time-restrictions',
             'display_name' => 'Can Edit Time Restrictions',
             'description' => 'User is allowed to edit his own time restrictions settings'
         ]);
 
-        $relaxedPolicyPasswordId = DB::table('permissions')->insert([
+        $relaxedPolicyPasswordId = DB::table('permissions')->insertGetId([
             'name' => 'can-set-relaxed-policy-password',
             'display_name' => 'Relaxed Policy Password',
             'description' => 'User is allowed to set his own relaxed policy password.'
         ]);
 
-        $deleteSelfModeratedId = DB::table('permissions')-> = Permission::firstOrCreate([
+        $deleteSelfModeratedId = DB::table('permissions')->insertGetId([
             'name' => 'delete-self-moderated',
             'display_name' => 'Delete Self-moderated Site Entries',
             'description' => 'User is allowed to delete entries from his self-moderation list',
@@ -49,12 +49,10 @@ class BusinessOwnerRolesAndPermissions extends Migration
 
         $id = $user->id;
 
-        DB::table('permission_role')->insert(
-            ['role_id' => $id, 'permission_id' => $timeRestrictionsId],
-            ['role_id' => $id, 'permission_id' => $relaxedPolicyPasswordId],
-            ['role_id' => $id, 'permission_id' => $selfModeratedId],
-            ['role_id' => $id, 'permission_id' => $manageOwnActivationsId]
-        );
+        DB::table('permission_role')->insert(['role_id' => $id, 'permission_id' => $timeRestrictionsId]);
+        DB::table('permission_role')->insert(['role_id' => $id, 'permission_id' => $relaxedPolicyPasswordId]);
+        DB::table('permission_role')->insert(['role_id' => $id, 'permission_id' => $selfModeratedId]);
+        DB::table('permission_role')->insert(['role_id' => $id, 'permission_id' => $manageOwnActivationsId]);
 
         $ownerId = DB::table('roles')->insertGetId([
             'name' => "business-owner",
@@ -119,7 +117,6 @@ class BusinessOwnerRolesAndPermissions extends Migration
         }
 
         DB::table('roles')->where('name', 'business-owner')->delete();
-        DB::table('permission_role')->where('role_id', $user->id)->delete();
 
         // Roll back business owner permissions
         DB::table('permissions')->where('name', 'can-edit-own-time-restrictions')->delete();
