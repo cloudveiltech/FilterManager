@@ -72,7 +72,10 @@ class LoginController extends LoginControllerBase
     }
 
     public function wordpressCallback(Request $request) {
-        //$user = Socialite::driver('wordpress')->user();
+        $user = Socialite::driver('wordpress')->user();
+
+        $authUser = $this->findOrCreateUser($user, 'wordpress');
+        Auth::login($authUser, true);
 
         $redirect = $request->input('redirect');
 
@@ -81,6 +84,29 @@ class LoginController extends LoginControllerBase
         }
 
         return redirect($this->redirectTo());
+    }
+
+    private function findOrCreateUser($user, $provider) {
+        $authUser = User::where('provider', $provider)->where('provider_id', $user->id)->first();
+
+        if ($authUser) {
+            $authUser->email = $user->email;
+            $authUser->save();
+            return $authUser;
+        }
+
+        $role = Role::where('name', 'user')->first();
+
+        $user = User::create([
+            'name'     => $user->name,
+            'email'    => $user->email,
+            'provider' => $provider,
+            'provider_id' => $user->id
+        ]);
+
+        $user->attachRole($role);
+
+        return $user;
     }
 
     /**
