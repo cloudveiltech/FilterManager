@@ -535,7 +535,13 @@ namespace Citadel {
             this.m_password         = data['password'] as string;
             this.m_groupId          = data['group_id'] as number;
             this.m_customerId       = data['customer_id'] as number;
-            this.m_roleId           = data['roles'][0]['id'];
+
+            if(data['roles'].length == 0) {
+                this.m_roleId = null;
+            } else {
+                this.m_roleId           = data['roles'][0]['id'];
+            }
+
             this.m_numActivations   = data['activations_allowed'];
             this.m_isActive         = data['isactive'];
             this.m_registeredAt     = data['dt'] as string;
@@ -1087,7 +1093,7 @@ namespace Citadel {
                 }
 
                 if (this.m_roleId != -1) {
-                    let optionInList = this.m_selectRole.querySelector('option[value="' + this.m_roleId.toString() + '"]') as HTMLOptionElement;
+                    let optionInList = this.m_selectRole.querySelector('option[value="' + (this.m_roleId || "").toString() + '"]') as HTMLOptionElement;
                     if (optionInList != null) {
                         this.m_selectRole.selectedIndex = optionInList.index;
                     }

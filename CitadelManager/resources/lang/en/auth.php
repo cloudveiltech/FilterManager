@@ -15,6 +15,7 @@ return [
 
     'failed' => 'These credentials do not match our records.',
     'email_login_banned' => "Please use 'Login With CloudVeil' to log in.",
+    'has_no_assigned_role' => "Your user has no permissions in our system. Please contact support@cloudveil.org for assistance.",
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
 
 ];

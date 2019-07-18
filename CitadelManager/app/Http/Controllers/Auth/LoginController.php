@@ -9,6 +9,9 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\User;
+use App\Role;
+
 use App\Http\Controllers\Controller;
 use App\Auth\AuthenticatesLicensedUsers;
 use Illuminate\Support\Facades\Auth;
@@ -67,14 +70,14 @@ class LoginController extends LoginControllerBase
         return parent::login($request);
     }
 
-    public function loginWithWordpress(Request $request) {
-        return Socialite::driver('wordpress')->redirect();
+    public function loginWithProvider(Request $request, $provider) {
+        return Socialite::with($provider)->redirect();
     }
 
-    public function wordpressCallback(Request $request) {
-        $user = Socialite::driver('wordpress')->user();
+    public function handleProviderCallback(Request $request, $provider) {
+        $user = Socialite::with($provider)->user();
 
-        $authUser = $this->findOrCreateUser($user, 'wordpress');
+        $authUser = $this->findOrCreateUser($user, $provider);
         Auth::login($authUser, true);
 
         $redirect = $request->input('redirect');
@@ -95,11 +98,21 @@ class LoginController extends LoginControllerBase
             return $authUser;
         }
 
+        $authUser = User::where('email', $user->email)->first();
+
+        if($authUser) {
+            $authUser->provider = $provider;
+            $authUser->provider_id = $user->id;
+            $authUser->save();
+            return $authUser;
+        }
+
         $role = Role::where('name', 'user')->first();
 
         $user = User::create([
             'name'     => $user->name,
             'email'    => $user->email,
+            'password' => '',
             'provider' => $provider,
             'provider_id' => $user->id
         ]);

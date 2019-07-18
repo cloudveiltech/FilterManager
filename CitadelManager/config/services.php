@@ -35,7 +35,7 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
     
-    'wordpress' => [
+    'cloudveil' => [
         'host' => env('WORDPRESS_HOST'),
         'api_me' => env('WORDPRESS_API_ME', env('WORDPRESS_HOST') . '/me/'),
     

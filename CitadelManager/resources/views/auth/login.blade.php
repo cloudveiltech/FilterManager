@@ -80,7 +80,7 @@
 
                             <div class="form-group">
                                 <button style="float: left; margin-right: 10px;" type="submit" class="button primary">Login</button>
-                                <button onclick="window.location.href = '{{ route('login.wordpress') }}';" style="float: left;" type="button" class="button secondary">
+                                <button onclick="window.location.href = '{{ route('login.withSso', ['provider' => 'cloudveil']) }}';" style="float: left;" type="button" class="button secondary">
                                     Login With CloudVeil
                                 </button>
                             </div>
