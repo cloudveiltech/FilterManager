@@ -83,8 +83,6 @@ trait AuthenticatesLicensedUsers {
         if ($this->attemptLogin($request)) {
             $thisUser = Auth::user();
 
-            Log::debug(print_r($thisUser, true));
-            
             if(getenv("IS_DEBUG") != 1 && !$thisUser->can('all')) {
                 $this->logout($request);
                 return $this->sendEmailLoginDisabledResponse($request);

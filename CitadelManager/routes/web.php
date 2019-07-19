@@ -29,8 +29,8 @@ Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
 Route::post('login', 'Auth\LoginController@login');
 Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 
-Route::get('login/wordpress', 'Auth\LoginController@loginWithWordpress')->name('login.wordpress');
-Route::get('login/callbacks/wordpress', 'Auth\LoginController@wordpressCallback')->name('callback.wordpress');
+Route::get('login/{provider}', 'Auth\LoginController@loginWithProvider')->name('login.withSso');
+Route::get('login/callbacks/{provider}', 'Auth\LoginController@handleProviderCallback')->name('callback.sso');
 
 Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () {
     Route::get('/', function () {
