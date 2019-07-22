@@ -18,6 +18,13 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
     public $shouldOverwrite;
 
     /**
+     * The number of seconds the job can run before timing out.
+     *
+     * @var int
+     */
+    public $timeout = 1700;
+
+    /**
      * Create a new job instance.
      *
      * @return void
@@ -39,5 +46,6 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         Log::info('Running processTextFilterArchive Job.');
         $flc = new \App\Http\Controllers\FilterListController;
         $flc->processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
+        Log::info('Finished processTextFilterArchive Job.');
     }
 }
