@@ -143,7 +143,7 @@
                                     <small>Activation's Allowed Sites</small>
                                 </h2>
                                 <hr class="thin" />
-                                <button type="button" event-click="addNewWhitelistedSite" class="button primary">Add Site</button>
+                                <button type="button" event-click="addNewWhitelistSite" class="button primary">Add Site</button>
 
                                 <table id="activation_whitelist_table" class="table striped hovered border black-background" style="width: 100%">
                                     <thead>
