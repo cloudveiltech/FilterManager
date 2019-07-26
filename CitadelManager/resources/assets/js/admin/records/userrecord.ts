@@ -278,6 +278,8 @@ namespace Citadel {
         URL_UPDATE_CHECK_IN_DAYS            = 'api/admin/activations/update_check_in_days';
         URL_DELETE_ACTIVATION               = 'api/admin/user_activations/delete';
         URL_BLOCK_ACTIVATION                = 'api/admin/user_activations/block';
+        URL_REFRESH_ACTIVATIONS             = 'api/admin/user_activations';
+
         WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
         // ───────────────────────────────────────────────────
@@ -332,7 +334,7 @@ namespace Citadel {
         private m_btnSubmit             : HTMLButtonElement;
         private m_btnCancel             : HTMLButtonElement;
 
-        private jsonData                : any[];
+        private activationData                : any[];
         private myConfigData            : any;
         private selfModeration          : any;
         private customWhitelist : any;
@@ -489,16 +491,37 @@ namespace Citadel {
             return val;
         }
 
+        private refreshActivations(): void {
+            var that = this;
+
+            $.get(that.URL_REFRESH_ACTIVATIONS + '/' + that.m_id)
+            .done(function(data) {
+                that.activationData = data;
+                that.InitUserActivationTables();
+            })
+            .fail(function(xhr) {
+
+            });
+        }
+
         private removeActivationById(id: number): void {
             var index = -1;
-            for (var i = 0; i < this.jsonData.length; i++) {
-                if (this.jsonData[i].id == id) {
+            for (var i = 0; i < this.activationData.length; i++) {
+                if (this.activationData[i].id == id) {
                     index = i;
                     break;
                 }
             }
             if(index >= 0) {
-                this.jsonData.splice(index, 1);
+                this.activationData.splice(index, 1);
+            }
+        }
+
+        private getActivationById(id: number): any {
+            for(var i = 0; i < this.activationData.length; i++) {
+                if(this.activationData[i].id == id) {
+                    return this.activationData[i];
+                }
             }
         }
 
@@ -548,7 +571,7 @@ namespace Citadel {
             this.m_reportLevel      = data['report_level'] as number;
             this.m_relaxedPolicyPasscode = data['relaxed_policy_passcode'] as string;
             this.m_relaxedPolicyPasscodeEnabled = data['enable_relaxed_policy_passcode'] as number;
-            this.jsonData           = data['activations'];
+            this.activationData           = data['activations'];
             this.myConfigData       = data['config_override'] == null ? null : JSON.parse(data['config_override']);
 
             if(this.myConfigData) {
@@ -884,7 +907,7 @@ namespace Citadel {
                     title: 'Updated date',
                     data: 'updated_at',
                     visible: true,
-                    width: "280px"
+                    width: "250px"
                 },
                 {
                     title: 'Check-in Days',
@@ -913,11 +936,17 @@ namespace Citadel {
                     })
                 },
                 {
-                    width: "300px",
+                    width: "330px",
                     render: function (data, type, row) {
                         var strButtons = "";
-                        strButtons += "<button type='button' id='delete_" + row.id + "' class='btn-delete button primary'>Delete</button> ";
-                        strButtons += " &nbsp;<button type='button' id='block_" + row.id + "' class='btn-block button primary'>Block</button>";
+                        strButtons += "<button title='Edit' type='button' id='edit_" + row.id + "' class='btn-edit button primary'>\
+                            <span class='mif mif-pencil'></span>\
+                        </button>";
+
+                        strButtons += "&nbsp;<button title='Delete' type='button' id='delete_" + row.id + "' class='btn-delete button alert'>\
+                            <span class='mif mif-bin'></span></button>";
+                        strButtons += "&nbsp;<button title='Block' type='button' id='block_" + row.id + "' class='btn-block button alert'>\
+                            <span class='mif mif-blocked'></span></button>";
 
                         return strButtons;
                     }
@@ -929,7 +958,7 @@ namespace Citadel {
                 stateSave: true,
                 responsive: true,
                 columns: this.m_tableColumns,
-                data: this.jsonData,
+                data: this.activationData,
                 destroy: true,
                 rowCallback: ((row: Node, data: any[] | Object): void => {
 
@@ -965,6 +994,25 @@ namespace Citadel {
                         });
 
                         $.ajax(checkAjaxSettings);
+                    });
+
+                    $("#user_activation_table").off("click", "button.btn-edit");
+                    $("#user_activation_table").on("click", "button.btn-edit", function(e) {
+                        e.preventDefault();
+
+                        let id = that.getIdFromElementId(e.target['id']);
+
+                        let appUserActivationRecord = new AppUserActivationRecord();
+
+                        appUserActivationRecord.ActionCompleteCallback = ((action: string): void => {
+                            appUserActivationRecord.StopEditing();
+                            
+                            that.refreshActivations();
+                        });
+
+                        var data = that.getActivationById(id);
+
+                        appUserActivationRecord.StartEditing(data);
                     });
 
                     $("#user_activation_table").off("click", "button.btn-delete");
@@ -1116,7 +1164,7 @@ namespace Citadel {
                 this.m_id = userData['id'];
             } else {
                 this.m_id = 0;
-                this.jsonData = [];
+                this.activationData = [];
             }
 
             // Covers creation of new users, because this doesn't get assigned to in that circumstance.
