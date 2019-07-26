@@ -410,7 +410,7 @@ function activationsModel() {
 	that.data = [];
 
 	that.fetch = function() {
-		$.get('api/user/activations').done(function(data) {
+		return $.get('api/user/activations').done(function(data) {
 			Vue.set(that, 'data', data);
 		});
 	};
@@ -453,7 +453,26 @@ function activationsModel() {
 		});
 	};
 
-	that.fetch();
+	that.fetch().done(function() {
+		if(window.pathPartsLeft != null && window.pathPartsLeft.length > 0) {
+			// pathParts[0] is activation.
+			// partParts[1] is modal editor tab.
+
+			var identifier = window.pathPartsLeft.shift();
+			var editorTab = window.pathPartsLeft.shift() || "mainEditor";
+
+			for(var i = 0; i < that.data.length; i++) {
+				var activation = that.data[i];
+
+				if(activation.identifier == identifier) {
+					that.editActivation(activation);
+					break;
+				}
+			}
+
+			app.activationEditor.changeTab(editorTab);
+		}
+	})
 
 	return that;
 }
@@ -531,6 +550,22 @@ function activationEditorModel() {
 	that.close = function() {
 		$("#editActivationModal").modal("hide");
 	};
+
+	that.changeTab = function(tabId) {
+		var allTabListItems = $("#editActivationModal [role='tablist'] li");
+		allTabListItems.removeClass("active");
+
+		var allTabPanes = $("#editActivationModal .tab-content .tab-pane");
+		allTabPanes.removeClass("active");
+
+		var tabAnchor = $("#editActivationModal [role='tablist'] [aria-controls='" + tabId + "']");
+		var tabListItem = tabAnchor.parent();
+
+		var tabPane = $("#editActivationModal .tab-content #" + tabId);
+
+		tabListItem.addClass("active");
+		tabPane.addClass("active");
+	}
 
 	that.save = function() {
 		var configOverride = convertConfigOverride(that.data.config_override) || {};

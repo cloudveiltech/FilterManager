@@ -17,12 +17,18 @@
 
 <script>
     window.onUserLoad = null;
+    window.pathPartsLeft = null;
 
-    $(document).ready(function() {
+    function queryParameters() {
         var search = window.location.search.substring(1);
         var searchParts = search.split('&');
         var searchArray = $.map(searchParts, function(p, i) {
-            return p.split('=');
+            var arr = p.split('=');
+            if(arr.length < 2) {
+                arr.push(null);
+            } else {
+                arr[1] = decodeURIComponent(arr[1]);
+            }
         });
 
         var search = {};
@@ -31,19 +37,31 @@
             search[searchArray[0]] = searchArray[1];
         }
 
+        return search;
+    }
+
+    $(document).ready(function() {
+        var search = queryParameters();
+
+        if(search.path) {
+            var pathParts = search.path.split('/');
+
+            search.tab = pathParts[0] || "time-restrictions";
+            window.pathPartsLeft = pathParts.slice(1);
+        }
+
         if(search.tab) {
             // Handles special case where we try to navigate to deactivation requests or activations.
             // Those tabs may not exist because the user might not be a business user.
             switch(search.tab) {
                 default:
-                    applyTab(search.tab);
+                    applyTab(search.tab, search);
                     break;
 
                 case 'deactivation-requests':
-                case 'activations':
                     window.onUserLoad = function(user) {
                         if(user.isBusinessOwner) {
-                            applyTab(search.tab);
+                            applyTab(search.tab, search);
                         }
                     };
 
@@ -52,7 +70,7 @@
         }
     });
 
-    function applyTab(tab) {
+    function applyTab(tab, search) {
         var tabList = $("#app [role='tablist']");
         var tabContent = $("#app .tab-content");
 
@@ -64,6 +82,7 @@
 
         var pane = tabContent.find("#" + tab);
         pane.addClass("active");
+
     }
 </script>
 @endsection
