@@ -10,6 +10,7 @@
 namespace App;
 
 use Illuminate\Support\Facades\DB;
+use Log;
 
 class FilterRulesManager 
 {
@@ -39,7 +40,7 @@ class FilterRulesManager
         public function buildFile($filename, $filters) {
             $storageDir = storage_path();
             $filePath = $storageDir . DIRECTORY_SEPARATOR . $filename;
-
+            Log::debug('Opening File to write filters to it: ' . $filePath);
             $file = fopen($filePath, 'w');
 
             foreach($filters as $filter) {
@@ -47,6 +48,7 @@ class FilterRulesManager
             }
 
             fclose($file);
+            Log::debug('Closing File to write filters to it: ' . $filePath);
             
             return $filePath;
         }
@@ -63,8 +65,10 @@ class FilterRulesManager
         }
 
         public function buildRuleData() {
+            Log::debug('Building Rule Data');
             foreach(FilterList::cursor() as $list) {
                 if (!is_null($list)) {
+		    Log::debug('List: ' . $list->namespace . ' Category: ' . $list->category . ' Type: ' . $list->type . ' ID: ' . $list->id);
 
                     $listNamespace = $list->namespace;
                     $listCategory = $list->category;

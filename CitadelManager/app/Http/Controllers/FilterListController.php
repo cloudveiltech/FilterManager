@@ -239,12 +239,16 @@ class FilterListController extends Controller
         $globalFilterRules = new FilterRulesManager();
         $globalFilterRules->buildRuleData();
 
+	Log::debug('Rebuilding Group Data.  Total Groups: ' . count($arrOfGroupIds));
+	$count = 0;
         foreach ($arrOfGroupIds as $groupId) {
             $thisGroup = Group::where('id', $groupId)->first();
 
             if (!is_null($thisGroup)) {
+		Log::debug('Rebuilding Group ' . $count . ' of ' . count($arrOfGroupIds) . ' --- ' . $thisGroup->name);
                 $thisGroup->rebuildGroupData();
             }
+	    $count++;
         }
     }
 
@@ -482,6 +486,7 @@ class FilterListController extends Controller
 
                 // Delete existing if overwrite is true.
                 if ($overwrite) {
+		    Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
 
                     $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
                     if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
@@ -516,7 +521,7 @@ class FilterListController extends Controller
                 // This means that the list is a raw list of domains/urls.
                 // We will also convert these to triggers.
                 if ($convertToAbp == true) {
-
+                    Log::debug('Converting List to ABP format');
                     $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => 'Triggers']);
 
                     // We have to do this for the event where the user selects overwrite on the upload,
@@ -553,8 +558,10 @@ class FilterListController extends Controller
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
         $this->forceRebuildOnGroups($affectedGroups);
-
-        unlink($tmpArchiveLoc);
+	Log::info('Removing Archived File: ' . $tmpArchiveLoc);
+        if (file_exists($tmpArchiveLoc)) {
+            unlink($tmpArchiveLoc);
+	}
     }
 
     /**
@@ -566,7 +573,7 @@ class FilterListController extends Controller
      */
     private function processTextFilterFile(\SplFileObject $file, bool $convertToAbp, int $parentListId)
     {
-        Log::debug("processTextFilterFile");
+        Log::debug("processTextFilterFile: " . $file->getFilename() . ' ' . $file->getPath());
 
         try {
             $lineFeedFunc = null;
@@ -592,12 +599,13 @@ class FilterListController extends Controller
             $updatedAt = Carbon::now();
 
             $count = 0;
-
+            $lineCount = 0;
 
             foreach ($file as $lineNumber => $content) {
 
                 $content = $lineFeedFunc($content);
 
+                Log::debug('Line: ' . $lineCount . ' Content: ' . $content);
                 if (strlen($content) > 0) {
                     $fillArr[] = ['filter_list_id' => $parentListId, 'sha1' => sha1($content), 'rule' => $content, 'created_at' => $createdAt, 'updated_at' => $updatedAt];
                     $count++;
@@ -605,15 +613,24 @@ class FilterListController extends Controller
 
                 // Doing a mass insert of 5K at a time seems to be best.
                 if ($count > 4999) {
-                    TextFilteringRule::insertIgnore($fillArr);
+		    Log::debug('Writing 5000 lines into DB: ' . $parentListId);
+		    Log::debug($fillArr);
+                    $results = TextFilteringRule::insertIgnore($fillArr);
+		    Log::debug($results);
 
                     $fillArr = array();
                     $count = 0;
                 }
+		$lineCount++;
             }
+	    if ($lineCount === 0) {
+		Log::error('No lines in this file.');
+	    }
 
             if ($count > 0) {
-                TextFilteringRule::insertIgnore($fillArr);
+		Log::debug($fillArr);
+                $results = TextFilteringRule::insertIgnore($fillArr);
+		Log::debug($results);
                 $fillArr = array();
                 $count = 0;
             }
