@@ -7,8 +7,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-namespace App {
-    class FilterRulesManager {
+namespace App;
+
+use Illuminate\Support\Facades\DB;
+use Log;
+
+class FilterRulesManager 
+{
         public function getRuleDataPath(): string
         {
             $storageDir = storage_path();
@@ -35,7 +40,7 @@ namespace App {
         public function buildFile($filename, $filters) {
             $storageDir = storage_path();
             $filePath = $storageDir . DIRECTORY_SEPARATOR . $filename;
-
+            Log::debug('Opening File to write filters to it: ' . $filePath);
             $file = fopen($filePath, 'w');
 
             foreach($filters as $filter) {
@@ -43,6 +48,7 @@ namespace App {
             }
 
             fclose($file);
+            Log::debug('Closing File to write filters to it: ' . $filePath);
             
             return $filePath;
         }
@@ -59,8 +65,10 @@ namespace App {
         }
 
         public function buildRuleData() {
+            Log::debug('Building Rule Data');
             foreach(FilterList::cursor() as $list) {
                 if (!is_null($list)) {
+		    Log::debug('List: ' . $list->namespace . ' Category: ' . $list->category . ' Type: ' . $list->type . ' ID: ' . $list->id);
 
                     $listNamespace = $list->namespace;
                     $listCategory = $list->category;
@@ -123,5 +131,5 @@ namespace App {
                 }
             }
         }
-    }
 }
+
