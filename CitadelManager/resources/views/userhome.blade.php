@@ -29,6 +29,8 @@
             } else {
                 arr[1] = decodeURIComponent(arr[1]);
             }
+
+            return arr;
         });
 
         var search = {};
