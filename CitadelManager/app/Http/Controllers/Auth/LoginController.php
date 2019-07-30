@@ -61,6 +61,10 @@ class LoginController extends LoginControllerBase
     }
 
     public function login(Request $request) {
+        if(getenv("DISABLE_EMAIL_AUTH") == 1) {
+            return $this->loginWithProvider($request, getenv("DEFAULT_SSO_PROVIDER") ?? "cloudveil");
+        }
+
         $redirect = $request->input('redirect');
 
         if($redirect != null) {
