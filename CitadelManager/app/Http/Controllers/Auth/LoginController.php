@@ -60,11 +60,21 @@ class LoginController extends LoginControllerBase
         }
     }
 
-    public function login(Request $request) {
+    public function showLoginForm(Request $request) {
         if(getenv("DISABLE_EMAIL_AUTH") == 1) {
-            return $this->loginWithProvider($request, getenv("DEFAULT_SSO_PROVIDER") ?? "cloudveil");
-        }
+            $ssoProvider = getenv("DEFAULT_SSO_PROVIDER");
 
+            if($ssoProvider == null) {
+                $ssoProvider = "cloudveil";
+            }
+
+            return $this->loginWithProvider($request, $ssoProvider);
+        }
+       
+        return parent::showLoginForm($request);
+    }
+
+    public function login(Request $request) {
         $redirect = $request->input('redirect');
 
         if($redirect != null) {

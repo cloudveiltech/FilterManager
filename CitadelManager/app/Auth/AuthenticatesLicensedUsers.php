@@ -36,7 +36,7 @@ trait AuthenticatesLicensedUsers {
     *
     * @return \Illuminate\Http\Response
     */
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
         if(Auth::check())
         {
