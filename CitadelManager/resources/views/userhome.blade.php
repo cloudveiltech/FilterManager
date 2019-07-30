@@ -29,6 +29,8 @@
             } else {
                 arr[1] = decodeURIComponent(arr[1]);
             }
+
+            return arr;
         });
 
         var search = {};
@@ -214,6 +216,10 @@
                     <button class="btn btn-primary" @click="selfModeration.save">Save Changes</button>
                     <button class="btn btn-secondary" @click="selfModeration.fetch">Cancel</button>
                 </div>
+
+                <p>
+                    NOTE: You can modify a specific computer's self-moderation lists by going to the Activations tab and editing the activation there.
+                </p>
             </div>
 
             <div role="tabpanel" class="tab-pane" id="relaxed-policy">
