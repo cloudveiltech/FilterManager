@@ -2,6 +2,9 @@
 
 return [
 
+    'disable_email_auth' => env('DISABLE_EMAIL_AUTH', 0),
+    'default_sso_provider' => env('DEFAULT_SSO_PROVIDER', 'cloudveil'),
+    
     /*
     |--------------------------------------------------------------------------
     | Authentication Defaults
