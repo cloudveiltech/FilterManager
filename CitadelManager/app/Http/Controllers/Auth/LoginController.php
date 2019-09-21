@@ -61,8 +61,8 @@ class LoginController extends LoginControllerBase
     }
 
     public function showLoginForm(Request $request) {
-        if(getenv("DISABLE_EMAIL_AUTH") == 1) {
-            $ssoProvider = getenv("DEFAULT_SSO_PROVIDER");
+        if(config("auth.disable_email_auth") == 1) {
+            $ssoProvider = config("auth.default_sso_provider");
 
             if($ssoProvider == null) {
                 $ssoProvider = "cloudveil";
