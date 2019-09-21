@@ -37,6 +37,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () 
         $roles = Role::all();
         return view('adminhome')->with('roles', $roles);
     });
+    Route::get('/update', 'FilterListController@triggerUpdate');
 });
 
 Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user|business-owner']], function() {
@@ -64,11 +65,11 @@ Route::get('/update/{platform}/update.xml', 'UpdateController@retrieve');
 Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions');
 
 Route::get('/download/latest/64', function() {
-  return redirect('/releases/CloudVeil-1.6.31-winx64.msi');
+  return redirect('/releases/CloudVeilInstaller-2.0.0-cv4w-x64.exe');
 });
 
 Route::get('/download/latest/32', function() {
-  return redirect('/releases/CloudVeil-1.6.31-winx86.msi');
+  return redirect('/releases/CloudVeilInstaller-2.0.0-cv4w-x86.exe');
 });
 
 Route::get('/home', 'HomeController@index')->name('home');

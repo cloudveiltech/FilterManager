@@ -22,10 +22,24 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use App\Jobs\ProcessTextFilterArchiveUpload;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Client;
 
 class FilterListController extends Controller
 {
 
+    /**
+     * Trigger an automatic download and import.
+     **/
+    public function triggerUpdate(Request $request)
+    {
+	$timestamp = Carbon::now()->toIso8601ZuluString();
+	$client = new Client();
+	$response = $client->get(config('app.default_list_export_url'));
+        Storage::put('export' . $timestamp . '.zip', $response->getBody());
+        ProcessTextFilterArchiveUpload::dispatch('default', storage_path('export' . $timestamp . '.zip'), true);
+	return response('Import has been triggered.', 200);
+    }	    
     /**
      * Display a listing of the resource.
      *

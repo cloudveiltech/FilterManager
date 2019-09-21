@@ -16,6 +16,9 @@ return [
     /* What time of day do we go through and reset the bypass_used count for activations to 0? */
     'bypass_used_delete_time' => env('APP_BYPASS_USED_DELETE_TIME', '8:00'),
 
+    /* Where do we download list exports from.*/
+    'default_list_export_url' => env('APP_DEFAULT_LIST_EXPORT_URL',''),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name
