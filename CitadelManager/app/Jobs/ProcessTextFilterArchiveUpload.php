@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use GuzzleHttp\Client;
 use Log;
 
 class ProcessTextFilterArchiveUpload implements ShouldQueue
@@ -44,8 +45,37 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
     public function handle()
     {
         Log::info('Running processTextFilterArchive Job.');
+	$client = new Client();
+
+        $payload = json_encode(
+            [
+            'channel'    => config('services.slack.channel.import'),
+            'text'       => "Beginning File Import.",
+            'username'   => config('app.name')
+            ]);
+
+        $res = $client->request('POST', config('services.slack.url'),
+            [
+                'body' => $payload
+            ]
+        );
+
         $flc = new \App\Http\Controllers\FilterListController;
         $flc->processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
+
         Log::info('Finished processTextFilterArchive Job.');
+	$payload = json_encode(
+            [
+            'channel'    => config('services.slack.channel.import'),
+            'text'       => "Completed File Import.",
+            'username'   => config('app.name')
+            ]);
+
+        $res = $client->request('POST', config('services.slack.url'),
+            [
+                'body' => $payload
+            ]
+        );
+
     }
 }

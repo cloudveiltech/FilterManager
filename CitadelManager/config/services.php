@@ -43,4 +43,10 @@ return [
         'client_secret' => env('WORDPRESS_CLIENT_SECRET'),
         'redirect' => env('WORDPRESS_REDIRECT')
     ],
+    'slack' => [
+            'url' => env('SLACK_URL'),
+            'channel' => [
+                    'import' => env('SLACK_CHANNEL_IMPORTS'),
+            ]
+    ],
 ];
