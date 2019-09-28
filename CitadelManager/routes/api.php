@@ -283,7 +283,7 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:a
 });
 
 /* Token Management */
-Route::middleware(['auth.basic.once', 'role:admin|user'])->post('/v2/user/gettoken', 'UserController@getUserToken');
+Route::middleware(['auth.basic.once', 'role:admin|user|business-owner'])->post('/v2/user/gettoken', 'UserController@getUserToken');
 Route::post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
 
 /**
