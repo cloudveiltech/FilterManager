@@ -9,6 +9,7 @@
 
 namespace App\Http\Controllers;
 
+use App\AppUserActivation;
 use App\SystemPlatform;
 use App\SystemVersion;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class UpdateController extends Controller
         $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
         $arr_data = ["platform" => $platform];
 
+        AppUserActivation::setLastUpdateRequestTime($request->ip());
         if ($platforms->count() > 0) {
             $os = $platforms->first();
             $platform_id = $os->id;
