@@ -40,7 +40,8 @@ class ReportUpdateFailed extends Command
     {
         if (app()->bound('sentry')) {
             $appUserActivations = AppUserActivation::where("last_update_requested_time", ">", DB::raw("DATE_SUB(NOW(), INTERVAL 1 DAY)"))
-                ->where("last_sync_time", "<", DB::raw("DATE_SUB(last_update_requested_time, INTERVAL 2 HOUR)"))
+                ->where("last_sync_time", "<", "last_update_requested_time")
+                ->where("last_sync_time", "<", DB::raw("DATE_SUB(NOW(), INTERVAL 2 HOUR)"))
                 ->get()
                 ->all();
             $maxVersionToAlertUpdate = config("app.max_version_alert_update");

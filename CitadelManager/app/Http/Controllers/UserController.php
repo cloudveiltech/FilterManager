@@ -889,7 +889,7 @@ class UserController extends Controller
 				}
 
 				$activation->updated_at = Carbon::now()->timestamp;
-                $activation->last_sync_time = Carbon::now()->timestamp;
+                $activation->last_sync_time = Carbon::now();
                 $activation->ip_address = $request->ip();
                 if ($token) {
                     $activation->token_id = $token->id;
@@ -899,7 +899,7 @@ class UserController extends Controller
             } else {
                 $activation = new AppUserActivation;
                 $activation->updated_at = Carbon::now()->timestamp;
-                $activation->last_sync_time = Carbon::now()->timestamp;
+                $activation->last_sync_time = Carbon::now();
                 $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';                
                 $activation->user_id = $user->id;
                 $activation->device_id = $request->input('device_id');
