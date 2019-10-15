@@ -49,6 +49,7 @@ class ReportUpdateFailed extends Command
             $maxVersionToAlertUpdate = config("app.max_version_alert_update");
 
             $date = Carbon::now()->toDateString();
+
             foreach ($appUserActivations as $appUserActivation) {
                 $v = $appUserActivation->app_version;
                 if (version_compare($v, $maxVersionToAlertUpdate) < 0) {
@@ -59,6 +60,7 @@ class ReportUpdateFailed extends Command
                         $scope->setUser([
                             'id' => $email . ":" . $id
                         ]);
+                        $scope->setTag('date', $date);
                         \Sentry\captureException(new UpdateProbablyFailedException($date . ": User probably didn't sync after update"));
                         $this->info("User " . $email);
                     });
