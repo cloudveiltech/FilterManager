@@ -15,8 +15,8 @@ class AddLastUpdatedTime extends Migration
     public function up()
     {
         Schema::table('app_user_activations', function (Blueprint $table) {
-            $table->timestamp('last_update_requested_time')->nullable(false)->default(Carbon::parse('yesterday')->startOfDay())->index();
-            $table->timestamp('last_sync_time')->nullable(false)->default(Carbon::parse('yesterday')->startOfDay())->index();
+            $table->timestamp('last_update_requested_time')->nullable(false)->default(Carbon::parse('-365 days')->startOfDay())->index();
+            $table->timestamp('last_sync_time')->nullable(false)->default(Carbon::parse('-365 days')->startOfDay())->index();
             $table->index('ip_address', 'ind_ip_address');
         });
     }
