@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\AppUserActivation;
 use App\Exceptions\UpdateProbablyFailedException;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use App\Jobs\ProcessTextFilterArchiveUpload;
 use Illuminate\Support\Facades\DB;
@@ -47,17 +48,18 @@ class ReportUpdateFailed extends Command
                 ->all();
             $maxVersionToAlertUpdate = config("app.max_version_alert_update");
 
+            $date = Carbon::now()->toDateString();
             foreach ($appUserActivations as $appUserActivation) {
                 $v = $appUserActivation->app_version;
                 if (version_compare($v, $maxVersionToAlertUpdate) < 0) {
                     $id = $appUserActivation->identifier;
                     $email = $appUserActivation->user->email;
 
-                    \Sentry\withScope(function (Scope $scope) use ($email, $id) {
+                    \Sentry\withScope(function (Scope $scope) use ($email, $id, $date) {
                         $scope->setUser([
                             'id' => $email . ":" . $id
                         ]);
-                        \Sentry\captureException(new UpdateProbablyFailedException("User probably didn't sync after update"));
+                        \Sentry\captureException(new UpdateProbablyFailedException($date . ": User probably didn't sync after update"));
                         $this->info("User " . $email);
                     });
                 }
