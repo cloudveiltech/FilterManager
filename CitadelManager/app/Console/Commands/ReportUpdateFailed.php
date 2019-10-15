@@ -48,20 +48,23 @@ class ReportUpdateFailed extends Command
                 ->all();
             $maxVersionToAlertUpdate = config("app.max_version_alert_update");
 
-            $date = Carbon::now()->toDateString();
+            $date = Carbon::now()->format("Ymd");
 
+            $className = "UpdateProbablyFailedException_" . $date;
+            eval(
+                "class $className extends \Exception{}"
+            );
             foreach ($appUserActivations as $appUserActivation) {
                 $v = $appUserActivation->app_version;
                 if (version_compare($v, $maxVersionToAlertUpdate) < 0) {
                     $id = $appUserActivation->identifier;
                     $email = $appUserActivation->user->email;
 
-                    \Sentry\withScope(function (Scope $scope) use ($email, $id, $date) {
+                    \Sentry\withScope(function (Scope $scope) use ($email, $id, $className) {
                         $scope->setUser([
                             'id' => $email . ":" . $id
                         ]);
-                        $scope->setTag('date', $date);
-                        \Sentry\captureException(new UpdateProbablyFailedException($date . ": User probably didn't sync after update"));
+                        \Sentry\captureException(new $className("User probably didn't sync after update"));
                         $this->info("User " . $email);
                     });
                 }
