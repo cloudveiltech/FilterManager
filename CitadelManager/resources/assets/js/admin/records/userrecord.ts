@@ -910,6 +910,12 @@ namespace Citadel {
                     width: "250px"
                 },
                 {
+                    title: 'Last update requested date',
+                    data: 'last_update_requested_time',
+                    visible: true,
+                    width: "250px"
+                },
+                {
                     title: 'Check-in Days',
                     data: 'check_in_days',
                     visible: true,
