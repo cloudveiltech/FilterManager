@@ -63,9 +63,10 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping();
     }
 
-    private function scheduleSentryUpdateAlerts(Schedule $schedule) {
+    private function scheduleSentryUpdateAlerts(Schedule $schedule)
+    {
         //alert users who didn't sync after update
-        $schedule->command("sentry:report_update_failed")->daily();
+        $schedule->command("sentry:report_update_failed")->dailyAt("00:00");
     }
 
     /**

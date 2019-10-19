@@ -14,6 +14,7 @@ use App\SystemPlatform;
 use App\SystemVersion;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Response;
 
 class UpdateController extends Controller
 {
@@ -28,7 +29,6 @@ class UpdateController extends Controller
         $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
         $arr_data = ["platform" => $platform];
 
-        AppUserActivation::setLastUpdateRequestTime($request->ip());
         if ($platforms->count() > 0) {
             $os = $platforms->first();
             $platform_id = $os->id;
@@ -107,6 +107,13 @@ class UpdateController extends Controller
             ->view('update.windows.update_xml', $arr_data)
             ->header('Content-Type', 'text/xml');
     }
+
+    public function downloadRelease(Request $request, $fileName) {
+        AppUserActivation::setLastUpdateRequestTime($request->ip());
+        $file=  public_path(). "/releases/" . $fileName;
+        return response()->download($file);
+    }
+
     /**
      * Returns the version with JSON.
      *

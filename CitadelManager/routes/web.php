@@ -62,6 +62,8 @@ Route::get('/', function () {
 });
 
 Route::get('/update/{platform}/update.xml', 'UpdateController@retrieve');
+Route::get('update/releases/{fileName}', 'UpdateController@downloadRelease');
+
 Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions');
 
 Route::get('/download/latest/64', function() {
@@ -73,8 +75,6 @@ Route::get('/download/latest/32', function() {
 });
 
 Route::get('/home', 'HomeController@index')->name('home');
-
-
 
 
 
