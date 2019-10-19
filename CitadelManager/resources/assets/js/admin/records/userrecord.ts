@@ -904,8 +904,8 @@ namespace Citadel {
                     width: '200px'
                 },
                 {
-                    title: 'Updated date',
-                    data: 'updated_at',
+                    title: 'Last contact date',
+                    data: 'last_sync_time',
                     visible: true,
                     width: "250px"
                 },
