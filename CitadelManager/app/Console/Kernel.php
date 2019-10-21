@@ -66,7 +66,7 @@ class Kernel extends ConsoleKernel
     private function scheduleSentryUpdateAlerts(Schedule $schedule)
     {
         //alert users who didn't sync after update
-        $schedule->command("sentry:report_update_failed")->dailyAt("00:00");
+        $schedule->command("sentry:report_update_failed")->hourly();//dailyAt("00:00");
     }
 
     /**
