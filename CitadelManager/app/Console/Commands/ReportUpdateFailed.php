@@ -40,9 +40,9 @@ class ReportUpdateFailed extends Command
     public function exec()
     {
         if (app()->bound('sentry')) {
-            $appUserActivations = AppUserActivation::where("last_update_requested_time", ">", DB::raw("DATE_SUB(NOW(), INTERVAL 1 DAY)"))
+            $appUserActivations = AppUserActivation::where("last_update_requested_time", ">", DB::raw("DATE_SUB(NOW(), INTERVAL 2 DAY)"))
                 ->where("last_sync_time", "<", DB::raw("last_update_requested_time"))
-                ->where("last_sync_time", "<", DB::raw("DATE_SUB(NOW(), INTERVAL 2 HOUR)"))
+                ->where("last_sync_time", "<", DB::raw("DATE_SUB(NOW(), INTERVAL 24 HOUR)"))
                 ->where("last_sync_time", ">", DB::raw("DATE_SUB(NOW(), INTERVAL 1 WEEK)"))
                 ->get()
                 ->all();
@@ -50,7 +50,7 @@ class ReportUpdateFailed extends Command
 
             $date = Carbon::now()->format("Ymd");
 
-            $className = "UpdateProbablyFailedException_" . $date;
+            $className = "UpdateProbablyFailedExceptionHourly_" . $date;
             eval(
                 "class $className extends \Exception{}"
             );
