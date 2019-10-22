@@ -43,7 +43,7 @@ class ReportUpdateFailed extends Command
             $appUserActivations = AppUserActivation::where("last_update_requested_time", ">", DB::raw("DATE_SUB(NOW(), INTERVAL 2 DAY)"))
                 ->where("last_sync_time", "<", DB::raw("last_update_requested_time"))
                 ->where("last_sync_time", "<", DB::raw("DATE_SUB(NOW(), INTERVAL 24 HOUR)"))
-                ->where("last_sync_time", ">", DB::raw("DATE_SUB(NOW(), INTERVAL 2 DAY)"))
+                ->where("last_sync_time", ">", DB::raw("DATE_SUB(last_update_requested_time, INTERVAL 6 HOUR)"))
                 ->get()
                 ->all();
             $maxVersionToAlertUpdate = config("app.max_version_alert_update");
