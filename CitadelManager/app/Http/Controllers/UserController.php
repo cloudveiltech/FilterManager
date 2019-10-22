@@ -56,7 +56,10 @@ class UserController extends Controller
             ->select('users.*')
             ->when($search, function ($query) use ($search) {
                 return $query->where('users.name', 'like', "%$search%")
-                    ->orWhere('users.email', 'like', "%$search%");
+                    ->orWhere('users.email', 'like', "%$search%")
+                    ->orWhereHas("activations", function ($query) use ($search) {
+                        $query->where('identifier', $search);
+                });
             })
             ->when($email, function ($query) use ($email) {
                 return $query->where('users.email', $email);

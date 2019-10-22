@@ -27,6 +27,8 @@ class FilterList extends Model
      */
     protected $appends = ['entries_count'];
 
+    protected $hidden = ['textRulesCountRelation'];
+
     /**
      * The attributes that are mass assignable.
      *

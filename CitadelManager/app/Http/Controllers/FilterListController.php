@@ -116,7 +116,8 @@ class FilterListController extends Controller
 
     public function get_filters()
     {
-        return FilterList::all();
+        $data = FilterList::with("textRulesCountRelation")->get()->all();
+        return $data;
     }
 
     /**
