@@ -50,7 +50,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         $payload = json_encode(
             [
             'channel'    => config('services.slack.channel.import'),
-            'text'       => "Beginning File Import.",
+            'text'       => "Beginning File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
             'username'   => config('app.name')
             ]);
 
@@ -67,7 +67,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
 	$payload = json_encode(
             [
             'channel'    => config('services.slack.channel.import'),
-            'text'       => "Completed File Import.",
+            'text'       => "Completed File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
             'username'   => config('app.name')
             ]);
 
