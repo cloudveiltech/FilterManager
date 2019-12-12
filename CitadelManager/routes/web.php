@@ -67,11 +67,11 @@ Route::get('update/releases/{fileName}', 'UpdateController@downloadRelease');
 Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions');
 
 Route::get('/download/latest/64', function() {
-  return redirect('/releases/CloudVeilInstaller-2.0.0-cv4w-x64.exe');
+  return redirect('/releases/CloudVeilInstaller-2.0.19-cv4w-x64.exe');
 });
 
 Route::get('/download/latest/32', function() {
-  return redirect('/releases/CloudVeilInstaller-2.0.0-cv4w-x86.exe');
+  return redirect('/releases/CloudVeilInstaller-2.0.19-cv4w-x86.exe');
 });
 
 Route::get('/home', 'HomeController@index')->name('home');
