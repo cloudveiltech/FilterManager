@@ -45,37 +45,46 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
     public function handle()
     {
         Log::info('Running processTextFilterArchive Job.');
-	$client = new Client();
+        $client = new Client();
 
-        $payload = json_encode(
-            [
-            'channel'    => config('services.slack.channel.import'),
-            'text'       => "Beginning File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
-            'username'   => config('app.name')
-            ]);
+        try {
+            $payload = json_encode(
+                [
+                    'channel' => config('services.slack.channel.import'),
+                    'text' => "Beginning File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
+                    'username' => config('app.name')
+                ]);
 
-        $res = $client->request('POST', config('services.slack.url'),
-            [
-                'body' => $payload
-            ]
-        );
+            $res = $client->request('POST', config('services.slack.url'),
+                [
+                    'body' => $payload
+                ]
+            );
+        } catch (\Exception $e) {
+            Log::error($e);
+        }
 
         $flc = new \App\Http\Controllers\FilterListController;
         $flc->processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
 
         Log::info('Finished processTextFilterArchive Job.');
-	$payload = json_encode(
-            [
-            'channel'    => config('services.slack.channel.import'),
-            'text'       => "Completed File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
-            'username'   => config('app.name')
-            ]);
 
-        $res = $client->request('POST', config('services.slack.url'),
-            [
-                'body' => $payload
-            ]
-        );
+        try {
+            $payload = json_encode(
+                [
+                    'channel' => config('services.slack.channel.import'),
+                    'text' => "Completed File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
+                    'username' => config('app.name')
+                ]);
+
+            $res = $client->request('POST', config('services.slack.url'),
+                [
+                    'body' => $payload
+                ]
+            );
+        } catch (\Exception $e) {
+            Log::error($e);
+        }
 
     }
 }
