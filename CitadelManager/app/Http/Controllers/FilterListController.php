@@ -33,15 +33,20 @@ class FilterListController extends Controller
      **/
     public function triggerUpdate(Request $request)
     {
-	$timestamp = Carbon::now()->toIso8601ZuluString();
-	$client = new Client();
-        $results = 'Downloading File from ' . config('app.default_list_export_url') . '<br>';
-	$response = $client->get(config('app.default_list_export_url'));
+	    $timestamp = Carbon::now()->toIso8601ZuluString();
+	    $client = new Client();
+	    $filename = 'export.zip';
+	    if ($request->has('file')) {
+	        $filename = $request->input('file');
+            $filename = preg_replace('/[^0-9a-zA-Z\-_]+/', '', $filename);
+        }
+        $results = 'Downloading File from ' . config('app.default_list_export_url') . $filename . '<br>';
+	    $response = $client->get(config('app.default_list_export_url') . $filename);
         $results .= 'Saving to: ' . $timestamp . '.zip<br>';
         Storage::put('export' . $timestamp . '.zip', $response->getBody());
         ProcessTextFilterArchiveUpload::dispatch('default', storage_path('app/export' . $timestamp . '.zip'), true);
         $results .= 'Import has been triggered.<br>';
-	return response($results);
+	    return response($results);
     }	    
     /**
      * Display a listing of the resource.
