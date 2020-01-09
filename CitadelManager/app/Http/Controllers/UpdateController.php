@@ -15,6 +15,7 @@ use App\SystemVersion;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 class UpdateController extends Controller
 {
@@ -110,7 +111,7 @@ class UpdateController extends Controller
 
     public function downloadRelease(Request $request, $fileName) {
         $activationId = $request->input("acid", null);
-
+        Log::info("Update download from " . $request->ip() . " id: " . $activationId);
         AppUserActivation::setLastUpdateRequestTime($request->ip(), $activationId);
         $file=  public_path(). "/releases/" . $fileName;
         return response()->download($file);
