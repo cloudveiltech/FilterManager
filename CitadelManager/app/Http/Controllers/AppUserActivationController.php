@@ -66,6 +66,7 @@ class AppUserActivationController extends Controller
             ->select('app_user_activations.*', 'users.name')
             ->when($search, function ($query) use ($search) {
                 return $query->where('users.name', 'like', "%$search%")
+                    ->orWhere('users.email', 'like', "%$search%")
                     ->orWhere('app_user_activations.device_id', 'like', "%$search%")
                     ->orWhere('app_user_activations.identifier', 'like', "%$search%");
             }, function ($query) use ($order_str, $order_name) {

@@ -27,7 +27,13 @@ class AppUserActivation extends Model
     }
 
 
-    public static function setLastUpdateRequestTime($requestIp) {
-        AppUserActivation::where('ip_address', $requestIp)->update(["last_update_requested_time" => Carbon::now()]);
+    public static function setLastUpdateRequestTime($requestIp, $activationId) {
+        $query = null;
+        if(!empty($activationId)) {
+            $query = AppUserActivation::where('identifier', $activationId);
+        } else {
+            $query = AppUserActivation::where('ip_address', $requestIp);
+        }
+        $query->update(["last_update_requested_time" => Carbon::now()]);
     }
 }
