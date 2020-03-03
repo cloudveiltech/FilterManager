@@ -16,7 +16,7 @@
                 ]]>
             </description>
             <pubDate>{{ $date }}</pubDate>
-            <enclosure channel="{{ $channel['release'] }}" url="{{ url('/') }}/update/releases/{{ $file_name }}-{{ $channel['version_number'] }}-{{ $platform }}{{ $file_ext }}?acid={{ urlencode($activation_id) }}" length="0" sparkle:os="windows" sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $channel['version_number'] }}" type="application/octet-stream"/>
+            <enclosure channel="{{ $channel['release'] }}" url="{{ url('/') }}/update/releases/{{ urlencode($activation_id) }}/{{ $file_name }}-{{ $channel['version_number'] }}-{{ $platform }}{{ $file_ext }}" length="0" sparkle:os="windows" sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $channel['version_number'] }}" type="application/octet-stream"/>
         </item>
         @endforeach
     </channel>

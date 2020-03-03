@@ -28,7 +28,7 @@ class UpdateController extends Controller
     public function retrieve(Request $request, $platform)
     {
         $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
-        $arr_data = ["platform" => $platform, "activation_id" => $request->input("acid", "")];
+        $arr_data = ["platform" => $platform, "activation_id" => $request->input("acid", "acid")];
 
         if ($platforms->count() > 0) {
             $os = $platforms->first();
@@ -109,8 +109,10 @@ class UpdateController extends Controller
             ->header('Content-Type', 'text/xml');
     }
 
-    public function downloadRelease(Request $request, $fileName) {
-        $activationId = $request->input("acid", null);
+    public function downloadRelease(Request $request, $activationId, $fileName) {
+        if($activationId == "acid") {
+            $activationId = "";
+        }
         Log::info("Update download from " . $request->ip() . " id: " . $activationId);
         AppUserActivation::setLastUpdateRequestTime($request->ip(), $activationId);
         $file=  public_path(). "/releases/" . $fileName;
