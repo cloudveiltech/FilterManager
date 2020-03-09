@@ -12,124 +12,135 @@ namespace App;
 use Illuminate\Support\Facades\DB;
 use Log;
 
-class FilterRulesManager 
+class FilterRulesManager
 {
-        public function getRuleDataPath(): string
-        {
-            $storageDir = storage_path();
-            $rulesZipPath = $storageDir . DIRECTORY_SEPARATOR . 'global-rules.zip';
-            return $rulesZipPath;
-        }
-        
-        public function getFilename($listNamespace, $listCategory, $filename, $separatorChar = '.') {
-            return "$separatorChar$listNamespace$separatorChar$listCategory$separatorChar$filename";
-        }
-    
-        public function getEtag($path) {
-            return hash_file('sha1', $path);
-        }
+    public function getRuleDataPath(): string
+    {
+        $storageDir = storage_path();
+        $rulesZipPath = $storageDir . DIRECTORY_SEPARATOR . 'global-rules.zip';
+        return $rulesZipPath;
+    }
 
-        public function getRulesetPath($namespace, $category, $type) {
-            $filename = $this->getFilename($namespace, $category, "$type.txt");
+    public function getFilename($listNamespace, $listCategory, $filename, $separatorChar = '.')
+    {
+        return "$separatorChar$listNamespace$separatorChar$listCategory$separatorChar$filename";
+    }
 
-            $storageDir = storage_path();
-            return $storageDir . DIRECTORY_SEPARATOR . $filename;
-        }
+    public function getEtag($path)
+    {
+        return hash_file('sha1', $path);
+    }
 
-        // Helps reduce memory usage for rule file building.
-        public function buildFile($filename, $filters) {
-            $storageDir = storage_path();
-            $filePath = $storageDir . DIRECTORY_SEPARATOR . $filename;
-            Log::debug('Opening File to write filters to it: ' . $filePath);
-            $file = fopen($filePath, 'w');
+    public function getRulesetPath($namespace, $category, $type)
+    {
+        $filename = $this->getFilename($namespace, $category, "$type.txt");
 
-            foreach($filters as $filter) {
-                fprintf($file, "%s\n", $filter->rule);
-            }
+        $storageDir = storage_path();
+        return $storageDir . DIRECTORY_SEPARATOR . $filename;
+    }
 
-            fclose($file);
-            Log::debug('Closing File to write filters to it: ' . $filePath);
-            
-            return $filePath;
+    // Helps reduce memory usage for rule file building.
+    public function buildFile($filename, $filters)
+    {
+        $storageDir = storage_path();
+        $filePath = $storageDir . DIRECTORY_SEPARATOR . $filename;
+        Log::debug('Opening File to write filters to it: ' . $filePath);
+        $file = fopen($filePath, 'w');
+
+        foreach ($filters as $filter) {
+            fprintf($file, "%s\n", $filter->rule);
         }
 
-        public function buildRuleset($namespace, $category, $type, $filterList) {
-            $filename = $this->getFilename($namespace, $category, "$type.txt");
+        fclose($file);
+        Log::debug('Closing File to write filters to it: ' . $filePath);
 
-            $filePath = $this->buildFile($filename, TextFilteringRule::where('filter_list_id', '=', $filterList->id)->cursor());
-            
-            $filterList->file_sha1 = $this->getEtag($filePath);
-            $filterList->save();
-            
-            return $filePath;
-        }
+        return $filePath;
+    }
 
-        public function buildRuleData() {
-            Log::debug('Building Rule Data');
-            foreach(FilterList::cursor() as $list) {
-                if (!is_null($list)) {
-		    Log::debug('List: ' . $list->namespace . ' Category: ' . $list->category . ' Type: ' . $list->type . ' ID: ' . $list->id);
+    public function buildRuleset($namespace, $category, $type, $filterList)
+    {
+        $filename = $this->getFilename($namespace, $category, "$type.txt");
 
-                    $listNamespace = $list->namespace;
-                    $listCategory = $list->category;
-                    $listType = $list->type;
-                    $listId = $list->id;
+        $filePath = $this->buildFile($filename, TextFilteringRule::where('filter_list_id', '=', $filterList->id)->cursor());
 
-                    switch ($listType) {
-                        case 'Filters':{
-                                $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'rules.txt', '/');
-                                
-                                $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'rules', $list);
-                            }
-                            break;
+        $filterList->file_sha1 = $this->getEtag($filePath);
+        $filterList->save();
+        $filterList->updateEntriesCount();
 
-                        case 'Triggers':{
-                                $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'triggers.txt', '/');
-                                
-                                $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'triggers', $list);
-                            }
-                            break;
+        return $filePath;
+    }
 
-                        case 'NLP':{
+    public function buildRuleData()
+    {
+        Log::debug('Building Rule Data');
+        foreach (FilterList::cursor() as $list) {
+            if (!is_null($list)) {
+                Log::debug('List: ' . $list->namespace . ' Category: ' . $list->category . ' Type: ' . $list->type . ' ID: ' . $list->id);
 
-                                $entryRelativePath = '/' . $listNamespace . '/nlp/nlp.model';
+                $listNamespace = $list->namespace;
+                $listCategory = $list->category;
+                $listType = $list->type;
+                $listId = $list->id;
 
-                                if (!array_key_exists($entryRelativePath, $nlpEnabledCategories)) {
+                switch ($listType) {
+                    case 'Filters':
+                        {
+                            $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'rules.txt', '/');
 
-                                    // Because of our weird setup here with NLP list entries, we
-                                    // have to get all entries for this namespace to accurately
-                                    // track down the BLOB entry for the actual NLP model that
-                                    // this selected category belongs to.
-                                    $allNlpListForNamespace = FilterList::where(['namespace' => $listNamespace, 'type' => 'NLP'])->get();
+                            $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'rules', $list);
+                        }
+                        break;
 
-                                    $filter = null;
-                                    foreach ($allNlpListForNamespace as $nlpListInNamespace) {
-                                        if (is_null($filter)) {
-                                            $filter = NlpFilteringRule::where('filter_list_id', '=', $nlpListInNamespace->id)->first();
-                                        }
+                    case 'Triggers':
+                        {
+                            $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'triggers.txt', '/');
+
+                            $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'triggers', $list);
+                        }
+                        break;
+
+                    case 'NLP':
+                        {
+
+                            $entryRelativePath = '/' . $listNamespace . '/nlp/nlp.model';
+
+                            if (!array_key_exists($entryRelativePath, $nlpEnabledCategories)) {
+
+                                // Because of our weird setup here with NLP list entries, we
+                                // have to get all entries for this namespace to accurately
+                                // track down the BLOB entry for the actual NLP model that
+                                // this selected category belongs to.
+                                $allNlpListForNamespace = FilterList::where(['namespace' => $listNamespace, 'type' => 'NLP'])->get();
+
+                                $filter = null;
+                                foreach ($allNlpListForNamespace as $nlpListInNamespace) {
+                                    if (is_null($filter)) {
+                                        $filter = NlpFilteringRule::where('filter_list_id', '=', $nlpListInNamespace->id)->first();
                                     }
-
-                                    $nlpEnabledCategories[$entryRelativePath] = array();
                                 }
 
-                                // Add this enabled NLP category to the already-discovered NLP model.
-                                // We'll sort through each model path (as the key) and create a valid
-                                // NLPConfigurationModel instance for each with a list of enabled
-                                // categories (array value) later.
-                                array_push($nlpEnabledCategories[$entryRelativePath], $listCategory);
+                                $nlpEnabledCategories[$entryRelativePath] = array();
                             }
-                            break;
 
-                        case 'VISUAL':{
+                            // Add this enabled NLP category to the already-discovered NLP model.
+                            // We'll sort through each model path (as the key) and create a valid
+                            // NLPConfigurationModel instance for each with a list of enabled
+                            // categories (array value) later.
+                            array_push($nlpEnabledCategories[$entryRelativePath], $listCategory);
+                        }
+                        break;
 
-                                $filter = TextFilteringRule::where('filter_list_id', '=', $listId)->first();
+                    case 'VISUAL':
+                        {
 
-                                $entryRelativePath = '/' . $listNamespace . '/visual/' . '/visual.vv';
-                            }
-                            break;
-                    }
+                            $filter = TextFilteringRule::where('filter_list_id', '=', $listId)->first();
+
+                            $entryRelativePath = '/' . $listNamespace . '/visual/' . '/visual.vv';
+                        }
+                        break;
                 }
             }
         }
+    }
 }
 

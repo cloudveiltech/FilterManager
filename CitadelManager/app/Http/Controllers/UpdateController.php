@@ -109,13 +109,14 @@ class UpdateController extends Controller
             ->header('Content-Type', 'text/xml');
     }
 
-    public function downloadRelease(Request $request, $activationId, $fileName) {
-        if($activationId == "acid") {
+    public function downloadRelease(Request $request, $activationId, $fileName)
+    {
+        if ($activationId == "acid") {
             $activationId = "";
         }
         Log::info("Update download from " . $request->ip() . " id: " . $activationId);
         AppUserActivation::setLastUpdateRequestTime($request->ip(), $activationId);
-        $file=  public_path(). "/releases/" . $fileName;
+        $file = public_path() . "/releases/" . $fileName;
         return response()->download($file);
     }
 

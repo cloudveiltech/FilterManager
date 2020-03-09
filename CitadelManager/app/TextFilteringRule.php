@@ -25,7 +25,7 @@ class TextFilteringRule extends Model
      * @var array
      */
     protected $fillable = [
-        'filterlist_id', 'sha1', 'rule',
+        'filter_list_id', 'sha1', 'rule',
     ];
 
 }

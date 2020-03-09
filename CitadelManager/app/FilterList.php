@@ -19,16 +19,6 @@ class FilterList extends Model
 {
 
     public $timestamps = true;
-
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
-     */
-    protected $appends = ['entries_count'];
-
-    protected $hidden = ['textRulesCountRelation'];
-
     /**
      * The attributes that are mass assignable.
      *
@@ -39,36 +29,6 @@ class FilterList extends Model
     ];
 
     /**
-     * Gets all text rule entries for this filter list.
-     * @return type
-     */
-    public function textRulesCountRelation()
-    {
-        return $this->hasOne('App\TextFilteringRule')->selectRaw('filter_list_id, count(*) as count')->groupBy('filter_list_id');
-    }
-
-    /**
-     * Gets the number of rule entries for this filter list.
-     * @return type
-     */
-    public function getEntriesCountAttribute()
-    {
-        $sum = 0;
-        $textRelation = $this->textRulesCountRelation()->first();
-
-        if (!is_null($textRelation)) {
-            $sum = $textRelation->count;
-        } else {
-            // For list like NLP and Visual models, we'll just
-            // return a count of 1, since there is no line
-            // count or rule count per-se.
-            $sum = 1;
-        }
-
-        return $sum;
-    }
-
-    /**
      * Gets the groups that have this filter list assigned.
      * @return type
      */
@@ -77,4 +37,7 @@ class FilterList extends Model
         return $this->belongsToMany('App\Group');
     }
 
+    public function updateEntriesCount() {
+        DB::statement("UPDATE filter_lists SET entries_count=(SELECT count(1) FROM text_filtering_rules WHERE filter_list_id=filter_lists.id) WHERE id=" . $this->id);
+    }
 }

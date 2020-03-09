@@ -33,21 +33,22 @@ class FilterListController extends Controller
      **/
     public function triggerUpdate(Request $request)
     {
-	    $timestamp = Carbon::now()->toIso8601ZuluString();
-	    $client = new Client();
-	    $filename = 'export.zip';
-	    if ($request->has('file')) {
-	        $filename = $request->input('file');
+        $timestamp = Carbon::now()->toIso8601ZuluString();
+        $client = new Client();
+        $filename = 'export.zip';
+        if ($request->has('file')) {
+            $filename = $request->input('file');
             $filename = preg_replace('/[^0-9a-zA-Z\-_]+/', '', $filename);
         }
         $results = 'Downloading File from ' . config('app.default_list_export_url') . $filename . '<br>';
-	    $response = $client->get(config('app.default_list_export_url') . $filename);
+        $response = $client->get(config('app.default_list_export_url') . $filename);
         $results .= 'Saving to: ' . $timestamp . '.zip<br>';
         Storage::put('export' . $timestamp . '.zip', $response->getBody());
         ProcessTextFilterArchiveUpload::dispatch('default', storage_path('app/export' . $timestamp . '.zip'), true);
         $results .= 'Import has been triggered.<br>';
-	    return response($results);
-    }	    
+        return response($results);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -124,8 +125,7 @@ class FilterListController extends Controller
 
     public function get_filters()
     {
-        $data = FilterList::with("textRulesCountRelation")->get()->all();
-        return $data;
+        return FilterList::all();
     }
 
     /**
@@ -142,7 +142,7 @@ class FilterListController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -179,7 +179,7 @@ class FilterListController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
@@ -214,7 +214,8 @@ class FilterListController extends Controller
             switch ($existingList->type) {
                 // For NLP and Visual models, we have to delete all entries.
                 case 'VISUAL':
-                case 'NLP':{
+                case 'NLP':
+                    {
                         $existingSiblingLists = FilterList::where(['namespace' => $existingList->namespace, 'type' => $existingList->type])->get();
                         if (!is_null($existingSiblingLists)) {
                             foreach ($existingSiblingLists as $existingSibling) {
@@ -231,7 +232,8 @@ class FilterListController extends Controller
                     }
                     break;
 
-                default:{
+                default:
+                    {
                         // It was only a text list, so just delete this entry.
                         $existingList->delete();
                     }
@@ -262,16 +264,16 @@ class FilterListController extends Controller
         $globalFilterRules = new FilterRulesManager();
         $globalFilterRules->buildRuleData();
 
-	Log::debug('Rebuilding Group Data.  Total Groups: ' . count($arrOfGroupIds));
-	$count = 0;
+        Log::debug('Rebuilding Group Data.  Total Groups: ' . count($arrOfGroupIds));
+        $count = 0;
         foreach ($arrOfGroupIds as $groupId) {
             $thisGroup = Group::where('id', $groupId)->first();
 
             if (!is_null($thisGroup)) {
-		Log::debug('Rebuilding Group ' . $count . ' of ' . count($arrOfGroupIds) . ' --- ' . $thisGroup->name);
+                Log::debug('Rebuilding Group ' . $count . ' of ' . count($arrOfGroupIds) . ' --- ' . $thisGroup->name);
                 $thisGroup->rebuildGroupData();
             }
-	    $count++;
+            $count++;
         }
     }
 
@@ -301,7 +303,8 @@ class FilterListController extends Controller
 
         foreach ($listFile as $file) {
             switch (strtolower($file->getClientOriginalExtension())) {
-                case 'zip':{
+                case 'zip':
+                    {
                         $storedFile = $file->store('zip_uploads');
                         $success = ProcessTextFilterArchiveUpload::dispatch(
                             $listNamespace,
@@ -311,18 +314,21 @@ class FilterListController extends Controller
                     }
                     break;
 
-                case 'model':{
+                case 'model':
+                    {
 
                         $success = $this->processNlpModel($listNamespace, $file, $shouldOverwrite);
                     }
                     break;
 
-                case 'vv':{
+                case 'vv':
+                    {
                         $success = $this->processVisualModel($listNamespace, $file, $shouldOverwrite);
                     }
                     break;
 
-                default:{
+                default:
+                    {
                         return response('Uploaded file type not supported.', 400);
                     }
             }
@@ -338,8 +344,8 @@ class FilterListController extends Controller
     /**
      * Deletes all filter lists and their entries within the given namespace, and
      * if supplied, category.
-     * @param type $namespace   The namespace to delete all filtering lists from. Required.
-     * @param type $type        The type of filter list to constrain the mass deletion to. Optional.
+     * @param type $namespace The namespace to delete all filtering lists from. Required.
+     * @param type $type The type of filter list to constrain the mass deletion to. Optional.
      * @return type             Void
      */
     public function deleteAllListsInNamespace($namespace, $type = null)
@@ -379,13 +385,14 @@ class FilterListController extends Controller
         return response('Namespace parameter, which is required, was null.', 400);
     }
 
-    private function loopIterator($itr, $leafFunction) {
-        if(!$itr->hasChildren()) {
+    private function loopIterator($itr, $leafFunction)
+    {
+        if (!$itr->hasChildren()) {
             $leafFunction($itr->current(), true);
         } else {
             $leafFunction($itr->current(), false);
-            
-            foreach($itr->getChildren() as $childItr) {
+
+            foreach ($itr->getChildren() as $childItr) {
                 $this->loopIterator($itr, $leafFunction);
             }
 
@@ -395,9 +402,9 @@ class FilterListController extends Controller
     /**
      * Processes an uploaded archive, extracting the text files inside and processing
      * them according to their type and category.
-     * @param string $namespace     The namespace of the parent filter list.
-     * @param string $file    The location of the file to be processed.
-     * @param bool $overwrite       Whether or not to overwrite.
+     * @param string $namespace The namespace of the parent filter list.
+     * @param string $file The location of the file to be processed.
+     * @param bool $overwrite Whether or not to overwrite.
      */
     public function processTextFilterArchive(string $namespace, string $tmpArchiveLoc, bool $overwrite)
     {
@@ -433,7 +440,7 @@ class FilterListController extends Controller
         // This is not necessary for other types of filter data, such as NLP
         // models, because there can only be 1 per category.
         $purgedCategories = array();
-        
+
         $zippedData = new \PharData($tmpArchiveLoc);
 
         $pharIterator = new \RecursiveIteratorIterator($zippedData, \RecursiveIteratorIterator::CHILD_FIRST);
@@ -476,29 +483,32 @@ class FilterListController extends Controller
                     case 'domains':
                     case 'domains.txt':
                     case 'urls':
-                    case 'urls.txt':{
+                    case 'urls.txt':
+                        {
                             // These rules get converted to ABP filters.
                             $finalListType = 'Filters';
                             $convertToAbp = true;
-                                    }
-                                    break;
+                        }
+                        break;
 
                     case 'triggers':
-                    case 'triggers.txt':{
-                                            // These rules are untouched.
-                                            $finalListType = 'Triggers';
-                                        }
-                                        break;
+                    case 'triggers.txt':
+                        {
+                            // These rules are untouched.
+                            $finalListType = 'Triggers';
+                        }
+                        break;
 
                     case 'rules':
                     case 'filters':
                     case 'filters.txt':
-                    case 'rules.txt':{
-                                         // These rules are untouched. Assumed to already
-                                         // be in ABP filter format.
-                                         $finalListType = 'Filters';
-                                     }
-                                     break;
+                    case 'rules.txt':
+                        {
+                            // These rules are untouched. Assumed to already
+                            // be in ABP filter format.
+                            $finalListType = 'Filters';
+                        }
+                        break;
                 }
 
                 if (is_null($finalListType)) {
@@ -509,7 +519,7 @@ class FilterListController extends Controller
 
                 // Delete existing if overwrite is true.
                 if ($overwrite) {
-		    Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
+                    Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
 
                     $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
                     if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
@@ -570,29 +580,33 @@ class FilterListController extends Controller
                     // In case this is existing, pull group assignment of this filter.
                     $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
 
-                    $this->processTextFilterFile($pharFileInfo->openFile('r'), false, $newFilterListEntry->id);
+                    $listCount = $this->processTextFilterFile($pharFileInfo->openFile('r'), false, $newFilterListEntry->id);
 
                     // Update updated_at timestamps.
+                    $newFilterListEntry->entries_count = $listCount;
                     $newFilterListEntry->touch();
                 }
+
+
+                $newFilterListEntry->updateEntriesCount();
             }
         }
 
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
         $this->forceRebuildOnGroups($affectedGroups);
-	Log::info('Removing Archived File: ' . $tmpArchiveLoc);
+        Log::info('Removing Archived File: ' . $tmpArchiveLoc);
         if (file_exists($tmpArchiveLoc)) {
             unlink($tmpArchiveLoc);
-	}
+        }
     }
 
     /**
      * Processes the supplied text file line by line, according to its type,
      * generates rules from those lines and stores them.
-     * @param \SplFileObject $file  The source text file.
-     * @param bool $convertToAbp    Whether or not to format the rule lines as ABP filters.
-     * @param int $parentListId     The DB ID of the parent filter list.
+     * @param \SplFileObject $file The source text file.
+     * @param bool $convertToAbp Whether or not to format the rule lines as ABP filters.
+     * @param int $parentListId The DB ID of the parent filter list.
      */
     private function processTextFilterFile(\SplFileObject $file, bool $convertToAbp, int $parentListId)
     {
@@ -602,14 +616,16 @@ class FilterListController extends Controller
             $lineFeedFunc = null;
 
             switch ($convertToAbp) {
-                case true:{
+                case true:
+                    {
                         $lineFeedFunc = function (string $in): string {
                             return $this->formatStringAsAbpFilter(trim($in));
                         };
                     }
                     break;
 
-                case false:{
+                case false:
+                    {
                         $lineFeedFunc = function (string $in): string {
                             return trim($in);
                         };
@@ -636,28 +652,28 @@ class FilterListController extends Controller
 
                 // Doing a mass insert of 5K at a time seems to be best.
                 if ($count > 4999) {
-		    Log::debug('Writing 5000 lines into DB: ' . $parentListId);
-		    Log::debug($fillArr);
+                    Log::debug('Writing 5000 lines into DB: ' . $parentListId);
+                    Log::debug($fillArr);
                     $results = TextFilteringRule::insertIgnore($fillArr);
-		    Log::debug($results);
+                    Log::debug($results);
 
                     $fillArr = array();
                     $count = 0;
                 }
-		$lineCount++;
+                $lineCount++;
             }
-	    if ($lineCount === 0) {
-		Log::error('No lines in this file.');
-	    }
+            if ($lineCount === 0) {
+                Log::error('No lines in this file.');
+            }
 
             if ($count > 0) {
-		Log::debug($fillArr);
+                Log::debug($fillArr);
                 $results = TextFilteringRule::insertIgnore($fillArr);
-		Log::debug($results);
+                Log::debug($results);
                 $fillArr = array();
                 $count = 0;
             }
-        } catch(Exception $ex) {
+        } catch (Exception $ex) {
             Log::error("Error occurred while processing text filter file $ex");
             throw $ex;
         }

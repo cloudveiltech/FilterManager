@@ -63,6 +63,7 @@ class Group extends Model
 
         return $this->hasMany('App\GroupFilterAssignment');
     }
+
     public function userCount()
     {
         // From the docs:
@@ -73,6 +74,7 @@ class Group extends Model
 
         return $this->hasMany('App\User');
     }
+
     public function getGroupDataPayloadPath(): string
     {
         $storageDir = storage_path();
@@ -88,7 +90,7 @@ class Group extends Model
 
     public function rebuildGroupData()
     {
-	$filterRulesManager = new \App\FilterRulesManager();
+        $filterRulesManager = new \App\FilterRulesManager();
         $groupDataZipPath = $this->getGroupDataPayloadPath();
         Log::debug('Creating or overwriting zip file at location: ' . $groupDataZipPath);
         $zip = new \ZipArchive();
@@ -115,7 +117,8 @@ class Group extends Model
                 $listId = $list->id;
 
                 switch ($listType) {
-                    case 'Filters':{
+                    case 'Filters':
+                        {
 
                             $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/rules.txt';
 
@@ -127,54 +130,56 @@ class Group extends Model
                                 array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::BypassList, $entryRelativePath));
                             }
 
-			    $fileName = $filterRulesManager->getFilename($listNamespace, $listCategory, 'rules.txt');
-			    $storageDir = storage_path();
-            		    $filterFile = $storageDir . DIRECTORY_SEPARATOR . $fileName;
+                            $fileName = $filterRulesManager->getFilename($listNamespace, $listCategory, 'rules.txt');
+                            $storageDir = storage_path();
+                            $filterFile = $storageDir . DIRECTORY_SEPARATOR . $fileName;
 
-			    if (file_exists($filterFile)) {
-			        //Log::error('We should be including this file rather than exporting everything again: ' . $filterFile);
-			        Log::debug('Adding File: ' . $filterFile);
+                            if (file_exists($filterFile)) {
+                                //Log::error('We should be including this file rather than exporting everything again: ' . $filterFile);
+                                Log::debug('Adding File: ' . $filterFile);
                                 $zip->addFile($filterFile, $entryRelativePath);
-			    } else {
-			        Log::error('File Does Not Exist: ' . $filterFile);
+                            } else {
+                                Log::error('File Does Not Exist: ' . $filterFile);
                                 $inMemFilterFile = '';
                                 $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
 
                                 foreach ($filters as $filter) {
                                     $inMemFilterFile .= $filter->rule . "\n";
-			        }
+                                }
                                 $zip->addFromString($entryRelativePath, $inMemFilterFile);
-			    }
+                            }
                         }
                         break;
 
-                    case 'Triggers':{
+                    case 'Triggers':
+                        {
                             $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/triggers.txt';
 
                             array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::TextTrigger, $entryRelativePath));
 
-			    $fileName = $filterRulesManager->getFilename($listNamespace, $listCategory, 'triggers.txt');
-			    $storageDir = storage_path();
-            		    $filterFile = $storageDir . DIRECTORY_SEPARATOR . $fileName;
-			    if (file_exists($filterFile)) {
-			        //Log::error('We should be including this file rather than exporting everything again: ' . $filterFile);
-			        Log::debug('Adding File: ' . $filterFile);
+                            $fileName = $filterRulesManager->getFilename($listNamespace, $listCategory, 'triggers.txt');
+                            $storageDir = storage_path();
+                            $filterFile = $storageDir . DIRECTORY_SEPARATOR . $fileName;
+                            if (file_exists($filterFile)) {
+                                //Log::error('We should be including this file rather than exporting everything again: ' . $filterFile);
+                                Log::debug('Adding File: ' . $filterFile);
                                 $zip->addFile($filterFile, $entryRelativePath);
-			    } else {
-			        Log::error('File Does Not Exist: ' . $filterFile);
-                            	$inMemFilterFile = '';
+                            } else {
+                                Log::error('File Does Not Exist: ' . $filterFile);
+                                $inMemFilterFile = '';
                                 $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
 
                                 foreach ($filters as $filter) {
                                     $inMemFilterFile .= $filter->rule . "\n";
-			        }
+                                }
                                 $zip->addFromString($entryRelativePath, $inMemFilterFile);
 
-			    }
+                            }
                         }
                         break;
 
-                    case 'NLP':{
+                    case 'NLP':
+                        {
 
                             $entryRelativePath = '/' . $listNamespace . '/nlp/nlp.model';
 
@@ -208,7 +213,8 @@ class Group extends Model
                         }
                         break;
 
-                    case 'VISUAL':{
+                    case 'VISUAL':
+                        {
 
                             $filter = TextFilteringRule::where('filter_list_id', '=', $listId)->first();
 
@@ -265,7 +271,7 @@ class Group extends Model
         );
 
         $this->config_cache = $serializedFinalConfiguration;
-	Log::info('Caching Config.  Done rebuilding group data for group ' . $this->id);
+        Log::info('Caching Config.  Done rebuilding group data for group ' . $this->id);
     }
 
     public function destroyGroupData()
