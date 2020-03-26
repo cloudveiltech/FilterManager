@@ -32,6 +32,7 @@ class UpdateController extends Controller
 
         if ($platforms->count() > 0) {
             $os = $platforms->first();
+            $arr_data["os_name"] = $os->os_name;
             $platform_id = $os->id;
             $versions = SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
             if ($versions->count() > 0) {
