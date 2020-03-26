@@ -38,7 +38,7 @@ class FilterListController extends Controller
         $filename = 'export.zip';
         if ($request->has('file')) {
             $filename = $request->input('file');
-            $filename = preg_replace('/[^0-9a-zA-Z\-_]+/', '', $filename);
+            $filename = preg_replace('/[^0-9a-zA-Z\-_\.]+/', '', $filename);
         }
         $results = 'Downloading File from ' . config('app.default_list_export_url') . $filename . '<br>';
         $response = $client->get(config('app.default_list_export_url') . $filename);
