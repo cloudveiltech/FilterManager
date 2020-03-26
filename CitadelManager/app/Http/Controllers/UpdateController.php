@@ -106,7 +106,7 @@ class UpdateController extends Controller
         }
 
         return response()
-            ->view('update.windows.update_xml', $arr_data)
+            ->view('update.update_xml', $arr_data)
             ->header('Content-Type', 'text/xml');
     }
 
