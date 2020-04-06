@@ -363,7 +363,7 @@ class UserController extends Controller
 
         // format of each array key: /{namespace}/{category}/{type}.txt
         foreach($array as $key => $value) {
-            if($key == 'identifier' || $key == 'device_id' || key == 'os') {
+            if($key == 'identifier' || $key == 'device_id' || $key == 'os') {
                 continue;
             }
 
