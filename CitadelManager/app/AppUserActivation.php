@@ -13,7 +13,7 @@ class AppUserActivation extends Model
         'identifier', 'device_id', 'user_id', 'ip_address',
         'bypass_quantity','bypass_period','bypass_used', 'report_level',
         'check_in_days', 'alert_partner','config_override', 'last_update_requested_time',
-        'last_sync_time'
+        'last_sync_time', 'platform_name'
     ];
 
     public function user()

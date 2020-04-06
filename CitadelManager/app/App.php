@@ -14,7 +14,7 @@ class App extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'notes',
+        'name', 'notes', 'platform_name'
     ];
 
     public function group()

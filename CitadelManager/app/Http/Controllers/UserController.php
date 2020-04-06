@@ -9,12 +9,14 @@
 
 namespace App\Http\Controllers;
 
+use App\App;
 use App\FilterRulesManager;
 use App\AppUserActivation;
 use App\DeactivationRequest;
 use App\Events\DeactivationRequestReceived;
 use App\Group;
 use App\Role;
+use App\SystemPlatform;
 use App\User;
 use App\UserActivationAttemptResult;
 use App\FilterList;
@@ -655,6 +657,14 @@ class UserController extends Controller
 
 		$configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
+
+		//temp patch for using whitelist apps on OSX
+        //TODO add management for this
+		if($activation->platform_name == "OSX") {
+            unset($configuration["BlacklistedApplications"]);
+		    $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
+        }
+
 		if(!is_null($configuration)) {
 			return $configuration;
 		} else {
@@ -874,6 +884,11 @@ class UserController extends Controller
         if ($request->has('identifier')) {
             $input = $request->input();
 
+            $os = SystemPlatform::PLATFORM_SUPPORTED[0];
+            if(!empty($input["os"]) && in_array($input["os"], SystemPlatform::PLATFORM_SUPPORTED)) {
+                $os = $input["os"];
+            }
+
             $args = [$input['identifier']];
             $whereStatement = "identifier = ?";
 
@@ -897,6 +912,8 @@ class UserController extends Controller
                 if ($token) {
                     $activation->token_id = $token->id;
                 }
+
+                $activation->platform_name = $os;
                 $activation->save();
                 //Log::debug('Activation Exists.  Saved'); 
             } else {
@@ -908,6 +925,7 @@ class UserController extends Controller
                 $activation->device_id = $request->input('device_id');
                 $activation->identifier = $request->input('identifier');
                 $activation->ip_address = $request->ip();
+                $activation->platform_name = $os;
                 if ($token) {
                     $activation->token_id = $token->id;
                 }

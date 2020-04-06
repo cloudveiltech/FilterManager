@@ -36,6 +36,7 @@ namespace Citadel {
         private m_appGroupName          : string;
         private m_selectedApps          : string;
         private m_registeredAt          : string;
+        private m_os                    : string;
         private m_leftApps              : any[];
         private m_rightApps             : any[];
 
@@ -293,6 +294,7 @@ namespace Citadel {
             this.m_appGroupName         = data['group_name'] as string;
             this.m_groupApp             = data['group_app'] as object;
             this.m_registeredAt         = data['dt'] as string;
+            this.m_os                   = data['os_platform'] as string;
         }
 
         protected LoadFromForm(): void {

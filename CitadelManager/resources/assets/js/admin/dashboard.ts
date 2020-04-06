@@ -902,6 +902,12 @@ namespace Citadel {
                         data: 'updated_at',
                         visible: true,
                         width: '220px'
+                    },
+                    {
+                        title: 'OS Platform',
+                        data: 'os',
+                        visible: true,
+                        width: '30px'
                     }
                 ];
 
@@ -1097,6 +1103,12 @@ namespace Citadel {
                         visible: true,
                         width: '170px',
                         className: 'updated_date'
+                    },
+                    {
+                        title: 'OS Platform',
+                        data: 'os',
+                        visible: true,
+                        width: '30px'
                     }
                 ];
 

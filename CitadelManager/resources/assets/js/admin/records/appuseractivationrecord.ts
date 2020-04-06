@@ -41,6 +41,7 @@ namespace Citadel {
         private m_bypassPeriod              : number;
         private m_bypassUsed                : number;
         private m_reportLevel               : number;
+        private m_os                        : string;
 
         private configOverride : any;
         private selfModeration : any;
@@ -157,6 +158,7 @@ namespace Citadel {
             this.m_bypassPeriod     = (data['bypass_period'] != null) ? data['bypass_period'] as number : null;
             this.m_bypassUsed       = data['bypass_used'] as number;
             this.m_reportLevel      = data['report_level'] as number;
+            this.m_os               = data['platform_name'] as string;
 
             if('config_override' in data && data['config_override'] != null) {
                 try {
