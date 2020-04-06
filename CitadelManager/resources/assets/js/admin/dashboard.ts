@@ -905,7 +905,7 @@ namespace Citadel {
                     },
                     {
                         title: 'OS Platform',
-                        data: 'os',
+                        data: 'platform_name',
                         visible: true,
                         width: '30px'
                     }
@@ -1106,7 +1106,7 @@ namespace Citadel {
                     },
                     {
                         title: 'OS Platform',
-                        data: 'os',
+                        data: 'platform_name',
                         visible: true,
                         width: '30px'
                     }
