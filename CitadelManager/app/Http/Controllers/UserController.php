@@ -690,6 +690,14 @@ class UserController extends Controller
         $userGroup = $thisUser->group()->first();
         
 		$configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
+
+        //temp patch for using whitelist apps on OSX
+        //TODO add management for this
+        if($activation->platform_name == "OSX") {
+            unset($configuration["BlacklistedApplications"]);
+            $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
+        }
+        
 		if(!is_null($configuration)) {
 			return [ 'sha1' => sha1(json_encode($configuration)) ];
 		} else {
