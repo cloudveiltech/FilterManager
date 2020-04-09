@@ -697,7 +697,7 @@ class UserController extends Controller
             unset($configuration["BlacklistedApplications"]);
             $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
         }
-        
+
 		if(!is_null($configuration)) {
 			return [ 'sha1' => sha1(json_encode($configuration)) ];
 		} else {

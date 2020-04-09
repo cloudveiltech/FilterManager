@@ -140,6 +140,7 @@ class User extends Authenticatable
 
         $userInfo = $request->only(['identifier', 'device_id']);
         $userInfo['user_id'] = $this->id;
+        $userInfo['platform_name'] = $request->input("os", "WIN");
 
         try
         {
