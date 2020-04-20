@@ -26,7 +26,7 @@ class FilterList extends Model
      * @var array
      */
     protected $fillable = [
-        'namespace', 'category', 'type', 'file_sha1', 'created_at', 'updated_at',
+        'namespace', 'category', 'type', 'file_sha1', 'created_at', 'updated_at', 'entries_count'
     ];
 
     /**
