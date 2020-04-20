@@ -24,7 +24,7 @@
                         </div>
                     </div>
 
-                    <div class="cell cell-auto-size" style="margin-right: 20px">>
+                    <div class="cell cell-auto-size" style="margin-right: 20px">
                         <div class="input-control text app_editor_control" data-role="input">
                             <label for="editor_application_notes">Notes:</label>
                             <input type="text" name="editor_application_notes" id="editor_application_notes" />
