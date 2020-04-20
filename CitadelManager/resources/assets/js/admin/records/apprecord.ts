@@ -37,6 +37,7 @@ namespace Citadel {
         private m_appName           : string;
         private m_appNotes          : string;
         private m_registeredAt      : string;
+        private m_platformName      : string;
 
         private m_appGroups         : any[];
         private m_selectedGroups    : any[];
@@ -44,7 +45,7 @@ namespace Citadel {
 
         //
         // ─────────────────────────────────────────────────────────
-        //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
+        //   :::::: E D I T O R   HT M L   E L E M E N T S ::::::
         // ─────────────────────────────────────────────────────────
         //
 
@@ -55,6 +56,8 @@ namespace Citadel {
 
         private m_inputAppName      : HTMLInputElement;
         private m_inputAppNotes     : HTMLInputElement;
+        private m_inputPlatfornName : HTMLInputElement;
+
 
         private m_selectLeft        : HTMLSelectElement;
         private m_selectRight       : HTMLSelectElement;
@@ -121,6 +124,7 @@ namespace Citadel {
 
             this.m_btnSubmit                = document.querySelector('#application_editor_submit') as HTMLButtonElement;
             this.m_btnCancel                = document.querySelector('#application_editor_cancel') as HTMLButtonElement;
+            this.m_inputPlatfornName         = document.querySelector('#app_platform_name') as HTMLInputElement;
             this.InitButtonHandlers();
         }
 
@@ -298,11 +302,14 @@ namespace Citadel {
             this.m_appName          = data['name'] as string;
             this.m_appNotes         = data['notes'] as string;
             this.m_registeredAt     = data['dt'] as string;
+
+            this.m_platformName     = data['platform_name'] as string;
         }
 
         protected LoadFromForm(): void {
             this.m_appName          = this.m_inputAppName.value;
             this.m_appNotes         = this.m_inputAppNotes.value;
+            this.m_platformName     = this.m_inputPlatfornName.value;
         }
 
         public StartEditing(userData: Object = null): void {
@@ -312,6 +319,7 @@ namespace Citadel {
                         // Creating a new object here.
                         this.m_editorTitle.innerText = this.TITLE_NEW_APP;
                         this.m_btnSubmit.innerText = this.BTN_LABEL_ADD_APP;
+                        this.m_inputPlatfornName.value = "WIN";
                         this.m_mainForm.reset();
                         this._getAppGroupData(false);
                     }
@@ -326,6 +334,8 @@ namespace Citadel {
                         this.m_btnSubmit.innerText = this.BTN_LABEL_EDIT_APP;
                         this.m_inputAppName.value = this.m_appName;
                         this.m_inputAppNotes.value = this.m_appNotes;
+                        this.m_inputPlatfornName.value = this.m_platformName;
+
                         this._getAppGroupData(true);
                     }
                     break;
@@ -357,7 +367,8 @@ namespace Citadel {
                 'name'              : this.m_appName,
                 'notes'             : this.m_appNotes,
                 'dt'                : this.m_registeredAt,
-                'assigned_appgroup' : this.m_selectedGroups
+                'assigned_appgroup' : this.m_selectedGroups,
+                'platform_name'     : this.m_platformName
             };
 
             return obj;

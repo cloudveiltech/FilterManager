@@ -33,6 +33,16 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="cell cell-auto-size">
+                        <div class="input-control text app_editor_control" data-role="input">
+                            <label for="editor_application_notes">OS:</label>
+                            <select class="form-control" id="app_platform_name">
+                                <option value="WIN" selected>WIN</option>
+                                <option value="OSX">OSX</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="cell colspan5">

@@ -100,7 +100,7 @@ class ApplicationController extends Controller
             'name' => 'required',
         ]);
 
-        $input = $request->only(['name', 'notes']);
+        $input = $request->only(['name', 'notes', 'platform_name']);
 
         $app = App::create($input);
 
@@ -146,7 +146,7 @@ class ApplicationController extends Controller
         // password or password_verify unless they are
         // intentionally trying to change a user's password.
 
-        $input = $request->only(['name', 'notes']);
+        $input = $request->only(['name', 'notes', 'platform_name']);
         App::where('id', $id)->update($input);
 
         $assigned_groups = $request->only('assigned_appgroup');
