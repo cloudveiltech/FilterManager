@@ -29,6 +29,10 @@ class FilterList extends Model
         'namespace', 'category', 'type', 'file_sha1', 'created_at', 'updated_at', 'entries_count'
     ];
 
+    protected $attributes = [
+        'entries_count' => 0
+    ];
+
     /**
      * Gets the groups that have this filter list assigned.
      * @return type

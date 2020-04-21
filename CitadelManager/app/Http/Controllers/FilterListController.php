@@ -534,7 +534,7 @@ class FilterListController extends Controller
                     }
                 }
 
-                $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType, 'entries_count' => 0]);
+                $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
 
                 // We have to do this for the event where the user selects overwrite on the upload,
                 // yet one or more of the lists didn't exist already. Otherwise, same problem will
@@ -555,7 +555,7 @@ class FilterListController extends Controller
                 // We will also convert these to triggers.
                 if ($convertToAbp == true) {
                     Log::debug('Converting List to ABP format');
-                    $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => 'Triggers', 'entries_count' => 0]);
+                    $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => 'Triggers']);
 
                     // We have to do this for the event where the user selects overwrite on the upload,
                     // yet one or more of the lists didn't exist already. Otherwise, same problem will
