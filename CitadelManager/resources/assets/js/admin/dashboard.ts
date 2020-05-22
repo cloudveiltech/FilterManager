@@ -720,8 +720,8 @@ namespace Citadel {
                         visible: true
                     },
                     {
-                        title: 'Date Created',
-                        data: 'created_at',
+                        title: 'Date Updated',
+                        data: 'updated_at',
                         visible: true,
                         width: '180px',
                         className: 'updated_date'
