@@ -585,20 +585,20 @@ class UserController extends Controller
             if ($activation->config_override) {
 				$activationConfig = json_decode($activation->config_override, true);
 
-				if(isset($activationConfig['SelfModeration']) && isset($configuration['SelfModeration'])) {
-					$selfModeration = $configuration['SelfModeration'];
+				if(isset($activationConfig['SelfModeration'])) {
+					$selfModeration = $activationConfig['SelfModeration'];
 				} else {
 					$selfModeration = null;
 				}
 
-				if(isset($activationConfig['CustomWhitelist']) && isset($configuration['CustomWhitelist'])) {
-					$customWhitelist = $configuration['CustomWhitelist'];
+				if(isset($activationConfig['CustomWhitelist'])) {
+					$customWhitelist = $activationConfig['CustomWhitelist'];
 				} else {
 					$customWhitelist = null;
 				}
 
-				if(isset($activationConfig['CustomTriggerBlacklist']) && isset($configuration['CustomTriggerBlacklist'])) {
-					$customTriggerBlacklist = $configuration->CustomTriggerBlacklist;
+				if(isset($activationConfig['CustomTriggerBlacklist'])) {
+					$customTriggerBlacklist = $activationConfig['CustomTriggerBlacklist'];
 				} else {
 					$customTriggerBlacklist = null;
 				}
