@@ -603,17 +603,18 @@ class UserController extends Controller
 					$customTriggerBlacklist = null;
 				}
 
+				$activationConfig = Utils::purgeNulls($activationConfig);
                 $configuration = array_merge($configuration, $activationConfig);
 
-				if($selfModeration != null) {
+				if($selfModeration != null && isset($configuration["SelfModeration"])) {
 					$configuration['SelfModeration'] = array_merge($configuration['SelfModeration'], $selfModeration);
 				}
 
-				if($customWhitelist != null) {
+				if($customWhitelist != null && isset($configuration["CustomWhitelist"])) {
 					$configuration['CustomWhitelist'] = array_merge($configuration['CustomWhitelist'], $customWhitelist);
 				}
 
-				if($customTriggerBlacklist != null) {
+				if($customTriggerBlacklist != null && isset($configuration["CustomTriggerBlacklist"])) {
 					$configuration['CustomTriggerBlacklist'] = array_merge($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
 				}
 
