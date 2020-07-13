@@ -185,7 +185,7 @@ class UserController extends Controller
             "success" => true,
         ]);
     }
-    
+
     /**
      * Update the specified resource in storage.
      *
@@ -332,7 +332,7 @@ class UserController extends Controller
 
     public function rebuildRules(Request $request) {
         $globalFilterRules = new FilterRulesManager();
-        
+
         $globalFilterRules->buildRuleData();
 
         return response('', 204);
@@ -374,12 +374,12 @@ class UserController extends Controller
             $category = $keyParts[1];
             $type = explode('.', $keyParts[2])[0];
             $internalType = $this->getInternalType($type);
-            
+
             $filterList = FilterList::where('namespace', $namespace)
                 ->where('category', $category)
                 ->where('type', $internalType)
                 ->first();
-            
+
             if($filterList == null) {
                 $responseArray[$key] = null;
             } else if(strtolower($filterList->file_sha1) === $value) {
@@ -444,7 +444,7 @@ class UserController extends Controller
 
         return response('', 204);
     }
-    
+
     private function getInternalType($type) {
         $internalType = null;
         switch($type) {
@@ -462,10 +462,10 @@ class UserController extends Controller
 
     public function getRuleset(Request $request, $namespace, $category, $type) {
         $filterRulesManager = new FilterRulesManager();
-        
+
         // Get etag from request and compare it against the cached file SHA1 for the matched ruleset.
         $etag = $request->header('ETag');
-        
+
         $internalType = $this->getInternalType($type);
         if($internalType == null) {
             return response('No such type defined', 500);
@@ -475,7 +475,7 @@ class UserController extends Controller
             ->where('category', $category)
             ->where('type', $internalType)
             ->first();
-        
+
         if($filterList === null) {
             return response('', 404);
         }
@@ -488,10 +488,10 @@ class UserController extends Controller
         $hashExists = strlen($filterList->file_sha1) > 0;
 
         $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
-        
+
         if($hashExists && file_exists($rulesetFilePath) && filesize($rulesetFilePath) > 0) {
             $response = response()->download($rulesetFilePath);
-            
+
             $serverEtag = $filterRulesManager->getEtag($rulesetFilePath);
             $response->setEtag($serverEtag);
 
@@ -500,7 +500,7 @@ class UserController extends Controller
 
         // If the ruleset does not exist on the disk cache, create it.
         $rulesetFilePath = $filterRulesManager->buildRuleset($namespace, $category, $type, $filterList);
-       
+
         // return the ruleset.
         $response = response()->download($rulesetFilePath);
 
@@ -585,19 +585,19 @@ class UserController extends Controller
             if ($activation->config_override) {
 				$activationConfig = json_decode($activation->config_override, true);
 
-				if(isset($activationConfig['SelfModeration'])) {
+				if(!empty($activationConfig['SelfModeration'])) {
 					$selfModeration = $activationConfig['SelfModeration'];
 				} else {
 					$selfModeration = null;
 				}
 
-				if(isset($activationConfig['CustomWhitelist'])) {
+				if(!empty($activationConfig['CustomWhitelist'])) {
 					$customWhitelist = $activationConfig['CustomWhitelist'];
 				} else {
 					$customWhitelist = null;
 				}
 
-				if(isset($activationConfig['CustomTriggerBlacklist'])) {
+				if(!empty($activationConfig['CustomTriggerBlacklist'])) {
 					$customTriggerBlacklist = $activationConfig['CustomTriggerBlacklist'];
 				} else {
 					$customTriggerBlacklist = null;
@@ -639,7 +639,7 @@ class UserController extends Controller
 	}
 
     /**
-     * Request the current activation configuration.  
+     * Request the current activation configuration.
      * This is for versions >=1.7.
      *
      * @return \Illuminate\Http\Response
@@ -673,8 +673,8 @@ class UserController extends Controller
     }
 
     /**
-     * Request the checksum for current activation configuration.  
-     * This is for versions >=1.7.  
+     * Request the checksum for current activation configuration.
+     * This is for versions >=1.7.
      *
      * @return \Illuminate\Http\Response
      */
@@ -688,7 +688,7 @@ class UserController extends Controller
         $token = $thisUser->token();
         $activation = $this->getActivation($thisUser, $request, $token);
         $userGroup = $thisUser->group()->first();
-        
+
 		$configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
         //temp patch for using whitelist apps on OSX
@@ -923,12 +923,12 @@ class UserController extends Controller
 
                 $activation->platform_name = $os;
                 $activation->save();
-                //Log::debug('Activation Exists.  Saved'); 
+                //Log::debug('Activation Exists.  Saved');
             } else {
                 $activation = new AppUserActivation;
                 $activation->updated_at = Carbon::now()->timestamp;
                 $activation->last_sync_time = Carbon::now();
-                $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';                
+                $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';
                 $activation->user_id = $user->id;
                 $activation->device_id = $request->input('device_id');
                 $activation->identifier = $request->input('identifier');
@@ -938,7 +938,7 @@ class UserController extends Controller
                     $activation->token_id = $token->id;
                 }
                 $activation->bypass_used = 0;
-                $activation->save();                
+                $activation->save();
             }
             return $activation;
         }
