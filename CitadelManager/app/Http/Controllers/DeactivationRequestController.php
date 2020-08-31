@@ -76,7 +76,16 @@ class DeactivationRequestController extends Controller
             ]);
         }
         $activation_id = intval($id_arr[2]);
-        DeactivationRequest::where('id', $activation_id)->update(['granted' => $value]);
+        $deactivateRequest = DeactivationRequest::where('id', $activation_id)->first();
+        $deactivateRequest->update(['granted' => $value]);
+
+        if($value == 1) {
+            try {
+                event(new DeactivationRequestGranted($deactivateRequest));
+            } catch (\Exception $e) {
+                Log::error($e);
+            }
+        }
 
         return response()->json([
             "success" => true,

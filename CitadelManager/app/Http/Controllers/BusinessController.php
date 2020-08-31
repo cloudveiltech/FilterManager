@@ -9,6 +9,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DeactivationRequestGranted;
 use App\FilterRulesManager;
 use App\AppUserActivation;
 use App\DeactivationRequest;
@@ -51,6 +52,11 @@ class BusinessController extends Controller {
 		if(!is_null($deactivationReq)) {
 			$deactivationReq->granted = true;
 			$deactivationReq->save();
+            try {
+                event(new DeactivationRequestGranted($deactivationReq));
+            } catch (\Exception $e) {
+                Log::error($e);
+            }
 		}
 
 		return response('', 204);
