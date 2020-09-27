@@ -40,8 +40,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () 
     Route::get('/update', 'FilterListController@triggerUpdate');
 });
 
-Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user|business-owner']], function() {
-    Route::get('/', function() {
+Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user|business-owner']], function () {
+    Route::get('/', function () {
         $roles = Role::all();
         return view('userhome')->with('roles', $roles);
     });
@@ -51,7 +51,7 @@ Route::get('/', function () {
     if (Auth::check()) {
         $user = Auth::user();
 
-        if($user->hasRole('user')) {
+        if ($user->hasRole('user')) {
             return redirect('/user');
         } else {
             return redirect('/admin');
@@ -66,12 +66,22 @@ Route::get('update/releases/{activationId}/{fileName}', 'UpdateController@downlo
 
 Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions');
 
-Route::get('/download/latest/64', function() {
-  return redirect('/releases/CloudVeilInstaller-2.0.19-cv4w-x64.exe');
+Route::get('/download/latest/64', function () {
+    $versionSettings = DB::connection('mysql_cloudveil')->table('settings')->where('key', 'cv4w_last_version')->first();
+    $version = $versionSettings->value;
+    return redirect('/releases/CloudVeilInstaller-' . $version . '-cv4w-x64.exe');
 });
 
-Route::get('/download/latest/32', function() {
-  return redirect('/releases/CloudVeilInstaller-2.0.19-cv4w-x86.exe');
+Route::get('/download/latest/32', function () {
+    $versionSettings = DB::connection('mysql_cloudveil')->table('settings')->where('key', 'cv4w_last_version')->first();
+    $version = $versionSettings->value;
+    return redirect('/releases/CloudVeilInstaller-' . $version . '-cv4w-x86.exe');
+});
+
+Route::get('/download/latest/mac', function () {
+    $versionSettings = DB::connection('mysql_cloudveil')->table('settings')->where('key', 'cv4m_last_version')->first();
+    $version = $versionSettings->value;
+    return redirect('/releases/CloudVeil-' . $version . '-macos.dmg');
 });
 
 Route::get('/home', 'HomeController@index')->name('home');
