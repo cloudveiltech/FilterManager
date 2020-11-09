@@ -183,7 +183,7 @@ class AppUserActivationController extends Controller
             }
         }
 
-        $fields = ['config_override'];
+        $fields = ['config_override', 'group_id'];
 
         if($user->can(['all', 'manage-checkin-days'])) {
             $fields[] = 'check_in_days';

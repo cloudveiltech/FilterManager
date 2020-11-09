@@ -340,6 +340,7 @@ namespace Citadel {
         private customWhitelist : any;
         private customTriggers : any;
         private timeRestrictions : any;
+        private allGroups: any;
 
         // ─────────────────────────────────────────────────
         //   ::::: A C T I V A T I O N    T A B L E ::::::
@@ -400,6 +401,7 @@ namespace Citadel {
         // ─────────────────────────────────────────────────
         //   ::::: M E M B E R     F U N C T I O N S ::::::
         // ─────────────────────────────────────────────────
+
 
         constructor() {
             super();
@@ -1018,7 +1020,7 @@ namespace Citadel {
 
                         var data = that.getActivationById(id);
 
-                        appUserActivationRecord.StartEditing(data);
+                        appUserActivationRecord.StartEditing(that.allGroups, data);
                     });
 
                     $("#user_activation_table").off("click", "button.btn-delete");
@@ -1094,6 +1096,7 @@ namespace Citadel {
         }
 
         public StartEditing(allGroups, userData: Object = null): void {
+            this.allGroups = allGroups;
 
             if (this.m_selectGroup.options != null) {
                 this.m_selectGroup.options.length = 0;

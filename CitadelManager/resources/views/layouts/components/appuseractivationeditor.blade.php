@@ -123,6 +123,14 @@
 
                             <br/>
                             <br/>
+
+                            <div class="cell cell-auto-size">
+                                <div class="input-control select" data-role="input">
+                                    <label for="editor_activation_input_group_id">Group:</label>
+                                    <select name="editor_ctivation_input_group_id" id="editor_ctivation_input_group_id">
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="frame" id="activation_self_moderation_tab">

@@ -321,7 +321,12 @@ class UserController extends Controller
         $thisUser = \Auth::user();
         $token = $thisUser->token();
         $activation = $this->getActivation($thisUser, $request, $token);
-        $userGroup = $thisUser->group()->first();
+
+        $userGroup = $activation->group;
+        if($userGroup == null) {
+            $userGroup = $thisUser->group()->first();
+        }
+
         if (!is_null($userGroup)) {
             if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
                 return $userGroup->data_sha1;
@@ -434,7 +439,12 @@ class UserController extends Controller
         //Log::debug($request);
         $token = $thisUser->token();
         $activation = $this->getActivation($thisUser, $request, $token);
-        $userGroup = $thisUser->group()->first();
+
+        $userGroup = $activation->group;
+        if($userGroup == null) {
+            $userGroup = $thisUser->group()->first();
+        }
+
         if (!is_null($userGroup)) {
             $groupDataPayloadPath = $userGroup->getGroupDataPayloadPath();
             if (file_exists($groupDataPayloadPath) && filesize($groupDataPayloadPath) > 0) {
@@ -654,7 +664,10 @@ class UserController extends Controller
         //Log::debug($request);
         $token = $thisUser->token();
         $activation = $this->getActivation($thisUser, $request, $token);
-        $userGroup = $thisUser->group()->first();
+        $userGroup = $activation->group;
+        if($userGroup == null) {
+            $userGroup = $thisUser->group()->first();
+        }
 
 		$configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
@@ -688,9 +701,12 @@ class UserController extends Controller
         //Log::debug($request);
         $token = $thisUser->token();
         $activation = $this->getActivation($thisUser, $request, $token);
-        $userGroup = $thisUser->group()->first();
+        $userGroup = $activation->group;
+        if($userGroup == null) {
+            $userGroup = $thisUser->group()->first();
+        }
 
-		$configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
+        $configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
         //temp patch for using whitelist apps on OSX
         //TODO add management for this
