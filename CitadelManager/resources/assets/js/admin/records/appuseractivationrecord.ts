@@ -47,6 +47,7 @@ namespace Citadel {
         private configOverride : any;
         private selfModeration : any;
         private activationWhitelist : any;
+        private triggerBlacklist : any;
 
         // ──────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -69,6 +70,7 @@ namespace Citadel {
 
         private m_blacklistTable            : SelfModerationTable;
         private m_whitelistTable            : SelfModerationTable;
+        private m_triggerBlacklistTable     : SelfModerationTable;
 
         private m_btnSubmit                 : HTMLButtonElement;
         private m_btnCancel                 : HTMLButtonElement;
@@ -130,9 +132,11 @@ namespace Citadel {
         private InitSelfModerationTables(): void {
             this.m_blacklistTable = new SelfModerationTable(document.querySelector('#activation_self_moderation_table'), this.selfModeration);
             this.m_whitelistTable = new SelfModerationTable(document.querySelector('#activation_whitelist_table'), this.activationWhitelist);
+            this.m_triggerBlacklistTable = new SelfModerationTable(document.querySelector('#activation_trigger_table'), this.triggerBlacklist);
 
             this.m_blacklistTable.render();
             this.m_whitelistTable.render();
+            this.m_triggerBlacklistTable.render();
         }
 
         private InitButtonHandlers(): void {
@@ -178,9 +182,11 @@ namespace Citadel {
             if(this.configOverride) {
                 this.selfModeration = this.configOverride.SelfModeration;
                 this.activationWhitelist = this.configOverride.CustomWhitelist;
+                this.triggerBlacklist = this.configOverride.CustomTriggerBlacklist;
             } else {
                 this.selfModeration = null;
                 this.activationWhitelist = null;
+                this.triggerBlacklist = null;
             }
         }
 
@@ -203,10 +209,12 @@ namespace Citadel {
 
             this.selfModeration = this.m_blacklistTable.getData();
             this.activationWhitelist = this.m_whitelistTable.getData();
+            this.triggerBlacklist = this.m_triggerBlacklistTable.getData();
 
             this.configOverride = JSON.stringify({
                 SelfModeration: this.selfModeration,
-                CustomWhitelist: this.activationWhitelist
+                CustomWhitelist: this.activationWhitelist,
+                CustomTriggerBlacklist: this.triggerBlacklist
             });
         }
 
@@ -313,6 +321,10 @@ namespace Citadel {
 
         public addNewWhitelistSite(): void {
             this.m_whitelistTable.add();
+        }
+
+        public addNewCustomTextTrigger(): void {
+            this.m_triggerBlacklistTable.add();
         }
     }
 }
