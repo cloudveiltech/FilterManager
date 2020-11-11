@@ -278,6 +278,7 @@ namespace Citadel {
                 'group_id'          : this.m_groupId,
                 'bypass_quantity'   : this.m_bypassQuantity,
                 'bypass_period'     : this.m_bypassPeriod,
+                'bypass_used'       : this.m_bypassUsed,
                 'report_level'      : this.m_reportLevel,
                 'config_override'   : this.configOverride
             };
@@ -325,6 +326,11 @@ namespace Citadel {
 
         public addNewCustomTextTrigger(): void {
             this.m_triggerBlacklistTable.add();
+        }
+
+        public resetBypassUsed(): void {
+            this.m_bypassUsed = 0;
+            this.m_inputBPUsed.value = this.m_bypassUsed.toString();
         }
     }
 }

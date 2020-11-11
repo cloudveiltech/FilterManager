@@ -121,6 +121,7 @@
                                                id="editor_activation_input_bypass_used"
                                         />
                                     </div>
+                                    <button class="button primary" type="button" event-click="resetBypassUsed()">Reset</button>
                                 </div>
                             </div>
 
