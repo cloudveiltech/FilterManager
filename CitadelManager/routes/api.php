@@ -281,10 +281,9 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:a
     Route::resource('version', 'SystemVersionController');
     /*End API Auth Routes*/
 });
-
 /* Token Management */
-Route::middleware(['auth.basic.once', 'role:admin|user|business-owner'])->post('/v2/user/gettoken', 'UserController@getUserToken');
-Route::post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
+Route::middleware(['auth.basic.once', 'role:admin|user|business-owner', 'check.device_id'])->post('/v2/user/gettoken', 'UserController@getUserToken');
+Route::middleware(['check.device_id'])->post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
 
 /**
  * Management section of the API.  This is used for working with users from external sources and relies upon basic auth.
