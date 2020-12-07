@@ -320,7 +320,7 @@ class UserController extends Controller
     {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
-        $activation = $this->getActivation($thisUser, $request, $token);
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
 
         $userGroup = $activation->group;
         if($userGroup == null) {
@@ -366,9 +366,14 @@ class UserController extends Controller
         $array = $request->all();
         $responseArray = [];
 
+        $thisUser = \Auth::user();
+        //Log::debug($request);
+        $token = $thisUser->token();
+        $this->getAndTouchActivation($thisUser, $request, $token);
+
         // format of each array key: /{namespace}/{category}/{type}.txt
         foreach($array as $key => $value) {
-            if($key == 'identifier' || $key == 'device_id' || $key == 'os') {
+            if($key == 'identifier' || $key == 'device_id' || $key == 'os' || $key == 'identifier_2' || $key == "device_id_2") {
                 continue;
             }
 
@@ -438,7 +443,7 @@ class UserController extends Controller
         $thisUser = \Auth::user();
         //Log::debug($request);
         $token = $thisUser->token();
-        $activation = $this->getActivation($thisUser, $request, $token);
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
 
         $userGroup = $activation->group;
         if($userGroup == null) {
@@ -663,7 +668,7 @@ class UserController extends Controller
         $thisUser = \Auth::user();
         //Log::debug($request);
         $token = $thisUser->token();
-        $activation = $this->getActivation($thisUser, $request, $token);
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
         $userGroup = $activation->group;
         if($userGroup == null) {
             $userGroup = $thisUser->group()->first();
@@ -700,7 +705,7 @@ class UserController extends Controller
         $thisUser = \Auth::user();
         //Log::debug($request);
         $token = $thisUser->token();
-        $activation = $this->getActivation($thisUser, $request, $token);
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
         $userGroup = $activation->group;
         if($userGroup == null) {
             $userGroup = $thisUser->group()->first();
@@ -903,7 +908,7 @@ class UserController extends Controller
         return AppUserActivation::where('user_id', $id)->get();
     }
 
-    private function getActivation(User $user, Request $request, $token) {
+    private function getAndTouchActivation(User $user, Request $request, $token) {
         // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
         // If the identifier doesn't exist in the system we create a new activation.
         if ($request->has('identifier')) {
@@ -924,6 +929,17 @@ class UserController extends Controller
 
             // Get Specific Activation with $identifier
             $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
+            if(!$activation && $request->has('identifier_2') && $request->has('device_id_2')) {//identifier_2 is passed in case we changed device name locally
+                $args = [$input['identifier_2'], $input['device_id_2']];
+                $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
+                if($activation) {
+                    //update info
+                    $activation->identifier = $input['identifier'];
+                    $activation->device_id = $input['device_id'];
+                    $activation->save();
+                }
+            }
+
 			$hasAppVersion = $request->has('app_version');
 
             if($activation) {
@@ -1050,7 +1066,7 @@ class UserController extends Controller
         $user = \Auth::user();
 
         $token = $user->token();
-        $activation = $this->getActivation($user, $request, $token);
+        $activation = $this->getAndTouchActivation($user, $request, $token);
 
         $config = json_decode($activation->config_override);
 
