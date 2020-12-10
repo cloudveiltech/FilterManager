@@ -653,9 +653,9 @@ class FilterListController extends Controller
                 // Doing a mass insert of 5K at a time seems to be best.
                 if ($count > 4999) {
                     Log::debug('Writing 5000 lines into DB: ' . $parentListId);
-                    Log::debug($fillArr);
+//                    Log::debug($fillArr);
                     $results = TextFilteringRule::insertIgnore($fillArr);
-                    Log::debug($results);
+//                    Log::debug($results);
 
                     $fillArr = array();
                     $count = 0;
@@ -667,9 +667,9 @@ class FilterListController extends Controller
             }
 
             if ($count > 0) {
-                Log::debug($fillArr);
+//                Log::debug($fillArr);
                 $results = TextFilteringRule::insertIgnore($fillArr);
-                Log::debug($results);
+//                Log::debug($results);
                 $fillArr = array();
                 $count = 0;
             }
@@ -677,6 +677,7 @@ class FilterListController extends Controller
             Log::error("Error occurred while processing text filter file $ex");
             throw $ex;
         }
+        return $lineCount;
     }
 
     /**
