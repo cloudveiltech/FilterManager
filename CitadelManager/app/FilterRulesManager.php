@@ -9,40 +9,84 @@
 
 namespace App;
 
+use Doctrine\Common\Annotations\IndexedReader;
 use Illuminate\Support\Facades\DB;
 use Log;
+use SplFileObject;
 
-class FilterRulesManager
-{
-    public function getRuleDataPath(): string
-    {
-        $storageDir = storage_path();
+class FilterRulesManager {
+    const TYPES = [
+        'Filters' => 'rules',
+        'Triggers' => 'triggers'
+    ];
+
+
+    public function getRuleDataPath(): string {
+        $storageDir = resource_path();
         $rulesZipPath = $storageDir . DIRECTORY_SEPARATOR . 'global-rules.zip';
         return $rulesZipPath;
     }
 
-    public function getFilename($listNamespace, $listCategory, $filename, $separatorChar = '.')
-    {
-        return "$separatorChar$listNamespace$separatorChar$listCategory$separatorChar$filename";
+    public function getFilename($listNamespace, $listCategory, $filename, $separatorChar = '.') {
+        return $separatorChar . $listNamespace .
+            $separatorChar . $listCategory .
+            $separatorChar . $filename;
     }
 
-    public function getEtag($path)
-    {
+    public function getEtag($path) {
         return hash_file('sha1', $path);
     }
 
-    public function getRulesetPath($namespace, $category, $type)
-    {
+    public function getRulesetPath($namespace, $category, $type) {
         $filename = $this->getFilename($namespace, $category, "$type.txt");
 
-        $storageDir = storage_path();
-        return $storageDir . DIRECTORY_SEPARATOR . $filename;
+        $storageDir = resource_path() . DIRECTORY_SEPARATOR . "rules" . DIRECTORY_SEPARATOR . $this->getDirForRuleset($category);
+        if (!file_exists($storageDir)) {
+            mkdir($storageDir, 0777, true);
+        }
+        return $storageDir . $filename;
+    }
+
+    private function getDirForRuleset(string $category): string {
+        return $category[0] . DIRECTORY_SEPARATOR . $category[1] . DIRECTORY_SEPARATOR;
+    }
+
+    public function buildRuleData() {
+        Log::debug('Building Rule Data');
+
+        foreach (FilterList::cursor() as $list) {
+            if (!is_null($list)) {
+                Log::debug('List: ' . $list->namespace . ' Category: ' . $list->category . ' Type: ' . $list->type . ' ID: ' . $list->id);
+
+                $listNamespace = $list->namespace;
+                $listCategory = $list->category;
+                $listType = $list->type;
+
+                $mappedFileType = self::TYPES[$listType];
+                $this->buildRuleset($listNamespace, $listCategory, $mappedFileType, $list);
+            }
+        }
+    }
+
+    public function buildRuleset($namespace, $category, $type, $filterList) {
+        $filename = $this->getFilename($namespace, $category, "$type.txt");
+
+        $filePath = $this->buildFile($filename, $category, TextFilteringRule::where('filter_list_id', '=', $filterList->id)->cursor());
+
+        $filterList->file_sha1 = $this->getEtag($filePath);
+        $filterList->entries_count = $this->getLines($filePath);
+        $filterList->save();
+
+        return $filePath;
     }
 
     // Helps reduce memory usage for rule file building.
-    public function buildFile($filename, $filters)
-    {
-        $storageDir = storage_path();
+    public function buildFile($filename, $category, $filters) {
+        $storageDir = resource_path() . DIRECTORY_SEPARATOR . "rules" . DIRECTORY_SEPARATOR . $this->getDirForRuleset($category);
+        if (!file_exists($storageDir)) {
+            mkdir($storageDir, 0777, true);
+        }
+
         $filePath = $storageDir . DIRECTORY_SEPARATOR . $filename;
         Log::debug('Opening File to write filters to it: ' . $filePath);
         $file = fopen($filePath, 'w');
@@ -57,89 +101,78 @@ class FilterRulesManager
         return $filePath;
     }
 
-    public function buildRuleset($namespace, $category, $type, $filterList)
-    {
-        $filename = $this->getFilename($namespace, $category, "$type.txt");
+    // Helps reduce memory usage for rule file building.
+    public function buildFileFromSpl(SplFileObject $inputFile, FilterList $list, $convertToAbp) {
+        if ($convertToAbp) {
+            $lineFeedFunc = function (string $in): string {
+                return $this->formatStringAsAbpFilter(trim($in));
+            };
+        } else {
+            $lineFeedFunc = function (string $in): string {
+                return trim($in);
+            };
+        }
 
-        $filePath = $this->buildFile($filename, TextFilteringRule::where('filter_list_id', '=', $filterList->id)->cursor());
+        $listNamespace = $list->namespace;
+        $listCategory = $list->category;
+        $listType = $list->type;
 
-        $filterList->file_sha1 = $this->getEtag($filePath);
-        $filterList->save();
-        $filterList->updateEntriesCount();
+        $storageDir = resource_path() . DIRECTORY_SEPARATOR . "rules" . DIRECTORY_SEPARATOR . $this->getDirForRuleset($listCategory);
+        if (!file_exists($storageDir)) {
+            mkdir($storageDir, 0777, true);
+        }
+
+        $mappedFileType = self::TYPES[$listType];
+        $filename = $this->getFilename($listNamespace, $listCategory, "$mappedFileType.txt");
+
+        $filePath = $storageDir . $filename;
+        Log::debug('Opening File to write filters to it: ' . $filePath);
+        $file = fopen($filePath, 'w');
+
+        foreach ($inputFile as $lineNumber => $rule) {
+            $rule = $lineFeedFunc($rule);
+            fprintf($file, "%s\n", $rule);
+        }
+
+        fclose($file);
+        Log::debug('Closing File to write filters to it: ' . $filePath);
+
+        $list->file_sha1 = $this->getEtag($filePath);
+        $list->entries_count = $this->getLines($filePath);
 
         return $filePath;
     }
 
-    public function buildRuleData()
-    {
-        Log::debug('Building Rule Data');
-        foreach (FilterList::cursor() as $list) {
-            if (!is_null($list)) {
-                Log::debug('List: ' . $list->namespace . ' Category: ' . $list->category . ' Type: ' . $list->type . ' ID: ' . $list->id);
+    private function formatStringAsAbpFilter(string $input): string {
+        if (strlen($input) <= 0) {
+            return $input;
+        }
 
-                $listNamespace = $list->namespace;
-                $listCategory = $list->category;
-                $listType = $list->type;
-                $listId = $list->id;
+        return '||' . str_replace('/', '^', $input);
+    }
 
-                switch ($listType) {
-                    case 'Filters':
-                        {
-                            $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'rules.txt', '/');
+    function getLines($file) {
+        $file = new \SplFileObject($file, 'r');
+        $file->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY |
+            SplFileObject::DROP_NEW_LINE);
+        $file->seek(PHP_INT_MAX);
 
-                            $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'rules', $list);
-                        }
-                        break;
+        return $file->key();
+    }
 
-                    case 'Triggers':
-                        {
-                            $entryRelativePath = $this->getFilename($listNamespace, $listCategory, 'triggers.txt', '/');
+    public function deleteFiles(FilterList $list) {
+        $listNamespace = $list->namespace;
+        $listCategory = $list->category;
+        $listType = $list->type;
 
-                            $entryCachePath = $this->buildRuleset($listNamespace, $listCategory, 'triggers', $list);
-                        }
-                        break;
+        $mappedFileType = self::TYPES[$listType];
 
-                    case 'NLP':
-                        {
+        $storageDir = resource_path() . DIRECTORY_SEPARATOR . "rules" . DIRECTORY_SEPARATOR . $this->getDirForRuleset($listCategory);
 
-                            $entryRelativePath = '/' . $listNamespace . '/nlp/nlp.model';
+        $filename = $storageDir . $this->getFilename($listNamespace, $listCategory, "$mappedFileType.txt");
 
-                            if (!array_key_exists($entryRelativePath, $nlpEnabledCategories)) {
-
-                                // Because of our weird setup here with NLP list entries, we
-                                // have to get all entries for this namespace to accurately
-                                // track down the BLOB entry for the actual NLP model that
-                                // this selected category belongs to.
-                                $allNlpListForNamespace = FilterList::where(['namespace' => $listNamespace, 'type' => 'NLP'])->get();
-
-                                $filter = null;
-                                foreach ($allNlpListForNamespace as $nlpListInNamespace) {
-                                    if (is_null($filter)) {
-                                        $filter = NlpFilteringRule::where('filter_list_id', '=', $nlpListInNamespace->id)->first();
-                                    }
-                                }
-
-                                $nlpEnabledCategories[$entryRelativePath] = array();
-                            }
-
-                            // Add this enabled NLP category to the already-discovered NLP model.
-                            // We'll sort through each model path (as the key) and create a valid
-                            // NLPConfigurationModel instance for each with a list of enabled
-                            // categories (array value) later.
-                            array_push($nlpEnabledCategories[$entryRelativePath], $listCategory);
-                        }
-                        break;
-
-                    case 'VISUAL':
-                        {
-
-                            $filter = TextFilteringRule::where('filter_list_id', '=', $listId)->first();
-
-                            $entryRelativePath = '/' . $listNamespace . '/visual/' . '/visual.vv';
-                        }
-                        break;
-                }
-            }
+        if (file_exists($filename)) {
+            unlink($filename);
         }
     }
 }

@@ -12,13 +12,10 @@ namespace App;
 use App\App;
 use App\AppGroup;
 use App\Client\FilteringPlainTextListModel;
-use App\Client\NLPConfigurationModel;
 use App\Client\PlainTextFilteringListType;
-use App\NlpFilteringRule;
-use App\TextFilteringRule;
+use App\FilterRulesManager;
 use App\User;
 use App\UserGroupToAppGroup;
-use App\FilterRulesManager;
 use Illuminate\Database\Eloquent\Model;
 use Log;
 
@@ -26,8 +23,7 @@ use Log;
  * Description of Group
  *
  */
-class Group extends Model
-{
+class Group extends Model {
 
     public $timestamps = true;
 
@@ -44,8 +40,7 @@ class Group extends Model
      * Gets all users assigned to this group.
      * @return type
      */
-    public function users()
-    {
+    public function users() {
         return $this->hasMany('App\User');
     }
 
@@ -53,8 +48,7 @@ class Group extends Model
      * Gets all filter lists assigned to this group.
      * @return type
      */
-    public function assignedFilterIds()
-    {
+    public function assignedFilterIds() {
         // From the docs:
         // https://laravel.com/docs/5.4/eloquent-relationships#has-many-through
         // The third argument is the name of the foreign key on the intermediate
@@ -64,8 +58,7 @@ class Group extends Model
         return $this->hasMany('App\GroupFilterAssignment');
     }
 
-    public function userCount()
-    {
+    public function userCount() {
         // From the docs:
         // https://laravel.com/docs/5.4/eloquent-relationships#has-many-through
         // The third argument is the name of the foreign key on the intermediate
@@ -75,8 +68,7 @@ class Group extends Model
         return $this->hasMany('App\User');
     }
 
-    public function getGroupDataPayloadPath(): string
-    {
+    public function getGroupDataPayloadPath(): string {
         $storageDir = storage_path();
         $groupDataZipFolder = $storageDir . DIRECTORY_SEPARATOR . 'group_data' . DIRECTORY_SEPARATOR . $this->id;
         if (!file_exists($groupDataZipFolder)) {
@@ -88,9 +80,8 @@ class Group extends Model
         return $groupDataZipPath;
     }
 
-    public function rebuildGroupData()
-    {
-        $filterRulesManager = new \App\FilterRulesManager();
+    public function rebuildGroupData() {
+        $filterRulesManager = new FilterRulesManager();
         $groupDataZipPath = $this->getGroupDataPayloadPath();
         Log::debug('Creating or overwriting zip file at location: ' . $groupDataZipPath);
         $zip = new \ZipArchive();
@@ -98,188 +89,102 @@ class Group extends Model
 
         // Build the app config into an array. We'll serialize this after
         // and write it to the zip file last.
-        $nlpEnabledCategories = array();
         $compiledAppConfiguration = array();
         $compiledAppConfiguration['ConfiguredLists'] = array();
-        $compiledAppConfiguration['ConfiguredNlpModels'] = array();
 
         $groupLists = $this->assignedFilterIds()->get();
 
         foreach ($groupLists as $listIndex) {
-
             $list = FilterList::where('id', $listIndex->filter_list_id)->first();
 
             if (!is_null($list)) {
-
                 $listNamespace = $list->namespace;
                 $listCategory = $list->category;
                 $listType = $list->type;
                 $listId = $list->id;
 
+                $filterFile = $filterRulesManager->getRulesetPath($listNamespace, $listCategory, FilterRulesManager::TYPES[$listType]);
+                $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/' . FilterRulesManager::TYPES[$listType] . '.txt';
+
+                if (file_exists($filterFile)) {
+                    //Log::error('We should be including this file rather than exporting everything again: ' . $filterFile);
+                    Log::debug('Adding File: ' . $filterFile);
+                    $zip->addFile($filterFile, $entryRelativePath);
+                } else {
+                    Log::error('File Does Not Exist: ' . $filterFile);
+                }
                 switch ($listType) {
                     case 'Filters':
                         {
-
-                            $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/rules.txt';
-
                             if ($listIndex->as_blacklist) {
                                 array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::Blacklist, $entryRelativePath));
-                            } else if ($listIndex->as_whitelist) {
-                                array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::Whitelist, $entryRelativePath));
-                            } else if ($listIndex->as_bypass) {
-                                array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::BypassList, $entryRelativePath));
-                            }
-
-                            $fileName = $filterRulesManager->getFilename($listNamespace, $listCategory, 'rules.txt');
-                            $storageDir = storage_path();
-                            $filterFile = $storageDir . DIRECTORY_SEPARATOR . $fileName;
-
-                            if (file_exists($filterFile)) {
-                                //Log::error('We should be including this file rather than exporting everything again: ' . $filterFile);
-                                Log::debug('Adding File: ' . $filterFile);
-                                $zip->addFile($filterFile, $entryRelativePath);
                             } else {
-                                Log::error('File Does Not Exist: ' . $filterFile);
-                                $inMemFilterFile = '';
-                                $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
-
-                                foreach ($filters as $filter) {
-                                    $inMemFilterFile .= $filter->rule . "\n";
-                                }
-                                $zip->addFromString($entryRelativePath, $inMemFilterFile);
-                            }
-                        }
-                        break;
-
-                    case 'Triggers':
-                        {
-                            $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/triggers.txt';
-
-                            array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::TextTrigger, $entryRelativePath));
-
-                            $fileName = $filterRulesManager->getFilename($listNamespace, $listCategory, 'triggers.txt');
-                            $storageDir = storage_path();
-                            $filterFile = $storageDir . DIRECTORY_SEPARATOR . $fileName;
-                            if (file_exists($filterFile)) {
-                                //Log::error('We should be including this file rather than exporting everything again: ' . $filterFile);
-                                Log::debug('Adding File: ' . $filterFile);
-                                $zip->addFile($filterFile, $entryRelativePath);
-                            } else {
-                                Log::error('File Does Not Exist: ' . $filterFile);
-                                $inMemFilterFile = '';
-                                $filters = TextFilteringRule::where('filter_list_id', '=', $listId)->get();
-
-                                foreach ($filters as $filter) {
-                                    $inMemFilterFile .= $filter->rule . "\n";
-                                }
-                                $zip->addFromString($entryRelativePath, $inMemFilterFile);
-
-                            }
-                        }
-                        break;
-
-                    case 'NLP':
-                        {
-
-                            $entryRelativePath = '/' . $listNamespace . '/nlp/nlp.model';
-
-                            if (!array_key_exists($entryRelativePath, $nlpEnabledCategories)) {
-
-                                // Because of our weird setup here with NLP list entries, we
-                                // have to get all entries for this namespace to accurately
-                                // track down the BLOB entry for the actual NLP model that
-                                // this selected category belongs to.
-                                $allNlpListForNamespace = FilterList::where(['namespace' => $listNamespace, 'type' => 'NLP'])->get();
-
-                                $filter = null;
-                                foreach ($allNlpListForNamespace as $nlpListInNamespace) {
-                                    if (is_null($filter)) {
-                                        $filter = NlpFilteringRule::where('filter_list_id', '=', $nlpListInNamespace->id)->first();
+                                if ($listIndex->as_whitelist) {
+                                    array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::Whitelist, $entryRelativePath));
+                                } else {
+                                    if ($listIndex->as_bypass) {
+                                        array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::BypassList, $entryRelativePath));
                                     }
                                 }
-
-                                // We have not discovered this NLP model file yet, so add it to the zip
-                                // and create a new array key using the ZIP relative path.
-                                $zip->addFromString($entryRelativePath, $filter->data);
-
-                                $nlpEnabledCategories[$entryRelativePath] = array();
                             }
-
-                            // Add this enabled NLP category to the already-discovered NLP model.
-                            // We'll sort through each model path (as the key) and create a valid
-                            // NLPConfigurationModel instance for each with a list of enabled
-                            // categories (array value) later.
-                            array_push($nlpEnabledCategories[$entryRelativePath], $listCategory);
                         }
                         break;
-
-                    case 'VISUAL':
+                    case 'Triggers':
                         {
-
-                            $filter = TextFilteringRule::where('filter_list_id', '=', $listId)->first();
-
-                            $entryRelativePath = '/' . $listNamespace . '/visual/' . '/visual.vv';
-
-                            $zip->addFromString($entryRelativePath, $filter->data);
+                            array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::TextTrigger, $entryRelativePath));
                         }
                         break;
                 }
             }
+
+            // Merge app_groups into configuration.
+            $app_cfg = json_decode($this->app_cfg, true);
+            $app_group_ids = UserGroupToAppGroup::where('user_group_id', $this->id)->pluck('app_group_id');
+            $app_groups = AppGroup::with('app')->find($app_group_ids);
+            $apps = [];
+            // The apps variable is populated like this to remove duplicates.
+            foreach ($app_groups as $ag) {
+                foreach ($ag['app'] as $app) {
+                    $apps[$app['name']] = $app['name'];
+                }
+            }
+            $apps = array_values($apps);
+
+            //We remove the Whitelist or Blacklist setting before saving to the .zip file as it's not needed.
+            if (isset($app_cfg['Whitelist'])) {
+                unset($app_cfg['Whitelist']);
+                Log::info('Whitelisting apps for group: ' . $this->id);
+                $app_cfg['WhitelistedApplications'] = $apps;
+            } elseif (isset($app_cfg['Blacklist'])) {
+                unset($app_cfg['Blacklist']);
+                Log::info('Blacklisting apps for group: ' . $this->id);
+                $app_cfg['BlacklistedApplications'] = $apps;
+            }
+
+            $compiledAppConfiguration = array_merge($compiledAppConfiguration, $app_cfg);
+            $serializedFinalConfiguration = json_encode($compiledAppConfiguration);
+
+            $zip->addFromString('cfg.json', $serializedFinalConfiguration);
+            $zip->close();
+
+            // Lastly, update this group's data hash.
+            Group::where('id', $this->id)->update(
+                [
+                    'data_sha1' => sha1_file($groupDataZipPath),
+                    'config_cache' => $serializedFinalConfiguration,
+                ]
+            );
+
+            $this->config_cache = $serializedFinalConfiguration;
+            Log::info('Caching Config.  Done rebuilding group data for group ' . $this->id);
         }
 
-        // Now process NLP model configurations, if any.
-        foreach (array_keys($nlpEnabledCategories) as $nlpEnabledCategoryKey) {
-            array_push($compiledAppConfiguration['ConfiguredNlpModels'], new NLPConfigurationModel($nlpEnabledCategoryKey, $nlpEnabledCategories[$nlpEnabledCategoryKey]));
-        }
-
-        // Merge app_groups into configuration.
-        $app_cfg = json_decode($this->app_cfg, true);
-        $app_group_ids = UserGroupToAppGroup::where('user_group_id', $this->id)->pluck('app_group_id');
-        $app_groups = AppGroup::with('app')->find($app_group_ids);
-        $apps = [];
-        // The apps variable is populated like this to remove duplicates.
-        foreach ($app_groups as $ag) {
-            foreach ($ag['app'] as $app) {
-                $apps[$app['name']] = $app['name'];
+        function destroyGroupData() {
+            $groupDataZipPath = $this->getGroupDataPayloadPath();
+            if (file_exists($groupDataZipPath)) {
+                unlink($groupDataZipPath);
             }
         }
-        $apps = array_values($apps);
 
-        //We remove the Whitelist or Blacklist setting before saving to the .zip file as it's not needed.
-        if (isset($app_cfg['Whitelist'])) {
-            unset($app_cfg['Whitelist']);
-            Log::info('Whitelisting apps for group: ' . $this->id);
-            $app_cfg['WhitelistedApplications'] = $apps;
-        } elseif (isset($app_cfg['Blacklist'])) {
-            unset($app_cfg['Blacklist']);
-            Log::info('Blacklisting apps for group: ' . $this->id);
-            $app_cfg['BlacklistedApplications'] = $apps;
-        }
-
-        $compiledAppConfiguration = array_merge($compiledAppConfiguration, $app_cfg);
-        $serializedFinalConfiguration = json_encode($compiledAppConfiguration);
-
-        $zip->addFromString('cfg.json', $serializedFinalConfiguration);
-        $zip->close();
-
-        // Lastly, update this group's data hash.
-        Group::where('id', $this->id)->update(
-            [
-                'data_sha1' => sha1_file($groupDataZipPath),
-                'config_cache' => $serializedFinalConfiguration,
-            ]
-        );
-
-        $this->config_cache = $serializedFinalConfiguration;
-        Log::info('Caching Config.  Done rebuilding group data for group ' . $this->id);
     }
-
-    public function destroyGroupData()
-    {
-        $groupDataZipPath = $this->getGroupDataPayloadPath();
-        if (file_exists($groupDataZipPath)) {
-            unlink($groupDataZipPath);
-        }
-    }
-
 }

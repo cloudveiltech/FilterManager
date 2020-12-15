@@ -41,8 +41,4 @@ class FilterList extends Model
     {
         return $this->belongsToMany('App\Group');
     }
-
-    public function updateEntriesCount() {
-        DB::statement("UPDATE filter_lists SET entries_count=(SELECT count(1) FROM text_filtering_rules WHERE filter_list_id=filter_lists.id) WHERE id=" . $this->id);
-    }
 }
