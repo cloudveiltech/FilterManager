@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\FilterUpload::class,
         Commands\ExportFilterRulesToFileSystem::class,
         //
     ];
