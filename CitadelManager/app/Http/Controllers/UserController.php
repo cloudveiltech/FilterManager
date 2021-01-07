@@ -796,7 +796,6 @@ class UserController extends Controller {
             }
         }
         return response($validator->errors(), 401);
-
     }
 
     /**

@@ -60,5 +60,4 @@ class FilteringPlainTextListModel {
         $this->ListType = iconv(mb_detect_encoding($listType, mb_detect_order(), true), "UTF-8", $listType);
         $this->RelativeListPath = iconv(mb_detect_encoding($relativeListPath, mb_detect_order(), true), "UTF-8", $relativeListPath);
     }
-
 }

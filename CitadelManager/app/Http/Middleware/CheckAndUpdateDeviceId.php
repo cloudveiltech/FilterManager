@@ -7,8 +7,7 @@ use App\SystemPlatform;
 use Carbon\Carbon;
 use Closure;
 
-class CheckAndUpdateDeviceId
-{
+class CheckAndUpdateDeviceId {
     /**
      * Handle an incoming request.
      *
@@ -16,8 +15,7 @@ class CheckAndUpdateDeviceId
      * @param \Closure $next
      * @return mixed
      */
-    public function handle($request, Closure $next)
-    {
+    public function handle($request, Closure $next) {
         if ($request->has('identifier')) {
             $input = $request->input();
 
@@ -32,7 +30,7 @@ class CheckAndUpdateDeviceId
             // Get Specific Activation with $identifier
             $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
             if (!$activation && $request->has('identifier_2') && $request->has('device_id_2')) {//identifier_2 is passed in case we changed device name locally
-                $args = [0=>$input['identifier_2'], 1=>$input['device_id_2']];
+                $args = [0 => $input['identifier_2'], 1 => $input['device_id_2']];
                 $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
                 if ($activation) {
                     //update info

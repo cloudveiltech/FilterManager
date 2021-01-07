@@ -190,6 +190,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api', '
     Route::get('/me/user', function (Request $request) {
         return $request->user();
     });
+
 });
 
 /* Administration side of v2 API. This version relies upon basic authentication to retrieve a token and then
@@ -283,6 +284,8 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:a
 });
 /* Token Management */
 Route::middleware(['auth.basic.once', 'role:admin|user|business-owner', 'check.device_id'])->post('/v2/user/gettoken', 'UserController@getUserToken');
+Route::get('/v2/activation/email', 'EmailActivationLinkController@activate')->name('email_activation_url');
+Route::middleware(['check.device_id'])->post('/v2/user/activation/email', 'EmailActivationLinkController@sendLink');
 Route::middleware(['check.device_id'])->post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
 
 /**
