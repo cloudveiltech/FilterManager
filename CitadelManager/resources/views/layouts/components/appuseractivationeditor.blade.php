@@ -22,6 +22,9 @@
                         <li>
                             <a href="#activation_whitelist_tab">Activation's Allowed Sites</a>
                         </li>
+                        <li>
+                            <a href="#activation_trigger_blacklist_tab">Activation's Blocked Triggers</a>
+                        </li>
                     </ul>
 
                     <div class="frames">
@@ -118,11 +121,20 @@
                                                id="editor_activation_input_bypass_used"
                                         />
                                     </div>
+                                    <button class="button primary" type="button" event-click="resetBypassUsed()">Reset</button>
                                 </div>
                             </div>
 
                             <br/>
                             <br/>
+
+                            <div class="cell cell-auto-size">
+                                <div class="input-control select" data-role="input">
+                                    <label for="editor_activation_input_group_id">Group:</label>
+                                    <select name="editor_ctivation_input_group_id" id="editor_ctivation_input_group_id">
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="frame" id="activation_self_moderation_tab">
@@ -151,6 +163,7 @@
                             </div>
                         </div>
 
+
                         <div class="frame" id="activation_whitelist_tab">
                             <div class="grid" id="activation_whitelist_list">
                                 <h2>
@@ -175,6 +188,32 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="frame" id="activation_trigger_blacklist_tab">
+                            <div class="grid">
+                                <h2>
+                                    <small>Activation's Blocked Triggers</small>
+                                </h2>
+                                <hr class="thin"/>
+                                <button type="button" event-click="addNewCustomTextTrigger" class="button primary">Add
+                                    Text Trigger
+                                </button>
+
+                                <table id="activation_trigger_table"
+                                       class="table striped hovered border black-background" style="width: 100%">
+                                    <thead>
+                                    <tr>
+                                        <th>Text Trigger</th>
+                                        <th>...</th>
+                                        <th>...</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="activation_trigger_insert">
+
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>

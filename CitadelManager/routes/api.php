@@ -162,7 +162,7 @@ Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:a
  * Version 2 of the API.  This version relies upon basic authentication to retrieve a token and then
  * token authentication via headers for other requests.
  */
-Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api', 'throttle:300,1']], function () {
+Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api', 'throttle:300,1', 'check.device_id']], function () {
 
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
     Route::post('/me/data/check', 'UserController@checkUserData');
@@ -190,6 +190,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api', '
     Route::get('/me/user', function (Request $request) {
         return $request->user();
     });
+
 });
 
 /* Administration side of v2 API. This version relies upon basic authentication to retrieve a token and then
@@ -281,10 +282,11 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:a
     Route::resource('version', 'SystemVersionController');
     /*End API Auth Routes*/
 });
-
 /* Token Management */
-Route::middleware(['auth.basic.once', 'role:admin|user|business-owner'])->post('/v2/user/gettoken', 'UserController@getUserToken');
-Route::post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
+Route::middleware(['auth.basic.once', 'role:admin|user|business-owner', 'check.device_id'])->post('/v2/user/gettoken', 'UserController@getUserToken');
+Route::get('/v2/activation/email', 'EmailActivationLinkController@activate')->name('email_activation_url');
+Route::middleware(['check.device_id'])->post('/v2/user/activation/email', 'EmailActivationLinkController@sendLink');
+Route::middleware(['check.device_id'])->post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
 
 /**
  * Management section of the API.  This is used for working with users from external sources and relies upon basic auth.

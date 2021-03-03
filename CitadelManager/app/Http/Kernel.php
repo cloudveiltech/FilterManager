@@ -62,5 +62,6 @@ class Kernel extends HttpKernel
         'permission' => \Zizaco\Entrust\Middleware\EntrustPermission::class,
         'ability' => \Zizaco\Entrust\Middleware\EntrustAbility::class,
         'db.live' => \App\Http\Middleware\checkDBLive::class,
+        'check.device_id' => \App\Http\Middleware\CheckAndUpdateDeviceId::class,
     ];
 }

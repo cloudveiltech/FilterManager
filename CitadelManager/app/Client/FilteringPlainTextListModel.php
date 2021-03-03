@@ -9,32 +9,6 @@
 
 namespace App\Client;
 
-class PlainTextFilteringListType {
-
-    /**
-     * A plain text file where each line contains a domain or URL that should be blacklisted.
-     */
-    const Blacklist = 'Blacklist';
-
-    /**
-     * A plain text file where each line contains a domain or URL that should be whitelisted.
-     */
-    const Whitelist = 'Whitelist';
-
-    /**
-     * A plain text file where each line contains a domain or URL that should be blacklisted,
-     * but also should also be capable of being transformed on-demand into a whitelist.
-     */
-    const BypassList = 'BypassList';
-
-    /**
-     * A plain text file where each line contains arbitrary text that, if detected within a HTML
-     * text payload, should trigger a block action.
-     */
-    const TextTrigger = 'TextTrigger';
-
-}
-
 /**
  * The FilteringPlainTextListModel represents, as generically as possible, a plain text data
  * file that is intended to be used for content filtering. This plain text file may be a list of
@@ -86,5 +60,4 @@ class FilteringPlainTextListModel {
         $this->ListType = iconv(mb_detect_encoding($listType, mb_detect_order(), true), "UTF-8", $listType);
         $this->RelativeListPath = iconv(mb_detect_encoding($relativeListPath, mb_detect_order(), true), "UTF-8", $relativeListPath);
     }
-
 }

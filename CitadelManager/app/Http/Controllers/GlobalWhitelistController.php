@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\GlobalWhitelist;
 use Illuminate\Http\Request;
 
-class GlobalWhitelistController extends Controller
-{
-    public function __construct()
-    {
+class GlobalWhitelistController extends Controller {
+    public function __construct() {
 
     }
 
@@ -17,19 +15,17 @@ class GlobalWhitelistController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
+    public function index() {
         return GlobalWhitelist::get();
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $this->validate($request, [
             'name' => 'required',
         ]);
@@ -42,12 +38,10 @@ class GlobalWhitelistController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-
+    public function destroy($id) {
         $whitelist = GlobalWhitelist::where('id', $id)->first();
         if (!is_null($whitelist)) {
             $whitelist->delete();
@@ -56,8 +50,7 @@ class GlobalWhitelistController extends Controller
         return response('', 204);
     }
 
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id) {
         $input = $request->only(['name', 'isactive']);
         GlobalWhitelist::where('id', $id)->update($input);
 

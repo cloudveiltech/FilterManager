@@ -1738,7 +1738,7 @@ namespace Citadel {
                             appUserActivationRecord.StopEditing();
                             this.ForceTableRedraw(this.m_tableActivation);
                         });
-                        appUserActivationRecord.StartEditing(data);
+                        appUserActivationRecord.StartEditing(this.m_allGroups, data);
                     }
                     break;
 

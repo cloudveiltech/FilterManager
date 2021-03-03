@@ -321,6 +321,7 @@ namespace Citadel {
         private m_inputIsActive         : HTMLInputElement;
         private m_inputReportLevel      : HTMLInputElement;
         private m_inputRelaxedPolicyPasscodeEnabled : HTMLInputElement;
+        private m_disableDns      : HTMLInputElement;
 
         // ───────────────────────────────────────────────
         //   ::::: S E L E C T    E L E M E N T S ::::::
@@ -340,6 +341,8 @@ namespace Citadel {
         private customWhitelist : any;
         private customTriggers : any;
         private timeRestrictions : any;
+        private allGroups: any;
+        private isDnsDisabled: any;
 
         // ─────────────────────────────────────────────────
         //   ::::: A C T I V A T I O N    T A B L E ::::::
@@ -400,6 +403,7 @@ namespace Citadel {
         // ─────────────────────────────────────────────────
         //   ::::: M E M B E R     F U N C T I O N S ::::::
         // ─────────────────────────────────────────────────
+
 
         constructor() {
             super();
@@ -462,6 +466,7 @@ namespace Citadel {
             this.m_inputIsActive    = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
             this.m_inputCustomerId  = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
             this.m_inputReportLevel = document.querySelector('#editor_user_report_level') as HTMLInputElement;
+            this.m_disableDns       = document.querySelector('#editor_user_disable_dns') as HTMLInputElement;
             this.m_inputRelaxedPolicyPasscodeEnabled = document.querySelector('#editor_user_input_passcode_enabled') as HTMLInputElement;
             this.m_btnSubmit        = document.querySelector('#user_editor_submit') as HTMLButtonElement;
             this.m_btnCancel        = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
@@ -597,6 +602,12 @@ namespace Citadel {
                 this.customTriggers = [];
             }
 
+            if(this.myConfigData && (this.myConfigData.PrimaryDns != null || this.myConfigData.SecondaryDns != null)) {
+                this.isDnsDisabled = true;
+            } else {
+                this.isDnsDisabled = false;
+            }
+
             if(this.myConfigData && this.myConfigData.TimeRestrictions) {
                 this.timeRestrictions = {};
 
@@ -616,6 +627,7 @@ namespace Citadel {
             this.m_customerId       = this.m_inputCustomerId.value == "" ? null:this.m_inputCustomerId.valueAsNumber;
             this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
             this.m_reportLevel      = this.m_inputReportLevel.checked == true ? 1 : 0;
+            this.isDnsDisabled      = this.m_disableDns.checked == true ? 1 : 0;
             this.m_relaxedPolicyPasscodeEnabled = this.m_inputRelaxedPolicyPasscodeEnabled.checked == true ? 1 : 0;
 
             this.selfModeration = this.m_selfModerationTable.getData();
@@ -637,6 +649,14 @@ namespace Citadel {
 
             this.myConfigData.BypassesPermitted = this.m_numBypassesPermitted;
             this.myConfigData.BypassDuration = this.m_bypassDuration;
+
+            if(!this.m_disableDns) {
+                delete this.myConfigData.PrimaryDns;
+                delete this.myConfigData.SecondaryDns;
+            } else {
+                this.myConfigData.PrimaryDns = "";
+                this.myConfigData.SecondaryDns = "";
+            }
         }
 
         public ToObject(): Object {
@@ -650,6 +670,14 @@ namespace Citadel {
 
                 if(!this.myConfigData.BypassDuration) {
                     delete this.myConfigData.BypassDuration;
+                }
+
+                if(!this.isDnsDisabled) {
+                    delete this.myConfigData.PrimaryDns;
+                    delete this.myConfigData.SecondaryDns;
+                } else {
+                    this.myConfigData.PrimaryDns = "";
+                    this.myConfigData.SecondaryDns = "";
                 }
             }
 
@@ -1018,7 +1046,7 @@ namespace Citadel {
 
                         var data = that.getActivationById(id);
 
-                        appUserActivationRecord.StartEditing(data);
+                        appUserActivationRecord.StartEditing(that.allGroups, data);
                     });
 
                     $("#user_activation_table").off("click", "button.btn-delete");
@@ -1094,6 +1122,7 @@ namespace Citadel {
         }
 
         public StartEditing(allGroups, userData: Object = null): void {
+            this.allGroups = allGroups;
 
             if (this.m_selectGroup.options != null) {
                 this.m_selectGroup.options.length = 0;
@@ -1161,6 +1190,7 @@ namespace Citadel {
 
                 this.m_inputIsActive.checked = this.m_isActive != 0;
                 this.m_inputReportLevel.checked = this.m_reportLevel != 0;
+                this.m_disableDns.checked = this.isDnsDisabled;
                 this.m_inputRelaxedPolicyPasscodeEnabled.checked = this.m_relaxedPolicyPasscodeEnabled != 0;
             }
 

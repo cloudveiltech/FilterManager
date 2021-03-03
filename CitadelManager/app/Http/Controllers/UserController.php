@@ -28,8 +28,7 @@ use Illuminate\Support\Facades\Hash;
 use Log;
 use Validator;
 
-class UserController extends Controller
-{
+class UserController extends Controller {
 
     /**
      * Display a listing of the resource.
@@ -37,8 +36,7 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
 
         $draw = $request->input('draw');
         $start = $request->input('start');
@@ -61,7 +59,7 @@ class UserController extends Controller
                     ->orWhere('users.email', 'like', "%$search%")
                     ->orWhereHas("activations", function ($query) use ($search) {
                         $query->where('identifier', $search);
-                });
+                    });
             })
             ->when($email, function ($query) use ($email) {
                 return $query->where('users.email', $email);
@@ -104,8 +102,7 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
+    public function create() {
         // No forms here kids.
         return response('', 405);
     }
@@ -113,11 +110,10 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $this->validate($request, [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
@@ -129,7 +125,7 @@ class UserController extends Controller
         $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id', 'customer_id', 'activations_allowed', 'isactive', 'report_level', 'config_override']);
         $input['password'] = Hash::make($input['password']);
 
-        if(isset($input['config_override'])) {
+        if (isset($input['config_override'])) {
             $input['config_override'] = Utils::purgeNullsFromJSONSelfModeration($input['config_override']);
         }
 
@@ -145,28 +141,25 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
+    public function show($id) {
         return User::where('id', $id)->get();
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
-    {
+    public function edit($id) {
         // There is no form, son.
         return response('', 405);
     }
 
-    public function updateField(Request $request)
-    {
+    public function updateField(Request $request) {
         $id = $request->input('id');
         $value = intval($request->input('value')); //0 or 1
 
@@ -189,12 +182,11 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id) {
 
         // The javascript side/admin UI will not send
         // password or password_verify unless they are
@@ -237,9 +229,9 @@ class UserController extends Controller
             ]);
         }
 
-	$input = $request->only(['id','name','email','group_id','customer_id','activations_allowed','isactive','report_level', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode']);
+        $input = $request->only(['id', 'name', 'email', 'group_id', 'customer_id', 'activations_allowed', 'isactive', 'report_level', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode']);
 
-        if(isset($input['config_override'])) {
+        if (isset($input['config_override'])) {
             $input['config_override'] = Utils::purgeNullsFromJSONSelfModeration($input['config_override']);
         }
 
@@ -287,15 +279,12 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-
+    public function destroy($id) {
         $user = User::where('id', $id)->first();
         if (!is_null($user)) {
-
             // Revoke all tokens.
             $userTokens = $user->tokens;
             foreach ($userTokens as $token) {
@@ -316,12 +305,16 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function checkUserData(Request $request)
-    {
+    public function checkUserData(Request $request) {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
-        $activation = $this->getActivation($thisUser, $request, $token);
-        $userGroup = $thisUser->group()->first();
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
+
+        $userGroup = $activation->group;
+        if ($userGroup == null) {
+            $userGroup = $thisUser->group()->first();
+        }
+
         if (!is_null($userGroup)) {
             if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
                 return $userGroup->data_sha1;
@@ -361,9 +354,14 @@ class UserController extends Controller
         $array = $request->all();
         $responseArray = [];
 
+        $thisUser = \Auth::user();
+        //Log::debug($request);
+        $token = $thisUser->token();
+        $this->getAndTouchActivation($thisUser, $request, $token);
+
         // format of each array key: /{namespace}/{category}/{type}.txt
-        foreach($array as $key => $value) {
-            if($key == 'identifier' || $key == 'device_id' || $key == 'os') {
+        foreach ($array as $key => $value) {
+            if ($key == 'identifier' || $key == 'device_id' || $key == 'os' || $key == 'identifier_2' || $key == "device_id_2") {
                 continue;
             }
 
@@ -380,12 +378,14 @@ class UserController extends Controller
                 ->where('type', $internalType)
                 ->first();
 
-            if($filterList == null) {
+            if ($filterList == null) {
                 $responseArray[$key] = null;
-            } else if(strtolower($filterList->file_sha1) === $value) {
-                $responseArray[$key] = true;
             } else {
-                $responseArray[$key] = false;
+                if (strtolower($filterList->file_sha1) === $value) {
+                    $responseArray[$key] = true;
+                } else {
+                    $responseArray[$key] = false;
+                }
             }
         }
 
@@ -395,19 +395,19 @@ class UserController extends Controller
     public function changePassword(Request $request) {
         $user = \Auth::user();
 
-        if(!$request->has('current_password') || $request->input('current_password') == null || strlen($request->input('current_password')) == 0) {
+        if (!$request->has('current_password') || $request->input('current_password') == null || strlen($request->input('current_password')) == 0) {
             return response()->json([
                 'error' => 'Current password not filled out'
             ], 400);
         }
 
-        if(!$request->has('new_password') || $request->input('new_password') == null || strlen($request->input('new_password')) < 4) {
+        if (!$request->has('new_password') || $request->input('new_password') == null || strlen($request->input('new_password')) < 4) {
             return response()->json([
                 'error' => 'The new password you entered should be filled out and longer than 3 characters'
             ], 400);
         }
 
-        if(!Hash::check($request->input('current_password'), $user->password)) {
+        if (!Hash::check($request->input('current_password'), $user->password)) {
             return response()->json([
                 'error' => 'The current password that you entered does not match your password'
             ], 400);
@@ -433,8 +433,13 @@ class UserController extends Controller
         $thisUser = \Auth::user();
         //Log::debug($request);
         $token = $thisUser->token();
-        $activation = $this->getActivation($thisUser, $request, $token);
-        $userGroup = $thisUser->group()->first();
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
+
+        $userGroup = $activation->group;
+        if ($userGroup == null) {
+            $userGroup = $thisUser->group()->first();
+        }
+
         if (!is_null($userGroup)) {
             $groupDataPayloadPath = $userGroup->getGroupDataPayloadPath();
             if (file_exists($groupDataPayloadPath) && filesize($groupDataPayloadPath) > 0) {
@@ -447,7 +452,7 @@ class UserController extends Controller
 
     private function getInternalType($type) {
         $internalType = null;
-        switch($type) {
+        switch ($type) {
             case 'rules':
                 $internalType = 'Filters';
                 break;
@@ -467,7 +472,7 @@ class UserController extends Controller
         $etag = $request->header('ETag');
 
         $internalType = $this->getInternalType($type);
-        if($internalType == null) {
+        if ($internalType == null) {
             return response('No such type defined', 500);
         }
 
@@ -476,11 +481,11 @@ class UserController extends Controller
             ->where('type', $internalType)
             ->first();
 
-        if($filterList === null) {
+        if ($filterList === null) {
             return response('', 404);
         }
 
-        if($etag !== null && strtolower($etag) === strtolower($filterList->file_sha1)) {
+        if ($etag !== null && strtolower($etag) === strtolower($filterList->file_sha1)) {
             return response('', 304);
         }
 
@@ -489,25 +494,16 @@ class UserController extends Controller
 
         $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
 
-        if($hashExists && file_exists($rulesetFilePath) && filesize($rulesetFilePath) > 0) {
+        if ($hashExists && file_exists($rulesetFilePath) && filesize($rulesetFilePath) > 0) {
             $response = response()->download($rulesetFilePath);
 
             $serverEtag = $filterRulesManager->getEtag($rulesetFilePath);
             $response->setEtag($serverEtag);
 
             return $response;
+        } else {
+            return response('Ruleset file is broken', 500);
         }
-
-        // If the ruleset does not exist on the disk cache, create it.
-        $rulesetFilePath = $filterRulesManager->buildRuleset($namespace, $category, $type, $filterList);
-
-        // return the ruleset.
-        $response = response()->download($rulesetFilePath);
-
-        $serverEtag = $filterRulesManager->getEtag($rulesetFilePath);
-        $response->setEtag($serverEtag);
-
-        return $response;
     }
 
     public function getRules(Request $request) {
@@ -517,6 +513,7 @@ class UserController extends Controller
         { "lists": ["/default/adult_pornography/rules", "/default/adult_gambling/rules", ...] }
         */
 
+        $t = microtime(true);
         $post = $request->json()->all();
 
         $lists = $post['lists'];
@@ -525,7 +522,7 @@ class UserController extends Controller
 
         $filterRulesManager = new FilterRulesManager();
 
-        foreach($lists as $listName) {
+        foreach ($lists as $listName) {
             $trimmed = trim($listName, '/');
             $nameParts = explode('/', $trimmed);
 
@@ -533,7 +530,7 @@ class UserController extends Controller
             $category = $nameParts[1];
             $type = explode('.', $nameParts[2])[0];
             $internalType = $this->getInternalType($type);
-            if($internalType == null) {
+            if ($internalType == null) {
                 return response("No such type defined", 500);
             }
 
@@ -542,40 +539,37 @@ class UserController extends Controller
                 ->where('type', $internalType)
                 ->first();
 
-            if($filterList === null) {
-                $responseArray[$listName] = "http-result 404";
+            $responseArray[] = '--startlist ' . $listName;
+            if ($filterList === null) {
+                $responseArray[] = "http-result 404";
+            } else {
+                // If the SHA hashes don't match, load the ruleset from the disk cache.
+                $hashExists = strlen($filterList->file_sha1) > 0;
+                $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
+
+                if (!$hashExists || !file_exists($rulesetFilePath) || filesize($rulesetFilePath) == 0) {
+                    $responseArray[] = "http-result 404";
+                } else {
+                    $rulesetFileContents = file_get_contents($rulesetFilePath);
+                    $responseArray[] = $rulesetFileContents;
+                }
             }
 
-            // If the SHA hashes don't match, load the ruleset from the disk cache.
-            $hashExists = strlen($filterList->file_sha1) > 0;
-            $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
-
-            if(!$hashExists || !file_exists($rulesetFilePath) || filesize($rulesetFilePath) == 0) {
-                $rulesetFilePath = $filterRulesManager->buildRuleset($namespace, $category, $type, $filterList);
-            }
-
-            $rulesetFileContents = file_get_contents($rulesetFilePath);
-            $responseArray[$listName] = $rulesetFileContents;
+            $responseArray[] = '--endlist';
         }
 
-		$responseOutput = "";
-		foreach($responseArray as $listName => $list) {
-			$responseOutput .= "--startlist $listName\n";
-			$responseOutput .= "$list\n";
-			$responseOutput .= "--endlist\n";
-		}
-
-		return response($responseOutput)->header('Content-Type', 'text/plain');
+        $dt = microtime(true) - $t;
+        return response(implode("\n", $responseArray))->header('Content-Type', 'text/plain')->header("X-Time-Sec", $dt);
     }
 
-	private function mergeConfigurations($userGroup, $thisUser, $activation) {
+    private function mergeConfigurations($userGroup, $thisUser, $activation) {
         if (!is_null($userGroup)) {
-            if($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
+            if ($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
                 $userGroup->rebuildGroupData();
             }
 
             $configuration = json_decode($userGroup->config_cache, true);
-            if($configuration == null) {
+            if ($configuration == null) {
                 $configuration = [];
             }
 
@@ -583,40 +577,40 @@ class UserController extends Controller
                 $configuration = array_merge($configuration, json_decode($thisUser->config_override, true));
             }
             if ($activation->config_override) {
-				$activationConfig = json_decode($activation->config_override, true);
+                $activationConfig = json_decode($activation->config_override, true);
 
-				if(!empty($activationConfig['SelfModeration'])) {
-					$selfModeration = $activationConfig['SelfModeration'];
-				} else {
-					$selfModeration = null;
-				}
+                if (!empty($activationConfig['SelfModeration'])) {
+                    $selfModeration = $activationConfig['SelfModeration'];
+                } else {
+                    $selfModeration = null;
+                }
 
-				if(!empty($activationConfig['CustomWhitelist'])) {
-					$customWhitelist = $activationConfig['CustomWhitelist'];
-				} else {
-					$customWhitelist = null;
-				}
+                if (!empty($activationConfig['CustomWhitelist'])) {
+                    $customWhitelist = $activationConfig['CustomWhitelist'];
+                } else {
+                    $customWhitelist = null;
+                }
 
-				if(!empty($activationConfig['CustomTriggerBlacklist'])) {
-					$customTriggerBlacklist = $activationConfig['CustomTriggerBlacklist'];
-				} else {
-					$customTriggerBlacklist = null;
-				}
+                if (!empty($activationConfig['CustomTriggerBlacklist'])) {
+                    $customTriggerBlacklist = $activationConfig['CustomTriggerBlacklist'];
+                } else {
+                    $customTriggerBlacklist = null;
+                }
 
-				$activationConfig = Utils::purgeNulls($activationConfig);
+                $activationConfig = Utils::purgeNulls($activationConfig);
                 $configuration = array_merge($configuration, $activationConfig);
 
-				if($selfModeration != null && isset($configuration["SelfModeration"])) {
-					$configuration['SelfModeration'] = array_merge($configuration['SelfModeration'], $selfModeration);
-				}
+                if ($selfModeration != null && isset($configuration["SelfModeration"])) {
+                    $configuration['SelfModeration'] = array_merge($configuration['SelfModeration'], $selfModeration);
+                }
 
-				if($customWhitelist != null && isset($configuration["CustomWhitelist"])) {
-					$configuration['CustomWhitelist'] = array_merge($configuration['CustomWhitelist'], $customWhitelist);
-				}
+                if ($customWhitelist != null && isset($configuration["CustomWhitelist"])) {
+                    $configuration['CustomWhitelist'] = array_merge($configuration['CustomWhitelist'], $customWhitelist);
+                }
 
-				if($customTriggerBlacklist != null && isset($configuration["CustomTriggerBlacklist"])) {
-					$configuration['CustomTriggerBlacklist'] = array_merge($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
-				}
+                if ($customTriggerBlacklist != null && isset($configuration["CustomTriggerBlacklist"])) {
+                    $configuration['CustomTriggerBlacklist'] = array_merge($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
+                }
 
                 $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
             }
@@ -625,19 +619,19 @@ class UserController extends Controller
                 $configuration['BypassesPermitted'] = $activation->bypass_quantity;
             }
 
-            if($activation->bypass_period) {
+            if ($activation->bypass_period) {
                 $configuration['BypassDuration'] = $activation->bypass_period;
             }
 
-            if($thisUser->enable_relaxed_policy_passcode) {
+            if ($thisUser->enable_relaxed_policy_passcode) {
                 $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
             }
 
-			return $configuration;
-		} else {
-			return null;
-		}
-	}
+            return $configuration;
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Request the current activation configuration.
@@ -653,24 +647,27 @@ class UserController extends Controller
         $thisUser = \Auth::user();
         //Log::debug($request);
         $token = $thisUser->token();
-        $activation = $this->getActivation($thisUser, $request, $token);
-        $userGroup = $thisUser->group()->first();
-
-		$configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
-
-
-		//temp patch for using whitelist apps on OSX
-        //TODO add management for this
-		if($activation->platform_name == "OSX") {
-            unset($configuration["BlacklistedApplications"]);
-		    $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
+        $userGroup = $activation->group;
+        if ($userGroup == null) {
+            $userGroup = $thisUser->group()->first();
         }
 
-		if(!is_null($configuration)) {
-			return $configuration;
-		} else {
-			return response('', 204);
-		}
+        $configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
+
+
+        //temp patch for using whitelist apps on OSX
+        //TODO add management for this
+        if ($activation->platform_name == "OSX") {
+            unset($configuration["BlacklistedApplications"]);
+            $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
+        }
+
+        if (!is_null($configuration)) {
+            return $configuration;
+        } else {
+            return response('', 204);
+        }
     }
 
     /**
@@ -687,23 +684,26 @@ class UserController extends Controller
         $thisUser = \Auth::user();
         //Log::debug($request);
         $token = $thisUser->token();
-        $activation = $this->getActivation($thisUser, $request, $token);
-        $userGroup = $thisUser->group()->first();
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
+        $userGroup = $activation->group;
+        if ($userGroup == null) {
+            $userGroup = $thisUser->group()->first();
+        }
 
-		$configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
+        $configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
         //temp patch for using whitelist apps on OSX
         //TODO add management for this
-        if($activation->platform_name == "OSX") {
+        if ($activation->platform_name == "OSX") {
             unset($configuration["BlacklistedApplications"]);
             $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
         }
 
-		if(!is_null($configuration)) {
-			return [ 'sha1' => sha1(json_encode($configuration)) ];
-		} else {
-			return response('', 204);
-		}
+        if (!is_null($configuration)) {
+            return ['sha1' => sha1(json_encode($configuration))];
+        } else {
+            return response('', 204);
+        }
     }
 
     /**
@@ -711,8 +711,7 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function getCanUserDeactivate(Request $request)
-    {
+    public function getCanUserDeactivate(Request $request) {
 
         $validator = Validator::make($request->all(), [
             'identifier' => 'required',
@@ -753,8 +752,7 @@ class UserController extends Controller
      * Handles when user is requesting their license terms.
      * @param Request $request
      */
-    public function getUserTerms(Request $request)
-    {
+    public function getUserTerms(Request $request) {
 
         $userLicensePath = resource_path() . DIRECTORY_SEPARATOR . 'UserLicense.txt';
 
@@ -769,8 +767,7 @@ class UserController extends Controller
      * it returns a token and the users email address.
      * @param Request $request
      */
-    public function retrieveUserToken(Request $request)
-    {
+    public function retrieveUserToken(Request $request) {
         $validator = Validator::make($request->all(), [
             'identifier' => 'required',
             'device_id' => 'required',
@@ -799,21 +796,20 @@ class UserController extends Controller
             }
         }
         return response($validator->errors(), 401);
-
     }
 
     /**
      * Handles when user logs in from the application.  Returns their access token.
      * @param Request $request
      */
-    public function getUserToken(Request $request)
-    {
+    public function getUserToken(Request $request) {
         $user = \Auth::user();
 
         $userActivateResult = $user->tryActivateUser($request);
 
         switch ($userActivateResult) {
-            case UserActivationAttemptResult::Success:{
+            case UserActivationAttemptResult::Success:
+                {
                     // Creating a token without scopes...
                     $token = $user->createToken('Token Name')->accessToken;
                     $this->checkUserData($request);
@@ -821,31 +817,36 @@ class UserController extends Controller
                 }
                 break;
 
-            case UserActivationAttemptResult::ActivationLimitExceeded:{
+            case UserActivationAttemptResult::ActivationLimitExceeded:
+                {
                     Auth::logout();
                     return response('Your account has been activated on more devices than permitted.', 401);
                 }
                 break;
 
-            case UserActivationAttemptResult::AccountDisabled:{
+            case UserActivationAttemptResult::AccountDisabled:
+                {
                     Auth::logout();
                     return response('Your account has been disabled.', 401);
                 }
                 break;
 
-            case UserActivationAttemptResult::GroupDisabled:{
+            case UserActivationAttemptResult::GroupDisabled:
+                {
                     Auth::logout();
                     return response('The group that your account belongs to has been disabled.', 401);
                 }
                 break;
 
-            case UserActivationAttemptResult::IndentifyingInformationMissing:{
+            case UserActivationAttemptResult::IndentifyingInformationMissing:
+                {
                     Auth::logout();
                     return response('User device identifier and or name not supplied.', 401);
                 }
                 break;
 
-            case UserActivationAttemptResult::UnknownError:{
+            case UserActivationAttemptResult::UnknownError:
+                {
                     Auth::logout();
                     return response('An unknown error occurred while trying to activate or verify your account activation.', 401);
                 }
@@ -858,8 +859,7 @@ class UserController extends Controller
      * This could probably be rolled into deactivation requests in the future.
      * @param Request $request
      */
-    public function revokeUserToken(Request $request)
-    {
+    public function revokeUserToken(Request $request) {
 
         $user = \Auth::user();
         $token = $user->token();
@@ -871,8 +871,7 @@ class UserController extends Controller
      * Used by our debugging tool to provide a central place to store logs received from users.
      * @param Request $request
      */
-    public function uploadLog(Request $request)
-    {
+    public function uploadLog(Request $request) {
         $this->validate($request, [
             'user_email' => 'required|email',
             'log' => 'required',
@@ -882,40 +881,50 @@ class UserController extends Controller
         return "OK";
     }
 
-    public function activation_data(Request $request, $id)
-    {
+    public function activation_data(Request $request, $id) {
         return AppUserActivation::where('user_id', $id)->get();
     }
 
-    private function getActivation(User $user, Request $request, $token) {
+    private function getAndTouchActivation(User $user, Request $request, $token) {
         // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
         // If the identifier doesn't exist in the system we create a new activation.
         if ($request->has('identifier')) {
             $input = $request->input();
 
             $os = SystemPlatform::PLATFORM_SUPPORTED[0];
-            if(!empty($input["os"]) && in_array($input["os"], SystemPlatform::PLATFORM_SUPPORTED)) {
+            if (!empty($input["os"]) && in_array($input["os"], SystemPlatform::PLATFORM_SUPPORTED)) {
                 $os = $input["os"];
             }
 
             $args = [$input['identifier']];
             $whereStatement = "identifier = ?";
 
-            if(!empty($input['device_id'])) {
+            if (!empty($input['device_id'])) {
                 $whereStatement .= " and device_id = ?";
                 $args[] = $input['device_id'];
             }
 
             // Get Specific Activation with $identifier
             $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
-			$hasAppVersion = $request->has('app_version');
+            if (!$activation && $request->has('identifier_2') && $request->has('device_id_2')) {//identifier_2 is passed in case we changed device name locally
+                $args = [$input['identifier_2'], $input['device_id_2']];
+                $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
+                if ($activation) {
+                    //update info
+                    $activation->identifier = $input['identifier'];
+                    $activation->device_id = $input['device_id'];
+                    $activation->save();
+                }
+            }
 
-            if($activation) {
-                if($hasAppVersion) {
-					$activation->app_version = $request->input('app_version');
-				}
+            $hasAppVersion = $request->has('app_version');
 
-				$activation->updated_at = Carbon::now()->timestamp;
+            if ($activation) {
+                if ($hasAppVersion) {
+                    $activation->app_version = $request->input('app_version');
+                }
+
+                $activation->updated_at = Carbon::now()->timestamp;
                 $activation->last_sync_time = Carbon::now();
                 $activation->ip_address = $request->ip();
                 if ($token) {
@@ -964,10 +973,10 @@ class UserController extends Controller
             'relaxed_policy_passcode' => $user->relaxed_policy_passcode
         ];
 
-        if($user->can(['all', 'manage-relaxed-policy'])) {
+        if ($user->can(['all', 'manage-relaxed-policy'])) {
             $config = json_decode($user->config_override);
 
-            if(json_last_error() == JSON_ERROR_NONE) {
+            if (json_last_error() == JSON_ERROR_NONE) {
                 $result['bypasses_permitted'] = isset($config->BypassesPermitted) ? $config->BypassesPermitted : null;
                 $result['bypass_duration'] = isset($config->BypassDuration) ? $config->BypassDuration : null;
             }
@@ -979,26 +988,26 @@ class UserController extends Controller
     public function setRelaxedPolicyPasscode(Request $request) {
         $user = \Auth::user();
 
-        if($request->has('enable_relaxed_policy_passcode')) {
+        if ($request->has('enable_relaxed_policy_passcode')) {
             $user->enable_relaxed_policy_passcode = $request->input('enable_relaxed_policy_passcode');
         }
 
-        if($request->has('relaxed_policy_passcode')) {
+        if ($request->has('relaxed_policy_passcode')) {
             $user->relaxed_policy_passcode = $request->input('relaxed_policy_passcode');
         }
 
-        if($user->can(['all', 'manage-relaxed-policy'])) {
+        if ($user->can(['all', 'manage-relaxed-policy'])) {
             $config = json_decode($user->config_override);
 
-            if(json_last_error() != JSON_ERROR_NONE) {
+            if (json_last_error() != JSON_ERROR_NONE) {
                 $config = new \stdClass();
             }
 
-            if($request->has('bypasses_permitted')) {
+            if ($request->has('bypasses_permitted')) {
                 $config->BypassesPermitted = $request->input('bypasses_permitted');
             }
 
-            if($request->has('bypass_duration')) {
+            if ($request->has('bypass_duration')) {
                 $config->BypassDuration = $request->input('bypass_duration');
             }
 
@@ -1017,7 +1026,7 @@ class UserController extends Controller
 
         $data = [];
 
-        if(json_last_error() != JSON_ERROR_NONE) {
+        if (json_last_error() != JSON_ERROR_NONE) {
             $data['whitelist'] = [];
             $data['blacklist'] = [];
             $data['triggerBlacklist'] = [];
@@ -1034,30 +1043,30 @@ class UserController extends Controller
         $user = \Auth::user();
 
         $token = $user->token();
-        $activation = $this->getActivation($user, $request, $token);
+        $activation = $this->getAndTouchActivation($user, $request, $token);
 
         $config = json_decode($activation->config_override);
 
-        if(json_last_error() != JSON_ERROR_NONE ) {
+        if (json_last_error() != JSON_ERROR_NONE) {
             $config = new \stdClass();
         }
 
-        if(!isset($config->SelfModeration)) {
+        if (!isset($config->SelfModeration)) {
             $config->SelfModeration = [];
         }
 
         $listType = 'blacklist';
-        if($request->has('list_type')) {
+        if ($request->has('list_type')) {
             $listType = $request->input('list_type');
         }
 
-        if($listType == 'whitelist') {
-            if($user->can(['all', 'manage-whitelisted-sites'])) {
-                if(!isset($config->CustomWhitelist)) {
+        if ($listType == 'whitelist') {
+            if ($user->can(['all', 'manage-whitelisted-sites'])) {
+                if (!isset($config->CustomWhitelist)) {
                     $config->CustomWhitelist = [];
                 }
 
-                if($request->has('url') && !empty($request->input('url'))) {
+                if ($request->has('url') && !empty($request->input('url'))) {
                     $config->CustomWhitelist[] = $request->input('url');
                 } else {
                     return response(json_encode(['error' => 'Please specify a URL.']), 400);
@@ -1067,15 +1076,15 @@ class UserController extends Controller
             }
         } else {
             $key = "SelfModeration";
-            if($listType == "triggerBlacklist") {
+            if ($listType == "triggerBlacklist") {
                 $key = "CustomTriggerBlacklist";
             }
 
-            if(!isset($config->$key)) {
+            if (!isset($config->$key)) {
                 $config->$key = [];
             }
 
-            if($request->has('url') && !empty($request->input('url'))) {
+            if ($request->has('url') && !empty($request->input('url'))) {
                 $config->$key[] = $request->input('url');
             } else {
                 return response(json_encode(['error' => 'Please specify a URL.']), 400);
@@ -1093,25 +1102,25 @@ class UserController extends Controller
 
         $config = json_decode($user->config_override);
 
-        if(json_last_error() != JSON_ERROR_NONE) {
+        if (json_last_error() != JSON_ERROR_NONE) {
             $config = new \stdClass();
         }
 
-        if($user->can(['all', 'manage-whitelisted-sites'])) {
-            if($request->has('whitelist')) {
+        if ($user->can(['all', 'manage-whitelisted-sites'])) {
+            if ($request->has('whitelist')) {
                 $config->CustomWhitelist = Utils::purgeNulls($request->input('whitelist'));
             } else {
                 $config->CustomWhitelist = [];
             }
         }
 
-        if($request->has('blacklist')) {
+        if ($request->has('blacklist')) {
             $config->SelfModeration = Utils::purgeNulls($request->input('blacklist'));
         } else {
             $config->SelfModeration = [];
         }
 
-        if($request->has('triggerBlacklist')) {
+        if ($request->has('triggerBlacklist')) {
             $config->CustomTriggerBlacklist = Utils::purgeNulls($request->input('triggerBlacklist'));
         } else {
             $config->CustomTriggerBlacklist = [];
@@ -1128,7 +1137,7 @@ class UserController extends Controller
 
         $config = json_decode($user->config_override);
 
-        if(json_last_error() != JSON_ERROR_NONE || !isset($config->TimeRestrictions)) {
+        if (json_last_error() != JSON_ERROR_NONE || !isset($config->TimeRestrictions)) {
             return "{}";
         }
 
@@ -1140,15 +1149,15 @@ class UserController extends Controller
 
         $config = json_decode($user->config_override);
 
-        if(json_last_error() != JSON_ERROR_NONE) {
+        if (json_last_error() != JSON_ERROR_NONE) {
             $config = new \stdClass();
         }
 
-        if($request->has('time_restrictions')) {
+        if ($request->has('time_restrictions')) {
             $config->TimeRestrictions = $request->input('time_restrictions');
         }
 
-        if(!isset($config->TimeRestrictions)) {
+        if (!isset($config->TimeRestrictions)) {
             $config->TimeRestrictions = [];
         }
 

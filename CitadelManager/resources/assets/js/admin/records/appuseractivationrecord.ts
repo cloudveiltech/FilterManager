@@ -33,6 +33,7 @@ namespace Citadel {
         //   :::::: APP USER ACTIVATION   M E M B E R S ::::::
         // ──────────────────────────────────────────────────────
         private m_activationId              : number;
+        private m_groupId                   : number;
         private m_userName                  : string;
         private m_identifier                : string;
         private m_deviceId                  : string;
@@ -46,6 +47,7 @@ namespace Citadel {
         private configOverride : any;
         private selfModeration : any;
         private activationWhitelist : any;
+        private triggerBlacklist : any;
 
         // ──────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -64,9 +66,11 @@ namespace Citadel {
         private m_inputAppName              : HTMLInputElement;
         private m_inputReportLevel          : HTMLInputElement;
         private m_labelReportLevel          : HTMLLabelElement;
+        private m_selectGroup               : HTMLSelectElement;
 
         private m_blacklistTable            : SelfModerationTable;
         private m_whitelistTable            : SelfModerationTable;
+        private m_triggerBlacklistTable     : SelfModerationTable;
 
         private m_btnSubmit                 : HTMLButtonElement;
         private m_btnCancel                 : HTMLButtonElement;
@@ -121,16 +125,18 @@ namespace Citadel {
 
             this.m_btnSubmit            = document.querySelector('#activation_editor_submit') as HTMLButtonElement;
             this.m_btnCancel            = document.querySelector('#activation_editor_cancel') as HTMLButtonElement;
-
+            this.m_selectGroup          = document.querySelector('#editor_ctivation_input_group_id') as HTMLSelectElement;
             this.InitButtonHandlers();
         }
 
         private InitSelfModerationTables(): void {
             this.m_blacklistTable = new SelfModerationTable(document.querySelector('#activation_self_moderation_table'), this.selfModeration);
             this.m_whitelistTable = new SelfModerationTable(document.querySelector('#activation_whitelist_table'), this.activationWhitelist);
+            this.m_triggerBlacklistTable = new SelfModerationTable(document.querySelector('#activation_trigger_table'), this.triggerBlacklist);
 
             this.m_blacklistTable.render();
             this.m_whitelistTable.render();
+            this.m_triggerBlacklistTable.render();
         }
 
         private InitButtonHandlers(): void {
@@ -149,6 +155,8 @@ namespace Citadel {
         }
 
         protected LoadFromObject(data: Object): void {
+            console.log(data)
+
             this.m_activationId     = data['id'] as number;
             this.m_userName         = data['name'] as string;
             this.m_identifier       = data['identifier'] as string;
@@ -159,6 +167,7 @@ namespace Citadel {
             this.m_bypassUsed       = data['bypass_used'] as number;
             this.m_reportLevel      = data['report_level'] as number;
             this.m_os               = data['platform_name'] as string;
+            this.m_groupId         = data['group_id'] as number;
 
             if('config_override' in data && data['config_override'] != null) {
                 try {
@@ -173,10 +182,22 @@ namespace Citadel {
             if(this.configOverride) {
                 this.selfModeration = this.configOverride.SelfModeration;
                 this.activationWhitelist = this.configOverride.CustomWhitelist;
+                this.triggerBlacklist = this.configOverride.CustomTriggerBlacklist;
             } else {
                 this.selfModeration = null;
                 this.activationWhitelist = null;
+                this.triggerBlacklist = null;
             }
+        }
+
+        private getValueFromSelect(selectBox: HTMLSelectElement): number {
+            let val = -1;
+            if (selectBox.selectedIndex != -1) {
+                let option = selectBox.options[selectBox.selectedIndex] as HTMLOptionElement;
+                val = parseInt(option.value);
+            }
+
+            return val;
         }
 
         protected LoadFromForm(): void {
@@ -184,18 +205,37 @@ namespace Citadel {
             this.m_bypassPeriod     = this.m_inputBPPeriod.value == "" ? null : parseInt(this.m_inputBPPeriod.value);
             this.m_reportLevel      = this.m_inputReportLevel.checked ? 1 : 0;
 
+            this.m_groupId          = this.getValueFromSelect(this.m_selectGroup);
+
             this.selfModeration = this.m_blacklistTable.getData();
             this.activationWhitelist = this.m_whitelistTable.getData();
+            this.triggerBlacklist = this.m_triggerBlacklistTable.getData();
 
             this.configOverride = JSON.stringify({
                 SelfModeration: this.selfModeration,
-                CustomWhitelist: this.activationWhitelist
+                CustomWhitelist: this.activationWhitelist,
+                CustomTriggerBlacklist: this.triggerBlacklist
             });
         }
 
-        public StartEditing(userData: Object = null): void {
-
+        public StartEditing(allGroups, userData: Object = null): void {
             this.LoadFromObject(userData);
+
+            if (this.m_selectGroup.options != null) {
+                this.m_selectGroup.options.length = 0;
+            }
+
+            let option = document.createElement('option') as HTMLOptionElement;
+            option.text = " ";
+            option.value = "-1";
+            this.m_selectGroup.options.add(option);
+
+            for (var elm of allGroups) {
+                let option = document.createElement('option') as HTMLOptionElement;
+                option.text = elm['name'];
+                option.value = elm['id'];
+                this.m_selectGroup.options.add(option);
+            }
 
             this.m_inputUserName.value      = this.m_userName;
             this.m_inputIdentifier.value    = this.m_identifier;
@@ -205,6 +245,13 @@ namespace Citadel {
             this.m_inputBPPeriod.value      = (this.m_bypassPeriod != null) ? this.m_bypassPeriod.toString() : '';
             this.m_inputBPUsed.value        = this.m_bypassUsed.toString();
             this.m_inputReportLevel.checked = (this.m_reportLevel === 1);
+
+            let optionInList = this.m_selectGroup.querySelector('option[value="' + this.m_groupId.toString() + '"]') as HTMLOptionElement;
+            if (optionInList != null) {
+                this.m_selectGroup.selectedIndex = optionInList.index;
+            } else {
+                this.m_selectGroup.selectedIndex  = -1;
+            }
 
             if (this.m_reportLevel === 1) {
                 this.m_labelReportLevel.innerHTML = this.MESSAGE_REPORT_LABEL;
@@ -228,8 +275,10 @@ namespace Citadel {
         public ToObject(): Object {
             let obj = {
                 'id'                : this.m_activationId,
+                'group_id'          : this.m_groupId,
                 'bypass_quantity'   : this.m_bypassQuantity,
                 'bypass_period'     : this.m_bypassPeriod,
+                'bypass_used'       : this.m_bypassUsed,
                 'report_level'      : this.m_reportLevel,
                 'config_override'   : this.configOverride
             };
@@ -273,6 +322,15 @@ namespace Citadel {
 
         public addNewWhitelistSite(): void {
             this.m_whitelistTable.add();
+        }
+
+        public addNewCustomTextTrigger(): void {
+            this.m_triggerBlacklistTable.add();
+        }
+
+        public resetBypassUsed(): void {
+            this.m_bypassUsed = 0;
+            this.m_inputBPUsed.value = this.m_bypassUsed.toString();
         }
     }
 }
