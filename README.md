@@ -82,7 +82,7 @@ You'll need to run a migration to create the oauth tables.
 This command takes care of generating oauth keys.
 `php artisan passport:install`
 
-Before starting the guided installation process, you should manually edit the the `.env` and set the following values correctly:
+Before starting the guided installation process, you should manually edit the `.env` and set the following values correctly:
 
  - `APP_URL=http://laravel.app` // Set this to the correct URL.
  - `SESSION_DOMAIN=.laravel.app` // Set this to your real domain.
