@@ -115,76 +115,71 @@ class Group extends Model {
                 }
                 switch ($listType) {
                     case 'Filters':
-                        {
-                            if ($listIndex->as_blacklist) {
-                                array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::Blacklist, $entryRelativePath));
+                        if ($listIndex->as_blacklist) {
+                            array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::Blacklist, $entryRelativePath));
+                        } else {
+                            if ($listIndex->as_whitelist) {
+                                array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::Whitelist, $entryRelativePath));
                             } else {
-                                if ($listIndex->as_whitelist) {
-                                    array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::Whitelist, $entryRelativePath));
-                                } else {
-                                    if ($listIndex->as_bypass) {
-                                        array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::BypassList, $entryRelativePath));
-                                    }
+                                if ($listIndex->as_bypass) {
+                                    array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::BypassList, $entryRelativePath));
                                 }
                             }
                         }
                         break;
                     case 'Triggers':
-                        {
-                            array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::TextTrigger, $entryRelativePath));
-                        }
+                        array_push($compiledAppConfiguration['ConfiguredLists'], new FilteringPlainTextListModel(PlainTextFilteringListType::TextTrigger, $entryRelativePath));
                         break;
                 }
             }
-
-            // Merge app_groups into configuration.
-            $app_cfg = json_decode($this->app_cfg, true);
-            $app_group_ids = UserGroupToAppGroup::where('user_group_id', $this->id)->pluck('app_group_id');
-            $app_groups = AppGroup::with('app')->find($app_group_ids);
-            $apps = [];
-            // The apps variable is populated like this to remove duplicates.
-            foreach ($app_groups as $ag) {
-                foreach ($ag['app'] as $app) {
-                    $apps[$app['name']] = $app['name'];
-                }
-            }
-            $apps = array_values($apps);
-
-            //We remove the Whitelist or Blacklist setting before saving to the .zip file as it's not needed.
-            if (isset($app_cfg['Whitelist'])) {
-                unset($app_cfg['Whitelist']);
-                Log::info('Whitelisting apps for group: ' . $this->id);
-                $app_cfg['WhitelistedApplications'] = $apps;
-            } elseif (isset($app_cfg['Blacklist'])) {
-                unset($app_cfg['Blacklist']);
-                Log::info('Blacklisting apps for group: ' . $this->id);
-                $app_cfg['BlacklistedApplications'] = $apps;
-            }
-
-            $compiledAppConfiguration = array_merge($compiledAppConfiguration, $app_cfg);
-            $serializedFinalConfiguration = json_encode($compiledAppConfiguration);
-
-            $zip->addFromString('cfg.json', $serializedFinalConfiguration);
-            $zip->close();
-
-            // Lastly, update this group's data hash.
-            Group::where('id', $this->id)->update(
-                [
-                    'data_sha1' => sha1_file($groupDataZipPath),
-                    'config_cache' => $serializedFinalConfiguration,
-                ]
-            );
-
-            $this->config_cache = $serializedFinalConfiguration;
-            Log::info('Caching Config.  Done rebuilding group data for group ' . $this->id);
         }
 
-        function destroyGroupData() {
-            $groupDataZipPath = $this->getGroupDataPayloadPath();
-            if (file_exists($groupDataZipPath)) {
-                unlink($groupDataZipPath);
+        // Merge app_groups into configuration.
+        $app_cfg = json_decode($this->app_cfg, true);
+        $app_group_ids = UserGroupToAppGroup::where('user_group_id', $this->id)->pluck('app_group_id');
+        $app_groups = AppGroup::with('app')->find($app_group_ids);
+        $apps = [];
+        // The apps variable is populated like this to remove duplicates.
+        foreach ($app_groups as $ag) {
+            foreach ($ag['app'] as $app) {
+                $apps[$app['name']] = $app['name'];
             }
         }
+        $apps = array_values($apps);
 
+        //We remove the Whitelist or Blacklist setting before saving to the .zip file as it's not needed.
+        if (isset($app_cfg['Whitelist'])) {
+            unset($app_cfg['Whitelist']);
+            Log::info('Whitelisting apps for group: ' . $this->id);
+            $app_cfg['WhitelistedApplications'] = $apps;
+        } elseif (isset($app_cfg['Blacklist'])) {
+            unset($app_cfg['Blacklist']);
+            Log::info('Blacklisting apps for group: ' . $this->id);
+            $app_cfg['BlacklistedApplications'] = $apps;
+        }
+
+        $compiledAppConfiguration = array_merge($compiledAppConfiguration, $app_cfg);
+        $serializedFinalConfiguration = json_encode($compiledAppConfiguration);
+
+        $zip->addFromString('cfg.json', $serializedFinalConfiguration);
+        $zip->close();
+
+        // Lastly, update this group's data hash.
+        Group::where('id', $this->id)->update(
+            [
+                'data_sha1' => sha1_file($groupDataZipPath),
+                'config_cache' => $serializedFinalConfiguration,
+            ]
+        );
+
+        $this->config_cache = $serializedFinalConfiguration;
+        Log::info('Caching Config.  Done rebuilding group data for group ' . $this->id);
+    }
+
+    function destroyGroupData() {
+        $groupDataZipPath = $this->getGroupDataPayloadPath();
+        if (file_exists($groupDataZipPath)) {
+            unlink($groupDataZipPath);
+        }
     }
 }
