@@ -19,11 +19,9 @@ use Illuminate\Http\Request;
 use Log;
 use Validator;
 
-class AppUserActivationController extends Controller
-{
+class AppUserActivationController extends Controller {
 
-    public function __construct()
-    {
+    public function __construct() {
 
     }
 
@@ -32,8 +30,7 @@ class AppUserActivationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request, $user_id = null)
-    {
+    public function index(Request $request, $user_id = null) {
         if ($request->has('email')) {
             $user = User::where('email', $request->input('email'))->first();
             if ($user && $user->activations()) {
@@ -41,14 +38,16 @@ class AppUserActivationController extends Controller
             } else {
                 return response()->json([]);
             }
-        } else if ($request->has('user_id') || $user_id != null) {
-            $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
-            $user = User::find($user_id);
-            if ($user && $user->activations()) {
-                $activations = $user->activations()->with('deactivation_request')->get();
-                return $activations;
-            } else {
-                return response()->json([]);
+        } else {
+            if ($request->has('user_id') || $user_id != null) {
+                $user_id = ($user_id != null ? $user_id : $request->has('user_id'));
+                $user = User::find($user_id);
+                if ($user && $user->activations()) {
+                    $activations = $user->activations()->with('deactivation_request')->get();
+                    return $activations;
+                } else {
+                    return response()->json([]);
+                }
             }
         }
 
@@ -88,8 +87,7 @@ class AppUserActivationController extends Controller
 
     }
 
-    public function updateReport(Request $request)
-    {
+    public function updateReport(Request $request) {
         $id = $request->input('id');
         $value = intval($request->input('value')); //0 or 1
 
@@ -107,8 +105,7 @@ class AppUserActivationController extends Controller
         ]);
     }
 
-    public function updateAlert(Request $request)
-    {
+    public function updateAlert(Request $request) {
         $id = $request->input('id');
         $value = intval($request->input('value')); //0 or 1
         AppUserActivation::where('id', $id)->update(['alert_partner' => $value]);
@@ -117,8 +114,7 @@ class AppUserActivationController extends Controller
         ]);
     }
 
-    public function updateCheckInDays(Request $request)
-    {
+    public function updateCheckInDays(Request $request) {
         $id = $request->input('id');
         $value = intval($request->input('value'));
         AppUserActivation::where('id', $id)->update(['check_in_days' => $value]);
@@ -131,11 +127,10 @@ class AppUserActivationController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
+    public function destroy($id) {
 
         $activation = AppUserActivation::where('id', $id)->first();
         if (!is_null($activation)) {
@@ -148,11 +143,10 @@ class AppUserActivationController extends Controller
     /**
      * Block the specified resource from storage.
      *
-     * @param  int $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function block($id)
-    {
+    public function block($id) {
         $activation = AppUserActivation::where('id', $id)->first();
         if (!is_null($activation)) {
             // If we're blocking the activation we go in and revoke the token for that installation.
@@ -169,59 +163,58 @@ class AppUserActivationController extends Controller
         return response('', 204);
     }
 
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id) {
         $user = $request->user();
         $activation = AppUserActivation::where('id', $id)->first();
 
-        if(!$user->can('all')) {
-            if(!$user->can('manage-own-activations')) {
+        if (!$user->can('all')) {
+            if (!$user->can('manage-own-activations')) {
                 return response(json_encode(['error' => 'You do not have permission to manage your own activations.']), 400);
-            } else if($activation->user_id != $user->id) {
-                // Can manage own activations.
-                return response(json_encode(['error' => 'You only have permission to manage your own activations.']), 400);
+            } else {
+                if ($activation->user_id != $user->id) {
+                    // Can manage own activations.
+                    return response(json_encode(['error' => 'You only have permission to manage your own activations.']), 400);
+                }
             }
         }
 
         $fields = ['config_override', 'group_id', 'bypass_used'];
 
-        if($user->can(['all', 'manage-checkin-days'])) {
+        if ($user->can(['all', 'manage-checkin-days'])) {
             $fields[] = 'check_in_days';
         }
-        
-        if($user->can(['all', 'manage-relaxed-policy'])) {
+
+        if ($user->can(['all', 'manage-relaxed-policy'])) {
             $fields[] = 'bypass_quantity';
             $fields[] = 'bypass_period';
         }
 
-        if($user->can(['all', 'set-activation-report-level'])) {
+        if ($user->can(['all', 'set-activation-report-level'])) {
             $fields[] = 'report_level';
         }
 
         $input = $request->only($fields);
 
-        if(isset($input['config_override'])) {
+        if (isset($input['config_override'])) {
             $input['config_override'] = Utils::purgeNullsFromJSONSelfModeration($input['config_override']);
         }
 
         AppUserActivation::where('id', $id)->update($input);
 
-        return response('', 204);        
+        return response('', 204);
     }
 
-    public function show($id)
-    {
+    public function show($id) {
         return AppUserActivation::where('id', $id)->get();
     }
 
     /**
      * Process Activation Bypass Request
      *
-     * @param  int $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function bypass(Request $request)
-    {
+    public function bypass(Request $request) {
         $validator = Validator::make($request->all(), [
             'identifier' => 'required',
         ]);
@@ -234,7 +227,7 @@ class AppUserActivationController extends Controller
         $args = [$input['identifier']];
         $whereStatement = "identifier = ?";
 
-        if(!empty($input['device_id'])) {
+        if (!empty($input['device_id'])) {
             $whereStatement .= " and device_id = ?";
             $args[] = $input['device_id'];
         }
@@ -267,8 +260,8 @@ class AppUserActivationController extends Controller
                 $user_config = json_decode($user_config_str);
                 $app_cfg = json_decode($app_cfg_str);
 
-                if(!is_null($user_config)) {
-                    foreach($user_config as $key => $value) {
+                if (!is_null($user_config)) {
+                    foreach ($user_config as $key => $value) {
                         $app_cfg->$key = $value;
                     }
                 }
@@ -279,7 +272,7 @@ class AppUserActivationController extends Controller
                     $bypass_permitted = $app_cfg->BypassesPermitted;
                 }
 
-                if($user->enable_relaxed_policy_passcode) {
+                if ($user->enable_relaxed_policy_passcode) {
                     $passcodeEnabled = true;
                     $passcode = $user->relaxed_policy_passcode;
                 }
@@ -300,20 +293,20 @@ class AppUserActivationController extends Controller
         } else {
             // Check to see if user has passcode.
             $isAuthorized = false;
-            if($passcodeEnabled) {
+            if ($passcodeEnabled) {
                 $enteredPasscode = null;
-                if($request->has('passcode')) {
+                if ($request->has('passcode')) {
                     $enteredPasscode = $request->input('passcode');
                 }
 
-                if($passcode == $enteredPasscode) {
+                if ($passcode == $enteredPasscode) {
                     $isAuthorized = true;
                 }
             } else {
                 $isAuthorized = true;
             }
 
-            if(!$isAuthorized) {
+            if (!$isAuthorized) {
                 $arr_output = array(
                     "allowed" => false,
                     "message" => "Request denied. You entered an incorrect passcode.",
@@ -328,7 +321,7 @@ class AppUserActivationController extends Controller
                 }
 
                 return response()->json($arr_output);
-            } elseif($bypass_permitted > $bypass_used) {
+            } elseif ($bypass_permitted > $bypass_used) {
                 $activation->bypass_used++;
                 $activation->save();
 
