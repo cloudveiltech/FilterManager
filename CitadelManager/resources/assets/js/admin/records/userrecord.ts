@@ -278,7 +278,7 @@ namespace Citadel {
         URL_UPDATE_CHECK_IN_DAYS            = 'api/admin/activations/update_check_in_days';
         URL_DELETE_ACTIVATION               = 'api/admin/user_activations/delete';
         URL_BLOCK_ACTIVATION                = 'api/admin/user_activations/block';
-        URL_REFRESH_ACTIVATIONS             = 'api/admin/user_activations';
+        URL_REFRESH_ACTIVATIONS             = 'api/admin/user/{user_id}/activations';
 
         WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -498,8 +498,8 @@ namespace Citadel {
 
         private refreshActivations(): void {
             var that = this;
-
-            $.get(that.URL_REFRESH_ACTIVATIONS + '/' + that.m_id)
+            var url = that.URL_REFRESH_ACTIVATIONS.replace("{user_id}", that.m_id.toString());
+            $.get(url)
             .done(function(data) {
                 that.activationData = data;
                 that.InitUserActivationTables();
@@ -1034,7 +1034,10 @@ namespace Citadel {
                     $("#user_activation_table").on("click", "button.btn-edit", function(e) {
                         e.preventDefault();
 
-                        let id = that.getIdFromElementId(e.target['id']);
+                        var id = that.getIdFromElementId(e.target['id']);
+                        if(id == -1) {
+                            id = that.getIdFromElementId(e.target.parentNode['id']);
+                        }
 
                         let appUserActivationRecord = new AppUserActivationRecord();
 
@@ -1043,6 +1046,7 @@ namespace Citadel {
                             
                             that.refreshActivations();
                         });
+                        console.log(id)
 
                         var data = that.getActivationById(id);
 

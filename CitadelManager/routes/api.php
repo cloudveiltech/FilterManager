@@ -63,6 +63,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
     Route::post('user_activations/delete/{id}', 'AppUserActivationController@destroy');
     Route::post('user_activations/block/{id}', 'AppUserActivationController@block');
     Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
+    Route::get('user/{user_id}/activations', 'AppUserActivationController@index');
 
     Route::get('activations', 'AppUserActivationController@index');
     Route::post('activations/update_report', 'AppUserActivationController@updateReport');
