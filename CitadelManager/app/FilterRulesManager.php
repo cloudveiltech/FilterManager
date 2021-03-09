@@ -102,7 +102,7 @@ class FilterRulesManager {
     }
 
     // Helps reduce memory usage for rule file building.
-    public function buildFileFromSpl(SplFileObject $inputFile, FilterList $list, $convertToAbp) {
+    public function buildFileFromSpl(SplFileObject $inputFile, FilterList $list, $convertToAbp, $appendToEndOfFile=false) {
         if ($convertToAbp) {
             $lineFeedFunc = function (string $in): string {
                 return $this->formatStringAsAbpFilter(trim($in));
@@ -127,7 +127,7 @@ class FilterRulesManager {
 
         $filePath = $storageDir . $filename;
         Log::debug('Opening File to write filters to it: ' . $filePath);
-        $file = fopen($filePath, 'w');
+        $file = fopen($filePath, $appendToEndOfFile ? 'a' : 'w');
 
         foreach ($inputFile as $lineNumber => $rule) {
             $rule = $lineFeedFunc($rule);

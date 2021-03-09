@@ -365,6 +365,8 @@ class FilterListController extends Controller {
         $zippedData = new \PharData($tmpArchiveLoc);
         $filterListManager = new FilterRulesManager();
         $pharIterator = new \RecursiveIteratorIterator($zippedData, \RecursiveIteratorIterator::CHILD_FIRST);
+        $fileCountByType = [];
+
         foreach ($pharIterator as $pharFileInfo) {
             Log::debug("Phar internal data location " . $pharFileInfo->getPath());
 
@@ -432,13 +434,16 @@ class FilterListController extends Controller {
                         break;
                 }
 
+                if (!isset($fileCountByType[$finalListType])) {
+                    $fileCountByType[$finalListType] = 0;
+                }
+                $fileCountByType[$finalListType]++;
+
                 if (is_null($finalListType)) {
                     Log::debug("invalid/improperly named/unrecognized file");
-                    // Invalid/improperly named/unrecognized file.
                     continue;
                 }
 
-                // Delete existing if overwrite is true.
                 if ($overwrite) {
                     Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
 
@@ -451,9 +456,6 @@ class FilterListController extends Controller {
 
                 $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
 
-                // We have to do this for the event where the user selects overwrite on the upload,
-                // yet one or more of the lists didn't exist already. Otherwise, same problem will
-                // arise as described in the comments above purgedCategories var creation above.
                 if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
                     array_push($purgedCategories, $newFilterListEntry->id);
                 }
@@ -461,39 +463,10 @@ class FilterListController extends Controller {
                 // In case this is existing, pull group assignment of this filter.
                 $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
 
-                $filterListManager->buildFileFromSpl($pharFileInfo->openFile('r'), $newFilterListEntry, $convertToAbp);
+                $appendToEndOfFile = $fileCountByType[$finalListType] > 1;
+                $filterListManager->buildFileFromSpl($pharFileInfo->openFile('r'), $newFilterListEntry, $convertToAbp, $appendToEndOfFile);
 
-                // Update updated_at timestamps.
                 $newFilterListEntry->touch();
-
-                // This means that the list is a raw list of domains/urls.
-                // We will also convert these to triggers.
-                if ($convertToAbp == true) {
-                    Log::debug('Converting List to ABP format');
-                    $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => 'Triggers']);
-
-                    // We have to do this for the event where the user selects overwrite on the upload,
-                    // yet one or more of the lists didn't exist already. Otherwise, same problem will
-                    // arise as described in the comments above purgedCategories var creation above.
-                    if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
-                        array_push($purgedCategories, $newFilterListEntry->id);
-                    }
-
-                    if ($overwrite) {
-                        if (!is_null($newFilterListEntry) && !in_array($newFilterListEntry->id, $purgedCategories)) {
-                            $filterListManager->deleteFiles($newFilterListEntry);
-                            array_push($purgedCategories, $newFilterListEntry->id);
-                        }
-                    }
-
-                    // In case this is existing, pull group assignment of this filter.
-                    $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
-
-                    $filterListManager->buildFileFromSpl($pharFileInfo->openFile('r'), $newFilterListEntry, $convertToAbp);
-
-                    // Update updated_at timestamps.
-                    $newFilterListEntry->touch();
-                }
             }
         }
 
