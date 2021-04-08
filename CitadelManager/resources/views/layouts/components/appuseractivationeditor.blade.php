@@ -121,7 +121,8 @@
                                                id="editor_activation_input_bypass_used"
                                         />
                                     </div>
-                                    <button class="button primary" type="button" event-click="resetBypassUsed()">Reset</button>
+                                    <button class="button primary" type="button" event-click="resetBypassUsed()">Reset
+                                    </button>
                                 </div>
                             </div>
 
@@ -147,19 +148,21 @@
                                     Site
                                 </button>
 
-                                <table id="activation_self_moderation_table"
-                                       class="table striped hovered border black-background" style="width: 100%">
-                                    <thead>
-                                    <tr>
-                                        <th>Site</th>
-                                        <th>...</th>
-                                        <th>...</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody id="activation_self_moderation_insert">
+                                <div style="max-height: 350px; overflow-y: auto;">
+                                    <table id="activation_self_moderation_table"
+                                           class="table striped hovered border black-background" style="width: 100%">
+                                        <thead>
+                                        <tr>
+                                            <th>Site</th>
+                                            <th>...</th>
+                                            <th>...</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="activation_self_moderation_insert">
 
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
 
@@ -200,20 +203,21 @@
                                 <button type="button" event-click="addNewCustomTextTrigger" class="button primary">Add
                                     Text Trigger
                                 </button>
+                                <div style="max-height: 350px; overflow-y: auto;">
+                                    <table id="activation_trigger_table"
+                                           class="table striped hovered border black-background" style="width: 100%">
+                                        <thead>
+                                        <tr>
+                                            <th>Text Trigger</th>
+                                            <th>...</th>
+                                            <th>...</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="activation_trigger_insert">
 
-                                <table id="activation_trigger_table"
-                                       class="table striped hovered border black-background" style="width: 100%">
-                                    <thead>
-                                    <tr>
-                                        <th>Text Trigger</th>
-                                        <th>...</th>
-                                        <th>...</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody id="activation_trigger_insert">
-
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
