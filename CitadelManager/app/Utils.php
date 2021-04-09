@@ -27,6 +27,7 @@ class Utils {
 		$configOverride['SelfModeration'] = Utils::purgeNullsFromArrayWithKey($configOverride, 'SelfModeration');
 		$configOverride['CustomWhitelist'] = Utils::purgeNullsFromArrayWithKey($configOverride, 'CustomWhitelist');
 		$configOverride['CustomTriggerBlacklist'] = Utils::purgeNullsFromArrayWithKey($configOverride, 'CustomTriggerBlacklist');
+        $configOverride['CustomBypasslist'] = Utils::purgeNullsFromArrayWithKey($configOverride, 'CustomBypasslist');
 
 		return $configOverride;
 	}

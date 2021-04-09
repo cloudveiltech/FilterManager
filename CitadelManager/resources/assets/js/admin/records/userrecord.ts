@@ -26,7 +26,7 @@ namespace Citadel {
 
         private toStrings(): string[] {
             var sites = [];
-            for(var i = 0; i < this.data.length; i++) {
+            for (var i = 0; i < this.data.length; i++) {
                 sites.push(this.data[i].site);
             }
 
@@ -36,7 +36,7 @@ namespace Citadel {
         private fromStrings(data: string[]): object[] {
             var processed = [];
 
-            for(var i = 0; i < data.length; i++) {
+            for (var i = 0; i < data.length; i++) {
                 processed.push({
                     id: this.nextId(),
                     site: data[i]
@@ -47,8 +47,8 @@ namespace Citadel {
         }
 
         private findSiteObj(id: number): object {
-            for(var i = 0; i < this.data.length; i++) {
-                if(this.data[i].id === id) {
+            for (var i = 0; i < this.data.length; i++) {
+                if (this.data[i].id === id) {
                     return this.data[i];
                 }
             }
@@ -63,13 +63,14 @@ namespace Citadel {
         }
 
         /* Taken from https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript */
+
         /* Not currently used. Might want this? */
         private siteIdHash(s: string): number {
             let hash = 0;
-            if(s.length === 0) return hash;
+            if (s.length === 0) return hash;
 
             let i = 0;
-            for(i = 0; i < s.length; i++) {
+            for (i = 0; i < s.length; i++) {
                 const chr = s.charCodeAt(i);
                 hash = ((hash << 5) - hash) + chr;
                 hash |= 0;
@@ -98,19 +99,19 @@ namespace Citadel {
 
             this.render();
 
-            setTimeout(function() {
+            setTimeout(function () {
                 that.edit(id);
             });
         }
 
         public remove(id: number): void {
-            for(var i = 0; i < this.data.length; i++) {
-                if(this.data[i].id == id) {
+            for (var i = 0; i < this.data.length; i++) {
+                if (this.data[i].id == id) {
                     break;
                 }
             }
 
-            if(i < this.data.length) {
+            if (i < this.data.length) {
                 this.data.splice(i, 1);
             }
 
@@ -118,7 +119,7 @@ namespace Citadel {
         }
 
         public edit(id: number): void {
-            if(this.editInfo && this.editInfo.inProgress) {
+            if (this.editInfo && this.editInfo.inProgress) {
                 return;
             }
 
@@ -140,7 +141,7 @@ namespace Citadel {
         }
 
         public endEdit(): void {
-            if(!this.editInfo || !this.editInfo.inProgress) {
+            if (!this.editInfo || !this.editInfo.inProgress) {
                 return;
             }
 
@@ -149,7 +150,7 @@ namespace Citadel {
             var siteObj = this.editInfo.siteObj;
             elem.parentNode.replaceChild(this.renderRow(siteObj), elem);
 
-            this.editInfo = { inProgress: false };
+            this.editInfo = {inProgress: false};
         }
 
         private renderRow(siteObj): any {
@@ -164,11 +165,11 @@ namespace Citadel {
 
             siteTd.innerHTML = siteObj.site;
 
-            editTd.appendChild(this.button("Edit", function() {
+            editTd.appendChild(this.button("Edit", function () {
                 that.edit(siteObj.id);
             }));
 
-            deleteTd.appendChild(this.button("Delete", function() {
+            deleteTd.appendChild(this.button("Delete", function () {
                 that.remove(siteObj.id);
             }));
 
@@ -195,7 +196,7 @@ namespace Citadel {
 
             tbody.innerHTML = "";
 
-            for(var i = 0; i < this.data.length; i++) {
+            for (var i = 0; i < this.data.length; i++) {
                 var obj = this.data[i];
 
                 var tr = this.renderRow(obj);
@@ -218,8 +219,8 @@ namespace Citadel {
             input.setAttribute("type", "text");
             input.value = site;
 
-            input.addEventListener("keypress", function(e) {
-                if(e.which == 13) {
+            input.addEventListener("keypress", function (e) {
+                if (e.which == 13) {
                     that.editInfo.siteObj.site = input.value;
                     that.endEdit();
                     e.preventDefault();
@@ -230,13 +231,13 @@ namespace Citadel {
             var button = document.createElement("button");
             button.innerHTML = "Done";
 
-            button.addEventListener("click", function() {
+            button.addEventListener("click", function () {
                 that.editInfo.siteObj.site = input.value;
                 that.endEdit();
             });
 
             inputTd.appendChild(input);
-            doneTd.appendChild(this.button("Done", function() {
+            doneTd.appendChild(this.button("Done", function () {
                 that.editInfo.siteObj.site = input.value;
                 that.endEdit();
             }));
@@ -253,110 +254,112 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
-        ERROR_MESSAGE_EMAIL                 = 'A valid email address is required.';
-        ERROR_MESSAGE_PASSWORD              = 'Password must be specified and match the password confirmation field.';
-        ERROR_MESSAGE_CONFIRM_PASSWORD      = 'Password confirmation must be specified and match the password field.';
-        ERROR_MESSAGE_ACTIVATION            = 'Total number of permitted activations must be specified.';
+        ERROR_MESSAGE_EMAIL = 'A valid email address is required.';
+        ERROR_MESSAGE_PASSWORD = 'Password must be specified and match the password confirmation field.';
+        ERROR_MESSAGE_CONFIRM_PASSWORD = 'Password confirmation must be specified and match the password field.';
+        ERROR_MESSAGE_ACTIVATION = 'Total number of permitted activations must be specified.';
 
-        ERROR_MESSAGE_DELAY_TIME            = 5000;
-        FADE_IN_DELAY_TIME                  = 200;
+        ERROR_MESSAGE_DELAY_TIME = 5000;
+        FADE_IN_DELAY_TIME = 200;
 
-        MESSAGE_BLOCK_ACTIVATION_CONFIRM    = 'Are you sure you want to delete this activation and block the token?  The user will need to sign in again.';
-        MESSAGE_DELETE_ACTIVATION_CONFIRM   = 'Are you sure you want to delete this activation?';
-        MESSAGE_ACTION_FAILED               = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
-        MESSAGE_INVALID_CHECKED_IN_DAYS     = 'Checked-In should be greater equal than 0.';
+        MESSAGE_BLOCK_ACTIVATION_CONFIRM = 'Are you sure you want to delete this activation and block the token?  The user will need to sign in again.';
+        MESSAGE_DELETE_ACTIVATION_CONFIRM = 'Are you sure you want to delete this activation?';
+        MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        MESSAGE_INVALID_CHECKED_IN_DAYS = 'Checked-In should be greater equal than 0.';
 
-        TITLE_NEW_USER                      = 'Create New User';
-        TITLE_EDIT_USER                     = 'Edit User';
-        TITLE_ACTION_FAILED                 = 'Action Failed';
+        TITLE_NEW_USER = 'Create New User';
+        TITLE_EDIT_USER = 'Edit User';
+        TITLE_ACTION_FAILED = 'Action Failed';
 
-        BTN_NEW_USER                        = 'Create';
-        BTN_EDIT_USER                       = 'Save';
+        BTN_NEW_USER = 'Create';
+        BTN_EDIT_USER = 'Save';
 
-        URL_ROUTE                           = 'api/admin/users';
-        URL_UPDATE_ALERT                    = 'api/admin/activations/update_alert';
-        URL_UPDATE_CHECK_IN_DAYS            = 'api/admin/activations/update_check_in_days';
-        URL_DELETE_ACTIVATION               = 'api/admin/user_activations/delete';
-        URL_BLOCK_ACTIVATION                = 'api/admin/user_activations/block';
-        URL_REFRESH_ACTIVATIONS             = 'api/admin/user/{user_id}/activations';
+        URL_ROUTE = 'api/admin/users';
+        URL_UPDATE_ALERT = 'api/admin/activations/update_alert';
+        URL_UPDATE_CHECK_IN_DAYS = 'api/admin/activations/update_check_in_days';
+        URL_DELETE_ACTIVATION = 'api/admin/user_activations/delete';
+        URL_BLOCK_ACTIVATION = 'api/admin/user_activations/block';
+        URL_REFRESH_ACTIVATIONS = 'api/admin/user/{user_id}/activations';
 
         WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
         // ───────────────────────────────────────────────────
         //   :::::: U S E R   D A T A   M E M B E R S ::::::
         // ───────────────────────────────────────────────────
-        private m_id                    : number;
-        private m_fullName              : string;
-        private m_email                 : string;
-        private m_password              : string;
-        private m_groupId               : number;
-        private m_roleId                : number;
-        private m_numActivations        : number;
-        private m_customerId            : number;
-        private m_isActive              : number;
-        private m_reportLevel           : number;
-        private m_registeredAt          : string;
-        private m_numBypassesPermitted  : number;
-        private m_bypassDuration        : number;
-        private m_relaxedPolicyPasscode : string;
-        private m_relaxedPolicyPasscodeEnabled : number;
+        private m_id: number;
+        private m_fullName: string;
+        private m_email: string;
+        private m_password: string;
+        private m_groupId: number;
+        private m_roleId: number;
+        private m_numActivations: number;
+        private m_customerId: number;
+        private m_isActive: number;
+        private m_reportLevel: number;
+        private m_registeredAt: string;
+        private m_numBypassesPermitted: number;
+        private m_bypassDuration: number;
+        private m_relaxedPolicyPasscode: string;
+        private m_relaxedPolicyPasscodeEnabled: number;
 
         // ─────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
         // ─────────────────────────────────────────────────────────
-        private m_mainForm              : HTMLFormElement;
+        private m_mainForm: HTMLFormElement;
 
-        private m_editorOverlay         : HTMLDivElement;
+        private m_editorOverlay: HTMLDivElement;
 
-        private m_editorTitleValue : string;
+        private m_editorTitleValue: string;
 
         // ─────────────────────────────────────────────
         //   ::::: I N P U T    E L E M E N T S ::::::
         // ─────────────────────────────────────────────
-        private m_emailInputId : string;
-        private m_inputPasswordId : string;
-        private m_inputPasswordConfirm  : HTMLInputElement;
-        private m_activationCountInputId : string;
-        private m_inputCustomerId       : HTMLInputElement;
-        private m_inputIsActive         : HTMLInputElement;
-        private m_inputReportLevel      : HTMLInputElement;
-        private m_inputRelaxedPolicyPasscodeEnabled : HTMLInputElement;
-        private m_disableDns      : HTMLInputElement;
+        private m_emailInputId: string;
+        private m_inputPasswordId: string;
+        private m_inputPasswordConfirm: HTMLInputElement;
+        private m_activationCountInputId: string;
+        private m_inputCustomerId: HTMLInputElement;
+        private m_inputIsActive: HTMLInputElement;
+        private m_inputReportLevel: HTMLInputElement;
+        private m_inputRelaxedPolicyPasscodeEnabled: HTMLInputElement;
+        private m_disableDns: HTMLInputElement;
 
         // ───────────────────────────────────────────────
         //   ::::: S E L E C T    E L E M E N T S ::::::
         // ───────────────────────────────────────────────
-        private m_selectGroup           : HTMLSelectElement;
-        private m_selectRole            : HTMLSelectElement;
+        private m_selectGroup: HTMLSelectElement;
+        private m_selectRole: HTMLSelectElement;
 
         // ───────────────────────────────────────────────
         //   ::::: B U T T O N    E L E M E N T S ::::::
         // ───────────────────────────────────────────────
-        private m_btnSubmit             : HTMLButtonElement;
-        private m_btnCancel             : HTMLButtonElement;
+        private m_btnSubmit: HTMLButtonElement;
+        private m_btnCancel: HTMLButtonElement;
 
-        private activationData                : any[];
-        private myConfigData            : any;
-        private selfModeration          : any;
-        private customWhitelist : any;
-        private customTriggers : any;
-        private timeRestrictions : any;
+        private activationData: any[];
+        private myConfigData: any;
+        private selfModeration: any;
+        private customWhitelist: any;
+        private customBypasslist: any;
+        private customTriggers: any;
+        private timeRestrictions: any;
         private allGroups: any;
         private isDnsDisabled: any;
 
         // ─────────────────────────────────────────────────
         //   ::::: A C T I V A T I O N    T A B L E ::::::
         // ─────────────────────────────────────────────────
-        private m_tableSettings         : DataTables.Settings;
-        private m_tableColumns          : DataTables.ColumnSettings[];
-        private m_ActivationTables      : DataTables.Api;
+        private m_tableSettings: DataTables.Settings;
+        private m_tableColumns: DataTables.ColumnSettings[];
+        private m_ActivationTables: DataTables.Api;
 
         /**
          * SELF MODERATION TABLE
          */
-        private m_selfModerationTable : SelfModerationTable;
-        private m_customWhitelistTable : SelfModerationTable;
-        private m_textTriggerTable : SelfModerationTable;
+        private m_selfModerationTable: SelfModerationTable;
+        private m_customWhitelistTable: SelfModerationTable;
+        private m_customBypasslistTable: SelfModerationTable;
+        private m_textTriggerTable: SelfModerationTable;
 
         /**
          * TIME RESTRICTIONS
@@ -368,33 +371,33 @@ namespace Citadel {
         private savedCustom: any;
         private timeRestrictionsPresets: any = {
             evening: {
-                monday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
-                tuesday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
-                wednesday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
-                thursday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
-                friday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
-                saturday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] },
-                sunday: { RestrictionsEnabled: true, EnabledThrough: [5, 20] }
+                monday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                tuesday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                wednesday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                thursday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                friday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                saturday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                sunday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]}
             },
 
             office: {
-                monday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
-                tuesday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
-                wednesday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
-                thursday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
-                friday: { RestrictionsEnabled: true, EnabledThrough: [7, 18] },
-                saturday: { RestrictionsEnabled: true, EnabledThrough: [10, 15] },
-                sunday: { RestrictionsEnabled: true, EnabledThrough: [0, 0] }
+                monday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                tuesday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                wednesday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                thursday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                friday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                saturday: {RestrictionsEnabled: true, EnabledThrough: [10, 15]},
+                sunday: {RestrictionsEnabled: true, EnabledThrough: [0, 0]}
             },
 
             none: {
-                monday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
-                tuesday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
-                wednesday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
-                thursday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
-                friday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
-                saturday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] },
-                sunday: { RestrictionsEnabled: false, EnabledThrough: [0, 24] }
+                monday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
+                tuesday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
+                wednesday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
+                thursday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
+                friday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
+                saturday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
+                sunday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]}
             }
         };
 
@@ -422,12 +425,12 @@ namespace Citadel {
             this.ConstructFormReferences();
         }
 
-        private m_bindings : BindingInstance;
+        private m_bindings: BindingInstance;
 
         private loadTimeRestrictionsFrom(obj): void {
             this.savedCustom = JSON.parse(JSON.stringify(this.timeRestrictions));
 
-            for(var i in this.timeRestrictions) {
+            for (var i in this.timeRestrictions) {
                 this.timeRestrictions[i] = JSON.parse(JSON.stringify(obj[i]));
             }
 
@@ -449,27 +452,27 @@ namespace Citadel {
         }
 
         private ConstructFormReferences(): void {
-            this.m_editorOverlay    = document.querySelector('#overlay_user_editor') as HTMLDivElement;
+            this.m_editorOverlay = document.querySelector('#overlay_user_editor') as HTMLDivElement;
 
             this.m_bindings = new BindingInstance(this.m_editorOverlay, this);
             this.m_bindings.Bind();
             this.m_bindings.Refresh();
 
-            this.m_mainForm         = document.querySelector('#editor_user_form') as HTMLFormElement;
+            this.m_mainForm = document.querySelector('#editor_user_form') as HTMLFormElement;
 
             this.m_emailInputId = "editor_user_input_username";
             this.m_inputPasswordId = "editor_user_input_password";
             this.m_activationCountInputId = "editor_user_input_num_activations";
 
-            this.m_selectGroup      = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
-            this.m_selectRole       = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
-            this.m_inputIsActive    = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
-            this.m_inputCustomerId  = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
+            this.m_selectGroup = document.querySelector('#editor_user_input_group_id') as HTMLSelectElement;
+            this.m_selectRole = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
+            this.m_inputIsActive = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
+            this.m_inputCustomerId = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
             this.m_inputReportLevel = document.querySelector('#editor_user_report_level') as HTMLInputElement;
-            this.m_disableDns       = document.querySelector('#editor_user_disable_dns') as HTMLInputElement;
+            this.m_disableDns = document.querySelector('#editor_user_disable_dns') as HTMLInputElement;
             this.m_inputRelaxedPolicyPasscodeEnabled = document.querySelector('#editor_user_input_passcode_enabled') as HTMLInputElement;
-            this.m_btnSubmit        = document.querySelector('#user_editor_submit') as HTMLButtonElement;
-            this.m_btnCancel        = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
+            this.m_btnSubmit = document.querySelector('#user_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel = document.querySelector('#user_editor_cancel') as HTMLButtonElement;
         }
 
         public get RecordRoute(): string {
@@ -500,13 +503,13 @@ namespace Citadel {
             var that = this;
             var url = that.URL_REFRESH_ACTIVATIONS.replace("{user_id}", that.m_id.toString());
             $.get(url)
-            .done(function(data) {
-                that.activationData = data;
-                that.InitUserActivationTables();
-            })
-            .fail(function(xhr) {
+                .done(function (data) {
+                    that.activationData = data;
+                    that.InitUserActivationTables();
+                })
+                .fail(function (xhr) {
 
-            });
+                });
         }
 
         private removeActivationById(id: number): void {
@@ -517,14 +520,14 @@ namespace Citadel {
                     break;
                 }
             }
-            if(index >= 0) {
+            if (index >= 0) {
                 this.activationData.splice(index, 1);
             }
         }
 
         private getActivationById(id: number): any {
-            for(var i = 0; i < this.activationData.length; i++) {
-                if(this.activationData[i].id == id) {
+            for (var i = 0; i < this.activationData.length; i++) {
+                if (this.activationData[i].id == id) {
                     return this.activationData[i];
                 }
             }
@@ -538,6 +541,10 @@ namespace Citadel {
             this.m_customWhitelistTable.add();
         }
 
+        public addNewBypassableSite(): void {
+            this.m_customBypasslistTable.add();
+        }
+
         public addNewCustomTextTrigger(): void {
             this.m_textTriggerTable.add();
         }
@@ -545,7 +552,7 @@ namespace Citadel {
         protected initEmptyTimeRestrictionsObject(): void {
             this.timeRestrictions = {};
 
-            for(var day of this.WEEKDAYS) {
+            for (var day of this.WEEKDAYS) {
                 this.timeRestrictions[day] = {
                     EnabledThrough: [0, 24],
                     RestrictionsEnabled: false
@@ -557,61 +564,67 @@ namespace Citadel {
         //   ::::: C O N V E R T     F U N C T I O N S ::::::
         // ────────────────────────────────────────────────────
         protected LoadFromObject(data: Object): void {
-            this.m_id               = data['id'] as number;
-            this.m_fullName         = data['name'] as string;
-            this.m_email            = data['email'] as string;
-            this.m_password         = data['password'] as string;
-            this.m_groupId          = data['group_id'] as number;
-            this.m_customerId       = data['customer_id'] as number;
+            this.m_id = data['id'] as number;
+            this.m_fullName = data['name'] as string;
+            this.m_email = data['email'] as string;
+            this.m_password = data['password'] as string;
+            this.m_groupId = data['group_id'] as number;
+            this.m_customerId = data['customer_id'] as number;
 
-            if(data['roles'].length == 0) {
+            if (data['roles'].length == 0) {
                 this.m_roleId = null;
             } else {
-                this.m_roleId           = data['roles'][0]['id'];
+                this.m_roleId = data['roles'][0]['id'];
             }
 
-            this.m_numActivations   = data['activations_allowed'];
-            this.m_isActive         = data['isactive'];
-            this.m_registeredAt     = data['dt'] as string;
-            this.m_reportLevel      = data['report_level'] as number;
+            this.m_numActivations = data['activations_allowed'];
+            this.m_isActive = data['isactive'];
+            this.m_registeredAt = data['dt'] as string;
+            this.m_reportLevel = data['report_level'] as number;
             this.m_relaxedPolicyPasscode = data['relaxed_policy_passcode'] as string;
             this.m_relaxedPolicyPasscodeEnabled = data['enable_relaxed_policy_passcode'] as number;
-            this.activationData           = data['activations'];
-            this.myConfigData       = data['config_override'] == null ? null : JSON.parse(data['config_override']);
+            this.activationData = data['activations'];
+            this.myConfigData = data['config_override'] == null ? null : JSON.parse(data['config_override']);
 
-            if(this.myConfigData) {
+            if (this.myConfigData) {
                 this.m_numBypassesPermitted = this.myConfigData.BypassesPermitted;
                 this.m_bypassDuration = this.myConfigData.BypassDuration;
             }
 
-            if(this.myConfigData && this.myConfigData.SelfModeration) {
+            if (this.myConfigData && this.myConfigData.SelfModeration) {
                 this.selfModeration = this.myConfigData.SelfModeration;
             } else {
                 this.selfModeration = [];
             }
 
-            if(this.myConfigData && this.myConfigData.CustomWhitelist) {
+            if (this.myConfigData && this.myConfigData.CustomWhitelist) {
                 this.customWhitelist = this.myConfigData.CustomWhitelist;
             } else {
                 this.customWhitelist = [];
             }
 
-            if(this.myConfigData && this.myConfigData.CustomTriggerBlacklist) {
+            if (this.myConfigData && this.myConfigData.CustomBypasslist) {
+                this.customBypasslist = this.myConfigData.CustomBypasslist;
+            } else {
+                this.customBypasslist = [];
+            }
+
+            if (this.myConfigData && this.myConfigData.CustomTriggerBlacklist) {
                 this.customTriggers = this.myConfigData.CustomTriggerBlacklist;
             } else {
                 this.customTriggers = [];
             }
 
-            if(this.myConfigData && (this.myConfigData.PrimaryDns != null || this.myConfigData.SecondaryDns != null)) {
+            if (this.myConfigData && (this.myConfigData.PrimaryDns != null || this.myConfigData.SecondaryDns != null)) {
                 this.isDnsDisabled = true;
             } else {
                 this.isDnsDisabled = false;
             }
 
-            if(this.myConfigData && this.myConfigData.TimeRestrictions) {
+            if (this.myConfigData && this.myConfigData.TimeRestrictions) {
                 this.timeRestrictions = {};
 
-                for(var day in this.myConfigData.TimeRestrictions) {
+                for (var day in this.myConfigData.TimeRestrictions) {
                     this.timeRestrictions[day] = this.myConfigData.TimeRestrictions[day];
                 }
             } else {
@@ -622,35 +635,40 @@ namespace Citadel {
 
         protected LoadFromForm(): void {
             console.log(this.m_fullName);
-            this.m_groupId          = this.getValueFromSelect(this.m_selectGroup);
-            this.m_roleId           = this.getValueFromSelect(this.m_selectRole);
-            this.m_customerId       = this.m_inputCustomerId.value == "" ? null:this.m_inputCustomerId.valueAsNumber;
-            this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
-            this.m_reportLevel      = this.m_inputReportLevel.checked == true ? 1 : 0;
-            this.isDnsDisabled      = this.m_disableDns.checked == true ? 1 : 0;
+            this.m_groupId = this.getValueFromSelect(this.m_selectGroup);
+            this.m_roleId = this.getValueFromSelect(this.m_selectRole);
+            this.m_customerId = this.m_inputCustomerId.value == "" ? null : this.m_inputCustomerId.valueAsNumber;
+            this.m_isActive = this.m_inputIsActive.checked == true ? 1 : 0;
+            this.m_reportLevel = this.m_inputReportLevel.checked == true ? 1 : 0;
+            this.isDnsDisabled = this.m_disableDns.checked == true ? 1 : 0;
             this.m_relaxedPolicyPasscodeEnabled = this.m_inputRelaxedPolicyPasscodeEnabled.checked == true ? 1 : 0;
 
             this.selfModeration = this.m_selfModerationTable.getData();
             this.customWhitelist = this.m_customWhitelistTable.getData();
+            this.customBypasslist = this.m_customBypasslistTable.getData();
             this.customTriggers = this.m_textTriggerTable.getData();
-            
+
             this.myConfigData = this.myConfigData || {};
 
             this.myConfigData.SelfModeration = this.selfModeration;
             this.myConfigData.CustomWhitelist = this.customWhitelist;
+            this.myConfigData.CustomBypasslist = this.customBypasslist;
             this.myConfigData.CustomTriggerBlacklist = this.customTriggers;
 
             this.myConfigData.TimeRestrictions = {};
 
-            for(var day in this.timeRestrictions) {
+            for (var day in this.timeRestrictions) {
                 var slider = this.m_timeRestrictionSliders[day];
-                this.myConfigData.TimeRestrictions[day] = { EnabledThrough: slider.noUiSlider.get(), RestrictionsEnabled: this.timeRestrictions[day].RestrictionsEnabled };
+                this.myConfigData.TimeRestrictions[day] = {
+                    EnabledThrough: slider.noUiSlider.get(),
+                    RestrictionsEnabled: this.timeRestrictions[day].RestrictionsEnabled
+                };
             }
 
             this.myConfigData.BypassesPermitted = this.m_numBypassesPermitted;
             this.myConfigData.BypassDuration = this.m_bypassDuration;
 
-            if(!this.m_disableDns) {
+            if (!this.m_disableDns) {
                 delete this.myConfigData.PrimaryDns;
                 delete this.myConfigData.SecondaryDns;
             } else {
@@ -660,19 +678,19 @@ namespace Citadel {
         }
 
         public ToObject(): Object {
-            if(this.myConfigData) {
+            if (this.myConfigData) {
                 this.myConfigData.BypassesPermitted = this.m_numBypassesPermitted;
                 this.myConfigData.BypassDuration = this.m_bypassDuration;
 
-                if(!this.myConfigData.BypassesPermitted) {
+                if (!this.myConfigData.BypassesPermitted) {
                     delete this.myConfigData.BypassesPermitted;
                 }
 
-                if(!this.myConfigData.BypassDuration) {
+                if (!this.myConfigData.BypassDuration) {
                     delete this.myConfigData.BypassDuration;
                 }
 
-                if(!this.isDnsDisabled) {
+                if (!this.isDnsDisabled) {
                     delete this.myConfigData.PrimaryDns;
                     delete this.myConfigData.SecondaryDns;
                 } else {
@@ -767,8 +785,8 @@ namespace Citadel {
                 }
             };
 
-            if(otherOptions) {
-                for(var i in otherOptions) {
+            if (otherOptions) {
+                for (var i in otherOptions) {
                     options[i] = otherOptions[i];
                 }
             }
@@ -776,18 +794,18 @@ namespace Citadel {
             return options;
         }
 
-        private static timeOfDay(n) : string {
-            var minutes : any = Math.round((n % 1) * 60);
+        private static timeOfDay(n): string {
+            var minutes: any = Math.round((n % 1) * 60);
             var hours = Math.floor(n);
 
             var ampm = (hours % 24) >= 12 ? "PM" : "AM";
 
             hours %= 12;
-            if(hours == 0) {
+            if (hours == 0) {
                 hours = 12;
             }
 
-            if(minutes < 10) {
+            if (minutes < 10) {
                 minutes = "0" + minutes;
             }
 
@@ -795,22 +813,23 @@ namespace Citadel {
         }
 
         private generateInternetLabel(entry, sliderElem) {
-            if(!entry) {
+            if (!entry) {
                 entry = {
                     EnabledThrough: [0, 24],
                     RestrictionsEnabled: false
                 }
-            };
+            }
+            ;
 
             var enabledTimes = (entry && entry.EnabledThrough) ? entry.EnabledThrough : [0, 24];
             var caption = (sliderElem.attributes['data-caption']) ? sliderElem.attributes['data-caption'].value : "N/A";
 
-            if(!entry.RestrictionsEnabled) {
+            if (!entry.RestrictionsEnabled) {
                 return "No restrictions for " + caption;
             } else {
-                if(enabledTimes[0] == 0 && enabledTimes[1] == 24) {
+                if (enabledTimes[0] == 0 && enabledTimes[1] == 24) {
                     return "No restrictions for " + caption;
-                } else if(enabledTimes[0] == enabledTimes[1]) {
+                } else if (enabledTimes[0] == enabledTimes[1]) {
                     return "Internet restricted all day";
                 } else {
                     // enabledTimes[0]
@@ -821,7 +840,7 @@ namespace Citadel {
 
         private generateInternetLabelCallback(day, sliderElem): any {
             var that = this;
-            return function(values, handle, unencoded, tap, positions) {
+            return function (values, handle, unencoded, tap, positions) {
                 console.log(unencoded);
                 that.timeRestrictions[day].EnabledThrough = unencoded;
                 that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], sliderElem);
@@ -838,22 +857,22 @@ namespace Citadel {
             var sliders = {};
 
             function generateLabelFn(that, day, slider) {
-                return function() {
+                return function () {
                     that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], slider);
                     that.m_bindings.Refresh();
                 };
             }
 
-            for(var day of days) {
+            for (var day of days) {
                 configs[day] = JSON.parse(JSON.stringify(this.m_timeRestrictionsSliderConfig));
 
-                if(this.timeRestrictions && day in this.timeRestrictions && this.timeRestrictions[day].EnabledThrough) {
+                if (this.timeRestrictions && day in this.timeRestrictions && this.timeRestrictions[day].EnabledThrough) {
                     configs[day].start = this.timeRestrictions[day].EnabledThrough;
                 }
 
-                let slider : any = restrictionsElem.find("#" + day).get(0);
+                let slider: any = restrictionsElem.find("#" + day).get(0);
 
-                if(slider && slider.noUiSlider) {
+                if (slider && slider.noUiSlider) {
                     slider.noUiSlider.destroy();
                 }
 
@@ -877,10 +896,10 @@ namespace Citadel {
             var sliders = this.m_timeRestrictionSliders;
             var restrictionsElem = $("#time_restrictions");
 
-            for(var day of days) {
+            for (var day of days) {
                 let slider: any = restrictionsElem.find("#" + day).get(0);
 
-                if(slider && slider.noUiSlider) {
+                if (slider && slider.noUiSlider) {
                     let restrictionData: any = this.timeRestrictions[day].EnabledThrough;
                     slider.noUiSlider.set(restrictionData);
                 }
@@ -892,10 +911,12 @@ namespace Citadel {
 
             this.m_selfModerationTable = new SelfModerationTable(document.querySelector("#self_moderation_table"), this.selfModeration);
             this.m_customWhitelistTable = new SelfModerationTable(document.querySelector("#custom_whitelist_table"), this.customWhitelist);
+            this.m_customBypasslistTable = new SelfModerationTable(document.querySelector("#custom_bypassable_table"), this.customBypasslist);
             this.m_textTriggerTable = new SelfModerationTable(document.querySelector("#custom_trigger_table"), this.customTriggers);
 
             this.m_selfModerationTable.render();
             this.m_customWhitelistTable.render();
+            this.m_customBypasslistTable.render();
             this.m_textTriggerTable.render();
         }
 
@@ -904,10 +925,10 @@ namespace Citadel {
             let id = (this.m_id === undefined) ? 0 : this.m_id;
 
             this.m_tableColumns = [{
-                    title: 'Action Id',
-                    data: 'id',
-                    visible: false
-                },
+                title: 'Action Id',
+                data: 'id',
+                visible: false
+            },
                 {
                     title: 'Identifier',
                     data: 'identifier',
@@ -1016,7 +1037,7 @@ namespace Citadel {
                     $("#user_activation_table").on("blur", "input[type='number']", function () {
                         let id = $(this).attr("data-id");
                         let val = $(this).val();
-                        if( val < 0) {
+                        if (val < 0) {
                             alert(that.MESSAGE_INVALID_CHECKED_IN_DAYS);
                             $(this).val(0);
                             return;
@@ -1031,11 +1052,11 @@ namespace Citadel {
                     });
 
                     $("#user_activation_table").off("click", "button.btn-edit");
-                    $("#user_activation_table").on("click", "button.btn-edit", function(e) {
+                    $("#user_activation_table").on("click", "button.btn-edit", function (e) {
                         e.preventDefault();
 
                         var id = that.getIdFromElementId(e.target['id']);
-                        if(id == -1) {
+                        if (id == -1) {
                             id = that.getIdFromElementId(e.target.parentNode['id']);
                         }
 
@@ -1043,7 +1064,7 @@ namespace Citadel {
 
                         appUserActivationRecord.ActionCompleteCallback = ((action: string): void => {
                             appUserActivationRecord.StopEditing();
-                            
+
                             that.refreshActivations();
                         });
                         console.log(id)
@@ -1116,7 +1137,7 @@ namespace Citadel {
         }
 
         public cancelClick(e: MouseEvent): any {
-            if(this.m_actionCompleteCallback != null) {
+            if (this.m_actionCompleteCallback != null) {
                 this.m_actionCompleteCallback("Cancel");
             } else {
                 this.StopEditing();
@@ -1141,7 +1162,7 @@ namespace Citadel {
 
             this.userData = userData;
 
-            if(userData == null) {
+            if (userData == null) {
                 this.m_editorTitleValue = this.TITLE_NEW_USER;
                 this.m_btnSubmit.innerText = this.BTN_NEW_USER;
 
@@ -1208,9 +1229,9 @@ namespace Citadel {
             }
 
             // Covers creation of new users, because this doesn't get assigned to in that circumstance.
-            if(!this.timeRestrictions) {
+            if (!this.timeRestrictions) {
                 this.initEmptyTimeRestrictionsObject();
-            } 
+            }
 
             this.InitUserActivationTables();
             this.InitSelfModerationTable();

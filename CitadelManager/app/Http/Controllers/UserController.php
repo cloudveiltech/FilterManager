@@ -591,6 +591,12 @@ class UserController extends Controller {
                     $customWhitelist = null;
                 }
 
+                if (!empty($activationConfig['CustomBypasslist'])) {
+                    $customBypasslist = $activationConfig['CustomBypasslist'];
+                } else {
+                    $customBypasslist = null;
+                }
+
                 if (!empty($activationConfig['CustomTriggerBlacklist'])) {
                     $customTriggerBlacklist = $activationConfig['CustomTriggerBlacklist'];
                 } else {
@@ -606,6 +612,10 @@ class UserController extends Controller {
 
                 if ($customWhitelist != null && isset($configuration["CustomWhitelist"])) {
                     $configuration['CustomWhitelist'] = array_merge($configuration['CustomWhitelist'], $customWhitelist);
+                }
+
+                if ($customBypasslist != null && isset($configuration["CustomBypasslist"])) {
+                    $configuration['CustomBypasslist'] = array_merge($configuration['CustomBypasslist'], $customBypasslist);
                 }
 
                 if ($customTriggerBlacklist != null && isset($configuration["CustomTriggerBlacklist"])) {
