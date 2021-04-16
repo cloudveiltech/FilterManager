@@ -74,6 +74,15 @@ class User extends Authenticatable {
         return $this->hasMany('App\AppUserActivation');
     }
 
+    public function findActivationById($identifier) {
+        foreach($this->activations as $activation) {
+            if($activation->identifier == $identifier) {
+                return $activation;
+            }
+        }
+        return null;
+    }
+
     /**
      * Gets a count of all activations for this user.
      * @return type

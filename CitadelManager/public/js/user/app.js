@@ -289,6 +289,7 @@ function selfModerationModel() {
 			method: "POST"
 		}).done(function(data) {
 			toastr.info("Changes saved");
+			that.fetch();
 		}).fail(function() {
 			toastr.error("Failed to save your changes. Please contact support.");
 		});
