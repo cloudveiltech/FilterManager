@@ -67,7 +67,10 @@ class AppUserActivationController extends Controller {
                 return $query->where('users.name', 'like', "%$search%")
                     ->orWhere('users.email', 'like', "%$search%")
                     ->orWhere('app_user_activations.device_id', 'like', "%$search%")
-                    ->orWhere('app_user_activations.identifier', 'like', "%$search%");
+                    ->orWhere('app_user_activations.identifier', 'like', "%$search%")
+                    ->orWhere('app_user_activations.friendly_name', 'like', "%$search%")
+                    ->orWhere('app_user_activations.ip_address', 'like', "%$search%");
+
             }, function ($query) use ($order_str, $order_name) {
                 return $query->orderBy($order_name, $order_str);
             });
@@ -178,7 +181,7 @@ class AppUserActivationController extends Controller {
             }
         }
 
-        $fields = ['config_override', 'group_id', 'bypass_used'];
+        $fields = ['config_override', 'group_id', 'bypass_used', 'friendly_name'];
 
         if ($user->can(['all', 'manage-checkin-days'])) {
             $fields[] = 'check_in_days';

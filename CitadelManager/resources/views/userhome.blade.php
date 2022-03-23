@@ -316,6 +316,7 @@
                         <tr>
                             <th>Computer</th>
                             <th>IP Address</th>
+                            <th>Friendly Name</th>
                             <th>Version</th>
                             <th>Updated At</th>
                             <th>...</th>
@@ -326,6 +327,7 @@
                         <tr v-for="(item, index) in activations.data">
                             <td>@{{item.device_id}}</td>
                             <td>@{{item.ip_address}}</td>
+                            <td>@{{item.friendly_name}}</td>
                             <td>@{{item.app_version}}</td>
                             <td>@{{item.updated_at}}</td>
                             <td>

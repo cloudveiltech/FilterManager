@@ -1395,6 +1395,7 @@ appgroup editor.
     right: 0;
     bottom: 0;
     display: none;
+    overflow: auto;
 }
 
 #div_activation_0 {

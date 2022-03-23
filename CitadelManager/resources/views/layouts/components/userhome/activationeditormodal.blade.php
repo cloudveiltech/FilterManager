@@ -43,6 +43,11 @@
                                         readonly="readonly" />
                             </div>
 
+                            <div class="form-group">
+                                <label for="activation_ip_address">Friendly Name</label>
+                                <input id="activation_ip_address" class="form-control" type="text" v-model="activationEditor.data.friendly_name" />
+                            </div>
+
                             <div class="form-group" v-if="isBusinessOwner">
                                 <label for="activation_bypass_quantity">Relaxed Policy Bypasses Allowed</label>
                                 <input id="activation_bypass_quantity" class="form-control" type="number" v-model="activationEditor.data.bypass_quantity" />

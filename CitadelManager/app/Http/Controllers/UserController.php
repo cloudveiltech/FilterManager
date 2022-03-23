@@ -639,6 +639,8 @@ class UserController extends Controller {
                 $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
             }
 
+            $configuration["FriendlyName"] = $activation->friendly_name;
+
             return $configuration;
         } else {
             return null;

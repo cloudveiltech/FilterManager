@@ -62,9 +62,9 @@ class SystemVersionController extends Controller
             "data" => $versions,
         ]);
     }
-
     /**
      * Update version status (active 1=>0, 0=>1).
+
      *
      * @return \Illuminate\Http\Response
      */

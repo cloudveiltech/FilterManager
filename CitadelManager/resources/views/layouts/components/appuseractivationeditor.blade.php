@@ -129,12 +129,28 @@
                             <br/>
                             <br/>
 
-                            <div class="cell cell-auto-size">
-                                <div class="input-control select" data-role="input">
-                                    <label for="editor_activation_input_group_id">Group:</label>
-                                    <select name="editor_ctivation_input_group_id" id="editor_ctivation_input_group_id">
-                                    </select>
+
+                            <div class="row">
+
+                                <div class="cell cell-auto-size">
+                                    <div class="input-control select" data-role="input">
+                                        <label for="editor_activation_input_group_id">Group:</label>
+                                        <select name="editor_ctivation_input_group_id"
+                                                id="editor_ctivation_input_group_id">
+                                        </select>
+                                    </div>
                                 </div>
+
+                                <div class="cell cell-auto-size padding-left-100">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_activation_input_friendly_name">Friendly Name:</label>
+                                        <input type="text"
+                                               name="editor_activation_input_friendly_name"
+                                               id="editor_activation_input_friendly_name"
+                                        />
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 

@@ -163,7 +163,7 @@ Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:a
  * Version 2 of the API.  This version relies upon basic authentication to retrieve a token and then
  * token authentication via headers for other requests.
  */
-Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'api', 'auth:api', 'throttle:300,1', 'check.device_id']], function () {
+Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'throttle:300,1', 'check.device_id', 'api', 'auth:api']], function () {
 
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
     Route::post('/me/data/check', 'UserController@checkUserData');
