@@ -34,6 +34,8 @@ class Kernel extends ConsoleKernel
         $this->scheduleUpdateBypassUsed($schedule);
         $this->scheduleQueueWork($schedule);
         $this->scheduleSentryUpdateAlerts($schedule);
+
+        $schedule->command("activation:disable")->weekly();
     }
 
     private function scheduleDeletingDeactivationRequests(Schedule $schedule)

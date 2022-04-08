@@ -1109,6 +1109,12 @@ namespace Citadel {
                         data: 'platform_name',
                         visible: true,
                         width: '30px'
+                    },
+                    {
+                        title: 'Friendly Name',
+                        data: 'friendly_name',
+                        visible: true,
+                        width: '50px'
                     }
                 ];
 

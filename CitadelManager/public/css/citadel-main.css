@@ -910,6 +910,10 @@ Group editor.
     width: 20% !important;
 }
 
+.width-25-percent {
+    width: 25% !important;
+}
+
 .selected_applications_h3 {
     margin-top: 16px;
 }
@@ -1391,6 +1395,7 @@ appgroup editor.
     right: 0;
     bottom: 0;
     display: none;
+    overflow: auto;
 }
 
 #div_activation_0 {

@@ -25,10 +25,12 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Log;
 use Validator;
 
 class UserController extends Controller {
+    const ID_ACTIVATION_ALL = "ALL";
 
     /**
      * Display a listing of the resource.
@@ -591,6 +593,12 @@ class UserController extends Controller {
                     $customWhitelist = null;
                 }
 
+                if (!empty($activationConfig['CustomBypasslist'])) {
+                    $customBypasslist = $activationConfig['CustomBypasslist'];
+                } else {
+                    $customBypasslist = null;
+                }
+
                 if (!empty($activationConfig['CustomTriggerBlacklist'])) {
                     $customTriggerBlacklist = $activationConfig['CustomTriggerBlacklist'];
                 } else {
@@ -606,6 +614,10 @@ class UserController extends Controller {
 
                 if ($customWhitelist != null && isset($configuration["CustomWhitelist"])) {
                     $configuration['CustomWhitelist'] = array_merge($configuration['CustomWhitelist'], $customWhitelist);
+                }
+
+                if ($customBypasslist != null && isset($configuration["CustomBypasslist"])) {
+                    $configuration['CustomBypasslist'] = array_merge($configuration['CustomBypasslist'], $customBypasslist);
                 }
 
                 if ($customTriggerBlacklist != null && isset($configuration["CustomTriggerBlacklist"])) {
@@ -626,6 +638,8 @@ class UserController extends Controller {
             if ($thisUser->enable_relaxed_policy_passcode) {
                 $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
             }
+
+            $configuration["FriendlyName"] = $activation->friendly_name;
 
             return $configuration;
         } else {
@@ -1031,12 +1045,43 @@ class UserController extends Controller {
             $data['blacklist'] = [];
             $data['triggerBlacklist'] = [];
         } else {
-            $data['whitelist'] = isset($config->CustomWhitelist) ? $config->CustomWhitelist : [];
-            $data['blacklist'] = isset($config->SelfModeration) ? $config->SelfModeration : [];
-            $data['triggerBlacklist'] = isset($config->CustomTriggerBlacklist) ? $config->CustomTriggerBlacklist : [];
+            $data['whitelist'] = $this->fillSelfModerationArray([], isset($config->CustomWhitelist) ? $config->CustomWhitelist : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
+            $data['blacklist'] = $this->fillSelfModerationArray([], isset($config->SelfModeration) ? $config->SelfModeration : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
+            $data['triggerBlacklist'] = $this->fillSelfModerationArray([], isset($config->CustomTriggerBlacklist) ? $config->CustomTriggerBlacklist : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
         }
 
+        $activations = $user->activations;
+        foreach ($activations as $activation) {
+            $activationConfig = json_decode($activation->config_override);
+
+            if (!empty($activationConfig->CustomWhitelist)) {
+                $data['whitelist'] = $this->fillSelfModerationArray($data['whitelist'], $activationConfig->CustomWhitelist, $activation->identifier, $activation->device_id);
+            }
+
+            if (!empty($activationConfig->SelfModeration)) {
+                $data['blacklist'] = $this->fillSelfModerationArray($data['blacklist'], $activationConfig->SelfModeration, $activation->identifier, $activation->device_id);
+            }
+
+            if (!empty($activationConfig->CustomTriggerBlacklist)) {
+                $data['triggerBlacklist'] = $this->fillSelfModerationArray($data['triggerBlacklist'], $activationConfig->CustomTriggerBlacklist, $activation->identifier, $activation->device_id);
+            }
+        }
+
+        $data['whitelist'] = array_values($data["whitelist"]);
+        $data['blacklist'] = array_values($data["blacklist"]);
+        $data['triggerBlacklist'] = array_values($data["triggerBlacklist"]);
+
         return $data;
+    }
+
+    private function fillSelfModerationArray($result, $newData, $activationKey, $activationName) {
+        foreach ($newData as $value) {
+            $result[] = [
+                "value" => $value,
+                "activation" => $activationKey
+            ];
+        }
+        return $result;
     }
 
     public function addSelfModeratedWebsite(Request $request) {
@@ -1100,37 +1145,103 @@ class UserController extends Controller {
     public function setSelfModerationInfo(Request $request) {
         $user = \Auth::user();
 
-        $config = json_decode($user->config_override);
-
-        if (json_last_error() != JSON_ERROR_NONE) {
-            $config = new \stdClass();
-        }
-
         if ($user->can(['all', 'manage-whitelisted-sites'])) {
             if ($request->has('whitelist')) {
-                $config->CustomWhitelist = Utils::purgeNulls($request->input('whitelist'));
+                $whitelist = Utils::purgeNulls($request->input('whitelist'));
             } else {
-                $config->CustomWhitelist = [];
+                $whitelist = [];
             }
+
+            $this->saveSelfModerationList($whitelist, $user, "CustomWhitelist", FILTER_VALIDATE_DOMAIN);
         }
 
         if ($request->has('blacklist')) {
-            $config->SelfModeration = Utils::purgeNulls($request->input('blacklist'));
+            $selfModeration = Utils::purgeNulls($request->input('blacklist'));
         } else {
-            $config->SelfModeration = [];
+            $selfModeration = [];
         }
+        $this->saveSelfModerationList($selfModeration, $user, "SelfModeration", FILTER_VALIDATE_DOMAIN);
 
         if ($request->has('triggerBlacklist')) {
-            $config->CustomTriggerBlacklist = Utils::purgeNulls($request->input('triggerBlacklist'));
+            $customTriggerBlacklist = Utils::purgeNulls($request->input('triggerBlacklist'));
         } else {
-            $config->CustomTriggerBlacklist = [];
+            $customTriggerBlacklist = [];
         }
-
-        $user->config_override = json_encode($config);
-        $user->save();
+        $this->saveSelfModerationList($customTriggerBlacklist, $user, "CustomTriggerBlacklist");
 
         return '{}';
     }
+
+    private function saveSelfModerationList($list, $user, $confgiKey, $filterVarFlag = FILTER_DEFAULT) {
+        /*
+         * items should be in the form
+         * [
+         *   [
+         *     "value" => ..
+         *     "activation" => ..
+         *   ]
+         * ]
+         */
+        $userConfig = json_decode($user->config_override);
+        if (json_last_error() != JSON_ERROR_NONE) {
+            $userConfig = new \stdClass();
+        }
+
+        $perActivationsList = $this->preparePerUserActivationsArray($user);
+        $perActivationsList = $this->filterSelfModerationArrays($list, $filterVarFlag, $perActivationsList);
+
+        foreach ($perActivationsList as $key => $list) {
+            if ($key == self::ID_ACTIVATION_ALL) {
+                $userConfig->{$confgiKey} = $list;
+                $user->config_override = json_encode($userConfig);
+                $user->save();
+            } else {
+                $activation = $user->findActivationById($key);
+                if ($activation != null) {
+                    $config = json_decode($activation->config_override);
+                    if (json_last_error() != JSON_ERROR_NONE) {
+                        $config = new \stdClass();
+                    }
+                    $config->{$confgiKey} = $list;
+                    $activation->config_override = json_encode($config);
+                    $activation->save();
+                }
+            }
+        }
+    }
+
+    private function preparePerUserActivationsArray($user) {
+        $perActivationsList = [
+            self::ID_ACTIVATION_ALL => []
+        ];
+        $activations = $user->activations;
+        foreach ($activations as $activation) {
+            $perActivationsList[$activation->identifier] = [];
+        }
+        return $perActivationsList;
+    }
+
+    private function filterSelfModerationArrays($list, $filterVarFlag, $perActivationsList) {
+        foreach ($list as $item) {
+            $activationId = trim($item['activation']);
+            $value = filter_var(trim($item['value']), $filterVarFlag);
+            if ($value !== false && !empty($value) && isset($perActivationsList[$activationId])) {//to be sure we set values only for this user's activations
+                $perActivationsList[$activationId][$value] = $value;
+            }
+        }
+
+        //remove values if there's similar value for "ALL"
+        foreach ($list as $item) {
+            $activationId = trim($item['activation']);
+            $value = filter_var(trim($item['value']), $filterVarFlag);
+            if ($activationId != self::ID_ACTIVATION_ALL && isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
+                unset($perActivationsList[$activationId][$value]);
+            }
+        }
+
+        return $perActivationsList;
+    }
+
 
     public function getTimeRestrictions() {
         $user = \Auth::user();

@@ -5,15 +5,17 @@ namespace App;
 use App\Console\Commands\ReportUpdateFailed;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AppUserActivation extends Model
 {
+    use SoftDeletes;
 
     protected $fillable = [
         'identifier', 'device_id', 'user_id', 'ip_address', 'group_id',
         'bypass_quantity','bypass_period','bypass_used', 'report_level',
         'check_in_days', 'alert_partner','config_override', 'last_update_requested_time',
-        'last_sync_time', 'platform_name'
+        'last_sync_time', 'platform_name', 'friendly_name'
     ];
 
     public function user()

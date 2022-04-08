@@ -25,6 +25,9 @@
                             <a href="#custom_whitelist_tab">User's Allowed Sites</a>
                         </li>
                         <li>
+                            <a href="#custom_bypassable_tab">User's Bypassable Sites</a>
+                        </li>
+                        <li>
                             <a href="#trigger_blacklist_tab">User's Blocked Triggers</a>
                         </li>
                         <li>
@@ -268,6 +271,29 @@
                                         </tr>
                                     </thead>
                                     <tbody id="custom_trigger_insert">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="frame" id="custom_bypassable_tab">
+                            <div class="grid">
+                                <h2>
+                                    <small>User's Bypassable Sites</small>
+                                </h2>
+                                <hr class="thin" />
+                                <button type="button" event-click="addNewBypassableSite" class="button primary">Add Site</button>
+
+                                <table id="custom_bypassable_table" class="table striped hovered border black-background" style="width: 100%">
+                                    <thead>
+                                    <tr>
+                                        <th>Site</th>
+                                        <th>...</th>
+                                        <th>...</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="custom_bypassable_insert">
 
                                     </tbody>
                                 </table>
