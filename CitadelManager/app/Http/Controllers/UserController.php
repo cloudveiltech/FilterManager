@@ -629,10 +629,14 @@ class UserController extends Controller {
 
             if ($activation->bypass_quantity) {
                 $configuration['BypassesPermitted'] = $activation->bypass_quantity;
+            } else {
+                $configuration['BypassesPermitted'] = 0;
             }
 
             if ($activation->bypass_period) {
                 $configuration['BypassDuration'] = $activation->bypass_period;
+            } else {
+                $configuration['BypassDuration'] = 0;
             }
 
             if ($thisUser->enable_relaxed_policy_passcode) {
@@ -802,7 +806,7 @@ class UserController extends Controller {
                         'userEmail' => $user->email,
                     ], 200);
                 } else {
-                    // User is not active.
+                    // User is not active.km
                     return response('User is not active', 401);
                 }
             } else {
