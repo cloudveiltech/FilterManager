@@ -18,10 +18,6 @@ class AppUserActivation extends Model
         'last_sync_time', 'platform_name', 'friendly_name'
     ];
 
-    protected $attributes = array(
-        'friendly_name' => ''
-    );
-
     public function user()
     {
         return $this->belongsTo('App\User');

@@ -201,6 +201,9 @@ class AppUserActivationController extends Controller {
         if (isset($input['config_override'])) {
             $input['config_override'] = Utils::purgeNullsFromJSONSelfModeration($input['config_override']);
         }
+        if(key_exists($input, "friendly_name") && $input['friendly_name'] == null) {
+            $input["friendly_name"] = "";
+        }
 
         AppUserActivation::where('id', $id)->update($input);
 
