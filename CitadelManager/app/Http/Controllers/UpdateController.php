@@ -30,6 +30,9 @@ class UpdateController extends Controller
         $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
         $arr_data = ["platform" => $platform, "activation_id" => $request->input("acid", "acid")];
 
+        $osVersion = $request->input("os", "0");
+        $appVersion = $request->input("v", "0");
+
         if ($platforms->count() > 0) {
             $os = $platforms->first();
             $arr_data["os_name"] = $os->os_name;

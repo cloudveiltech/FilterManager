@@ -318,6 +318,7 @@
                             <th>IP Address</th>
                             <th>Friendly Name</th>
                             <th>Version</th>
+                            <td>Os Version</td>
                             <th>Updated At</th>
                             <th>...</th>
                             <th v-if="isBusinessOwner">...</th>
@@ -329,6 +330,7 @@
                             <td>@{{item.ip_address}}</td>
                             <td>@{{item.friendly_name}}</td>
                             <td>@{{item.app_version}}</td>
+                            <td>@{{item.os_version}}</td>
                             <td>@{{item.updated_at}}</td>
                             <td>
                                 <button class="btn btn-primary" @click="activations.editActivation(item)">
