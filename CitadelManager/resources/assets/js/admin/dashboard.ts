@@ -1111,6 +1111,12 @@ namespace Citadel {
                         width: '30px'
                     },
                     {
+                        title: 'OS Version',
+                        data: 'os_version',
+                        visible: true,
+                        width: '50px'
+                    },
+                    {
                         title: 'Friendly Name',
                         data: 'friendly_name',
                         visible: true,
