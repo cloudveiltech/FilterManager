@@ -27,6 +27,16 @@ class CheckAndUpdateDeviceId {
                 $args[] = $input['device_id'];
             }
 
+            $osVersion = "";
+            if(!empty($input["os_version"])) {
+                $osVersion = $input["os_version"];
+            }
+
+            $appVersion = "";
+            if(!empty($input["app_version"])) {
+                $appVersion = $input["app_version"];
+            }
+
             // Get Specific Activation with $identifier
             $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
             if (!$activation && $request->has('identifier_2') && $request->has('device_id_2')) {//identifier_2 is passed in case we changed device name locally
@@ -36,8 +46,16 @@ class CheckAndUpdateDeviceId {
                     //update info
                     $activation->identifier = $input['identifier'];
                     $activation->device_id = $input['device_id'];
-                    $activation->save();
                 }
+            }
+            if($activation) {
+                if($appVersion != "") {
+                    $activation->app_version = $appVersion;
+                }
+                if($osVersion != "") {
+                    $activation->os_version = $osVersion;
+                }
+                $activation->save();
             }
         }
         return $next($request);
