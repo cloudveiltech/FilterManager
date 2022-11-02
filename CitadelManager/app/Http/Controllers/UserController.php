@@ -369,6 +369,9 @@ class UserController extends Controller {
 
             $keyTrimmed = trim($key, '/');
             $keyParts = explode('/', $keyTrimmed);
+            if(count($keyParts) < 3) {
+                continue;
+            }
 
             $namespace = $keyParts[0];
             $category = $keyParts[1];
