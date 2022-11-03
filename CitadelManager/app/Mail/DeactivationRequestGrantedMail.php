@@ -27,14 +27,22 @@ class DeactivationRequestGrantedMail extends Mailable
     public $user;
 
     /**
+     * The platform name.
+     *
+     * @var string
+     */
+    public $platform;
+    
+    /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct(DeactivationRequest $deactivationRequest, User $user)
+    public function __construct(DeactivationRequest $deactivationRequest, User $user, $platform)
     {
         $this->deactivationRequest = $deactivationRequest;
         $this->user = $user;
+        $this->platform = $platform;
     }
 
     /**
