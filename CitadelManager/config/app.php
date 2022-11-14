@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+    'macos_dmg_signature' => env('MACOS_DMG_SIGNATURE', ""),
     'company_name' => env('APP_COMPANY_NAME', 'Citadel'),
     /* How long (in days) do we let deactivation requests sit around? */
     'deactivation_request_expiration' => env('APP_DEACTIVATION_REQUEST_EXPIRATION', '7'),
@@ -9,6 +9,7 @@ return [
     /* How long (in days) does a license remain in use after the last use? */
     'license_expiration' => env('APP_LICENSE_EXPIRATION', '90'),
     'max_version_alert_update' => env('MAX_VERSION_UPDATE_ALERT', '2.0.18'),
+
 
     /* This is used to give users grace with licenses.  If you're using this you'll want to periodically
      * audit your license usage to make sure it's not being abused. */

@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class UpdateController extends Controller
 {
@@ -38,6 +39,12 @@ class UpdateController extends Controller
             $arr_data["os_name"] = $os->os_name;
             $platform_id = $os->id;
             $versions = SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
+            if($platform == "macos") {
+                $arr_data["signature"] = config("app.macos_dmg_signature");
+            } else {
+                $arr_data["signature"] = "";
+            }
+
             if ($versions->count() > 0) {
                 $version = $versions->first();
                 $arr_data['app_name'] = $version->app_name;
@@ -45,6 +52,7 @@ class UpdateController extends Controller
                 $arr_data['file_ext'] = $version->file_ext;
                 $arr_data['version_number'] = $version->version_number;
                 $arr_data['changes'] = array($version->changes);
+
                 $arr_data['channels'] = [
                     [
                         'release' => 'Alpha',
@@ -63,6 +71,7 @@ class UpdateController extends Controller
 // It's been broken before and we may break it again so here's a reminder.
 //                $arr_data['date'] = 'Tue, 20 Feb 2018 12:39:00 MST';
                 $arr_data['date'] = Carbon::parse($version->release_date)->toRfc7231String();
+
             } else {
                 $arr_data['app_name'] = "unavailable";
                 $arr_data['file_name'] = "unavailable";
