@@ -665,7 +665,7 @@ class UserController extends Controller {
 
     private function extractValueFromConfig(&$array, $key) {
         if (isset($array[$key])) {
-            $array[$key] = array_values($configuration[$key]);
+            $array[$key] = array_values($array[$key]);
         }
     }
     /**
