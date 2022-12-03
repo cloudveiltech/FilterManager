@@ -651,12 +651,23 @@ class UserController extends Controller {
             if(!isset($configuration['BypassDuration'])) {
                 $configuration['BypassDuration'] = 0;
             }
+
+            $this->extractValueFromConfig($configuration, "SelfModeration");
+            $this->extractValueFromConfig($configuration, "CustomWhitelist");
+            $this->extractValueFromConfig($configuration, "CustomBypasslist");
+            $this->extractValueFromConfig($configuration, "CustomTriggerBlacklist");
+
             return $configuration;
         } else {
             return null;
         }
     }
 
+    private function extractValueFromConfig(&$array, $key) {
+        if (isset($array[$key])) {
+            $array[$key] = array_values($configuration[$key]);
+        }
+    }
     /**
      * Request the current activation configuration.
      * This is for versions >=1.7.
@@ -684,7 +695,7 @@ class UserController extends Controller {
         //TODO add management for this
         if ($activation->platform_name == "OSX") {
             unset($configuration["BlacklistedApplications"]);
-            $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
+            $configuration["WhitelistedApplications"] = App::wher e("platform_name", "OSX")->pluck("name");
         }
 
         if (!is_null($configuration)) {
