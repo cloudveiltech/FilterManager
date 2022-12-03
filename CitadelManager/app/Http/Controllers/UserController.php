@@ -695,7 +695,7 @@ class UserController extends Controller {
         //TODO add management for this
         if ($activation->platform_name == "OSX") {
             unset($configuration["BlacklistedApplications"]);
-            $configuration["WhitelistedApplications"] = App::wher e("platform_name", "OSX")->pluck("name");
+            $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
         }
 
         if (!is_null($configuration)) {
