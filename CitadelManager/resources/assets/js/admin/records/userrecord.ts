@@ -16,7 +16,7 @@ namespace Citadel {
         private editInfo: any;
 
         public constructor(table: HTMLTableElement, data: any) {
-            if(typeof data === 'object') {
+            if(data != null && typeof data === 'object') {
                 data = Object.values(data);
             }
             data = data || [];
