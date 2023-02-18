@@ -20,7 +20,7 @@
                     channel="{{ $channel['release'] }}"
                     url="{{ url('/') }}/update/releases/{{ urlencode($activation_id) }}/{{ $file_name }}-{{ $channel['version_number'] }}-{{ $platform }}{{ $file_ext }}" sparkle:os="{{ $os_name }}"
                     sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $channel['version_number'] }}"
-                    sparkle:edSignature="{{ $signature }}"
+                    sparkle:edSignature="{{ $channel["signature"] }}"
                     length="0"
                     type="application/octet-stream"/>
         </item>

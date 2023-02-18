@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'macos_dmg_signature' => env('MACOS_DMG_SIGNATURE', ""),
     'company_name' => env('APP_COMPANY_NAME', 'Citadel'),
     /* How long (in days) do we let deactivation requests sit around? */
     'deactivation_request_expiration' => env('APP_DEACTIVATION_REQUEST_EXPIRATION', '7'),
