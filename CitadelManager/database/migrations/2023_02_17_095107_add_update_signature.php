@@ -14,9 +14,9 @@ class AddUpdateSignature extends Migration
     public function up()
     {
         Schema::table('system_versions', function (Blueprint $table) {
-            $table->string('alpha_ed_signature')->default("");
-            $table->string('beta_ed_signature')->default("");
-            $table->string('stable_ed_signature')->default("");
+            $table->string('alpha_ed_signature')->nullable();
+            $table->string('beta_ed_signature')->nullable();
+            $table->string('stable_ed_signature')->nullable();
         });
     }
 
