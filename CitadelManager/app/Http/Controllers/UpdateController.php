@@ -39,11 +39,7 @@ class UpdateController extends Controller
             $arr_data["os_name"] = $os->os_name;
             $platform_id = $os->id;
             $versions = SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
-            if($platform == "macos") {
-                $arr_data["signature"] = config("app.macos_dmg_signature");
-            } else {
-                $arr_data["signature"] = "";
-            }
+
 
             if ($versions->count() > 0) {
                 $version = $versions->first();
@@ -57,14 +53,17 @@ class UpdateController extends Controller
                     [
                         'release' => 'Alpha',
                         'version_number' => $version->alpha,
+                        'signature' => $version->alpha_ed_signature
                     ],
                     [
                         'release' => 'Beta',
                         'version_number' => $version->beta,
+                        'signature' => $version->beta_ed_signature
                     ],
                     [
                         'release' => 'Stable',
                         'version_number' => $version->stable,
+                        'signature' => $version->stable_ed_signature
                     ],
                 ];
 // This comment is to show the format we need it in.  Changing the format will break updates.

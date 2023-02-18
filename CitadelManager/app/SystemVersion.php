@@ -17,5 +17,6 @@ class SystemVersion extends Model
     protected $fillable = [
         'id', 'platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha',
         'beta', 'stable', 'release_date', 'active', 'file_ext', 'created_at', 'updated_at',
+        'alpha_ed_signature', 'beta_ed_signature', 'stable_ed_signature'
     ];
 }
