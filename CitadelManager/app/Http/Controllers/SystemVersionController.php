@@ -258,7 +258,6 @@ class SystemVersionController extends Controller
                 'file_ext'
             ]
         );
-
         if ($input['active'] == 1) {
             $rows = SystemVersion::where('platform_id', '=', $input['platform_id'])->where('active', '=', 1)->get();
             foreach ($rows as $row) {
@@ -331,7 +330,6 @@ class SystemVersionController extends Controller
         $item = SystemVersion::where('id', '=', $id)->get()->first();
         $prev_active = $item->active;
         $prev_platform_id = $item->platform_id;
-
         SystemVersion::where('id', '=', $id)->update($input);
         return response('', 204);
     }
