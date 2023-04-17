@@ -1157,7 +1157,7 @@ namespace Citadel {
             }
 
             let groupsSorted = allGroups.sort((g1, g2) => (g1.name.toLower() < g2.name.toLower() ? -1 : 1));
-            for (var elm of allGroups) {
+            for (var elm of groupsSorted) {
                 let option = document.createElement('option') as HTMLOptionElement;
                 option.text = elm['name'];
                 option.value = elm['id'];
