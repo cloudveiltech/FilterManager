@@ -236,7 +236,7 @@ namespace Citadel {
             option.value = "-1";
             this.m_selectGroup.options.add(option);
 
-            let groupsSorted = allGroups.sort((g1, g2) => (g1.name.toLower() < g2.name.toLower() ? -1 : 1));
+            let groupsSorted = allGroups.sort((g1, g2) => (g1.name.toLowerCase() < g2.name.toLowerCase() ? -1 : 1));
 
             for (var elm of groupsSorted) {
                 let option = document.createElement('option') as HTMLOptionElement;
