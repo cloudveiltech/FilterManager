@@ -608,6 +608,12 @@ class UserController extends Controller {
                     $customTriggerBlacklist = null;
                 }
 
+                if (!empty($activationConfig['CustomBlockedApps'])) {
+                    $customBlockedApps = $activationConfig['CustomBlockedApps'];
+                } else {
+                    $customBlockedApps = null;
+                }
+
                 $activationConfig = Utils::purgeNulls($activationConfig);
                 $configuration = array_merge($configuration, $activationConfig);
 
@@ -625,6 +631,10 @@ class UserController extends Controller {
 
                 if ($customTriggerBlacklist != null && isset($configuration["CustomTriggerBlacklist"])) {
                     $configuration['CustomTriggerBlacklist'] = array_merge($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
+                }
+
+                if ($customBlockedApps != null && isset($configuration["CustomBlockedApps"])) {
+                    $configuration['CustomBlockedApps'] = array_merge($configuration['CustomBlockedApps'], $customBlockedApps);
                 }
 
                 $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
