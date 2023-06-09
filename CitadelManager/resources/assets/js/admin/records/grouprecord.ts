@@ -96,6 +96,7 @@ namespace Citadel {
         private m_btn_AG_T_To_S_One             : HTMLButtonElement;
         private m_btn_AG_T_To_S_All             : HTMLButtonElement;
 
+        private m_inputBlocklist                : HTMLInputElement;     // Radio Button
         private m_inputBlacklist                : HTMLInputElement;     // Radio Button
         private m_inputWhitelist                : HTMLInputElement;     // Radio Button
 
@@ -210,6 +211,7 @@ namespace Citadel {
                 }
             };
 
+            this.m_inputBlocklist               = document.querySelector('#group_filteredapps_radio_blocklist') as HTMLInputElement;
             this.m_inputBlacklist               = document.querySelector('#group_filteredapps_radio_blacklist') as HTMLInputElement;
             this.m_inputWhitelist               = document.querySelector('#group_filteredapps_radio_whitelist') as HTMLInputElement;
 
@@ -406,9 +408,11 @@ namespace Citadel {
 
             this.m_assignedFilterIds = allAssignedFilters;
 
-            let filterAppsKey = 'Blacklist';
-            if (!this.m_inputBlacklist.checked) {
-                filterAppsKey = 'Whitelist';
+            let filterAppsKey = 'Whitelist';
+            if (this.m_inputBlacklist.checked) {
+                filterAppsKey = 'Blacklist';
+            } else if (this.m_inputBlocklist.checked) {
+                filterAppsKey = 'Blocklist';
             }
 
             let appConfig = {
@@ -741,18 +745,15 @@ namespace Citadel {
 
                             if ('Blacklist' in this.m_appConfig) {
                                 this.m_inputBlacklist.checked = true;
-                                this.m_inputWhitelist.checked = false;
                             } else if ('Whitelist' in this.m_appConfig) {
-                                this.m_inputBlacklist.checked = false;
                                 this.m_inputWhitelist.checked = true;
+                            } else if ('Blocklist' in this.m_appConfig) {
+                                this.m_inputBlocklist.checked = true;
                             } else {
-                                // Default
                                 this.m_inputBlacklist.checked = true;
-                                this.m_inputWhitelist.checked = false;
                             }
                             this.m_groupId = undefined;
                         } else {
-
                             this.m_editorTitle.innerText = this.TITLE_NEW_GROUP;
                             this.m_btnSubmit.innerText = this.BTN_LABEL_CREATE_GROUP;
 
@@ -823,14 +824,12 @@ namespace Citadel {
 
                         if ('Blacklist' in this.m_appConfig) {
                             this.m_inputBlacklist.checked = true;
-                            this.m_inputWhitelist.checked = false;
                         } else if ('Whitelist' in this.m_appConfig) {
-                            this.m_inputBlacklist.checked = false;
                             this.m_inputWhitelist.checked = true;
+                        } else if ('Blocklist' in this.m_appConfig) {
+                            this.m_inputBlocklist.checked = true;
                         } else {
-                            // Default
                             this.m_inputBlacklist.checked = true;
-                            this.m_inputWhitelist.checked = false;
                         }
                     }
                     break;

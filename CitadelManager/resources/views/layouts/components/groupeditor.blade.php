@@ -294,6 +294,7 @@
                             are filtered.
                             <br /> Select blacklist if you want only the specified applications to be forced through the filter.
                             Leave empty to force all traffic through the filter.
+                            <br /> Select block list if you want only the specified applications to be blocked from the internet while all others are filtered.
                         </p>
                     </div>
                     <div class="grid">
@@ -302,6 +303,11 @@
                                 <h2>
                                     <small>Apps To Filter</small>
                                     <div id="group_filter_list">
+                                        <label class="input-control radio">
+                                            <input id="group_filteredapps_radio_blocklist" type="radio" name="n1">
+                                            <span class="check"></span>
+                                            <span class="caption">Block list</span>
+                                        </label>
                                         <label class="input-control radio">
                                             <input id="group_filteredapps_radio_blacklist" type="radio" name="n1" checked>
                                             <span class="check"></span>

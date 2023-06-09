@@ -27,6 +27,7 @@ namespace Citadel {
         ERROR_MESSAGE_DELAY_TIME = 5000;
         FADE_IN_DELAY_TIME = 200;
 
+        GET_APP_AUTOSUGGEST_URL = 'api/admin/app_suggest';
         URL_ROUTE = 'api/admin/user_activations';
 
         // ──────────────────────────────────────────────────────
@@ -49,6 +50,7 @@ namespace Citadel {
         private selfModeration: any;
         private activationWhitelist: any;
         private triggerBlacklist: any;
+        private appBlocklist: any;
 
         // ──────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -73,6 +75,7 @@ namespace Citadel {
         private m_blacklistTable: SelfModerationTable;
         private m_whitelistTable: SelfModerationTable;
         private m_triggerBlacklistTable: SelfModerationTable;
+        private m_appBlocklistTable: SelfModerationTable;
 
         private m_btnSubmit: HTMLButtonElement;
         private m_btnCancel: HTMLButtonElement;
@@ -136,10 +139,12 @@ namespace Citadel {
             this.m_blacklistTable = new SelfModerationTable(document.querySelector('#activation_self_moderation_table'), this.selfModeration);
             this.m_whitelistTable = new SelfModerationTable(document.querySelector('#activation_whitelist_table'), this.activationWhitelist);
             this.m_triggerBlacklistTable = new SelfModerationTable(document.querySelector('#activation_trigger_table'), this.triggerBlacklist);
+            this.m_appBlocklistTable = new SelfModerationTable(document.querySelector('#app_list_table'), this.appBlocklist, this.GET_APP_AUTOSUGGEST_URL + "?os=" + this.m_os);
 
             this.m_blacklistTable.render();
             this.m_whitelistTable.render();
             this.m_triggerBlacklistTable.render();
+            this.m_appBlocklistTable.render();
         }
 
         private InitButtonHandlers(): void {
@@ -188,10 +193,12 @@ namespace Citadel {
                 this.selfModeration = this.configOverride.SelfModeration;
                 this.activationWhitelist = this.configOverride.CustomWhitelist;
                 this.triggerBlacklist = this.configOverride.CustomTriggerBlacklist;
+                this.appBlocklist = this.configOverride.CustomBlockedApps;
             } else {
                 this.selfModeration = null;
                 this.activationWhitelist = null;
                 this.triggerBlacklist = null;
+                this.appBlocklist = null;
             }
         }
 
@@ -216,11 +223,14 @@ namespace Citadel {
             this.selfModeration = this.m_blacklistTable.getData();
             this.activationWhitelist = this.m_whitelistTable.getData();
             this.triggerBlacklist = this.m_triggerBlacklistTable.getData();
+            this.appBlocklist = this.m_appBlocklistTable.getData();
+
 
             this.configOverride = JSON.stringify({
                 SelfModeration: this.selfModeration,
                 CustomWhitelist: this.activationWhitelist,
-                CustomTriggerBlacklist: this.triggerBlacklist
+                CustomTriggerBlacklist: this.triggerBlacklist,
+                CustomBlockedApps: this.appBlocklist
             });
         }
 
@@ -336,6 +346,10 @@ namespace Citadel {
 
         public addNewCustomTextTrigger(): void {
             this.m_triggerBlacklistTable.add();
+        }
+
+        public addNewBlockedApp(): void {
+            this.m_appBlocklistTable.add();
         }
 
         public resetBypassUsed(): void {

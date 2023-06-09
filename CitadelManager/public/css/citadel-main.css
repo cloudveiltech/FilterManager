@@ -892,7 +892,6 @@ Group editor.
 
 #group_filter_list {
     position: absolute;
-    width: 250px;
     right: 20px;
     top: -1px;
     text-align: right;

@@ -2,6 +2,7 @@
 
 @section('styles')
     <link href="{{ asset('css/nouislider.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('plugins/jquery-ui-1.13.2.custom/jquery-ui.css') }}" rel="stylesheet">
 @endsection
 
 @section('content')
