@@ -82,6 +82,17 @@ class ApplicationController extends Controller
         ]);
     }
 
+
+    public function autosuggest_app(Request $request)
+    {
+        $term = $request->input("term");
+        $os = $request->input("os");
+        return App::where("platform_name", $os)->
+                    where('name', 'like', "%$term%")->
+                    orderBy('name', 'asc')->pluck("name");
+    }
+
+
     public function get_application()
     {
         return App::orderBy('name', 'asc')->get();

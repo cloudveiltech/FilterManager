@@ -94,6 +94,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
 
     // Get application for app_group_editing.
     Route::get('/applications', 'ApplicationController@get_application');
+    Route::get('/app_suggest', 'ApplicationController@autosuggest_app');
     Route::get('/get_app_data', 'GroupController@get_app_data');
     Route::get('/get_app_data/{id}', 'GroupController@get_app_data_with_groupid');
     //Route::get('/get_current_applications', 'ApplicationController@getApps');

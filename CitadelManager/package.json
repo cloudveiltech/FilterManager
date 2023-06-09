@@ -27,6 +27,7 @@
     "@types/dropzone": "^5.0.4",
     "@types/jquery": "^3.3.29",
     "@types/jquery.validation": "^1.16.5",
+    "@types/jqueryui": "^1.12.17",
     "@types/node": "^10.14.3",
     "@types/nouislider": "^9.0.4",
     "jquery": "^3.5.0",

@@ -14,8 +14,9 @@ namespace Citadel {
         private __nextId: number;
 
         private editInfo: any;
+        private autoCompleteSource: string;
 
-        public constructor(table: HTMLTableElement, data: any) {
+        public constructor(table: HTMLTableElement, data: any, autoCompleteSource?: any) {
             if(data != null && typeof data === 'object') {
                 data = Object.values(data);
             }
@@ -25,6 +26,9 @@ namespace Citadel {
 
             this.table = table;
             this.data = this.fromStrings(data);
+
+            this.autoCompleteSource = autoCompleteSource;
+
         }
 
         private toStrings(): string[] {
@@ -231,6 +235,11 @@ namespace Citadel {
                 }
             });
 
+            if(this.autoCompleteSource != "") {
+                $(input).autocomplete({
+                    source: this.autoCompleteSource
+                })
+            }
             var button = document.createElement("button");
             button.innerHTML = "Done";
 
