@@ -618,23 +618,23 @@ class UserController extends Controller {
                 $configuration = array_merge($configuration, $activationConfig);
 
                 if ($selfModeration != null && isset($configuration["SelfModeration"])) {
-                    $configuration['SelfModeration'] = array_merge($configuration['SelfModeration'], $selfModeration);
+                    $configuration['SelfModeration'] = $this->compactAndMergeArrays($configuration['SelfModeration'], $selfModeration);
                 }
 
                 if ($customWhitelist != null && isset($configuration["CustomWhitelist"])) {
-                    $configuration['CustomWhitelist'] = array_merge($configuration['CustomWhitelist'], $customWhitelist);
+                    $configuration['CustomWhitelist'] = $this->compactAndMergeArrays($configuration['CustomWhitelist'], $customWhitelist);
                 }
 
                 if ($customBypasslist != null && isset($configuration["CustomBypasslist"])) {
-                    $configuration['CustomBypasslist'] = array_merge($configuration['CustomBypasslist'], $customBypasslist);
+                    $configuration['CustomBypasslist'] = $this->compactAndMergeArrays($configuration['CustomBypasslist'], $customBypasslist);
                 }
 
                 if ($customTriggerBlacklist != null && isset($configuration["CustomTriggerBlacklist"])) {
-                    $configuration['CustomTriggerBlacklist'] = array_merge($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
+                    $configuration['CustomTriggerBlacklist'] = $this->compactAndMergeArrays($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
                 }
 
                 if ($customBlockedApps != null && isset($configuration["CustomBlockedApps"])) {
-                    $configuration['CustomBlockedApps'] = array_merge($configuration['CustomBlockedApps'], $customBlockedApps);
+                    $configuration['CustomBlockedApps'] = $this->compactAndMergeArrays($configuration['CustomBlockedApps'], $customBlockedApps);
                 }
 
                 $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
@@ -674,6 +674,9 @@ class UserController extends Controller {
         }
     }
 
+    private function compactAndMergeArrays(&$array1, &$array2) {
+        return array_unique(array_merge($array1, $array2));
+    }
     private function extractValueFromConfig(&$array, $key) {
         if (isset($array[$key])) {
             $array[$key] = array_values($array[$key]);
@@ -1164,7 +1167,7 @@ class UserController extends Controller {
             }
             if ($listType == "appBlockList") {
                 $key = "CustomBlockedApps";
-            }    
+            }
 
             if (!isset($config->$key)) {
                 $config->$key = [];

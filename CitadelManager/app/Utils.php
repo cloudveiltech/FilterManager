@@ -6,9 +6,9 @@ class Utils {
 	public static function purgeNulls($arr) {
 		$ret = [];
 
-		foreach($arr as $value) {
+		foreach($arr as $key=>$value) {
 			if($value != null) {
-				$ret[] = $value;
+				$ret[$key] = $value;
 			}
 		}
 
@@ -28,6 +28,7 @@ class Utils {
 		$configOverride['CustomWhitelist'] = Utils::purgeNullsFromArrayWithKey($configOverride, 'CustomWhitelist');
 		$configOverride['CustomTriggerBlacklist'] = Utils::purgeNullsFromArrayWithKey($configOverride, 'CustomTriggerBlacklist');
         $configOverride['CustomBypasslist'] = Utils::purgeNullsFromArrayWithKey($configOverride, 'CustomBypasslist');
+        $configOverride['CustomBlockedApps'] = Utils::purgeNullsFromArrayWithKey($configOverride, 'CustomBlockedApps');
 
 		return $configOverride;
 	}
