@@ -666,6 +666,7 @@ class UserController extends Controller {
             $this->extractValueFromConfig($configuration, "CustomWhitelist");
             $this->extractValueFromConfig($configuration, "CustomBypasslist");
             $this->extractValueFromConfig($configuration, "CustomTriggerBlacklist");
+            $this->extractValueFromConfig($configuration, "CustomBlockedApps");
 
             return $configuration;
         } else {
@@ -1075,10 +1076,12 @@ class UserController extends Controller {
             $data['whitelist'] = [];
             $data['blacklist'] = [];
             $data['triggerBlacklist'] = [];
+            $data['appBlockList'] = [];
         } else {
             $data['whitelist'] = $this->fillSelfModerationArray([], isset($config->CustomWhitelist) ? $config->CustomWhitelist : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
             $data['blacklist'] = $this->fillSelfModerationArray([], isset($config->SelfModeration) ? $config->SelfModeration : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
             $data['triggerBlacklist'] = $this->fillSelfModerationArray([], isset($config->CustomTriggerBlacklist) ? $config->CustomTriggerBlacklist : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
+            $data['appBlockList'] = $this->fillSelfModerationArray([], isset($config->CustomBlockedApps) ? $config->CustomBlockedApps : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
         }
 
         $activations = $user->activations;
@@ -1096,11 +1099,15 @@ class UserController extends Controller {
             if (!empty($activationConfig->CustomTriggerBlacklist)) {
                 $data['triggerBlacklist'] = $this->fillSelfModerationArray($data['triggerBlacklist'], $activationConfig->CustomTriggerBlacklist, $activation->identifier, $activation->device_id);
             }
+            if (!empty($activationConfig->CustomBlockedApps)) {
+                $data['appBlockList'] = $this->fillSelfModerationArray($data['appBlockList'], $activationConfig->CustomBlockedApps, $activation->identifier, $activation->device_id);
+            }
         }
 
         $data['whitelist'] = array_values($data["whitelist"]);
         $data['blacklist'] = array_values($data["blacklist"]);
         $data['triggerBlacklist'] = array_values($data["triggerBlacklist"]);
+        $data['appBlockList'] = array_values($data["appBlockList"]);
 
         return $data;
     }
@@ -1155,6 +1162,9 @@ class UserController extends Controller {
             if ($listType == "triggerBlacklist") {
                 $key = "CustomTriggerBlacklist";
             }
+            if ($listType == "appBlockList") {
+                $key = "CustomBlockedApps";
+            }    
 
             if (!isset($config->$key)) {
                 $config->$key = [];
@@ -1199,6 +1209,13 @@ class UserController extends Controller {
             $customTriggerBlacklist = [];
         }
         $this->saveSelfModerationList($customTriggerBlacklist, $user, "CustomTriggerBlacklist");
+
+        if ($request->has('appBlockList')) {
+            $customBlockedApps = Utils::purgeNulls($request->input('appBlockList'));
+        } else {
+            $customBlockedApps = [];
+        }
+        $this->saveSelfModerationList($customBlockedApps, $user, "CustomBlockedApps");
 
         return '{}';
     }
