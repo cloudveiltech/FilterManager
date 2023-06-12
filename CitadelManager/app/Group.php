@@ -156,7 +156,12 @@ class Group extends Model {
             unset($app_cfg['Blacklist']);
             Log::info('Blacklisting apps for group: ' . $this->id);
             $app_cfg['BlacklistedApplications'] = $apps;
+        } elseif (isset($app_cfg['Blocklist'])) {
+            unset($app_cfg['Blocklist']);
+            Log::info('Blocked apps for group: ' . $this->id);
+            $app_cfg['BlockedApplications'] = $apps;
         }
+
 
         $compiledAppConfiguration = array_merge($compiledAppConfiguration, $app_cfg);
         $serializedFinalConfiguration = json_encode($compiledAppConfiguration);
