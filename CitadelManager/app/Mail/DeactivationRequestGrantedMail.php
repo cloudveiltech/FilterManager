@@ -39,7 +39,7 @@ class DeactivationRequestGrantedMail extends Mailable
     {
         $this->deactivationRequest = $deactivationRequest;
         $this->user = $user;
-        $this->isMacOs = $deactivationRequest->activation->platform_name == SystemPlatform::PLATFORM_WIN;
+        $this->isMacOs = $deactivationRequest->activation->platform_name == SystemPlatform::PLATFORM_OSX;
     }
 
     /**
