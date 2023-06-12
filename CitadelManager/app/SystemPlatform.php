@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class SystemPlatform extends Model
 {
-    const PLATFORM_SUPPORTED = ["WIN", "OSX", "LINUX"];
+    const PLATFORM_WIN = "WIN";
+    const PLATFORM_OSX = "OSX";
+    const PLATFORM_LINUX = "LINUX";
+    const PLATFORM_SUPPORTED = [self::PLATFORM_WIN, self::PLATFORM_OSX, self::PLATFORM_LINUX];
     public $timestamps = false;
 
     /**
