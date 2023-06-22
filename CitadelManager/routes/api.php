@@ -95,8 +95,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
     // Get application for app_group_editing.
     Route::get('/applications', 'ApplicationController@get_application');
     Route::get('/app_suggest', 'ApplicationController@autosuggest_app');
-    Route::get('/get_app_data', 'GroupController@get_app_data');
-    Route::get('/get_app_data/{id}', 'GroupController@get_app_data_with_groupid');
+    Route::get('/get_app_data/{id?}', 'GroupController@get_app_data_with_groupid');
     //Route::get('/get_current_applications', 'ApplicationController@getApps');
 
     Route::get('/get_appgroup_data', 'ApplicationController@get_appgroup_data');
@@ -257,11 +256,6 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:a
     Route::post('/apply_app_to_app_group', 'ApplyAppToAppGroupController@applyToGroup');
     Route::get('/apply_app_to_appgroup/data', 'ApplyAppToAppGroupController@getRetrieveData');
     Route::get('/apply_app_to_appgroup/selected_group/{id}', 'ApplyAppToAppGroupController@getSelectedGroups');
-
-    // Apply app  to appgroup.
-    Route::post('/apply_appgroup_to_usergroup', 'ApplyAppgroupToUsergroupController@applyToGroup');
-    Route::get('/apply_appgroup_to_usergroup/data', 'ApplyAppgroupToUsergroupController@getRetrieveData');
-    Route::get('/apply_appgroup_to_usergroup/selected_user_group/{id}', 'ApplyAppgroupToUsergroupController@getSelectedUsergroups');
 
     // For handling deletion of all records in a namespace.
     Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');

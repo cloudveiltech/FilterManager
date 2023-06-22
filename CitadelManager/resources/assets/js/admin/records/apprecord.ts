@@ -30,6 +30,9 @@ namespace Citadel {
         URL_ROUTE                   = 'api/admin/app';
         URL_APPGROUP_DATA           = 'api/admin/get_appgroup_data'
 
+        SOURCE_LIST_SELECTORS = ["#editor_application_source_list_filter", "#editor_application_source_list"];
+        TARGET_LIST_SELECTORS = ["#editor_application_target_list_filter", "#editor_application_target_list"];
+
         // ─────────────────────────────────────────────────────────
         //   :::::: A P P    R E C O R D     M E M B E R S ::::::
         // ─────────────────────────────────────────────────────────
@@ -210,6 +213,11 @@ namespace Citadel {
             this.m_btnCancel.onclick = ((e: MouseEvent): any => {
                 this.StopEditing();
             });
+
+
+
+            this.SetFilterListHandler(this.SOURCE_LIST_SELECTORS[0], this.SOURCE_LIST_SELECTORS[1]);
+            this.SetFilterListHandler(this.TARGET_LIST_SELECTORS[0], this.TARGET_LIST_SELECTORS[1])
         }
 
         public onMoveRightAllClicked(e: MouseEvent): void {
@@ -220,6 +228,8 @@ namespace Citadel {
             this.m_unselectedGroups = [];
             this.drawLeftGroups();
             this.drawRightGroups();
+
+            this.filterLists();
         }
 
         public onMoveLeftAllClicked(e: MouseEvent): void {
@@ -230,6 +240,8 @@ namespace Citadel {
             this.m_selectedGroups = [];
             this.drawLeftGroups();
             this.drawRightGroups();
+
+            this.filterLists();
         }
 
         public onMoveRightClicked(e: MouseEvent): void {
@@ -244,6 +256,7 @@ namespace Citadel {
 
             this.drawLeftGroups();
             this.drawRightGroups();
+            this.filterLists();
         }
 
         public onMoveLeftClicked(e: MouseEvent): void {
@@ -258,6 +271,12 @@ namespace Citadel {
 
             this.drawLeftGroups();
             this.drawRightGroups();
+            this.filterLists();
+        }
+
+        private filterLists() {
+            this.FilterList(this.SOURCE_LIST_SELECTORS[0], this.SOURCE_LIST_SELECTORS[1]);
+            this.FilterList(this.TARGET_LIST_SELECTORS[0], this.TARGET_LIST_SELECTORS[1])
         }
 
         private getGroupItem(group_id) {

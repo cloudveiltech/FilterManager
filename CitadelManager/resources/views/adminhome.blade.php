@@ -341,7 +341,7 @@
 <!-- Require appgroup list editing overlay. -->
 @include('layouts.components.appgroupeditor')
 <!-- Require Apply Application to App group overlay. -->
-@include('layouts.components.applyapptoappgroup') @include('layouts.components.applyappgrouptousergroup')
+@include('layouts.components.applyapptoappgroup')
 <!-- Require Apply to group overlay. -->
 @include('layouts.components.appuseractivationeditor')
 <!-- Require System Version overlay. -->

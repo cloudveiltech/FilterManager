@@ -47,6 +47,7 @@
                 <div class="row">
                     <div class="cell colspan5">
                         <h3 align="center">App Groups</h3>
+                        <input type="text" name="editor_application_source_list_filter" id="editor_application_source_list_filter" class="clear expandto100percent" style="margin-bottom: 5px">
                         <select id="editor_application_source_list" multiple>
                         </select>
                     </div>
@@ -70,6 +71,7 @@
 
                     <div class="cell colspan5">
                         <h3 align="center">Selected App Groups</h3>
+                        <input type="text" name="editor_application_target_list_filter" id="editor_application_target_list_filter" class="clear expandto100percent" style="margin-bottom: 5px">
                         <select id="editor_application_target_list" multiple>
                         </select>
                     </div>

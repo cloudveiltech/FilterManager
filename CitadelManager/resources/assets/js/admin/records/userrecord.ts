@@ -292,6 +292,7 @@ namespace Citadel {
         URL_DELETE_ACTIVATION = 'api/admin/user_activations/delete';
         URL_BLOCK_ACTIVATION = 'api/admin/user_activations/block';
         URL_REFRESH_ACTIVATIONS = 'api/admin/user/{user_id}/activations';
+        URL_GET_APP_AUTOSUGGEST = 'api/admin/app_suggest';
 
         WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -355,6 +356,7 @@ namespace Citadel {
         private customBypasslist: any;
         private customTriggers: any;
         private timeRestrictions: any;
+        private appBlocklist: any;
         private allGroups: any;
         private isDnsDisabled: any;
 
@@ -372,6 +374,7 @@ namespace Citadel {
         private m_customWhitelistTable: SelfModerationTable;
         private m_customBypasslistTable: SelfModerationTable;
         private m_textTriggerTable: SelfModerationTable;
+        private m_appBlocklistTable: SelfModerationTable;
 
         /**
          * TIME RESTRICTIONS
@@ -561,6 +564,10 @@ namespace Citadel {
             this.m_textTriggerTable.add();
         }
 
+        public addNewBlockedApp(): void {
+            this.m_appBlocklistTable.add();
+        }
+
         protected initEmptyTimeRestrictionsObject(): void {
             this.timeRestrictions = {};
 
@@ -627,6 +634,12 @@ namespace Citadel {
                 this.customTriggers = [];
             }
 
+            if (this.myConfigData && this.myConfigData.CustomBlockedApps) {
+                this.appBlocklist = this.myConfigData.CustomBlockedApps;
+            } else {
+                this.appBlocklist = [];
+            }
+
             if (this.myConfigData && (this.myConfigData.PrimaryDns != null || this.myConfigData.SecondaryDns != null)) {
                 this.isDnsDisabled = true;
             } else {
@@ -659,6 +672,7 @@ namespace Citadel {
             this.customWhitelist = this.m_customWhitelistTable.getData();
             this.customBypasslist = this.m_customBypasslistTable.getData();
             this.customTriggers = this.m_textTriggerTable.getData();
+            this.appBlocklist = this.m_appBlocklistTable.getData();
 
             this.myConfigData = this.myConfigData || {};
 
@@ -666,6 +680,7 @@ namespace Citadel {
             this.myConfigData.CustomWhitelist = this.customWhitelist;
             this.myConfigData.CustomBypasslist = this.customBypasslist;
             this.myConfigData.CustomTriggerBlacklist = this.customTriggers;
+            this.myConfigData.CustomBlockedApps = this.appBlocklist;
 
             this.myConfigData.TimeRestrictions = {};
 
@@ -925,11 +940,14 @@ namespace Citadel {
             this.m_customWhitelistTable = new SelfModerationTable(document.querySelector("#custom_whitelist_table"), this.customWhitelist);
             this.m_customBypasslistTable = new SelfModerationTable(document.querySelector("#custom_bypassable_table"), this.customBypasslist);
             this.m_textTriggerTable = new SelfModerationTable(document.querySelector("#custom_trigger_table"), this.customTriggers);
+            this.m_appBlocklistTable = new SelfModerationTable(document.querySelector('#app_list_table'), this.appBlocklist, this.URL_GET_APP_AUTOSUGGEST);
+
 
             this.m_selfModerationTable.render();
             this.m_customWhitelistTable.render();
             this.m_customBypasslistTable.render();
             this.m_textTriggerTable.render();
+            this.m_appBlocklistTable.render();
         }
 
         private InitUserActivationTables() {

@@ -28,6 +28,7 @@
                 <div class="row cell-auto-size" align="center">
                     <div class="cell colspan5">
                         <h3>Applications</h3>
+                        <input type="text" name="app_source_list_filter" id="app_source_list_filter" class="clear expandto100percent" style="margin-bottom: 5px">
                         <select id="app_source_list" multiple>
                         </select>
                     </div>
@@ -48,6 +49,7 @@
 
                     <div class="cell colspan5">
                         <h3>Selected Applications </h3>
+                        <input type="text" name="app_target_list_filter" id="app_target_list_filter" class="clear expandto100percent" style="margin-bottom: 5px">
                         <select id="app_target_list" multiple>
                         </select>
                     </div>
