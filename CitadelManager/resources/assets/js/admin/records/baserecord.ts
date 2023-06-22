@@ -90,6 +90,23 @@ namespace Citadel {
             return false;
         }
 
+
+        protected SetFilterListHandler(inputSelector: string, listSelector: string) {
+            let that = this;
+            $(inputSelector).on("keyup", function() {
+                that.FilterList(inputSelector, listSelector);
+            });
+        }
+
+        protected FilterList(inputSelector: string, listSelector: string) {
+            var value = ($(inputSelector).val() as string).toLowerCase();
+            $(listSelector + " option").filter((index, element): boolean => {
+                let visible = $(element).text().toLowerCase().indexOf(value) != -1;
+                $(element).toggle(visible);
+                return visible;
+            });
+        }
+
         public Save(newlyCreated: boolean = false): void {
             this.LoadFromForm();
 

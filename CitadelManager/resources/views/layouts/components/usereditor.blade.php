@@ -13,25 +13,28 @@
                 <div class="tabcontrol" data-role="tabcontrol">
                     <ul class="tabs">
                         <li class="active">
-                            <a href="#user_info_tab">User Information</a>
+                            <a href="#user_info_tab">Information</a>
                         </li>
                         <li>
                             <a href="#user_activation_tab">Activations</a>
                         </li>
                         <li>
-                            <a href="#self_moderation_tab">User's Blocked Sites</a>
+                            <a href="#self_moderation_tab">Blocked Sites</a>
                         </li>
                         <li>
-                            <a href="#custom_whitelist_tab">User's Allowed Sites</a>
+                            <a href="#custom_whitelist_tab">Allowed Sites</a>
                         </li>
                         <li>
-                            <a href="#custom_bypassable_tab">User's Bypassable Sites</a>
+                            <a href="#custom_bypassable_tab">Bypassable Sites</a>
                         </li>
                         <li>
-                            <a href="#trigger_blacklist_tab">User's Blocked Triggers</a>
+                            <a href="#trigger_blacklist_tab">Blocked Triggers</a>
                         </li>
                         <li>
-                            <a href="#time_restrictions_tab">User's Time Restrictions</a>
+                            <a href="#blocked_apps_tab">Blocked Applications</a>
+                        </li>
+                        <li>
+                            <a href="#time_restrictions_tab">Time Restrictions</a>
                         </li>
                     </ul>
 
@@ -211,7 +214,7 @@
                         <div class="frame" id="self_moderation_tab">
                             <div class="grid" id="self_moderation_list">
                                 <h2>
-                                    <small>User's Blocked Sites</small>
+                                    <small>Blocked Sites</small>
                                 </h2>
                                 <hr class="thin" />
                                 <button type="button" event-click="addNewSelfModerationSite" class="button primary">Add Site</button>
@@ -234,7 +237,7 @@
                         <div class="frame" id="custom_whitelist_tab">
                             <div class="grid">
                                 <h2>
-                                    <small>User's Allowed Sites</small>
+                                    <small>Allowed Sites</small>
                                 </h2>
                                 <hr class="thin" />
                                 <button type="button" event-click="addNewWhitelistSite" class="button primary">Add Site</button>
@@ -257,7 +260,7 @@
                         <div class="frame" id="trigger_blacklist_tab">
                             <div class="grid">
                                 <h2>
-                                    <small>User's Blocked Triggers</small>
+                                    <small>Blocked Triggers</small>
                                 </h2>
                                 <hr class="thin" />
                                 <button type="button" event-click="addNewCustomTextTrigger" class="button primary">Add Text Trigger</button>
@@ -277,10 +280,37 @@
                             </div>
                         </div>
 
+                        <div class="frame" id="blocked_apps_tab">
+                            <div class="grid">
+                                <h2>
+                                    <small>Blocked Apps</small>
+                                </h2>
+                                <hr class="thin"/>
+                                <button type="button" event-click="addNewBlockedApp" class="button primary">Add
+                                    App
+                                </button>
+                                <div style="max-height: 350px; overflow-y: auto;">
+                                    <table id="app_list_table"
+                                           class="table striped hovered border black-background" style="width: 100%">
+                                        <thead>
+                                        <tr>
+                                            <th>App Name</th>
+                                            <th>...</th>
+                                            <th>...</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="activation_trigger_insert">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="frame" id="custom_bypassable_tab">
                             <div class="grid">
                                 <h2>
-                                    <small>User's Bypassable Sites</small>
+                                    <small>Bypassable Sites</small>
                                 </h2>
                                 <hr class="thin" />
                                 <button type="button" event-click="addNewBypassableSite" class="button primary">Add Site</button>

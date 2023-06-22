@@ -136,32 +136,42 @@ class Group extends Model {
 
         // Merge app_groups into configuration.
         $app_cfg = json_decode($this->app_cfg, true);
-        $app_group_ids = UserGroupToAppGroup::where('user_group_id', $this->id)->pluck('app_group_id');
-        $app_groups = AppGroup::with('app')->find($app_group_ids);
-        $apps = [];
+        $app_group_ids = UserGroupToAppGroup::where('user_group_id', $this->id)->pluck('filter_type', 'app_group_id')->toArray();
+        $app_groups = AppGroup::with('app')->find(array_keys($app_group_ids));
+        $whitelistApps = [];
+        $blocklistApps = [];
+        $blacklistApps = [];
         // The apps variable is populated like this to remove duplicates.
         foreach ($app_groups as $ag) {
+            $collection = &$whitelistApps;
+            if($app_group_ids[$ag->id] == \App\UserGroupToAppGroup::FILTER_TYPE_BLACKLIST) {
+                $collection = &$blacklistApps;
+            } else if($app_group_ids[$ag->id] == \App\UserGroupToAppGroup::FILTER_TYPE_BLOCK_APPS) {
+                $collection = &$blocklistApps;
+            }
             foreach ($ag['app'] as $app) {
-                $apps[$app['name']] = $app['name'];
+                $collection[$app['name']] = $app['name'];
             }
         }
-        $apps = array_values($apps);
+        $whitelistApps = array_values($whitelistApps);
+        $blocklistApps = array_values($blocklistApps);
+        $blacklistApps = array_values($blacklistApps);
 
         //We remove the Whitelist or Blacklist setting before saving to the .zip file as it's not needed.
         if (isset($app_cfg['Whitelist'])) {
             unset($app_cfg['Whitelist']);
             Log::info('Whitelisting apps for group: ' . $this->id);
-            $app_cfg['WhitelistedApplications'] = $apps;
         } elseif (isset($app_cfg['Blacklist'])) {
             unset($app_cfg['Blacklist']);
             Log::info('Blacklisting apps for group: ' . $this->id);
-            $app_cfg['BlacklistedApplications'] = $apps;
         } elseif (isset($app_cfg['Blocklist'])) {
             unset($app_cfg['Blocklist']);
             Log::info('Blocked apps for group: ' . $this->id);
-            $app_cfg['BlockedApplications'] = $apps;
         }
 
+        $app_cfg['BlacklistedApplications'] = $blacklistApps;
+        $app_cfg['WhitelistedApplications'] = $whitelistApps;
+        $app_cfg['BlockedApplications'] = $blocklistApps;
 
         $compiledAppConfiguration = array_merge($compiledAppConfiguration, $app_cfg);
         $serializedFinalConfiguration = json_encode($compiledAppConfiguration);

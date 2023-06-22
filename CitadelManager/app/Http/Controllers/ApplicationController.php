@@ -87,9 +87,14 @@ class ApplicationController extends Controller
     {
         $term = $request->input("term");
         $os = $request->input("os");
-        return App::where("platform_name", $os)->
-                    where('name', 'like', "%$term%")->
-                    orderBy('name', 'asc')->pluck("name");
+        if(empty($os)) {
+            return App::where('name', 'like', "%$term%")->
+            orderBy('name', 'asc')->pluck("name");
+        } else {
+            return App::where("platform_name", $os)->
+            where('name', 'like', "%$term%")->
+            orderBy('name', 'asc')->pluck("name");
+        }
     }
 
 

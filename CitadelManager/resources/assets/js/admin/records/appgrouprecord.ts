@@ -29,6 +29,10 @@ namespace Citadel {
 
         URL_ROUTE                       = 'api/admin/app_group';
         URL_APPLICATIONS                = 'api/admin/applications';
+
+        SOURCE_LIST_SELECTORS = ["#app_source_list_filter", "#app_source_list"];
+        TARGET_LIST_SELECTORS = ["#app_target_list_filter", "#app_target_list"];
+
         // ────────────────────────────────────────────────────
         //   :::::: A P P G R O U P     M E M B E R S  ::::::
         // ────────────────────────────────────────────────────
@@ -205,6 +209,8 @@ namespace Citadel {
 
             this._drawApplications(this.m_leftApps, this.m_selectSource);
             this._drawApplications(this.m_rightApps, this.m_selectTarget);
+
+            this.filterLists();
         }
 
         public onMoveLeftAllClicked(e: MouseEvent): void {
@@ -215,6 +221,8 @@ namespace Citadel {
 
             this._drawApplications(this.m_leftApps, this.m_selectSource);
             this._drawApplications(this.m_rightApps, this.m_selectTarget);
+
+            this.filterLists();
         }
 
         public onMoveRightClicked(e: MouseEvent): void {
@@ -239,6 +247,8 @@ namespace Citadel {
 
             this._drawApplications(this.m_leftApps, this.m_selectSource);
             this._drawApplications(this.m_rightApps, this.m_selectTarget);
+
+            this.filterLists();
         }
 
         public onMoveLeftClicked(e: MouseEvent): void {
@@ -266,6 +276,8 @@ namespace Citadel {
 
             this._drawApplications(this.m_leftApps, this.m_selectSource);
             this._drawApplications(this.m_rightApps, this.m_selectTarget);
+
+            this.filterLists();
         }
 
         private InitButtonHandlers(): void {
@@ -351,8 +363,15 @@ namespace Citadel {
             });
 
             $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
+
+            this.SetFilterListHandler(this.SOURCE_LIST_SELECTORS[0], this.SOURCE_LIST_SELECTORS[1]);
+            this.SetFilterListHandler(this.TARGET_LIST_SELECTORS[0], this.TARGET_LIST_SELECTORS[1]);
         }
 
+        private filterLists() {
+            this.FilterList(this.SOURCE_LIST_SELECTORS[0], this.SOURCE_LIST_SELECTORS[1]);
+            this.FilterList(this.TARGET_LIST_SELECTORS[0], this.TARGET_LIST_SELECTORS[1]);
+        }
         public StopEditing(): void {
             $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }

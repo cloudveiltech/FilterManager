@@ -890,7 +890,7 @@ Group editor.
     margin-top: 30px;
 }
 
-#group_filter_list {
+.group_filter_list {
     position: absolute;
     right: 20px;
     top: -1px;
@@ -917,7 +917,7 @@ Group editor.
     margin-top: 16px;
 }
 
-#selected_applications {
+.selected_applications {
     width: 100%;
     height: 273px;
     overflow: auto;
@@ -929,12 +929,12 @@ Group editor.
     margin: 0px !important;
 }
 
-#appgroup_source_list {
+.appgroup_source_list {
     width: 100%;
     height: 273px;
 }
 
-#appgroup_target_list {
+.appgroup_target_list {
     width: 100%;
     height: 273px;
 }
@@ -943,7 +943,7 @@ Group editor.
     padding-left: 18px;
 }
 
-#group_filter_list .caption {
+.group_filter_list .caption {
     font-size: 14px !important;
 }
 

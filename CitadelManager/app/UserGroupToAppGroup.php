@@ -22,6 +22,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class UserGroupToAppGroup extends Model
 {
+    const FILTER_TYPE_WHITELIST = 0;
+    const FILTER_TYPE_BLACKLIST = 1;
+    const FILTER_TYPE_BLOCK_APPS = 2;
 
     public $incrementing = false;
     public $timestamps = false;
@@ -29,10 +32,12 @@ class UserGroupToAppGroup extends Model
     protected $casts = [
         'user_group_id' => 'int',
         'app_group_id' => 'int',
+        'filter_type' => 'int'
     ];
     protected $fillable = [
         'user_group_id',
         'app_group_id',
+        'filter_type'
     ];
     public function app_group()
     {
