@@ -940,7 +940,7 @@ namespace Citadel {
             this.m_customWhitelistTable = new SelfModerationTable(document.querySelector("#custom_whitelist_table"), this.customWhitelist);
             this.m_customBypasslistTable = new SelfModerationTable(document.querySelector("#custom_bypassable_table"), this.customBypasslist);
             this.m_textTriggerTable = new SelfModerationTable(document.querySelector("#custom_trigger_table"), this.customTriggers);
-            this.m_appBlocklistTable = new SelfModerationTable(document.querySelector('#app_list_table'), this.appBlocklist, this.URL_GET_APP_AUTOSUGGEST);
+            this.m_appBlocklistTable = new SelfModerationTable(document.querySelector('#user_app_list_table'), this.appBlocklist, this.URL_GET_APP_AUTOSUGGEST);
 
 
             this.m_selfModerationTable.render();
