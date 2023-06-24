@@ -139,7 +139,7 @@ namespace Citadel {
             this.m_blacklistTable = new SelfModerationTable(document.querySelector('#activation_self_moderation_table'), this.selfModeration);
             this.m_whitelistTable = new SelfModerationTable(document.querySelector('#activation_whitelist_table'), this.activationWhitelist);
             this.m_triggerBlacklistTable = new SelfModerationTable(document.querySelector('#activation_trigger_table'), this.triggerBlacklist);
-            this.m_appBlocklistTable = new SelfModerationTable(document.querySelector('#app_list_table'), this.appBlocklist, this.GET_APP_AUTOSUGGEST_URL + "?os=" + this.m_os);
+            this.m_appBlocklistTable = new SelfModerationTable(document.querySelector('#activation_app_list_table'), this.appBlocklist, this.GET_APP_AUTOSUGGEST_URL + "?os=" + this.m_os);
 
             this.m_blacklistTable.render();
             this.m_whitelistTable.render();

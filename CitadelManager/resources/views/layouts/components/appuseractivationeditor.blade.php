@@ -251,7 +251,7 @@
                                     App
                                 </button>
                                 <div style="max-height: 350px; overflow-y: auto;">
-                                    <table id="app_list_table"
+                                    <table id="activation_app_list_table"
                                            class="table striped hovered border black-background" style="width: 100%">
                                         <thead>
                                         <tr>
@@ -260,7 +260,7 @@
                                             <th>...</th>
                                         </tr>
                                         </thead>
-                                        <tbody id="activation_trigger_insert">
+                                        <tbody id="activation_apps_blocked_insert">
 
                                         </tbody>
                                     </table>

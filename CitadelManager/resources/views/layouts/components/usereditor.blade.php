@@ -31,7 +31,7 @@
                             <a href="#trigger_blacklist_tab">Blocked Triggers</a>
                         </li>
                         <li>
-                            <a href="#blocked_apps_tab">Blocked Applications</a>
+                            <a href="#user_blocked_apps_tab">Blocked Applications</a>
                         </li>
                         <li>
                             <a href="#time_restrictions_tab">Time Restrictions</a>
@@ -280,7 +280,7 @@
                             </div>
                         </div>
 
-                        <div class="frame" id="blocked_apps_tab">
+                        <div class="frame" id="user_blocked_apps_tab">
                             <div class="grid">
                                 <h2>
                                     <small>Blocked Apps</small>
@@ -290,7 +290,7 @@
                                     App
                                 </button>
                                 <div style="max-height: 350px; overflow-y: auto;">
-                                    <table id="app_list_table"
+                                    <table id="user_app_list_table"
                                            class="table striped hovered border black-background" style="width: 100%">
                                         <thead>
                                         <tr>
@@ -299,7 +299,7 @@
                                             <th>...</th>
                                         </tr>
                                         </thead>
-                                        <tbody id="activation_trigger_insert">
+                                        <tbody id="user_apps_blocked_insert">
 
                                         </tbody>
                                     </table>
