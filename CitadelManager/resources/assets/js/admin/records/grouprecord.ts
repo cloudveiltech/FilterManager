@@ -321,8 +321,9 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
+        MIN_UPDATE_INTERVAL_MINUTES = 30;
         ERROR_MESSAGE_EMAIL         = 'A valid group name is required.';
-
+        ERROR_MESSAGE_UPDATE_FREQUENCY = 'Minimum update interval is ' + this.MIN_UPDATE_INTERVAL_MINUTES + " minutes";
         MESSAGE_PLACE_HOLDER        = 'Type To Filter Selection';
         MESSAGE_REPORT_LABEL        = 'Report blocked sites back to server';
         MESSAGE_NO_REPORT_LABEL     = 'No reporting back to server';
@@ -433,9 +434,14 @@ namespace Citadel {
                 required: true,
                 minlength: 1
             };
+            validationRules[this.m_inputFrequency.id] = {
+                required: true,
+                min: this.MIN_UPDATE_INTERVAL_MINUTES,
+            };
 
             let validationErrorMessages = {};
             validationErrorMessages[this.m_inputGroupName.id] = this.ERROR_MESSAGE_EMAIL;
+            validationErrorMessages[this.m_inputFrequency.id] = this.ERROR_MESSAGE_UPDATE_FREQUENCY;
 
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
@@ -679,8 +685,15 @@ namespace Citadel {
 
             let filterAppsKey = this.m_filterListGroupEditor.serializeFilterKey();
 
+            var updateFrequency = this.m_inputFrequency.valueAsNumber;
+            if(updateFrequency < this.MIN_UPDATE_INTERVAL_MINUTES) {
+                updateFrequency = this.MIN_UPDATE_INTERVAL_MINUTES;
+                this.m_inputFrequency.valueAsNumber = updateFrequency;
+            }
+
+
             let appConfig = {
-                'UpdateFrequency': this.m_inputFrequency.valueAsNumber,
+                'UpdateFrequency': updateFrequency,
                 'PrimaryDns': this.m_inputPrimaryDNS.value,
                 'SecondaryDns': this.m_inputSecondaryDNS.value,
                 'CannotTerminate': this.m_input_AT_NoTerminate.checked,
