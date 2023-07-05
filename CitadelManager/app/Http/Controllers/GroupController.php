@@ -264,7 +264,9 @@ class GroupController extends Controller
         $assignedAppgroups = $request->only('assigned_app_groups');
         $blockedAppgroups = $request->only('blocked_app_groups');
         $appGroupType = $request->only('app_group_type');
-
+        if(is_array($appGroupType)) {
+            $appGroupType = array_first($appGroupType);
+        }
         $group = Group::firstOrCreate(["id" => $groupId]);
         $group->update($groupInput);
 
