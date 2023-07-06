@@ -552,7 +552,7 @@ class UserController extends Controller {
                 $hashExists = strlen($filterList->file_sha1) > 0;
                 $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
 
-                if (!$hashExists || !file_exists($rulesetFilePath) || filesize($rulesetFilePath) == 0) {
+                if (!$hashExists || !file_exists($rulesetFilePath)) {
                     $responseArray[] = "http-result 404";
                 } else {
                     $rulesetFileContents = file_get_contents($rulesetFilePath);
