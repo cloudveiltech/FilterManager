@@ -267,8 +267,9 @@ class GroupController extends Controller
         if(is_array($appGroupType)) {
             $appGroupType = array_first($appGroupType);
         }
-        $group = Group::firstOrCreate(["id" => $groupId]);
-        $group->update($groupInput);
+        $group = Group::firstOrNew(["id" => $groupId]);
+        $group->fill($groupInput);
+        $group->save();
 
         GroupFilterAssignment::where('group_id', $group->id)->delete();
 
