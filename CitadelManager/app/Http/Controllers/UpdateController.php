@@ -34,6 +34,11 @@ class UpdateController extends Controller
         $osVersion = $request->input("os", "0");
         $appVersion = $request->input("v", "0");
 
+        if($platform == SystemPlatform::PLATFORM_WIN) {
+            if(!empty($osVersion) && substr($osVersion, 0, 3) != "10.") {
+                $platforms = [];//don't support windows less than 10
+            }
+        }
         if ($platforms->count() > 0) {
             $os = $platforms->first();
             $arr_data["os_name"] = $os->os_name;
