@@ -977,6 +977,18 @@ namespace Citadel {
                     width: '180px'
                 },
                 {
+                    title: 'Platform',
+                    data: 'platform_name',
+                    visible: true,
+                    width: '100px'
+                },
+                {
+                    title: 'OS Version',
+                    data: 'os_version',
+                    visible: true,
+                    width: '180px'
+                },
+                {
                     title: 'IP Address',
                     data: 'ip_address',
                     visible: true,
