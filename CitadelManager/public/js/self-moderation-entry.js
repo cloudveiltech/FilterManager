@@ -94,7 +94,7 @@ Vue.component('editable-span', {
             if(!this.isurl) {
                 return true;
             }
-            return /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/.test(value)
+            return /^[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?$/.test(value)
         },
 
         doneEditing: function () {
