@@ -346,6 +346,7 @@ namespace Citadel {
 
         private m_groupId               : number;
         private m_groupName             : string;
+        private m_notes             : string;
         private m_isActive              : number;
         private m_assignedFilterIds     : Object[];
         private m_appConfig             : Object;
@@ -374,6 +375,7 @@ namespace Citadel {
         private m_inputReportLevel      : HTMLInputElement;     // check box
         private m_labelReportLevel      : HTMLLabelElement;
         private m_selectChannel         : HTMLSelectElement;
+        private m_inputNotes            : HTMLTextAreaElement;
 
         private m_btnSubmit                     : HTMLButtonElement;
         private m_btnCancel                     : HTMLButtonElement;
@@ -468,6 +470,7 @@ namespace Citadel {
             this.m_inputSecondaryDNS    = document.querySelector('#editor_cfg_secondary_dns_input') as HTMLInputElement;
             this.m_inputReportLevel     = document.querySelector('#editor_group_report_level') as HTMLInputElement;
             this.m_labelReportLevel     = document.querySelector('#report_level_text') as HTMLLabelElement;
+            this.m_inputNotes          = document.querySelector('#editor_cfg_notes_input') as HTMLTextAreaElement;
 
             let ipv4andv6OnlyFilter = (e: KeyboardEvent) => {
                 let inputBox = e.target as HTMLInputElement;
@@ -636,6 +639,7 @@ namespace Citadel {
             let obj = {
                 'id'                    : this.m_groupId,
                 'name'                  : this.m_groupName,
+                'notes'                  : this.m_notes,
                 'isactive'              : this.m_isActive,
                 'assigned_filter_ids'   : this.m_assignedFilterIds,
                 'app_cfg'               : JSON.stringify(this.m_appConfig),
@@ -650,6 +654,7 @@ namespace Citadel {
         protected LoadFromObject(data: Object): void {
             this.m_groupId           = data['id'] as number;
             this.m_groupName         = data['name'] as string;
+            this.m_notes               = data['notes'] as string;
             this.m_isActive          = data['isactive'];
             this.m_assignedFilterIds = data['assigned_filter_ids'] as Object[];
             this.m_appConfig         = JSON.parse(data['app_cfg']);
@@ -657,6 +662,7 @@ namespace Citadel {
 
         protected LoadFromForm(): void {
             this.m_groupName        = this.m_inputGroupName.value;
+            this.m_notes = this.m_inputNotes.value;
             this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
 
             let allAssignedFilters  = new Array < Object > ();
@@ -707,7 +713,7 @@ namespace Citadel {
                 'NlpThreshold': this.m_inputNlpThreshold.valueAsNumber,
                 'MaxTextTriggerScanningSize': this.m_inputTrigerMaxsize.valueAsNumber,
                 'UpdateChannel': this.m_selectChannel.options[this.m_selectChannel.selectedIndex].value,
-                'ReportLevel': this.m_inputReportLevel.checked ? 1 : 0,
+                'ReportLevel': this.m_inputReportLevel.checked ? 1 : 0
             };
 
             appConfig[filterAppsKey] = "checked";
@@ -909,6 +915,7 @@ namespace Citadel {
                         this.m_btnSubmit.innerText = this.BTN_LABEL_EDIT_GROUP;
 
                         this.m_inputGroupName.value = this.m_groupName;
+                        this.m_inputNotes.value = this.m_notes;
                         this.m_inputIsActive.checked = this.m_isActive != 0;
 
                         if (this.m_appConfig['ReportLevel'] === undefined)
@@ -947,7 +954,7 @@ namespace Citadel {
 
                         this.m_inputFrequency.valueAsNumber = parseInt(this.m_appConfig['UpdateFrequency']);
                         this.m_inputPrimaryDNS.value = this.m_appConfig['PrimaryDns'];
-                        this.m_inputSecondaryDNS.value = this.m_appConfig['SecondaryDns'];
+                        this.m_inputSecondaryDNS.value = this.m_appConfig['SecondaryDns'];;
 
                         if (this.m_inputPrimaryDNS.value == 'undefined') {
                             this.m_inputPrimaryDNS.value = '';
@@ -959,7 +966,7 @@ namespace Citadel {
 
                         this.m_filterListGroupEditor.loadAppGroupDatas(this.m_groupId);
                         this.m_filterListGroupEditor.deserializeFilterKey(this.m_appConfig);
-                        this.m_blockedAppsGroupEditor.loadAppGroupDatas(this.m_groupId);
+                        this.m_blockedAppsGroupEditor.loadAppGroupDatas(this.m_groupId)
                     }
                     break;
             }

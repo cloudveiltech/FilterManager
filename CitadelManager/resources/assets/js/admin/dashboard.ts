@@ -620,7 +620,12 @@ namespace Citadel {
                         visible: true,
                         width: '180px',
                         className: 'updated_date'
-                    }
+                    },
+                    {
+                        title: 'Notes',
+                        data: 'notes',
+                        visible: true,
+                    },
                 ];
 
                 let groupTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
