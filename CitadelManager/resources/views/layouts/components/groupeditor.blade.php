@@ -130,6 +130,12 @@
                                     <label id="report_level_text">No reporting back to server</label>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="cell">
+                                    <label for="editor_cfg_notes_input" title="Notes">Notes</label><br/>
+                                    <textarea id="editor_cfg_notes_input" name="editor_cfg_notes_input" style="width: 40%; height: 100px"></textarea>
+                                </div>
+                            </div>
                         </div>
                     </form>
 

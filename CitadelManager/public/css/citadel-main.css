@@ -897,6 +897,10 @@ Group editor.
     text-align: right;
 }
 
+.width-100-percent {
+    width: 100% !important;
+}
+
 .width-70-percent {
     width: 70% !important;
 }

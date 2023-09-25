@@ -33,7 +33,7 @@ class Group extends Model {
      * @var array
      */
     protected $fillable = [
-        'name', 'isactive', 'app_cfg', 'data_sha1', 'config_cache'
+        'name', 'isactive', 'app_cfg', 'data_sha1', 'config_cache', 'notes'
     ];
 
     /**

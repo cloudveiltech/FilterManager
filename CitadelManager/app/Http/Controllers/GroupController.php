@@ -46,7 +46,7 @@ class GroupController extends Controller
         $query = Group::with(['assignedFilterIds', 'userCount'])
             ->select('groups.*')
             ->when($search, function ($query) use ($search) {
-                return $query->where('groups.name', 'like', "%$search%");
+                return $query->where('groups.name', 'like', "%$search%")->orWhere('groups.notes', 'like', "%$search%");
             })
             ->when(($order_name == 'name' || $order_name == 'isactive' || $order_name == 'created_at'), function ($query) use ($order_str, $order_name) {
                 return $query->orderBy($order_name, $order_str);
@@ -106,6 +106,7 @@ class GroupController extends Controller
             $group_data[] = array(
                 "id" => $group->id,
                 "name" => $group->name,
+                "notes" => $group->notes,
                 "user_count" => $user_count,
                 "app_cfg" => $group->app_cfg,
                 "isactive" => $group->isactive,
@@ -154,10 +155,12 @@ class GroupController extends Controller
             "asc" => $order_str,
         ]);
     }
+
     public function get_groups()
     {
         return Group::select("id", "name")->get();
     }
+
     public function updateField(Request $request)
     {
         $id = $request->input('id');
@@ -259,7 +262,7 @@ class GroupController extends Controller
         ]);
 
         //$groupInput = $request->except(['assigned_filter_ids', 'assigned_app_groups']);
-        $groupInput = $request->only(['name','app_cfg','isactive']);
+        $groupInput = $request->only(['name','app_cfg','isactive', 'notes']);
         $groupListAssigments = $request->only('assigned_filter_ids');
         $assignedAppgroups = $request->only('assigned_app_groups');
         $blockedAppgroups = $request->only('blocked_app_groups');
