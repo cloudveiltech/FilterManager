@@ -168,7 +168,7 @@ class ApplicationController extends Controller
         $assigned_groups = $request->only('assigned_appgroup');
         AppGroupToApp::where('app_id', $id)->delete();
 
-        if (is_array($assigned_groups['assigned_appgroup'])) {
+        if (isset($assigned_groups['assigned_appgroup']) && is_array($assigned_groups['assigned_appgroup'])) {
             $arr_assigned_groups = array();
             foreach ($assigned_groups['assigned_appgroup'] as $group_id) {
                 array_push($arr_assigned_groups, array(
