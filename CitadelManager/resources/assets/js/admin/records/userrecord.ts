@@ -294,7 +294,6 @@ namespace Citadel {
         URL_REFRESH_ACTIVATIONS = 'api/admin/user/{user_id}/activations';
         URL_GET_APP_AUTOSUGGEST = 'api/admin/app_suggest';
 
-        WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
         // ───────────────────────────────────────────────────
         //   :::::: U S E R   D A T A   M E M B E R S ::::::
@@ -355,7 +354,6 @@ namespace Citadel {
         private customWhitelist: any;
         private customBypasslist: any;
         private customTriggers: any;
-        private timeRestrictions: any;
         private appBlocklist: any;
         private allGroups: any;
         private isDnsDisabled: any;
@@ -376,45 +374,7 @@ namespace Citadel {
         private m_textTriggerTable: SelfModerationTable;
         private m_appBlocklistTable: SelfModerationTable;
 
-        /**
-         * TIME RESTRICTIONS
-         */
-        private m_timeRestrictionsSliderConfig: any;
-        private m_timeRestrictionConfigs: any;
-        private m_timeRestrictionSliders: any;
-
-        private savedCustom: any;
-        private timeRestrictionsPresets: any = {
-            evening: {
-                monday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
-                tuesday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
-                wednesday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
-                thursday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
-                friday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
-                saturday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
-                sunday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]}
-            },
-
-            office: {
-                monday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
-                tuesday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
-                wednesday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
-                thursday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
-                friday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
-                saturday: {RestrictionsEnabled: true, EnabledThrough: [10, 15]},
-                sunday: {RestrictionsEnabled: true, EnabledThrough: [0, 0]}
-            },
-
-            none: {
-                monday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
-                tuesday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
-                wednesday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
-                thursday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
-                friday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
-                saturday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]},
-                sunday: {RestrictionsEnabled: false, EnabledThrough: [0, 24]}
-            }
-        };
+        private m_timeRestrictionsUI: TimeRestrictionUI
 
         private userData: any;
 
@@ -426,45 +386,10 @@ namespace Citadel {
         constructor() {
             super();
 
-            this.m_timeRestrictionsSliderConfig = {
-                start: [0, 24],
-                connect: true,
-                range: {
-                    'min': 0,
-                    'max': 24
-                },
-
-                step: 0.25
-            };
-
             this.ConstructFormReferences();
         }
 
         private m_bindings: BindingInstance;
-
-        private loadTimeRestrictionsFrom(obj): void {
-            this.savedCustom = JSON.parse(JSON.stringify(this.timeRestrictions));
-
-            for (var i in this.timeRestrictions) {
-                this.timeRestrictions[i] = JSON.parse(JSON.stringify(obj[i]));
-            }
-
-            this.m_bindings.Refresh();
-            this.updateTimeRestrictionsSliders();
-        }
-
-        // Someday these will need to be loaded from a database, but for now, we'll just hard code them.
-        private eveningRestrictionsPreset(): void {
-            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.evening);
-        }
-
-        private officeRestrictionsPreset(): void {
-            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.office);
-        }
-
-        private noneRestrictionsPreset(): void {
-            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.none);
-        }
 
         private ConstructFormReferences(): void {
             this.m_editorOverlay = document.querySelector('#overlay_user_editor') as HTMLDivElement;
@@ -472,6 +397,7 @@ namespace Citadel {
             this.m_bindings = new BindingInstance(this.m_editorOverlay, this);
             this.m_bindings.Bind();
             this.m_bindings.Refresh();
+            this.m_timeRestrictionsUI = new TimeRestrictionUI(this.m_bindings, "#time_restrictions_tab");
 
             this.m_mainForm = document.querySelector('#editor_user_form') as HTMLFormElement;
 
@@ -568,17 +494,6 @@ namespace Citadel {
             this.m_appBlocklistTable.add();
         }
 
-        protected initEmptyTimeRestrictionsObject(): void {
-            this.timeRestrictions = {};
-
-            for (var day of this.WEEKDAYS) {
-                this.timeRestrictions[day] = {
-                    EnabledThrough: [0, 24],
-                    RestrictionsEnabled: false
-                };
-            }
-        }
-
         // ────────────────────────────────────────────────────
         //   ::::: C O N V E R T     F U N C T I O N S ::::::
         // ────────────────────────────────────────────────────
@@ -647,15 +562,26 @@ namespace Citadel {
             }
 
             if (this.myConfigData && this.myConfigData.TimeRestrictions) {
-                this.timeRestrictions = {};
+                this.m_timeRestrictionsUI.timeRestrictions = {};
 
                 for (var day in this.myConfigData.TimeRestrictions) {
-                    this.timeRestrictions[day] = this.myConfigData.TimeRestrictions[day];
+                    this.m_timeRestrictionsUI.timeRestrictions[day] = this.myConfigData.TimeRestrictions[day];
                 }
             } else {
-                this.initEmptyTimeRestrictionsObject();
+                this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
             }
+        }
 
+        private eveningRestrictionsPreset(): void {
+            this.m_timeRestrictionsUI.EveningRestrictionsPreset();
+        }
+
+        private officeRestrictionsPreset(): void {
+            this.m_timeRestrictionsUI.OfficeRestrictionsPreset();
+        }
+
+        private noneRestrictionsPreset(): void {
+            this.m_timeRestrictionsUI.NoneRestrictionsPreset();
         }
 
         protected LoadFromForm(): void {
@@ -683,12 +609,11 @@ namespace Citadel {
             this.myConfigData.CustomBlockedApps = this.appBlocklist;
 
             this.myConfigData.TimeRestrictions = {};
-
-            for (var day in this.timeRestrictions) {
-                var slider = this.m_timeRestrictionSliders[day];
+            for (var day in this.m_timeRestrictionsUI.timeRestrictions) {
+                var slider = this.m_timeRestrictionsUI.timeRestrictionSliders[day];
                 this.myConfigData.TimeRestrictions[day] = {
                     EnabledThrough: slider.noUiSlider.get(),
-                    RestrictionsEnabled: this.timeRestrictions[day].RestrictionsEnabled
+                    RestrictionsEnabled: this.m_timeRestrictionsUI.timeRestrictions[day].RestrictionsEnabled
                 };
             }
 
@@ -703,6 +628,7 @@ namespace Citadel {
                 this.myConfigData.SecondaryDns = "";
             }
         }
+
 
         public ToObject(): Object {
             if (this.myConfigData) {
@@ -821,7 +747,7 @@ namespace Citadel {
             return options;
         }
 
-        private static timeOfDay(n): string {
+        public static timeOfDay(n): string {
             var minutes: any = Math.round((n % 1) * 60);
             var hours = Math.floor(n);
 
@@ -839,99 +765,6 @@ namespace Citadel {
             return hours + ":" + minutes + ampm;
         }
 
-        private generateInternetLabel(entry, sliderElem) {
-            if (!entry) {
-                entry = {
-                    EnabledThrough: [0, 24],
-                    RestrictionsEnabled: false
-                }
-            }
-            ;
-
-            var enabledTimes = (entry && entry.EnabledThrough) ? entry.EnabledThrough : [0, 24];
-            var caption = (sliderElem.attributes['data-caption']) ? sliderElem.attributes['data-caption'].value : "N/A";
-
-            if (!entry.RestrictionsEnabled) {
-                return "No restrictions for " + caption;
-            } else {
-                if (enabledTimes[0] == 0 && enabledTimes[1] == 24) {
-                    return "No restrictions for " + caption;
-                } else if (enabledTimes[0] == enabledTimes[1]) {
-                    return "Internet restricted all day";
-                } else {
-                    // enabledTimes[0]
-                    return "Internet allowed between " + UserRecord.timeOfDay(enabledTimes[0]) + " and " + UserRecord.timeOfDay(enabledTimes[1]);
-                }
-            }
-        }
-
-        private generateInternetLabelCallback(day, sliderElem): any {
-            var that = this;
-            return function (values, handle, unencoded, tap, positions) {
-                console.log(unencoded);
-                that.timeRestrictions[day].EnabledThrough = unencoded;
-                that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], sliderElem);
-                that.m_bindings.Refresh();
-            }
-        }
-
-        private InitTimeRestrictions(): void {
-            var days = this.WEEKDAYS;
-
-            var restrictionsElem = $("#time_restrictions");
-
-            var configs = {};
-            var sliders = {};
-
-            function generateLabelFn(that, day, slider) {
-                return function () {
-                    that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], slider);
-                    that.m_bindings.Refresh();
-                };
-            }
-
-            for (var day of days) {
-                configs[day] = JSON.parse(JSON.stringify(this.m_timeRestrictionsSliderConfig));
-
-                if (this.timeRestrictions && day in this.timeRestrictions && this.timeRestrictions[day].EnabledThrough) {
-                    configs[day].start = this.timeRestrictions[day].EnabledThrough;
-                }
-
-                let slider: any = restrictionsElem.find("#" + day).get(0);
-
-                if (slider && slider.noUiSlider) {
-                    slider.noUiSlider.destroy();
-                }
-
-                noUiSlider.create(slider, configs[day]);
-                slider.noUiSlider.on('set', this.generateInternetLabelCallback(day, slider));
-
-                sliders[day] = slider;
-
-                this.timeRestrictions[day].internetLabel = this.generateInternetLabel(this.timeRestrictions[day], slider);
-                this.timeRestrictions[day].generateInternetLabel = generateLabelFn(this, day, slider);
-            }
-
-            this.m_timeRestrictionConfigs = configs;
-            this.m_timeRestrictionSliders = sliders;
-            this.m_bindings.Refresh();
-        }
-
-        private updateTimeRestrictionsSliders(): void {
-            var days = this.WEEKDAYS;
-
-            var sliders = this.m_timeRestrictionSliders;
-            var restrictionsElem = $("#time_restrictions");
-
-            for (var day of days) {
-                let slider: any = restrictionsElem.find("#" + day).get(0);
-
-                if (slider && slider.noUiSlider) {
-                    let restrictionData: any = this.timeRestrictions[day].EnabledThrough;
-                    slider.noUiSlider.set(restrictionData);
-                }
-            }
-        }
 
         private InitSelfModerationTable() {
             let that = this;
@@ -941,7 +774,6 @@ namespace Citadel {
             this.m_customBypasslistTable = new SelfModerationTable(document.querySelector("#custom_bypassable_table"), this.customBypasslist);
             this.m_textTriggerTable = new SelfModerationTable(document.querySelector("#custom_trigger_table"), this.customTriggers);
             this.m_appBlocklistTable = new SelfModerationTable(document.querySelector('#user_app_list_table'), this.appBlocklist, this.URL_GET_APP_AUTOSUGGEST);
-
 
             this.m_selfModerationTable.render();
             this.m_customWhitelistTable.render();
@@ -1272,13 +1104,13 @@ namespace Citadel {
             }
 
             // Covers creation of new users, because this doesn't get assigned to in that circumstance.
-            if (!this.timeRestrictions) {
-                this.initEmptyTimeRestrictionsObject();
+            if (!this.m_timeRestrictionsUI.timeRestrictions || JSON.stringify(this.m_timeRestrictionsUI.timeRestrictions) == "{}") {
+                this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
             }
 
             this.InitUserActivationTables();
             this.InitSelfModerationTable();
-            this.InitTimeRestrictions();
+            this.m_timeRestrictionsUI.InitTimeRestrictions();
 
             $(this.m_editorOverlay).fadeIn(this.FADE_IN_DELAY_TIME);
         }
