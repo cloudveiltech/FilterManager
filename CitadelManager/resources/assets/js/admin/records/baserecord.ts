@@ -13,6 +13,199 @@ namespace Citadel {
         (action: string): void;
     }
 
+    export class TimeRestrictionUI {
+        /**
+         * TIME RESTRICTIONS
+         */
+        public timeRestrictionsSliderConfig: any;
+        public timeRestrictionConfigs: any;
+        public timeRestrictionSliders: any;
+        public timeRestrictions: any;
+        private elemId: string
+
+        public savedCustom: any;
+        public timeRestrictionsPresets: any = {
+            evening: {
+                monday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                tuesday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                wednesday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                thursday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                friday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                saturday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]},
+                sunday: {RestrictionsEnabled: true, EnabledThrough: [5, 20]}
+            },
+
+            office: {
+                monday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                tuesday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                wednesday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                thursday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                friday: {RestrictionsEnabled: true, EnabledThrough: [7, 18]},
+                saturday: {RestrictionsEnabled: true, EnabledThrough: [10, 15]},
+                sunday: {RestrictionsEnabled: true, EnabledThrough: [0, 0]}
+            }
+        };
+
+        private m_bindings: BindingInstance;
+        public constructor(bindings: BindingInstance, elementId: string) {
+            this.elemId = elementId;
+            this.m_bindings = bindings;
+            this.timeRestrictionsSliderConfig = {
+                start: [0, 24],
+                connect: true,
+                range: {
+                    'min': 0,
+                    'max': 24
+                },
+
+                step: 0.25
+            };
+        }
+
+        // Someday these will need to be loaded from a database, but for now, we'll just hard code them.
+        public EveningRestrictionsPreset(): void {
+            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.evening);
+        }
+
+        public OfficeRestrictionsPreset(): void {
+            this.loadTimeRestrictionsFrom(this.timeRestrictionsPresets.office);
+        }
+
+        public HasRestrictions(): boolean {
+            for (var day of this.WEEKDAYS) {
+                if(this.timeRestrictions[day].EnabledThrough[0] != 0 ||
+                    this.timeRestrictions[day].EnabledThrough[1] != 24 ||
+                    this.timeRestrictions[day].RestrictionsEnabled) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public NoneRestrictionsPreset(): void {
+            this.InitEmptyTimeRestrictionsObject();
+            this.m_bindings.Refresh();
+            this.updateTimeRestrictionsSliders();
+        }
+
+        private loadTimeRestrictionsFrom(obj): void {
+            this.savedCustom = JSON.parse(JSON.stringify(this.timeRestrictions));
+
+            for (var i in this.timeRestrictions) {
+                this.timeRestrictions[i] = JSON.parse(JSON.stringify(obj[i]));
+            }
+
+            this.m_bindings.Refresh();
+            this.updateTimeRestrictionsSliders();
+        }
+
+        WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+        public updateTimeRestrictionsSliders(): void {
+            var days = this.WEEKDAYS;
+
+            var sliders = this.timeRestrictionSliders;
+            var restrictionsElem = $(this.elemId + " .time_restrictions");
+
+            for (var day of days) {
+                let slider: any = restrictionsElem.find("." + day).get(0);
+
+                if (slider && slider.noUiSlider) {
+                    let restrictionData: any = this.timeRestrictions[day].EnabledThrough;
+                    slider.noUiSlider.set(restrictionData);
+                }
+            }
+        }
+
+        public InitEmptyTimeRestrictionsObject(): void {
+            this.timeRestrictions = {};
+
+            for (var day of this.WEEKDAYS) {
+                this.timeRestrictions[day] = {
+                    EnabledThrough: [0, 24],
+                    RestrictionsEnabled: false
+                };
+            }
+        }
+
+
+        public InitTimeRestrictions(): void {
+            var days = this.WEEKDAYS;
+
+            var restrictionsElem = $(this.elemId + " .time_restrictions");
+
+            var configs = {};
+            var sliders = {};
+
+            function generateLabelFn(that, day, slider) {
+                return function () {
+                    that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], slider);
+                    that.m_bindings.Refresh();
+                };
+            }
+
+            for (var day of days) {
+                configs[day] = JSON.parse(JSON.stringify(this.timeRestrictionsSliderConfig));
+
+                if (this.timeRestrictions && day in this.timeRestrictions && this.timeRestrictions[day].EnabledThrough) {
+                    configs[day].start = this.timeRestrictions[day].EnabledThrough;
+                }
+
+                let slider: any = restrictionsElem.find("." + day).get(0);
+
+                if (slider && slider.noUiSlider) {
+                    slider.noUiSlider.destroy();
+                }
+
+                noUiSlider.create(slider, configs[day]);
+                slider.noUiSlider.on('set', this.generateInternetLabelCallback(day, slider));
+
+                sliders[day] = slider;
+
+                this.timeRestrictions[day].internetLabel = this.generateInternetLabel(this.timeRestrictions[day], slider);
+                this.timeRestrictions[day].generateInternetLabel = generateLabelFn(this, day, slider);
+            }
+
+            this.timeRestrictionConfigs = configs;
+            this.timeRestrictionSliders = sliders;
+
+            this.m_bindings.Refresh();
+        }
+
+        private generateInternetLabelCallback(day, sliderElem): any {
+            var that = this;
+            return function (values, handle, unencoded, tap, positions) {
+                console.log(unencoded);
+                that.timeRestrictions[day].EnabledThrough = unencoded;
+                that.timeRestrictions[day].internetLabel = that.generateInternetLabel(that.timeRestrictions[day], sliderElem);
+            }
+        }
+
+        private generateInternetLabel(entry, sliderElem) {
+            if (!entry) {
+                entry = {
+                    EnabledThrough: [0, 24],
+                    RestrictionsEnabled: false
+                }
+            }
+
+            var enabledTimes = (entry && entry.EnabledThrough) ? entry.EnabledThrough : [0, 24];
+            var caption = (sliderElem.attributes['data-caption']) ? sliderElem.attributes['data-caption'].value : "N/A";
+
+            if (!entry.RestrictionsEnabled) {
+                return "No restrictions for " + caption;
+            } else {
+                if (enabledTimes[0] == 0 && enabledTimes[1] == 24) {
+                    return "No restrictions for " + caption;
+                } else if (enabledTimes[0] == enabledTimes[1]) {
+                    return "Internet restricted all day";
+                } else {
+                    // enabledTimes[0]
+                    return "Internet allowed between " + UserRecord.timeOfDay(enabledTimes[0]) + " and " + UserRecord.timeOfDay(enabledTimes[1]);
+                }
+            }
+        }
+    }
+
     export abstract class BaseRecord {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::

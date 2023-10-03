@@ -30,6 +30,9 @@
                         <li>
                             <a href="#activation_apps_blocked_tab">Blocked Apps</a>
                         </li>
+                        <li>
+                            <a href="#time_restrictions_tab_activations">Time Restrictions</a>
+                        </li>
                     </ul>
 
                     <div class="frames">
@@ -266,6 +269,10 @@
                                     </table>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="frame" id="time_restrictions_tab_activations">
+                            @include('layouts.components.timerestrictionseditor')
                         </div>
                     </div>
 
