@@ -271,6 +271,9 @@ class GroupController extends Controller
             $appGroupType = array_first($appGroupType);
         }
         $group = Group::firstOrNew(["id" => $groupId]);
+        if(!isset($groupInput["notes"])) {
+            $groupInput["notes"] = "";
+        }
         $group->fill($groupInput);
         $group->save();
 

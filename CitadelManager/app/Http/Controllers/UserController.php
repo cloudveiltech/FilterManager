@@ -704,19 +704,25 @@ class UserController extends Controller {
 
         $configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
-
-        //temp patch for using whitelist apps on OSX
-        //TODO add management for this
-        if ($activation->platform_name == "OSX") {
-            unset($configuration["BlacklistedApplications"]);
-            $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
-        }
+        $configuration["BlacklistedApplications"] = $this->filterAppCollectionByPlatform($configuration["BlacklistedApplications"], $activation->platform_name);
+        $configuration["WhitelistedApplications"] = $this->filterAppCollectionByPlatform($configuration["WhitelistedApplications"], $activation->platform_name);
+        $configuration["BlockedApplications"] = $this->filterAppCollectionByPlatform($configuration["BlockedApplications"], $activation->platform_name);
 
         if (!is_null($configuration)) {
             return $configuration;
         } else {
             return response('', 204);
         }
+    }
+
+    private function filterAppCollectionByPlatform(&$collection, $platform) {
+        $newCollection = [];
+        foreach ($collection as $item) {
+            if($item["os"] == $platform) {
+                $newCollection[] = $item["name"];
+            }
+        }
+        return $newCollection;
     }
 
     /**
@@ -741,12 +747,9 @@ class UserController extends Controller {
 
         $configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
-        //temp patch for using whitelist apps on OSX
-        //TODO add management for this
-        if ($activation->platform_name == "OSX") {
-            unset($configuration["BlacklistedApplications"]);
-            $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
-        }
+        $configuration["BlacklistedApplications"] = $this->filterAppCollectionByPlatform($configuration["BlacklistedApplications"], $activation->platform_name);
+        $configuration["WhitelistedApplications"] = $this->filterAppCollectionByPlatform($configuration["WhitelistedApplications"], $activation->platform_name);
+        $configuration["BlockedApplications"] = $this->filterAppCollectionByPlatform($configuration["BlockedApplications"], $activation->platform_name);
 
         if (!is_null($configuration)) {
             return ['sha1' => sha1(json_encode($configuration))];
