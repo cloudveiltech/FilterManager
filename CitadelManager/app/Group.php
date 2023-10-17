@@ -150,7 +150,7 @@ class Group extends Model {
                 $collection = &$blocklistApps;
             }
             foreach ($ag['app'] as $app) {
-                $collection[$app['name']] = $app['name'];
+                $collection[$app['name']] = ["name" => $app['name'], "os" => $app["platform_name"]];
             }
         }
         $whitelistApps = array_values($whitelistApps);
