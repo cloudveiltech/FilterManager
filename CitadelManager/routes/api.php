@@ -117,7 +117,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admi
 // Users should only be able to pull list updates. The routes available to them
 // are routes to get the sum of the current user data server side, and to request
 // a download of their user data.
-Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin|user|business-owner']], function () {    
+Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin|user|business-owner']], function () {
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
     Route::post('/me/data/check', 'UserController@checkUserData');
     Route::post('/me/data/get', 'UserController@getUserData');
@@ -310,6 +310,8 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once
     Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
     Route::post('/deactivation/{id}', 'DeactivationRequestController@update');
     Route::get('/deactivation/{id}', 'DeactivationRequestController@update');
+    Route::post('activations/delete/{id}', 'AppUserActivationController@destroy');
+    Route::post('activations/block/{id}', 'AppUserActivationController@block');
 });
 
 Route::group(['middleware' => []], function () {
