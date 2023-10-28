@@ -31,9 +31,9 @@ class NotifyAccountabilityPartners implements ShouldQueue
      */
     public function handle(AccountabilityPartnerEvent $event)
     {
-        Log::error(json_encode($event));
+//        Log::debug(json_encode($event));
         if (config('app.accountability.enabled')) {
-            Log::error('Sending Accountability Report.');
+            Log::info('Sending Accountability Report.');
         // If we hit this  we need to send the data off to this endpoint.
 	$body = [
 	    'user_email' => $event->user->email,

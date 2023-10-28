@@ -28,8 +28,6 @@ class AccountabilityController extends Controller {
      */
     public function index(Request $request) {
         $thisUser = \Auth::user();
-//        Log::debug($request);
-        //Log::info($request->getContent());
         // This next section of code is required because some versions of the client forward incorrectly
         // formatted JSON.
         if (!$request->has('details')) {
@@ -47,7 +45,7 @@ class AccountabilityController extends Controller {
            Log::info('Request URI:   ' . $details->request_uri);
            Log::info('Category Name: ' . $details->category_name_string);
            Log::info('Matching Rule: ' . $details->matching_rule);
-           Log::error('Triggering Event');
+           Log::info('Triggering Event');
            event(new AccountabilityPartnerEvent(
                $thisUser,
                'CV4W_SITE_BLOCKED',
