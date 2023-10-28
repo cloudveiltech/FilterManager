@@ -39,7 +39,9 @@ class FilterListController extends Controller {
         $response = $client->get(config('app.default_list_export_url') . $filename);
         $results .= 'Saving to: ' . $timestamp . '.zip<br>';
         Storage::put('export' . $timestamp . '.zip', $response->getBody());
+        $file = Storage::size('export' . $timestamp . '.zip');  
         ProcessTextFilterArchiveUpload::dispatch('default', storage_path('app/export' . $timestamp . '.zip'), true);
+        $results .= 'File is : ' . $file . ' bytes.<br>';
         $results .= 'Import has been triggered.<br>';
         return response($results);
     }
