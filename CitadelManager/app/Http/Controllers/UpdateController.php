@@ -41,7 +41,7 @@ class UpdateController extends Controller
                 $osVersionParts = explode(".", $osVersion);
                 if(!empty($osVersionParts) && $osVersionParts[0] < 10) {
                     $platforms = collect(); //don't support windows less than 10. Using a collection so that it's an object and the rest of the system will work.
-                    Log::info("Skipping update for " . $platform . " v " . $osVersion);
+                    Log::info("Skipping update for " . $platform . " v " . $osVersion . ' Details: ' . json_encode($request->all()));
                 }
             }
         }
@@ -107,6 +107,7 @@ class UpdateController extends Controller
             }
         } else {
             $arr_data['app_name'] = "unavailable";
+            $arr_data['os_name'] = "unavailable";
             $arr_data['file_name'] = "unavailable";
             $arr_data['file_ext'] = "unavailable";
             $arr_data['version_number'] = "---";
@@ -115,14 +116,17 @@ class UpdateController extends Controller
                 [
                     'release' => 'Alpha',
                     'version_number' => "---",
+                    'signature' => "---",
                 ],
                 [
                     'release' => 'Beta',
                     'version_number' => "---",
+                    'signature' => "---",
                 ],
                 [
                     'release' => 'Stable',
                     'version_number' => "---",
+                    'signature' => "---",
                 ],
             ];
             $arr_data['date'] = "---";
