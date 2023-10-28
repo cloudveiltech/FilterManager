@@ -40,7 +40,7 @@ class UpdateController extends Controller
             if($os->platform == SystemPlatform::PLATFORM_WIN) {
                 $osVersionParts = explode(".", $osVersion);
                 if(!empty($osVersionParts) && $osVersionParts[0] < 10) {
-                    $platforms = [];//don't support windows less than 10
+                    $platforms = collect(); //don't support windows less than 10. Using a collection so that it's an object and the rest of the system will work.
                     Log::info("Skipping update for " . $platform . " v " . $osVersion);
                 }
             }
