@@ -6,7 +6,7 @@ use Faker\Generator as Faker;
 $factory->define(App\AppUserActivation::class, function (Faker $faker) {
     return [
         'identifier' => sha1($faker->word),
-        'device_id' => Str::upper($faker->word),
+        'device_id' => Str::upper($faker->word) . '-' . Str::upper($faker->word) . '-PC',
         'ip_address' => $faker->ipv4,
         'bypass_quantity' => $faker->numberBetween(1, 10),
         'bypass_period' => $faker->numberBetween(10, 60),
