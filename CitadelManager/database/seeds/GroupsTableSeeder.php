@@ -20,5 +20,8 @@ class GroupsTableSeeder extends Seeder
             'created_at' => new \DateTime(),
             'updated_at' => new \DateTime(),
         ]);
+
+        factory(App\Group::class, 10)
+            ->create();
     }
 }
