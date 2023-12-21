@@ -18,5 +18,8 @@ class DatabaseSeeder extends Seeder
         $this->call(UsersTableSeeder::class);
         $this->call(FilterListSeeder::class);
         $this->call(GroupFilterAssignmentSeeder::class);
+        $this->call(AppGroupSeeder::class);
+        $this->call(AppSeeder::class);
+        $this->call(AppGroupToAppSeeder::class);
     }
 }
