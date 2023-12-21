@@ -20,7 +20,7 @@ class UserGroupAppGroupSeeder extends Seeder
                 $data[] = [
                     'user_group_id' => $group->id,
                     'app_group_id' => $appGroup->id,
-                    'filter_type' => rand(0, 1)
+                    'filter_type' => rand(0, 2)
                 ];
             });
         });
