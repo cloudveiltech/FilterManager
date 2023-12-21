@@ -13,8 +13,10 @@ class DatabaseSeeder extends Seeder
     {
         // Order is important here!
         $this->call(RolesAndPermissionsSeeder::class);
+        $this->call(GroupsTableSeeder::class);
         $this->call(AdminUserSeeder::class);
         $this->call(UsersTableSeeder::class);
-        $this->call(GroupsTableSeeder::class);
+        $this->call(FilterListSeeder::class);
+        $this->call(GroupFilterAssignmentSeeder::class);
     }
 }

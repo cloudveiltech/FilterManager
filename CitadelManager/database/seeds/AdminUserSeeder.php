@@ -1,5 +1,8 @@
 <?php
 
+use App\Role;
+use App\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class AdminUserSeeder extends Seeder
