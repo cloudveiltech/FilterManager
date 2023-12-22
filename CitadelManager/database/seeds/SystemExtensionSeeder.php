@@ -21,7 +21,7 @@ class SystemExtensionSeeder extends Seeder
                 'file_extensions' => '.run',
             ],
             [
-                'sys_name' => 'MAC',
+                'sys_name' => 'OSX',
                 'file_extensions' => '.dmg',
             ],
         ];
