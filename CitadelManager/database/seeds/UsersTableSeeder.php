@@ -21,10 +21,13 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
+        $roles = App\Role::all();
+
         factory(App\User::class, 30)
             ->create()
-            ->each(function ($user) {
+            ->each(function ($user) use($roles) {
                 factory(App\AppUserActivation::class, 3)->create(["user_id" => $user->id]);
+                $user->roles()->attach($roles->random());
             });
     }
 }
