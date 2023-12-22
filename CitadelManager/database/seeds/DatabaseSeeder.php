@@ -23,5 +23,6 @@ class DatabaseSeeder extends Seeder
         $this->call(AppGroupToAppSeeder::class);
         $this->call(UserGroupAppGroupSeeder::class);
         $this->call(SystemPlatformVersionSeeder::class);
+        $this->call(SystemExtensionSeeder::class);
     }
 }
