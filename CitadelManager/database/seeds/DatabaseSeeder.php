@@ -24,5 +24,6 @@ class DatabaseSeeder extends Seeder
         $this->call(UserGroupAppGroupSeeder::class);
         $this->call(SystemPlatformVersionSeeder::class);
         $this->call(SystemExtensionSeeder::class);
+        $this->call(DeactivationRequestSeeder::class);
     }
 }
