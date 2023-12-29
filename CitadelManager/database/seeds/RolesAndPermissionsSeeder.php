@@ -13,7 +13,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public function run()
     {
-        $user = Role::firstOrCreate(['name' => 'user', 'display_name' => 'Application User', 'description' => 'User is a registered application user.']);
+        $user = Role::firstOrCreate(['name' => 'user'], ['name' => 'user', 'display_name' => 'Application User', 'description' => 'User is a registered application user.']);
 
         $timeRestrictions = Permission::firstOrCreate([
             'name' => 'can-edit-own-time-restrictions',
@@ -98,16 +98,16 @@ class RolesAndPermissionsSeeder extends Seeder
         $owner->attachPermission($manageActivations);
         $owner->attachPermission($deleteOrBlockActivations);
         $owner->attachPermission($setActivationReportLevel);
-        
+
         $admin = Role::firstOrCreate([
             'name'         => 'admin',
             'display_name' => 'Administrator', // optional
             'description'  => 'User is allowed to manage and edit the settings for all other users'
         ]);
-        
+
         $fullAdmin = Permission::firstOrCreate([
             'name'         => 'all',
-            'display_name' => 'Full Admin Permissions', // optional        
+            'display_name' => 'Full Admin Permissions', // optional
             'description'  => 'Unrestricted access for Admins.' // optional
         ]);
 
