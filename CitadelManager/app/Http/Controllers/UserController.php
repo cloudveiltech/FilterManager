@@ -584,6 +584,9 @@ class UserController extends Controller {
 
             $configuration = array_merge($groupConfiguration, $userConfiguration, $activationConfiguration);
 
+            /* -------------------------------------------------------------- */
+            /*                 Merge the arrays for these keys                */
+            /* -------------------------------------------------------------- */
             $properties = [
                 'SelfModeration',
                 'CustomWhitelist',
