@@ -536,8 +536,12 @@ function activationEditorModel() {
 			var configOverride = convertConfigOverride(data.config_override);
 
 			if(configOverride) {
-				that.whitelist = configOverride.CustomWhitelist || [];
-				that.blacklist = configOverride.SelfModeration || [];
+                that.whitelist = configOverride.CustomWhitelist.map(item => {
+                    return {activation: 'ALL', value: item}
+                }) || [];
+                that.blacklist = configOverride.SelfModeration.map(item => {
+                    return {activation: 'ALL', value: item}
+                }) || [];
 			}
 		} else {
 			that.whitelist = [];
@@ -570,8 +574,8 @@ function activationEditorModel() {
 	that.save = function() {
 		var configOverride = convertConfigOverride(that.data.config_override) || {};
 
-		configOverride.CustomWhitelist = that.whitelist;
-		configOverride.SelfModeration = that.blacklist;
+		configOverride.CustomWhitelist = that.whitelist.map(item => item.value)
+		configOverride.SelfModeration = that.blacklist.map(item => item.value)
 
 		that.data.config_override = JSON.stringify(configOverride);
 
