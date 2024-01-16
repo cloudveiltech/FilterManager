@@ -23,6 +23,7 @@ use App\FilterList;
 use App\Utils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -677,6 +678,7 @@ class UserController extends Controller {
     private function compactAndMergeArrays(&$array1, &$array2) {
         return array_unique(array_merge($array1, $array2));
     }
+
     private function extractValueFromConfig(&$array, $key) {
         if (isset($array[$key])) {
             $array[$key] = array_values($array[$key]);
@@ -1240,7 +1242,6 @@ class UserController extends Controller {
         if (json_last_error() != JSON_ERROR_NONE) {
             $userConfig = new \stdClass();
         }
-
         $perActivationsList = $this->preparePerUserActivationsArray($user);
         $perActivationsList = $this->filterSelfModerationArrays($list, $filterVarFlag, $perActivationsList);
 
@@ -1280,7 +1281,7 @@ class UserController extends Controller {
             $activationId = trim($item['activation']);
             $value = filter_var(trim($item['value']), $filterVarFlag);
             if ($value !== false && !empty($value) && isset($perActivationsList[$activationId])) {//to be sure we set values only for this user's activations
-                $perActivationsList[$activationId][$value] = $value;
+                $perActivationsList[$activationId][] = $value;
             }
         }
 
@@ -1288,9 +1289,12 @@ class UserController extends Controller {
         foreach ($list as $item) {
             $activationId = trim($item['activation']);
             $value = filter_var(trim($item['value']), $filterVarFlag);
-            if ($activationId != self::ID_ACTIVATION_ALL && isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
-                unset($perActivationsList[$activationId][$value]);
+            if ($activationId != self::ID_ACTIVATION_ALL) { //&& isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
+                $perActivationsList[$activationId] = Arr::except($perActivationsList[$activationId], $perActivationsList[self::ID_ACTIVATION_ALL]);
             }
+/*            //if ($activationId != self::ID_ACTIVATION_ALL && isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
+            //    unset($perActivationsList[$activationId][$value]);
+            //}*/
         }
 
         return $perActivationsList;

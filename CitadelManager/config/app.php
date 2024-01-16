@@ -19,6 +19,14 @@ return [
 
     /* Where do we download list exports from.*/
     'default_list_export_url' => env('APP_DEFAULT_LIST_EXPORT_URL',''),
+    
+    /*Where do accountability alerts go to?*/
+    'accountability' => [
+        'url' => env('APP_ACCOUNTABILITY_URL',''),
+        'enabled' => env('APP_ACCOUNTABILITY_ENABLED',false),
+        'email' => env('APP_ACCOUNTABILITY_EMAIL',''),
+        'passcode' => env('APP_ACCOUNTABILITY_PASSCODE',''),
+    ],
 
     /*
     |--------------------------------------------------------------------------
