@@ -19,13 +19,14 @@ Vue.component("self-moderation-list", {
                                         </editable-span>\
                                     </div>\
                                     <div class="remove-button-container">\
-                                        <button class="btn btn-danger" @click="removeUrl(index)"><span class="glyph glyph-remove"></span></button>\
+                                        <button class="btn btn-danger" @click.prevent="removeUrl(index)">
+                                            <span class="glyph glyph-remove"></span>
+                                        </button>\
                                     </div>\
                                 </li>\
                             </ul>\
                         </div>`,
 
-    //   props: ["value", "addButtonText", "activations", "isurl"],
     props: {
         value: {},
         addButtonText: {},
