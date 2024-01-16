@@ -158,7 +158,18 @@
                                         />
                                     </div>
                                 </div>
-
+                                <div class="cell cell-auto-size padding-left-100">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_activation_input_update_channel">Update Channel:</label>
+                                        <select name="editor_activation_input_update_channel"
+                                                id="editor_activation_input_update_channel">
+                                            <option value=""></option>
+                                            <option value="Stable">Stable</option>
+                                            <option value="Alpha">Alpha</option>
+                                            <option value="Beta">Beta</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

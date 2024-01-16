@@ -71,6 +71,7 @@ namespace Citadel {
         private m_labelReportLevel: HTMLLabelElement;
         private m_selectGroup: HTMLSelectElement;
         private m_inputFriendlyName: HTMLInputElement;
+        private m_selectUpdateChannel: HTMLSelectElement;
 
         private m_blacklistTable: SelfModerationTable;
         private m_whitelistTable: SelfModerationTable;
@@ -134,6 +135,8 @@ namespace Citadel {
             this.m_btnSubmit = document.querySelector('#activation_editor_submit') as HTMLButtonElement;
             this.m_btnCancel = document.querySelector('#activation_editor_cancel') as HTMLButtonElement;
             this.m_selectGroup = document.querySelector('#editor_ctivation_input_group_id') as HTMLSelectElement;
+            this.m_selectUpdateChannel = document.querySelector('#editor_activation_input_update_channel') as HTMLSelectElement;
+
             this.InitButtonHandlers();
         }
 
@@ -217,12 +220,25 @@ namespace Citadel {
                 } else {
                     this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
                 }
+                try {
+                    for (let i = 0; i < this.m_selectUpdateChannel.options.length; ++i) {
+                        if (this.m_selectUpdateChannel.options[i].value.toLowerCase() == < string > this.configOverride['UpdateChannel'].toLowerCase()) {
+                            this.m_selectUpdateChannel.selectedIndex = this.m_selectUpdateChannel.options[i].index;
+                            break;
+                        }
+                    }
+                } catch (ex) {
+                    console.warn(ex);
+                    console.warn("Either the update channel is null or it's an invalid value. Defaulting...");
+                    this.m_selectUpdateChannel.selectedIndex = 0;
+                }
             } else {
                 this.selfModeration = null;
                 this.activationWhitelist = null;
                 this.triggerBlacklist = null;
                 this.appBlocklist = null;
                 this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
+                this.m_selectUpdateChannel.selectedIndex = 0;
             }
         }
 
@@ -249,13 +265,15 @@ namespace Citadel {
             this.triggerBlacklist = this.m_triggerBlacklistTable.getData();
             this.appBlocklist = this.m_appBlocklistTable.getData();
 
-
             this.configOverride = {
                 SelfModeration: this.selfModeration,
                 CustomWhitelist: this.activationWhitelist,
                 CustomTriggerBlacklist: this.triggerBlacklist,
                 CustomBlockedApps: this.appBlocklist
             };
+            if(this.m_selectUpdateChannel.selectedIndex != 0) {
+                this.configOverride.UpdateChannel = this.m_selectUpdateChannel.options[this.m_selectUpdateChannel.selectedIndex].value;
+            }
 
             if(this.m_timeRestrictionsUI.HasRestrictions()) {
                 this.configOverride.TimeRestrictions = {};
