@@ -27,16 +27,6 @@ class DeactivationRequestGrantedMail extends Mailable
      */
     public $user;
 
-    public $isMacOs;
-
-
-    /**
-     * The platform name.
-     *
-     * @var string
-     */
-    public $platform;
-
     /**
      * The platform name.
      *
