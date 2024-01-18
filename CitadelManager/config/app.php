@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     'company_name' => env('APP_COMPANY_NAME', 'Citadel'),
     /* How long (in days) do we let deactivation requests sit around? */
     'deactivation_request_expiration' => env('APP_DEACTIVATION_REQUEST_EXPIRATION', '7'),
@@ -9,6 +8,7 @@ return [
     /* How long (in days) does a license remain in use after the last use? */
     'license_expiration' => env('APP_LICENSE_EXPIRATION', '90'),
     'max_version_alert_update' => env('MAX_VERSION_UPDATE_ALERT', '2.0.18'),
+
 
     /* This is used to give users grace with licenses.  If you're using this you'll want to periodically
      * audit your license usage to make sure it's not being abused. */
@@ -19,6 +19,14 @@ return [
 
     /* Where do we download list exports from.*/
     'default_list_export_url' => env('APP_DEFAULT_LIST_EXPORT_URL',''),
+    
+    /*Where do accountability alerts go to?*/
+    'accountability' => [
+        'url' => env('APP_ACCOUNTABILITY_URL',''),
+        'enabled' => env('APP_ACCOUNTABILITY_ENABLED',false),
+        'email' => env('APP_ACCOUNTABILITY_EMAIL',''),
+        'passcode' => env('APP_ACCOUNTABILITY_PASSCODE',''),
+    ],
 
     /*
     |--------------------------------------------------------------------------

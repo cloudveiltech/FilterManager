@@ -45,9 +45,18 @@ class BusinessOwnerRolesAndPermissions extends Migration
         ]);
 
         $user = DB::table('roles')->where('name', 'user')->first();
-        DB::table('permission_role')->where('role_id', $user->id)->delete();
+        // check if user role exists
+        if(!$user) {
+            $id = DB::table('roles')->insertGetId([
+                'name' => "user",
+                'display_name' => "Application User",
+                'description' => "User is a registered application user"
+            ]);
+        } else {
+            $id = $user->id;
+            DB::table('permission_role')->where('role_id', $id)->delete();
+        }
 
-        $id = $user->id;
 
         DB::table('permission_role')->insert(['role_id' => $id, 'permission_id' => $timeRestrictionsId]);
         DB::table('permission_role')->insert(['role_id' => $id, 'permission_id' => $relaxedPolicyPasswordId]);

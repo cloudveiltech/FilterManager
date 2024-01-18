@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\DeactivationRequest;
+use App\SystemPlatform;
 use App\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -26,13 +27,23 @@ class DeactivationRequestGrantedMail extends Mailable
      */
     public $user;
 
+    public $isMacOs;
+
+
     /**
      * The platform name.
      *
      * @var string
      */
     public $platform;
-    
+
+    /**
+     * The platform name.
+     *
+     * @var string
+     */
+    public $platform;
+
     /**
      * Create a new message instance.
      *

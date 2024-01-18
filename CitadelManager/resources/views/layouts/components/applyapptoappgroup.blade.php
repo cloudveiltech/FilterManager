@@ -21,6 +21,7 @@
             <div class="row">
                 <div class="cell colspan5">
                     <label>Available App Groups</label>
+                    <input type="text" name="apply_app_to_app_group_source_list_filter" id="apply_app_to_app_group_source_list_filter" class="clear expandto100percent" style="margin: 5px 0">
                     <select id="apply_app_to_app_group_source_list" multiple>
                     </select>
                 </div>
@@ -42,6 +43,7 @@
 
                 <div class="cell colspan5">
                     <label>Selected App Groups</label>
+                    <input type="text" name="apply_app_to_app_group_source_list_filter" id="apply_app_to_app_group_source_list_filter" class="clear expandto100percent" style="margin: 5px 0">
                     <select id="apply_app_to_app_group_target_list" multiple>
                     </select>
                 </div>

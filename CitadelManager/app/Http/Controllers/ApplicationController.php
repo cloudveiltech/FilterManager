@@ -82,6 +82,22 @@ class ApplicationController extends Controller
         ]);
     }
 
+
+    public function autosuggest_app(Request $request)
+    {
+        $term = $request->input("term");
+        $os = $request->input("os");
+        if(empty($os)) {
+            return App::where('name', 'like', "%$term%")->
+            orderBy('name', 'asc')->pluck("name");
+        } else {
+            return App::where("platform_name", $os)->
+            where('name', 'like', "%$term%")->
+            orderBy('name', 'asc')->pluck("name");
+        }
+    }
+
+
     public function get_application()
     {
         return App::orderBy('name', 'asc')->get();
@@ -152,7 +168,7 @@ class ApplicationController extends Controller
         $assigned_groups = $request->only('assigned_appgroup');
         AppGroupToApp::where('app_id', $id)->delete();
 
-        if (is_array($assigned_groups['assigned_appgroup'])) {
+        if (isset($assigned_groups['assigned_appgroup']) && is_array($assigned_groups['assigned_appgroup'])) {
             $arr_assigned_groups = array();
             foreach ($assigned_groups['assigned_appgroup'] as $group_id) {
                 array_push($arr_assigned_groups, array(

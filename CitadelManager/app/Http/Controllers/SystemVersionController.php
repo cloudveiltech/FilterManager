@@ -240,8 +240,24 @@ class SystemVersionController extends Controller
             'stable' => 'required',
             'release_date' => 'required',
         ]);
-        $input = $request->only(['platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active','file_ext']);
-
+        $input = $request->only(
+            [
+                'platform_id',
+                'app_name',
+                'file_name',
+                'version_number',
+                'changes',
+                'alpha',
+                'alpha_ed_signature',
+                'beta',
+                'beta_ed_signature',
+                'stable',
+                'stable_ed_signature',
+                'release_date',
+                'active',
+                'file_ext'
+            ]
+        );
         if ($input['active'] == 1) {
             $rows = SystemVersion::where('platform_id', '=', $input['platform_id'])->where('active', '=', 1)->get();
             foreach ($rows as $row) {
@@ -291,13 +307,29 @@ class SystemVersionController extends Controller
             'stable' => 'required',
             'release_date' => 'required',
         ]);
-        $input = $request->only(['id', 'platform_id', 'app_name', 'file_name', 'version_number', 'changes', 'alpha', 'beta', 'stable', 'release_date', 'active', 'file_ext']);
+        $input = $request->only(
+            [
+                'platform_id',
+                'app_name',
+                'file_name',
+                'version_number',
+                'changes',
+                'alpha',
+                'alpha_ed_signature',
+                'beta',
+                'beta_ed_signature',
+                'stable',
+                'stable_ed_signature',
+                'release_date',
+                'active',
+                'file_ext'
+            ]
+        );
         $platform_id = $input['platform_id'];
         $active = $input['active'];
         $item = SystemVersion::where('id', '=', $id)->get()->first();
         $prev_active = $item->active;
         $prev_platform_id = $item->platform_id;
-
         SystemVersion::where('id', '=', $id)->update($input);
         return response('', 204);
     }

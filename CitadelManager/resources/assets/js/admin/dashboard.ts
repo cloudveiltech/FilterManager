@@ -90,7 +90,6 @@ namespace Citadel {
 
         BTN_ADD_APPGROUP_LABEL              = '<span class="icon mif-stack"></span>Add <br /> Application <br /> Group';
         BTN_REMOVE_APPGROUP_LABEL           = '<span class="mif-cancel"></span>Remove <br /> Application <br /> Group';
-        BTN_APPLY_APPGROUP_LABEL            = '<span class="icon mif-checkmark" style="color:green"></span> Apply<br />To User Group';
 
         // ───────────────────────────────────────────────────────────────────
         //   :::::: M A I N   M E N U   B U T T O N   E L E M E N T S ::::::
@@ -258,6 +257,7 @@ namespace Citadel {
                         this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPLICATION_LABEL;
                         this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPLICATION_LABEL;
                         this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPLICATION_LABEL;
+                        $(this.m_btnApplyToGroup).parent().parent().show();
                         break;
                     case 6:
                         this.ViewState = DashboardViewStates.AppGroupView;
@@ -266,7 +266,7 @@ namespace Citadel {
                         this.m_btnAppGroup.checked = true;
                         this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPGROUP_LABEL;
                         this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPGROUP_LABEL;
-                        this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPGROUP_LABEL;
+                        $(this.m_btnApplyToGroup).parent().parent().hide();
                         break;
                     case 7:
                         this.m_tabBtnActivation.onclick(null);
@@ -620,7 +620,12 @@ namespace Citadel {
                         visible: true,
                         width: '180px',
                         className: 'updated_date'
-                    }
+                    },
+                    {
+                        title: 'Notes',
+                        data: 'notes',
+                        visible: true,
+                    },
                 ];
 
                 let groupTablesLoadFromAjaxSettings: DataTables.AjaxSettings = {
@@ -1552,6 +1557,8 @@ namespace Citadel {
                 this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPLICATION_LABEL;
                 this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPLICATION_LABEL;
                 this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPLICATION_LABEL;
+
+                $(this.m_btnApplyToGroup).parent().parent().show();
             });
 
             this.m_btnAppGroup.onclick = ((e: MouseEvent) => {
@@ -1560,7 +1567,8 @@ namespace Citadel {
                 this.m_btnRemoveApplication.disabled    = true;
                 this.m_btnAddApplication.innerHTML      = this.BTN_ADD_APPGROUP_LABEL;
                 this.m_btnRemoveApplication.innerHTML   = this.BTN_REMOVE_APPGROUP_LABEL;
-                this.m_btnApplyToGroup.innerHTML        = this.BTN_APPLY_APPGROUP_LABEL;
+
+                $(this.m_btnApplyToGroup).parent().parent().hide();
             });
 
             this.m_btnAddApplication.onclick = ((e: MouseEvent) => {
@@ -2065,9 +2073,6 @@ namespace Citadel {
             if (this.m_btnApp.checked) {
                 let apply_app_to_app_group_overlay = new ApplyAppToAppGroup(this);
                 apply_app_to_app_group_overlay.Show();
-            } else {
-                let apply_app_group_to_user_group_overlay = new ApplyAppgroupToUsergroup(this);
-                apply_app_group_to_user_group_overlay.Show();
             }
         }
 

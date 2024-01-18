@@ -23,6 +23,10 @@
                 <li>
                     <a href="#app_filtering_tab">Application Filtering</a>
                 </li>
+                <li>
+                    <a href="#app_blocking_tab">Application Blocking</a>
+                </li>
+
             </ul>
 
             <!-- Tab containers. -->
@@ -124,6 +128,12 @@
                                         <span class="check"></span>
                                     </label>
                                     <label id="report_level_text">No reporting back to server</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
+                                    <label for="editor_cfg_notes_input" title="Notes">Notes</label><br/>
+                                    <textarea id="editor_cfg_notes_input" name="editor_cfg_notes_input" style="width: 40%; height: 100px"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -301,14 +311,14 @@
                             <div class="cell width-70-percent">
                                 <h2>
                                     <small>Apps To Filter</small>
-                                    <div id="group_filter_list">
+                                    <div class="group_filter_list">
                                         <label class="input-control radio">
-                                            <input id="group_filteredapps_radio_blacklist" type="radio" name="n1" checked>
+                                            <input type="radio" class="radio_blacklist" name="radio1" checked>
                                             <span class="check"></span>
                                             <span class="caption">Blacklist</span>
                                         </label>
                                         <label class="input-control radio">
-                                            <input id="group_filteredapps_radio_whitelist" type="radio" name="n1">
+                                            <input type="radio" class="radio_whitelist" name="radio1">
                                             <span class="check"></span>
                                             <span class="caption">Whitelist</span>
                                         </label>
@@ -318,7 +328,7 @@
                                 <div class="list-control" align="center">
                                     <div class="width-40-percent">
                                         <h3>App Group List</h3>
-                                        <select id="appgroup_source_list" multiple>
+                                        <select class="appgroup_source_list" multiple>
                                         </select>
                                     </div>
                                     <div class="width-20-percent" id="apply_togroup_actions">
@@ -328,20 +338,20 @@
                                             <img id="spiner_4" src="{{asset('img/loading7_navy_blue.gif')}}" width="40px"
                                             />
                                         </div>
-                                        <button class="button primary" type="button" id="appgroups_source_to_target"> &gt;&gt; </button>
+                                        <button class="button primary appgroups_source_to_target" type="button"> &gt;&gt; </button>
                                         <br />
-                                        <button class="button primary" type="button" id="appgroup_source_to_target"> &gt; </button>
+                                        <button class="button primary appgroup_source_to_target" type="button"> &gt; </button>
                                         <br />
-                                        <button class="button primary" type="button" id="appgroup_target_to_source"> &lt; </button>
+                                        <button class="button primary appgroup_target_to_source" type="button"> &lt; </button>
                                         <br />
-                                        <button class="button primary" type="button" id="appgroups_target_to_source"> &lt;&lt; </button>
+                                        <button class="button primary appgroups_target_to_source" type="button"> &lt;&lt; </button>
                                         <br />
 
                                     </div>
 
                                     <div class="width-40-percent">
                                         <h3>Selected List </h3>
-                                        <select id="appgroup_target_list" multiple>
+                                        <select class="appgroup_target_list" multiple>
                                         </select>
                                     </div>
                                 </div>
@@ -352,13 +362,78 @@
                                 </h2>
                                 <hr class="thin">
                                 <h3 class='selected_applications_h3'>Applications </h3>
-                                <div id="selected_applications">
+                                <div class="selected_applications">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="frame" id="app_blocking_tab">
+                    <div class="info_div">
+                        <p>
+                            <span class="mif-filter fg-green"></span>&nbsp;&nbsp;&nbsp;List executable names, including extension, in the box on the left.
+                            <br
+                            /> Select apps you want to be blocked from internet access.
+                        </p>
+                    </div>
+                    <div class="grid">
+                        <div class="row cells5 no-bottom">
+                            <div class="cell width-70-percent">
+                                <h2 style="visibility: hidden!important;">
+                                    <small>Apps To Filter</small>
+                                    <div class="group_filter_list">
+                                        <label class="input-control radio">
+                                            <input type="radio" class="radio_blacklist" name="radio1" checked>
+                                            <span class="check"></span>
+                                            <span class="caption">Blacklist</span>
+                                        </label>
+                                        <label class="input-control radio">
+                                            <input type="radio" class="radio_whitelist" name="radio1">
+                                            <span class="check"></span>
+                                            <span class="caption">Whitelist</span>
+                                        </label>
+                                    </div>
+                                </h2>
+                                <hr class="thin">
+                                <div class="list-control" align="center">
+                                    <div class="width-40-percent">
+                                        <h3>App Group List</h3>
+                                        <select class="appgroup_source_list" multiple>
+                                        </select>
+                                    </div>
+                                    <div class="width-20-percent" id="apply_togroup_actions">
+                                        <br />
+                                        <br />
+                                        <button class="button primary appgroups_source_to_target" type="button"> &gt;&gt; </button>
+                                        <br />
+                                        <button class="button primary appgroup_source_to_target" type="button"> &gt; </button>
+                                        <br />
+                                        <button class="button primary appgroup_target_to_source" type="button"> &lt; </button>
+                                        <br />
+                                        <button class="button primary appgroups_target_to_source" type="button"> &lt;&lt; </button>
+                                        <br />
 
+                                    </div>
+
+                                    <div class="width-40-percent">
+                                        <h3>Selected List </h3>
+                                        <select class="appgroup_target_list" multiple>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cell width-30-percent padding-13">
+                                <h2>
+                                    <small>App List</small>
+                                </h2>
+                                <hr class="thin">
+                                <h3 class='selected_applications_h3'>Applications </h3>
+                                <div class="selected_applications">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

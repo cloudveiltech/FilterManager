@@ -13,7 +13,17 @@ class DatabaseSeeder extends Seeder
     {
         // Order is important here!
         $this->call(RolesAndPermissionsSeeder::class);
-        $this->call(UsersTableSeeder::class);
         $this->call(GroupsTableSeeder::class);
+        $this->call(AdminUserSeeder::class);
+        $this->call(UsersTableSeeder::class);
+        $this->call(FilterListSeeder::class);
+        $this->call(GroupFilterAssignmentSeeder::class);
+        $this->call(AppGroupSeeder::class);
+        $this->call(AppSeeder::class);
+        $this->call(AppGroupToAppSeeder::class);
+        $this->call(UserGroupAppGroupSeeder::class);
+        $this->call(SystemPlatformVersionSeeder::class);
+        $this->call(SystemExtensionSeeder::class);
+        $this->call(DeactivationRequestSeeder::class);
     }
 }

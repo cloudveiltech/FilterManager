@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class UpdateController extends Controller
 {
@@ -33,11 +34,25 @@ class UpdateController extends Controller
         $osVersion = $request->input("os", "0");
         $appVersion = $request->input("v", "0");
 
+
+        if ($platforms->count() > 0) {
+            $os = $platforms->first();
+            if($os->platform == SystemPlatform::PLATFORM_WIN) {
+                $osVersionParts = explode(".", $osVersion);
+                if(!empty($osVersionParts) && $osVersionParts[0] < 10) {
+                    $platforms = collect(); //don't support windows less than 10. Using a collection so that it's an object and the rest of the system will work.
+                    Log::info("Skipping update for " . $platform . " v " . $osVersion . ' Details: ' . json_encode($request->all()));
+                }
+            }
+        }
+
         if ($platforms->count() > 0) {
             $os = $platforms->first();
             $arr_data["os_name"] = $os->os_name;
             $platform_id = $os->id;
             $versions = SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
+
+
             if ($versions->count() > 0) {
                 $version = $versions->first();
                 $arr_data['app_name'] = $version->app_name;
@@ -45,24 +60,29 @@ class UpdateController extends Controller
                 $arr_data['file_ext'] = $version->file_ext;
                 $arr_data['version_number'] = $version->version_number;
                 $arr_data['changes'] = array($version->changes);
+
                 $arr_data['channels'] = [
                     [
                         'release' => 'Alpha',
                         'version_number' => $version->alpha,
+                        'signature' => $version->alpha_ed_signature
                     ],
                     [
                         'release' => 'Beta',
                         'version_number' => $version->beta,
+                        'signature' => $version->beta_ed_signature
                     ],
                     [
                         'release' => 'Stable',
                         'version_number' => $version->stable,
+                        'signature' => $version->stable_ed_signature
                     ],
                 ];
 // This comment is to show the format we need it in.  Changing the format will break updates.
 // It's been broken before and we may break it again so here's a reminder.
 //                $arr_data['date'] = 'Tue, 20 Feb 2018 12:39:00 MST';
                 $arr_data['date'] = Carbon::parse($version->release_date)->toRfc7231String();
+
             } else {
                 $arr_data['app_name'] = "unavailable";
                 $arr_data['file_name'] = "unavailable";
@@ -87,6 +107,7 @@ class UpdateController extends Controller
             }
         } else {
             $arr_data['app_name'] = "unavailable";
+            $arr_data['os_name'] = "unavailable";
             $arr_data['file_name'] = "unavailable";
             $arr_data['file_ext'] = "unavailable";
             $arr_data['version_number'] = "---";
@@ -95,14 +116,17 @@ class UpdateController extends Controller
                 [
                     'release' => 'Alpha',
                     'version_number' => "---",
+                    'signature' => "---",
                 ],
                 [
                     'release' => 'Beta',
                     'version_number' => "---",
+                    'signature' => "---",
                 ],
                 [
                     'release' => 'Stable',
                     'version_number' => "---",
+                    'signature' => "---",
                 ],
             ];
             $arr_data['date'] = "---";

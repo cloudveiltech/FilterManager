@@ -72,7 +72,35 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="row cell-auto-size padding-left-100 margin-20">
+                    <div class="cell cell-auto-size">
+                        <div class="input-control text" data-role="input">
+                            <label for="system_version_input_alpha_version_sig">Ed Signature (MacOS Only):</label>
+                            <input type="text" name="system_version_input_alpha_version_sig" id="system_version_input_alpha_version_sig">
+                            <button class="button helper-button clear" tabindex="-1" type="button">
+                                <span class="mif-cross"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="cell cell-auto-size">
+                        <div class="input-control text" data-role="input">
+                            <label for="system_version_input_beta_version_sig">Ed Signature (MacOS Only):</label>
+                            <input type="text" name="system_version_input_beta_version_sig" id="system_version_input_beta_version_sig">
+                            <button class="button helper-button clear" tabindex="-1" type="button">
+                                <span class="mif-cross"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="cell cell-auto-size">
+                        <div class="input-control text" data-role="input">
+                            <label for="system_version_input_stable_version_sig">Ed Signature (MacOS Only):</label>
+                            <input type="text" name="system_version_input_stable_version_sig" id="system_version_input_stable_version_sig">
+                            <button class="button helper-button clear" tabindex="-1" type="button">
+                                <span class="mif-cross"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div class="row cell-auto-size padding-left-100 margin-20">
                     <div class="cell cell-auto-size">
                         <div class="input-control text" data-role="input">

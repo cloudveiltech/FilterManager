@@ -27,6 +27,7 @@ namespace Citadel {
         ERROR_MESSAGE_DELAY_TIME = 5000;
         FADE_IN_DELAY_TIME = 200;
 
+        GET_APP_AUTOSUGGEST_URL = 'api/admin/app_suggest';
         URL_ROUTE = 'api/admin/user_activations';
 
         // ──────────────────────────────────────────────────────
@@ -49,6 +50,7 @@ namespace Citadel {
         private selfModeration: any;
         private activationWhitelist: any;
         private triggerBlacklist: any;
+        private appBlocklist: any;
 
         // ──────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -69,14 +71,17 @@ namespace Citadel {
         private m_labelReportLevel: HTMLLabelElement;
         private m_selectGroup: HTMLSelectElement;
         private m_inputFriendlyName: HTMLInputElement;
+        private m_selectUpdateChannel: HTMLSelectElement;
 
         private m_blacklistTable: SelfModerationTable;
         private m_whitelistTable: SelfModerationTable;
         private m_triggerBlacklistTable: SelfModerationTable;
+        private m_appBlocklistTable: SelfModerationTable;
 
         private m_btnSubmit: HTMLButtonElement;
         private m_btnCancel: HTMLButtonElement;
 
+        private m_timeRestrictionsUI: TimeRestrictionUI
         private m_bindings: BindingInstance;
 
         constructor() {
@@ -113,6 +118,7 @@ namespace Citadel {
             this.m_bindings = new BindingInstance(this.m_editorOverlay, this);
             this.m_bindings.Bind();
             this.m_bindings.Refresh();
+            this.m_timeRestrictionsUI = new TimeRestrictionUI(this.m_bindings, "#time_restrictions_tab_activations");
 
             this.m_inputUserName = document.querySelector('#editor_activation_input_user_full_name') as HTMLInputElement;
             this.m_inputIdentifier = document.querySelector('#editor_activation_input_identifier') as HTMLInputElement;
@@ -129,17 +135,33 @@ namespace Citadel {
             this.m_btnSubmit = document.querySelector('#activation_editor_submit') as HTMLButtonElement;
             this.m_btnCancel = document.querySelector('#activation_editor_cancel') as HTMLButtonElement;
             this.m_selectGroup = document.querySelector('#editor_ctivation_input_group_id') as HTMLSelectElement;
+            this.m_selectUpdateChannel = document.querySelector('#editor_activation_input_update_channel') as HTMLSelectElement;
+
             this.InitButtonHandlers();
+        }
+
+        private eveningRestrictionsPreset(): void {
+            this.m_timeRestrictionsUI.EveningRestrictionsPreset();
+        }
+
+        private officeRestrictionsPreset(): void {
+            this.m_timeRestrictionsUI.OfficeRestrictionsPreset();
+        }
+
+        private noneRestrictionsPreset(): void {
+            this.m_timeRestrictionsUI.NoneRestrictionsPreset();
         }
 
         private InitSelfModerationTables(): void {
             this.m_blacklistTable = new SelfModerationTable(document.querySelector('#activation_self_moderation_table'), this.selfModeration);
             this.m_whitelistTable = new SelfModerationTable(document.querySelector('#activation_whitelist_table'), this.activationWhitelist);
             this.m_triggerBlacklistTable = new SelfModerationTable(document.querySelector('#activation_trigger_table'), this.triggerBlacklist);
+            this.m_appBlocklistTable = new SelfModerationTable(document.querySelector('#activation_app_list_table'), this.appBlocklist, this.GET_APP_AUTOSUGGEST_URL + "?os=" + this.m_os);
 
             this.m_blacklistTable.render();
             this.m_whitelistTable.render();
             this.m_triggerBlacklistTable.render();
+            this.m_appBlocklistTable.render();
         }
 
         private InitButtonHandlers(): void {
@@ -188,10 +210,35 @@ namespace Citadel {
                 this.selfModeration = this.configOverride.SelfModeration;
                 this.activationWhitelist = this.configOverride.CustomWhitelist;
                 this.triggerBlacklist = this.configOverride.CustomTriggerBlacklist;
+                this.appBlocklist = this.configOverride.CustomBlockedApps;
+                if (this.configOverride.TimeRestrictions) {
+                    this.m_timeRestrictionsUI.timeRestrictions = {};
+
+                    for (var day in this.configOverride.TimeRestrictions) {
+                        this.m_timeRestrictionsUI.timeRestrictions[day] = this.configOverride.TimeRestrictions[day];
+                    }
+                } else {
+                    this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
+                }
+                try {
+                    for (let i = 0; i < this.m_selectUpdateChannel.options.length; ++i) {
+                        if (this.m_selectUpdateChannel.options[i].value.toLowerCase() == < string > this.configOverride['UpdateChannel'].toLowerCase()) {
+                            this.m_selectUpdateChannel.selectedIndex = this.m_selectUpdateChannel.options[i].index;
+                            break;
+                        }
+                    }
+                } catch (ex) {
+                    console.warn(ex);
+                    console.warn("Either the update channel is null or it's an invalid value. Defaulting...");
+                    this.m_selectUpdateChannel.selectedIndex = 0;
+                }
             } else {
                 this.selfModeration = null;
                 this.activationWhitelist = null;
                 this.triggerBlacklist = null;
+                this.appBlocklist = null;
+                this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
+                this.m_selectUpdateChannel.selectedIndex = 0;
             }
         }
 
@@ -216,12 +263,28 @@ namespace Citadel {
             this.selfModeration = this.m_blacklistTable.getData();
             this.activationWhitelist = this.m_whitelistTable.getData();
             this.triggerBlacklist = this.m_triggerBlacklistTable.getData();
+            this.appBlocklist = this.m_appBlocklistTable.getData();
 
-            this.configOverride = JSON.stringify({
+            this.configOverride = {
                 SelfModeration: this.selfModeration,
                 CustomWhitelist: this.activationWhitelist,
-                CustomTriggerBlacklist: this.triggerBlacklist
-            });
+                CustomTriggerBlacklist: this.triggerBlacklist,
+                CustomBlockedApps: this.appBlocklist
+            };
+            if(this.m_selectUpdateChannel.selectedIndex != 0) {
+                this.configOverride.UpdateChannel = this.m_selectUpdateChannel.options[this.m_selectUpdateChannel.selectedIndex].value;
+            }
+
+            if(this.m_timeRestrictionsUI.HasRestrictions()) {
+                this.configOverride.TimeRestrictions = {};
+                for (var day in this.m_timeRestrictionsUI.timeRestrictions) {
+                    var slider = this.m_timeRestrictionsUI.timeRestrictionSliders[day];
+                    this.configOverride.TimeRestrictions[day] = {
+                        EnabledThrough: slider.noUiSlider.get(),
+                        RestrictionsEnabled: this.m_timeRestrictionsUI.timeRestrictions[day].RestrictionsEnabled
+                    };
+                }
+            }
         }
 
         public StartEditing(allGroups, userData: Object = null): void {
@@ -236,7 +299,9 @@ namespace Citadel {
             option.value = "-1";
             this.m_selectGroup.options.add(option);
 
-            for (var elm of allGroups) {
+            let groupsSorted = allGroups.sort((g1, g2) => (g1.name.toLowerCase() < g2.name.toLowerCase() ? -1 : 1));
+
+            for (var elm of groupsSorted) {
                 let option = document.createElement('option') as HTMLOptionElement;
                 option.text = elm['name'];
                 option.value = elm['id'];
@@ -267,6 +332,11 @@ namespace Citadel {
             }
 
             this.InitSelfModerationTables();
+            // Covers creation of new users, because this doesn't get assigned to in that circumstance.
+            if (!this.m_timeRestrictionsUI.timeRestrictions) {
+                this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
+            }
+            this.m_timeRestrictionsUI.InitTimeRestrictions();
 
             this.m_mainForm.onsubmit = ((e: Event): any => {
                 return this.OnFormSubmitClicked(e, userData == null);
@@ -287,7 +357,7 @@ namespace Citadel {
                 'bypass_period': this.m_bypassPeriod,
                 'bypass_used': this.m_bypassUsed,
                 'report_level': this.m_reportLevel,
-                'config_override': this.configOverride,
+                'config_override': JSON.stringify(this.configOverride),
                 'friendly_name': this.m_friendlyName
             };
 
@@ -334,6 +404,10 @@ namespace Citadel {
 
         public addNewCustomTextTrigger(): void {
             this.m_triggerBlacklistTable.add();
+        }
+
+        public addNewBlockedApp(): void {
+            this.m_appBlocklistTable.add();
         }
 
         public resetBypassUsed(): void {

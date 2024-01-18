@@ -23,6 +23,7 @@ use App\FilterList;
 use App\Utils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -369,7 +370,7 @@ class UserController extends Controller {
 
             $keyTrimmed = trim($key, '/');
             $keyParts = explode('/', $keyTrimmed);
-            if(count($keyParts) < 3) {
+            if(count($keyParts) != 3) {
                 continue;
             }
 
@@ -552,7 +553,7 @@ class UserController extends Controller {
                 $hashExists = strlen($filterList->file_sha1) > 0;
                 $rulesetFilePath = $filterRulesManager->getRulesetPath($namespace, $category, $type);
 
-                if (!$hashExists || !file_exists($rulesetFilePath) || filesize($rulesetFilePath) == 0) {
+                if (!$hashExists || !file_exists($rulesetFilePath)) {
                     $responseArray[] = "http-result 404";
                 } else {
                     $rulesetFileContents = file_get_contents($rulesetFilePath);
@@ -608,23 +609,33 @@ class UserController extends Controller {
                     $customTriggerBlacklist = null;
                 }
 
+                if (!empty($activationConfig['CustomBlockedApps'])) {
+                    $customBlockedApps = $activationConfig['CustomBlockedApps'];
+                } else {
+                    $customBlockedApps = null;
+                }
+
                 $activationConfig = Utils::purgeNulls($activationConfig);
                 $configuration = array_merge($configuration, $activationConfig);
 
                 if ($selfModeration != null && isset($configuration["SelfModeration"])) {
-                    $configuration['SelfModeration'] = array_merge($configuration['SelfModeration'], $selfModeration);
+                    $configuration['SelfModeration'] = $this->compactAndMergeArrays($configuration['SelfModeration'], $selfModeration);
                 }
 
                 if ($customWhitelist != null && isset($configuration["CustomWhitelist"])) {
-                    $configuration['CustomWhitelist'] = array_merge($configuration['CustomWhitelist'], $customWhitelist);
+                    $configuration['CustomWhitelist'] = $this->compactAndMergeArrays($configuration['CustomWhitelist'], $customWhitelist);
                 }
 
                 if ($customBypasslist != null && isset($configuration["CustomBypasslist"])) {
-                    $configuration['CustomBypasslist'] = array_merge($configuration['CustomBypasslist'], $customBypasslist);
+                    $configuration['CustomBypasslist'] = $this->compactAndMergeArrays($configuration['CustomBypasslist'], $customBypasslist);
                 }
 
                 if ($customTriggerBlacklist != null && isset($configuration["CustomTriggerBlacklist"])) {
-                    $configuration['CustomTriggerBlacklist'] = array_merge($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
+                    $configuration['CustomTriggerBlacklist'] = $this->compactAndMergeArrays($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
+                }
+
+                if ($customBlockedApps != null && isset($configuration["CustomBlockedApps"])) {
+                    $configuration['CustomBlockedApps'] = $this->compactAndMergeArrays($configuration['CustomBlockedApps'], $customBlockedApps);
                 }
 
                 $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
@@ -651,12 +662,28 @@ class UserController extends Controller {
             if(!isset($configuration['BypassDuration'])) {
                 $configuration['BypassDuration'] = 0;
             }
+
+            $this->extractValueFromConfig($configuration, "SelfModeration");
+            $this->extractValueFromConfig($configuration, "CustomWhitelist");
+            $this->extractValueFromConfig($configuration, "CustomBypasslist");
+            $this->extractValueFromConfig($configuration, "CustomTriggerBlacklist");
+            $this->extractValueFromConfig($configuration, "CustomBlockedApps");
+
             return $configuration;
         } else {
             return null;
         }
     }
 
+    private function compactAndMergeArrays(&$array1, &$array2) {
+        return array_unique(array_merge($array1, $array2));
+    }
+
+    private function extractValueFromConfig(&$array, $key) {
+        if (isset($array[$key])) {
+            $array[$key] = array_values($array[$key]);
+        }
+    }
     /**
      * Request the current activation configuration.
      * This is for versions >=1.7.
@@ -679,19 +706,25 @@ class UserController extends Controller {
 
         $configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
-
-        //temp patch for using whitelist apps on OSX
-        //TODO add management for this
-        if ($activation->platform_name == "OSX") {
-            unset($configuration["BlacklistedApplications"]);
-            $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
-        }
+        $configuration["BlacklistedApplications"] = $this->filterAppCollectionByPlatform($configuration["BlacklistedApplications"], $activation->platform_name);
+        $configuration["WhitelistedApplications"] = $this->filterAppCollectionByPlatform($configuration["WhitelistedApplications"], $activation->platform_name);
+        $configuration["BlockedApplications"] = $this->filterAppCollectionByPlatform($configuration["BlockedApplications"], $activation->platform_name);
 
         if (!is_null($configuration)) {
             return $configuration;
         } else {
             return response('', 204);
         }
+    }
+
+    private function filterAppCollectionByPlatform(&$collection, $platform) {
+        $newCollection = [];
+        foreach ($collection as $item) {
+            if($item["os"] == $platform) {
+                $newCollection[] = $item["name"];
+            }
+        }
+        return $newCollection;
     }
 
     /**
@@ -716,12 +749,9 @@ class UserController extends Controller {
 
         $configuration = $this->mergeConfigurations($userGroup, $thisUser, $activation);
 
-        //temp patch for using whitelist apps on OSX
-        //TODO add management for this
-        if ($activation->platform_name == "OSX") {
-            unset($configuration["BlacklistedApplications"]);
-            $configuration["WhitelistedApplications"] = App::where("platform_name", "OSX")->pluck("name");
-        }
+        $configuration["BlacklistedApplications"] = $this->filterAppCollectionByPlatform($configuration["BlacklistedApplications"], $activation->platform_name);
+        $configuration["WhitelistedApplications"] = $this->filterAppCollectionByPlatform($configuration["WhitelistedApplications"], $activation->platform_name);
+        $configuration["BlockedApplications"] = $this->filterAppCollectionByPlatform($configuration["BlockedApplications"], $activation->platform_name);
 
         if (!is_null($configuration)) {
             return ['sha1' => sha1(json_encode($configuration))];
@@ -1054,10 +1084,12 @@ class UserController extends Controller {
             $data['whitelist'] = [];
             $data['blacklist'] = [];
             $data['triggerBlacklist'] = [];
+            $data['appBlockList'] = [];
         } else {
             $data['whitelist'] = $this->fillSelfModerationArray([], isset($config->CustomWhitelist) ? $config->CustomWhitelist : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
             $data['blacklist'] = $this->fillSelfModerationArray([], isset($config->SelfModeration) ? $config->SelfModeration : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
             $data['triggerBlacklist'] = $this->fillSelfModerationArray([], isset($config->CustomTriggerBlacklist) ? $config->CustomTriggerBlacklist : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
+            $data['appBlockList'] = $this->fillSelfModerationArray([], isset($config->CustomBlockedApps) ? $config->CustomBlockedApps : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
         }
 
         $activations = $user->activations;
@@ -1075,11 +1107,15 @@ class UserController extends Controller {
             if (!empty($activationConfig->CustomTriggerBlacklist)) {
                 $data['triggerBlacklist'] = $this->fillSelfModerationArray($data['triggerBlacklist'], $activationConfig->CustomTriggerBlacklist, $activation->identifier, $activation->device_id);
             }
+            if (!empty($activationConfig->CustomBlockedApps)) {
+                $data['appBlockList'] = $this->fillSelfModerationArray($data['appBlockList'], $activationConfig->CustomBlockedApps, $activation->identifier, $activation->device_id);
+            }
         }
 
         $data['whitelist'] = array_values($data["whitelist"]);
         $data['blacklist'] = array_values($data["blacklist"]);
         $data['triggerBlacklist'] = array_values($data["triggerBlacklist"]);
+        $data['appBlockList'] = array_values($data["appBlockList"]);
 
         return $data;
     }
@@ -1134,6 +1170,9 @@ class UserController extends Controller {
             if ($listType == "triggerBlacklist") {
                 $key = "CustomTriggerBlacklist";
             }
+            if ($listType == "appBlockList") {
+                $key = "CustomBlockedApps";
+            }
 
             if (!isset($config->$key)) {
                 $config->$key = [];
@@ -1179,6 +1218,13 @@ class UserController extends Controller {
         }
         $this->saveSelfModerationList($customTriggerBlacklist, $user, "CustomTriggerBlacklist");
 
+        if ($request->has('appBlockList')) {
+            $customBlockedApps = Utils::purgeNulls($request->input('appBlockList'));
+        } else {
+            $customBlockedApps = [];
+        }
+        $this->saveSelfModerationList($customBlockedApps, $user, "CustomBlockedApps");
+
         return '{}';
     }
 
@@ -1196,7 +1242,6 @@ class UserController extends Controller {
         if (json_last_error() != JSON_ERROR_NONE) {
             $userConfig = new \stdClass();
         }
-
         $perActivationsList = $this->preparePerUserActivationsArray($user);
         $perActivationsList = $this->filterSelfModerationArrays($list, $filterVarFlag, $perActivationsList);
 
@@ -1236,7 +1281,7 @@ class UserController extends Controller {
             $activationId = trim($item['activation']);
             $value = filter_var(trim($item['value']), $filterVarFlag);
             if ($value !== false && !empty($value) && isset($perActivationsList[$activationId])) {//to be sure we set values only for this user's activations
-                $perActivationsList[$activationId][$value] = $value;
+                $perActivationsList[$activationId][] = $value;
             }
         }
 
@@ -1244,9 +1289,12 @@ class UserController extends Controller {
         foreach ($list as $item) {
             $activationId = trim($item['activation']);
             $value = filter_var(trim($item['value']), $filterVarFlag);
-            if ($activationId != self::ID_ACTIVATION_ALL && isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
-                unset($perActivationsList[$activationId][$value]);
+            if ($activationId != self::ID_ACTIVATION_ALL) { //&& isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
+                $perActivationsList[$activationId] = Arr::except($perActivationsList[$activationId], $perActivationsList[self::ID_ACTIVATION_ALL]);
             }
+/*            //if ($activationId != self::ID_ACTIVATION_ALL && isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
+            //    unset($perActivationsList[$activationId][$value]);
+            //}*/
         }
 
         return $perActivationsList;

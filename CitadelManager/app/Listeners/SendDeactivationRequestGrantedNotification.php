@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Events\AccountabilityPartnerEvent;
 use App\Events\DeactivationRequestGranted;
 use App\Mail\DeactivationRequestGrantedMail;
 use GuzzleHttp\Client;
@@ -48,5 +49,15 @@ class SendDeactivationRequestGrantedNotification
                 'alert' => '',
             ],
         ]);
+        event(new AccountabilityPartnerEvent(
+            $user,
+            'CV4W_DEACTIVATION_REQUEST_GRANTED',
+            'CV4W_WEBHOOK',
+            '',
+            $contents->render(),
+            2,
+            10)
+        );
+
     }
 }

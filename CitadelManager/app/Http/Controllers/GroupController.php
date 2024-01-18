@@ -46,7 +46,7 @@ class GroupController extends Controller
         $query = Group::with(['assignedFilterIds', 'userCount'])
             ->select('groups.*')
             ->when($search, function ($query) use ($search) {
-                return $query->where('groups.name', 'like', "%$search%");
+                return $query->where('groups.name', 'like', "%$search%")->orWhere('groups.notes', 'like', "%$search%");
             })
             ->when(($order_name == 'name' || $order_name == 'isactive' || $order_name == 'created_at'), function ($query) use ($order_str, $order_name) {
                 return $query->orderBy($order_name, $order_str);
@@ -106,6 +106,7 @@ class GroupController extends Controller
             $group_data[] = array(
                 "id" => $group->id,
                 "name" => $group->name,
+                "notes" => $group->notes,
                 "user_count" => $user_count,
                 "app_cfg" => $group->app_cfg,
                 "isactive" => $group->isactive,
@@ -154,10 +155,12 @@ class GroupController extends Controller
             "asc" => $order_str,
         ]);
     }
+
     public function get_groups()
     {
         return Group::select("id", "name")->get();
     }
+
     public function updateField(Request $request)
     {
         $id = $request->input('id');
@@ -215,46 +218,7 @@ class GroupController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
-            'name' => 'required',
-        ]);
-
-        $groupInput = $request->except(['/api/admin/groups','assigned_filter_ids', 'assigned_app_groups']);
-        $groupListAssigments = $request->only('assigned_filter_ids');
-        $assignedAppgroups = $request->only('assigned_app_groups');
-
-        $myGroup = Group::firstOrCreate($groupInput);
-
-        if (!is_null($groupListAssigments) && array_key_exists('assigned_filter_ids', $groupListAssigments) && is_array($groupListAssigments['assigned_filter_ids'])) {
-            $createdAt = Carbon::now();
-            $updatedAt = Carbon::now();
-            $groupListAssignmentMassInsert = array();
-
-            foreach ($groupListAssigments['assigned_filter_ids'] as $groupList) {
-                $groupList['group_id'] = $myGroup->id;
-                $groupList['created_at'] = $createdAt;
-                $groupList['updated_at'] = $updatedAt;
-                array_push($groupListAssignmentMassInsert, $groupList);
-            }
-
-            GroupFilterAssignment::insertIgnore($groupListAssignmentMassInsert);
-        }
-
-        if (array_key_exists('assigned_app_groups', $assignedAppgroups) && is_array($assignedAppgroups['assigned_app_groups'])) {
-            $arr_app_groups = array();
-            foreach ($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
-                $arr = array(
-                    'user_group_id' => $myGroup->id,
-                    'app_group_id' => $app_group_id,
-                );
-                array_push($arr_app_groups, $arr);
-                //UserGroupToAppGroup::create($arr);
-            }
-            UserGroupToAppGroup::insert($arr_app_groups);
-        }
-        $myGroup->rebuildGroupData();
-
-        return response('', 204);
+        return $this->updateGroup($request);
     }
 
     /**
@@ -289,18 +253,31 @@ class GroupController extends Controller
      */
     public function update(Request $request, $id)
     {
+        return $this->updateGroup($request, $id);
+    }
+
+    private function updateGroup(Request $request, $groupId=null) {
         $this->validate($request, [
             'name' => 'required',
         ]);
 
         //$groupInput = $request->except(['assigned_filter_ids', 'assigned_app_groups']);
-	$groupInput = $request->only(['name','app_cfg','isactive']);
+        $groupInput = $request->only(['name','app_cfg','isactive', 'notes']);
         $groupListAssigments = $request->only('assigned_filter_ids');
         $assignedAppgroups = $request->only('assigned_app_groups');
+        $blockedAppgroups = $request->only('blocked_app_groups');
+        $appGroupType = $request->only('app_group_type');
+        if(is_array($appGroupType)) {
+            $appGroupType = array_first($appGroupType);
+        }
+        $group = Group::firstOrNew(["id" => $groupId]);
+        if(!isset($groupInput["notes"])) {
+            $groupInput["notes"] = "";
+        }
+        $group->fill($groupInput);
+        $group->save();
 
-        Group::where('id', $id)->update($groupInput);
-
-        GroupFilterAssignment::where('group_id', $id)->delete();
+        GroupFilterAssignment::where('group_id', $group->id)->delete();
 
         if (!is_null($groupListAssigments) && array_key_exists('assigned_filter_ids', $groupListAssigments) && is_array($groupListAssigments['assigned_filter_ids'])) {
             $createdAt = Carbon::now();
@@ -308,7 +285,7 @@ class GroupController extends Controller
             $groupListAssignmentMassInsert = array();
 
             foreach ($groupListAssigments['assigned_filter_ids'] as $groupList) {
-                $groupList['group_id'] = $id;
+                $groupList['group_id'] = $group->id;
                 $groupList['created_at'] = $createdAt;
                 $groupList['updated_at'] = $updatedAt;
                 array_push($groupListAssignmentMassInsert, $groupList);
@@ -317,28 +294,38 @@ class GroupController extends Controller
             GroupFilterAssignment::insertIgnore($groupListAssignmentMassInsert);
         }
 
-        UserGroupToAppGroup::where('user_group_id', $id)->delete();
+        UserGroupToAppGroup::where('user_group_id', $group->id)->delete();
         if (array_key_exists('assigned_app_groups', $assignedAppgroups) && is_array($assignedAppgroups['assigned_app_groups'])) {
             $arr_app_groups = array();
+            $filterType = $appGroupType == "Whitelist" ? UserGroupToAppGroup::FILTER_TYPE_WHITELIST : UserGroupToAppGroup::FILTER_TYPE_BLACKLIST;
             foreach ($assignedAppgroups['assigned_app_groups'] as $app_group_id) {
                 $arr = array(
-                    'user_group_id' => $id,
+                    'user_group_id' => $group->id,
                     'app_group_id' => $app_group_id,
+                    'filter_type' => $filterType
                 );
                 array_push($arr_app_groups, $arr);
                 //UserGroupToAppGroup::create($arr);
             }
             UserGroupToAppGroup::insert($arr_app_groups);
         }
-        $thisGroup = Group::where('id', $id)->first();
 
-        if (!is_null($thisGroup)) {
-            // Update timestamps.
-            $thisGroup->touch();
-
-            // Rebuild payload for this group.
-            $thisGroup->rebuildGroupData();
+        if (array_key_exists('blocked_app_groups', $blockedAppgroups) && is_array($blockedAppgroups['blocked_app_groups'])) {
+            $arr_app_groups = array();
+            foreach ($blockedAppgroups['blocked_app_groups'] as $app_group_id) {
+                $arr = array(
+                    'user_group_id' => $group->id,
+                    'app_group_id' => $app_group_id,
+                    'filter_type' => UserGroupToAppGroup::FILTER_TYPE_BLOCK_APPS
+                );
+                array_push($arr_app_groups, $arr);
+                //UserGroupToAppGroup::create($arr);
+            }
+            UserGroupToAppGroup::insert($arr_app_groups);
         }
+
+        $group->touch();
+        $group->rebuildGroupData();
 
         return response('', 204);
     }
@@ -371,7 +358,7 @@ class GroupController extends Controller
         return response('', 204);
     }
 
-    public function get_app_data()
+    public function get_app_data($type, $groupId)
     {
         $apps = App::get();
         $app_groups = AppGroup::get();
@@ -383,16 +370,21 @@ class GroupController extends Controller
         ]);
     }
 
-    public function get_app_data_with_groupid($group_id)
+    public function get_app_data_with_groupid($groupId=null)
     {
         $apps = App::get();
         $app_groups = AppGroup::get();
         $group_to_apps = AppGroupToApp::get();
-        $selected_app_groups = UserGroupToAppGroup::where('user_group_id', $group_id)->get();
+        if($groupId) {
+            $selected_app_groups = UserGroupToAppGroup::where('user_group_id', $groupId)->get();
+        } else {
+            $selected_app_groups = [];
+        }
         return response()->json([
             'apps' => $apps,
             'app_groups' => $app_groups,
             'group_to_apps' => $group_to_apps,
-            'selected_app_groups' => $selected_app_groups]);
+            'selected_app_groups' => $selected_app_groups
+        ]);
     }
 }

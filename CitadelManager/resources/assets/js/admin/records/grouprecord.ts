@@ -8,18 +8,326 @@
 ///<reference path="../../progresswait.ts"/>
 
 namespace Citadel {
+    class AppGroupEditor {
+        FILTER_TYPE_WHITELIST = 0;
+        FILTER_TYPE_BLACKLIST = 1;
+        FILTER_TYPE_BLOCK_APPS = 2;
+        URL_GET_APP_DATA            = 'api/admin/get_app_data';
+        TITLE_ACTION_FAILED         = 'Action Failed';
+        MESSAGE_ACTION_FAILED       = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
+        ERROR_MESSAGE_DELAY_TIME    = 5000;
+
+        private m_apps                  : any[];
+        private m_group_to_apps         : any[];
+        private m_app_groups            : any[]; // all Groups
+        private m_left_groups           : any[]; // unselected groups
+        private m_right_groups          : any[]; // selected groups
+        private m_selected_apps         : any[]; // selected applications
+
+        // ──────────────────────────────────────────────
+        //   :::::: App Group   E L E M E N T S ::::::
+        // ──────────────────────────────────────────────
+        private m_select_AG_Source              : HTMLSelectElement;
+        private m_select_AG_Target              : HTMLSelectElement;
+        private m_selectedApplicationsList      : HTMLDivElement;
+        private m_btn_AG_S_To_T_All             : HTMLButtonElement;
+        private m_btn_AG_S_To_T_One             : HTMLButtonElement;
+        private m_btn_AG_T_To_S_One             : HTMLButtonElement;
+        private m_btn_AG_T_To_S_All             : HTMLButtonElement;
+
+        private m_inputBlacklist                : HTMLInputElement;     // Radio Button
+        private m_inputWhitelist                : HTMLInputElement;     // Radio Button
+
+        private m_progressWait: ProgressWait;
+        private m_btnSubmit                     : HTMLButtonElement;
+        private forcedType?: string;
+
+        constructor(tabId: string, progressWait: ProgressWait, btnSubmit: HTMLButtonElement, forceType?: string) {
+            this.m_inputBlacklist               = document.querySelector(tabId + ' input.radio_blacklist') as HTMLInputElement;
+            this.m_inputWhitelist               = document.querySelector(tabId + ' input.radio_whitelist') as HTMLInputElement;
+
+            this.m_select_AG_Source             = document.querySelector(tabId + ' select.appgroup_source_list') as HTMLSelectElement;
+            this.m_select_AG_Target             = document.querySelector(tabId + ' select.appgroup_target_list') as HTMLSelectElement;
+            this.m_btn_AG_S_To_T_All            = document.querySelector(tabId + ' button.appgroups_source_to_target') as HTMLButtonElement;
+            this.m_btn_AG_S_To_T_One            = document.querySelector(tabId + ' button.appgroup_source_to_target') as HTMLButtonElement;
+            this.m_btn_AG_T_To_S_One            = document.querySelector(tabId + ' button.appgroup_target_to_source') as HTMLButtonElement;
+            this.m_btn_AG_T_To_S_All            = document.querySelector(tabId + ' button.appgroups_target_to_source') as HTMLButtonElement;
+            this.m_selectedApplicationsList     = document.querySelector(tabId + ' div.selected_applications') as HTMLDivElement;
+
+            this.m_progressWait = progressWait;
+            this.m_btnSubmit = btnSubmit;
+
+            this.forcedType = forceType;
+            this.InitButtonHandlers();
+        }
+
+        private InitButtonHandlers(): void {
+            this.m_btn_AG_S_To_T_All.onclick = ((e: MouseEvent): any => {
+                this.onMoveRightAllClicked(e);
+            });
+            this.m_btn_AG_S_To_T_One.onclick = ((e: MouseEvent): any => {
+                this.onMoveRightClicked(e);
+            });
+            this.m_btn_AG_T_To_S_One.onclick = ((e: MouseEvent): any => {
+                this.onMoveLeftClicked(e);
+            });
+            this.m_btn_AG_T_To_S_All.onclick = ((e: MouseEvent): any => {
+                this.onMoveLeftAllClicked(e);
+            });
+        }
+
+        public getSelectedGroups(): any[] {
+            return this.m_right_groups;
+        }
+
+        public serializeFilterKey(): string {
+            if(this.forcedType != null) {
+                return this.forcedType;
+            }
+            let filterAppsKey = 'Whitelist';
+            if (this.m_inputBlacklist.checked) {
+                filterAppsKey = 'Blacklist';
+            }
+            return filterAppsKey;
+        }
+
+        public filterKeyAsInt(): number {
+            switch (this.serializeFilterKey()) {
+                case "Whitelist":
+                    return this.FILTER_TYPE_WHITELIST;
+                case "Blacklist":
+                    return this.FILTER_TYPE_BLACKLIST;
+            }
+            return this.FILTER_TYPE_BLOCK_APPS;
+        }
+
+        public deserializeFilterKey(appConfig: object): void {
+             if ('Whitelist' in appConfig) {
+                this.m_inputWhitelist.checked = true;
+            } else {
+                this.m_inputBlacklist.checked = true;
+            }
+        }
+
+        private getGroupItem(group_id) {
+            var group_item = null;
+            this.m_app_groups.forEach((item: any): void => {
+                if (item.id == group_id) {
+                    group_item = item;
+                    return;
+                }
+            });
+
+            return group_item;
+        }
+
+        private get_appications_by_groupid(group_id) {
+            let arr = [];
+            this.m_group_to_apps.forEach((group_item): void => {
+                if (group_item.app_group_id == group_id) {
+                    arr.push(group_item.app_id);
+                }
+            });
+            return arr;
+        }
+
+        private get_application(app_id) {
+            var item = {
+                name: 'none'
+            };
+            this.m_apps.forEach((app): void => {
+                if (app.id == app_id) {
+                    item = app;
+                    return;
+                }
+            });
+            return item;
+        }
+
+        private _drawSelectedApps() {
+            var str_html = '';
+            this.m_selected_apps = [];
+            var appNames = [];
+            if (this.m_right_groups.length > 0) {
+                this.m_right_groups.forEach((group_id): void => {
+                    var app_ids = this.get_appications_by_groupid(group_id);
+                    for (var i = 0; i < app_ids.length; i++) {
+                        if (this.m_selected_apps.indexOf(app_ids[i]) < 0) {
+                            this.m_selected_apps.push(app_ids[i]);
+                            let app_item = this.get_application(app_ids[i]);
+                            appNames.push(app_item.name);
+                        }
+                    }
+                });
+            }
+            appNames = appNames.sort((name1, name2): number => {
+                return name1.toLowerCase() <= name2.toLowerCase() ? -1 : 1;
+            });
+
+            $(this.m_selectedApplicationsList).empty();
+            for(var i=0; i<appNames.length; i++) {
+                $(this.m_selectedApplicationsList).append('<div>' + appNames[i] + '</div>');
+            }
+        }
+
+        public loadAppGroupDatas(groupId?: number): void {
+            let that = this;
+
+            this.m_apps = [];
+            this.m_app_groups = [];
+            this.m_btnSubmit.disabled = true;
+
+            $("#spiner_4").show();
+            var url = this.URL_GET_APP_DATA;
+            if (groupId) {
+                url += '/' + groupId;
+            }
+            let ajaxSettings: JQueryAjaxSettings = {
+                method: "GET",
+                timeout: 60000,
+                url: url,
+                data: {},
+                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
+                    this.m_apps = data.apps;
+                    this.m_app_groups = data.app_groups;
+                    this.m_group_to_apps = data.group_to_apps;
+                    let filter_type = this.filterKeyAsInt();
+                    if (groupId) {
+                        let selected_app_groups = data.selected_app_groups.filter((item): Boolean => {
+                            return item.filter_type == filter_type;
+                        });
+
+                        this.m_left_groups = [];
+                        this.m_right_groups = [];
+                        if (selected_app_groups.length > 0) {
+                            this.m_app_groups.forEach((app_group: any): void => {
+                                this.m_left_groups.push(app_group.id);
+                            });
+                            selected_app_groups.forEach((app_group: any): void => {
+                                this.m_right_groups.push(app_group.app_group_id);
+                                let pos = this.m_left_groups.indexOf(app_group.app_group_id);
+                                this.m_left_groups.splice(pos, 1);
+                            });
+                        } else {
+                            this.m_app_groups.forEach((app_group: any): void => {
+                                this.m_left_groups.push(app_group.id);
+                            });
+                        }
+                    } else {
+                        this.m_left_groups = [];
+                        this.m_right_groups = [];
+                        this.m_app_groups.forEach((app_group: any): void => {
+                            this.m_left_groups.push(app_group.id);
+                        });
+                    }
+
+                    this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
+                    this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
+                    this._drawSelectedApps();
+
+                    $("#spiner_4").hide();
+                    this.m_btnSubmit.disabled = false;
+
+                    return false;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    $("#spiner_4").hide();
+                    that.m_progressWait.Show(that.TITLE_ACTION_FAILED, that.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
+                    setTimeout(() => {
+                        this.m_progressWait.Hide();
+                    }, that.ERROR_MESSAGE_DELAY_TIME);
+                }
+            }
+
+            $.ajax(ajaxSettings);
+        }
+
+
+        private _drawGroups(groupData: any[], groupCtrl: HTMLSelectElement): void {
+            $(groupCtrl).empty();
+
+            let that = this;
+            if (groupData.length == 0) return;
+
+            let groupDataSorted = groupData.sort((id1, id2): number => {
+                let item1 = that.getGroupItem(id1);
+                let item2= that.getGroupItem(id2);
+                return item1.group_name.toLowerCase() <= item2.group_name.toLowerCase() ? -1 : 1;
+            });
+
+            groupDataSorted.forEach((group_id): void => {
+                var newOption = document.createElement("option");
+                var item = that.getGroupItem(group_id);
+                newOption.text = item.group_name;
+                newOption.value = item.id;
+                groupCtrl.add(newOption);
+            });
+        }
+
+        public onMoveRightAllClicked(e: MouseEvent): void {
+            this.m_left_groups.forEach((group_id): void => {
+                this.m_right_groups.push(group_id);
+            });
+            this.m_left_groups = [];
+
+            this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
+            this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
+            this._drawSelectedApps();
+        }
+
+        public onMoveLeftAllClicked(e: MouseEvent): void {
+            this.m_right_groups.forEach((group_id): void => {
+                this.m_left_groups.push(group_id);
+            });
+            this.m_right_groups = [];
+
+            this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
+            this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
+            this._drawSelectedApps();
+        }
+
+        public onMoveRightClicked(e: MouseEvent): void {
+            if (this.m_select_AG_Source.selectedIndex == -1) return;
+
+            for (var i = 0; i < this.m_select_AG_Source.selectedOptions.length; i++) {
+                let sel_id = parseInt(this.m_select_AG_Source.selectedOptions[i].value);
+                let sel_seq_idx = this.m_left_groups.indexOf(sel_id);
+                this.m_left_groups.splice(sel_seq_idx, 1);
+                this.m_right_groups.push(sel_id);
+            }
+
+            this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
+            this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
+            this._drawSelectedApps();
+        }
+
+        public onMoveLeftClicked(e: MouseEvent): void {
+            if (this.m_select_AG_Target.selectedIndex == -1) return;
+
+            for (var i = 0; i < this.m_select_AG_Target.selectedOptions.length; i++) {
+                let sel_id = parseInt(this.m_select_AG_Target.selectedOptions[i].value);
+                let sel_seq_idx = this.m_right_groups.indexOf(sel_id);
+                this.m_right_groups.splice(sel_seq_idx, 1);
+                this.m_left_groups.push(sel_id);
+            }
+
+            this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
+            this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
+            this._drawSelectedApps();
+        }
+    }
+
     export class GroupRecord extends BaseRecord {
         // ───────────────────────────────────────────────────
         //   :::::: C O N S T       V A R I A B L E S ::::::
         // ───────────────────────────────────────────────────
+        MIN_UPDATE_INTERVAL_MINUTES = 30;
         ERROR_MESSAGE_EMAIL         = 'A valid group name is required.';
-
+        ERROR_MESSAGE_UPDATE_FREQUENCY = 'Minimum update interval is ' + this.MIN_UPDATE_INTERVAL_MINUTES + " minutes";
         MESSAGE_PLACE_HOLDER        = 'Type To Filter Selection';
         MESSAGE_REPORT_LABEL        = 'Report blocked sites back to server';
         MESSAGE_NO_REPORT_LABEL     = 'No reporting back to server';
-        MESSAGE_ACTION_FAILED       = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
 
-        TITLE_ACTION_FAILED         = 'Action Failed';
         TITLE_NEW_GROUP             = 'Create New Group';
         TITLE_CLONE_GROUP           = 'Clone Group';
         TITLE_EDIT_GROUP            = 'Edit Group';
@@ -28,11 +336,9 @@ namespace Citadel {
         BTN_LABEL_CLONE_GROUP       = 'Clone';
         BTN_LABEL_EDIT_GROUP        = 'Save';
 
-        ERROR_MESSAGE_DELAY_TIME    = 5000;
         FADE_IN_DELAY_TIME          = 200;
 
         URL_ROUTE                   = 'api/admin/groups';
-        URL_GET_APP_DATA            = 'api/admin/get_app_data';
 
         // ─────────────────────────────────────────────────────
         //   :::::: G R O U P   D A T A   M E M B E R S ::::::
@@ -40,16 +346,13 @@ namespace Citadel {
 
         private m_groupId               : number;
         private m_groupName             : string;
+        private m_notes             : string;
         private m_isActive              : number;
         private m_assignedFilterIds     : Object[];
         private m_appConfig             : Object;
 
-        private m_apps                  : any[];
-        private m_group_to_apps         : any[];
-        private m_app_groups            : any[]; // all Groups
-        private m_left_groups           : any[]; // unselected groups
-        private m_right_groups          : any[]; // selected groups
-        private m_selected_apps         : any[]; // selected applications
+        private m_filterListGroupEditor: AppGroupEditor;
+        private m_blockedAppsGroupEditor: AppGroupEditor;
 
         // ─────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -72,6 +375,10 @@ namespace Citadel {
         private m_inputReportLevel      : HTMLInputElement;     // check box
         private m_labelReportLevel      : HTMLLabelElement;
         private m_selectChannel         : HTMLSelectElement;
+        private m_inputNotes            : HTMLTextAreaElement;
+
+        private m_btnSubmit                     : HTMLButtonElement;
+        private m_btnCancel                     : HTMLButtonElement;
 
         // ──────────────────────────────────────────────
         //   :::::: AntiTemper   E L E M E N T S ::::::
@@ -85,22 +392,7 @@ namespace Citadel {
         private m_input_AT_BypassesPerDay       : HTMLInputElement;
         private m_input_AT_BypassDuration       : HTMLInputElement;
 
-        // ──────────────────────────────────────────────
-        //   :::::: App Group   E L E M E N T S ::::::
-        // ──────────────────────────────────────────────
-        private m_select_AG_Source              : HTMLSelectElement;
-        private m_select_AG_Target              : HTMLSelectElement;
 
-        private m_btn_AG_S_To_T_All             : HTMLButtonElement;
-        private m_btn_AG_S_To_T_One             : HTMLButtonElement;
-        private m_btn_AG_T_To_S_One             : HTMLButtonElement;
-        private m_btn_AG_T_To_S_All             : HTMLButtonElement;
-
-        private m_inputBlacklist                : HTMLInputElement;     // Radio Button
-        private m_inputWhitelist                : HTMLInputElement;     // Radio Button
-
-        private m_btnSubmit                     : HTMLButtonElement;
-        private m_btnCancel                     : HTMLButtonElement;
 
         // ─────────────────────────────────────────────────────────────────────
         //   :::::: F I L T E R   L I S T   A S S I G M E N T   A R E A ::::::
@@ -144,9 +436,14 @@ namespace Citadel {
                 required: true,
                 minlength: 1
             };
+            validationRules[this.m_inputFrequency.id] = {
+                required: true,
+                min: this.MIN_UPDATE_INTERVAL_MINUTES,
+            };
 
             let validationErrorMessages = {};
             validationErrorMessages[this.m_inputGroupName.id] = this.ERROR_MESSAGE_EMAIL;
+            validationErrorMessages[this.m_inputFrequency.id] = this.ERROR_MESSAGE_UPDATE_FREQUENCY;
 
             let validationOptions: JQueryValidation.ValidationOptions = {
                 rules: validationRules,
@@ -173,6 +470,7 @@ namespace Citadel {
             this.m_inputSecondaryDNS    = document.querySelector('#editor_cfg_secondary_dns_input') as HTMLInputElement;
             this.m_inputReportLevel     = document.querySelector('#editor_group_report_level') as HTMLInputElement;
             this.m_labelReportLevel     = document.querySelector('#report_level_text') as HTMLLabelElement;
+            this.m_inputNotes          = document.querySelector('#editor_cfg_notes_input') as HTMLTextAreaElement;
 
             let ipv4andv6OnlyFilter = (e: KeyboardEvent) => {
                 let inputBox = e.target as HTMLInputElement;
@@ -197,6 +495,9 @@ namespace Citadel {
             this.m_inputTrigerMaxsize               = document.querySelector('#editor_cfg_trigger_max_size_input') as HTMLInputElement;
             this.m_selectChannel                    = document.querySelector('#editor_cfg_update_channel_input') as HTMLSelectElement;
 
+            this.m_btnSubmit                    = document.querySelector('#group_editor_submit') as HTMLButtonElement;
+            this.m_btnCancel                    = document.querySelector('#group_editor_cancel') as HTMLButtonElement;
+
             this.m_inputNlpThreshold.onkeyup = (e: KeyboardEvent) => {
                 let inputBox = e.target as HTMLInputElement;
                 let value = inputBox.valueAsNumber;
@@ -210,19 +511,9 @@ namespace Citadel {
                 }
             };
 
-            this.m_inputBlacklist               = document.querySelector('#group_filteredapps_radio_blacklist') as HTMLInputElement;
-            this.m_inputWhitelist               = document.querySelector('#group_filteredapps_radio_whitelist') as HTMLInputElement;
 
-            this.m_select_AG_Source             = document.querySelector('#appgroup_source_list') as HTMLSelectElement;
-            this.m_select_AG_Target             = document.querySelector('#appgroup_target_list') as HTMLSelectElement;
-            this.m_btn_AG_S_To_T_All            = document.querySelector('#appgroups_source_to_target') as HTMLButtonElement;
-            this.m_btn_AG_S_To_T_One            = document.querySelector('#appgroup_source_to_target') as HTMLButtonElement;
-            this.m_btn_AG_T_To_S_One            = document.querySelector('#appgroup_target_to_source') as HTMLButtonElement;
-            this.m_btn_AG_T_To_S_All            = document.querySelector('#appgroups_target_to_source') as HTMLButtonElement;
-
-            this.m_btnSubmit                    = document.querySelector('#group_editor_submit') as HTMLButtonElement;
-            this.m_btnCancel                    = document.querySelector('#group_editor_cancel') as HTMLButtonElement;
-
+            this.m_filterListGroupEditor = new AppGroupEditor("#app_filtering_tab", this.m_progressWait, this.m_btnSubmit);
+            this.m_blockedAppsGroupEditor = new AppGroupEditor("#app_blocking_tab", this.m_progressWait, this.m_btnSubmit, "blocklist");
             this.InitButtonHandlers();
         }
 
@@ -287,6 +578,7 @@ namespace Citadel {
             this.m_container_Whitelist      = document.querySelector('#group_whitelist_filters') as HTMLDivElement;
             this.m_container_ByPass         = document.querySelector('#group_bypass_filters') as HTMLDivElement;
             this.m_container_Unassigned     = document.querySelector('#group_unassigned_filters') as HTMLDivElement;
+
         }
 
         private ResetSearchBoxes(): void {
@@ -336,21 +628,7 @@ namespace Citadel {
                 this.StopEditing();
             });
 
-            this.m_btn_AG_S_To_T_All.onclick = ((e: MouseEvent): any => {
-                this.onMoveRightAllClicked(e);
-            });
-            this.m_btn_AG_S_To_T_One.onclick = ((e: MouseEvent): any => {
-                this.onMoveRightClicked(e);
-            });
-            this.m_btn_AG_T_To_S_One.onclick = ((e: MouseEvent): any => {
-                this.onMoveLeftClicked(e);
-            });
-            this.m_btn_AG_T_To_S_All.onclick = ((e: MouseEvent): any => {
-                this.onMoveLeftAllClicked(e);
-            });
-
             this.m_btnSubmit.onclick = ((e: MouseEvent): any => {
-
                 if (this.m_mainForm.onsubmit != null) {
                     this.m_mainForm.onsubmit(new Event("submit"));
                 }
@@ -361,10 +639,13 @@ namespace Citadel {
             let obj = {
                 'id'                    : this.m_groupId,
                 'name'                  : this.m_groupName,
+                'notes'                  : this.m_notes,
                 'isactive'              : this.m_isActive,
                 'assigned_filter_ids'   : this.m_assignedFilterIds,
                 'app_cfg'               : JSON.stringify(this.m_appConfig),
-                'assigned_app_groups'   : this.m_right_groups
+                'app_group_type': this.m_filterListGroupEditor.serializeFilterKey(),
+                'assigned_app_groups'   : this.m_filterListGroupEditor.getSelectedGroups(),
+                'blocked_app_groups'   : this.m_blockedAppsGroupEditor.getSelectedGroups(),
             };
 
             return obj;
@@ -373,6 +654,7 @@ namespace Citadel {
         protected LoadFromObject(data: Object): void {
             this.m_groupId           = data['id'] as number;
             this.m_groupName         = data['name'] as string;
+            this.m_notes               = data['notes'] as string;
             this.m_isActive          = data['isactive'];
             this.m_assignedFilterIds = data['assigned_filter_ids'] as Object[];
             this.m_appConfig         = JSON.parse(data['app_cfg']);
@@ -380,6 +662,7 @@ namespace Citadel {
 
         protected LoadFromForm(): void {
             this.m_groupName        = this.m_inputGroupName.value;
+            this.m_notes = this.m_inputNotes.value;
             this.m_isActive         = this.m_inputIsActive.checked == true ? 1 : 0;
 
             let allAssignedFilters  = new Array < Object > ();
@@ -406,13 +689,17 @@ namespace Citadel {
 
             this.m_assignedFilterIds = allAssignedFilters;
 
-            let filterAppsKey = 'Blacklist';
-            if (!this.m_inputBlacklist.checked) {
-                filterAppsKey = 'Whitelist';
+            let filterAppsKey = this.m_filterListGroupEditor.serializeFilterKey();
+
+            var updateFrequency = this.m_inputFrequency.valueAsNumber;
+            if(updateFrequency < this.MIN_UPDATE_INTERVAL_MINUTES) {
+                updateFrequency = this.MIN_UPDATE_INTERVAL_MINUTES;
+                this.m_inputFrequency.valueAsNumber = updateFrequency;
             }
 
+
             let appConfig = {
-                'UpdateFrequency': this.m_inputFrequency.valueAsNumber,
+                'UpdateFrequency': updateFrequency,
                 'PrimaryDns': this.m_inputPrimaryDNS.value,
                 'SecondaryDns': this.m_inputSecondaryDNS.value,
                 'CannotTerminate': this.m_input_AT_NoTerminate.checked,
@@ -426,79 +713,13 @@ namespace Citadel {
                 'NlpThreshold': this.m_inputNlpThreshold.valueAsNumber,
                 'MaxTextTriggerScanningSize': this.m_inputTrigerMaxsize.valueAsNumber,
                 'UpdateChannel': this.m_selectChannel.options[this.m_selectChannel.selectedIndex].value,
-                'ReportLevel': this.m_inputReportLevel.checked ? 1 : 0,
+                'ReportLevel': this.m_inputReportLevel.checked ? 1 : 0
             };
 
             appConfig[filterAppsKey] = "checked";
             this.m_appConfig = appConfig;
         }
 
-        private getGroupItem(group_id) {
-            var group_item = null;
-            this.m_app_groups.forEach((item: any): void => {
-                if (item.id == group_id) {
-                    group_item = item;
-                    return;
-                }
-            });
-
-            return group_item;
-        }
-
-        private get_appications_by_groupid(group_id) {
-            let arr = [];
-            this.m_group_to_apps.forEach((group_item): void => {
-                if (group_item.app_group_id == group_id) {
-                    arr.push(group_item.app_id);
-                }
-            });
-            return arr;
-        }
-
-        private get_application(app_id) {
-            var item = {
-                name: 'none'
-            };
-            this.m_apps.forEach((app): void => {
-                if (app.id == app_id) {
-                    item = app;
-                    return;
-                }
-            });
-            return item;
-        }
-
-        private _drawGroups(groupData: any[], groupCtrl: HTMLSelectElement): void {
-            $(groupCtrl).empty();
-
-            let that = this;
-            if (groupData.length == 0) return;
-            groupData.forEach((group_id): void => {
-                var newOption = document.createElement("option");
-                var item = that.getGroupItem(group_id);
-                newOption.text = item.group_name;
-                newOption.value = item.id;
-                groupCtrl.add(newOption);
-            });
-        }
-
-        private _drawSelectedApps() {
-            var str_html = '';
-            this.m_selected_apps = [];
-            if (this.m_right_groups.length > 0) {
-                this.m_right_groups.forEach((group_id): void => {
-                    var app_ids = this.get_appications_by_groupid(group_id);
-                    for (var i = 0; i < app_ids.length; i++) {
-                        if (this.m_selected_apps.indexOf(app_ids[i]) < 0) {
-                            this.m_selected_apps.push(app_ids[i]);
-                            let app_item = this.get_application(app_ids[i]);
-                            str_html += '<div>' + app_item.name + '</div>';
-                        }
-                    }
-                });
-            }
-            $('#selected_applications').html(str_html);
-        }
 
         private ClearFormErrorMessages(): void {
             var errElms = document.querySelectorAll('#group_form_errors > *');
@@ -506,74 +727,6 @@ namespace Citadel {
                 let elm = errElms.item(i);
                 elm.parentNode.removeChild(elm);
             }
-        }
-
-        private loadAppGroupDatas(flag: boolean): void {
-            let that = this;
-
-            this.m_apps = [];
-            this.m_app_groups = [];
-            this.m_btnSubmit.disabled = true;
-
-            $("#spiner_4").show();
-            var url = this.URL_GET_APP_DATA;
-            if (flag) {
-                url += '/' + this.m_groupId;
-            }
-            let ajaxSettings: JQueryAjaxSettings = {
-                method: "GET",
-                timeout: 60000,
-                url: url,
-                data: {},
-                success: (data: any, textStatus: string, jqXHR: JQueryXHR): any => {
-                    this.m_apps = data.apps;
-                    this.m_app_groups = data.app_groups;
-                    this.m_group_to_apps = data.group_to_apps;
-                    if (flag) {
-                        let selected_app_groups = data.selected_app_groups;
-                        this.m_left_groups = [];
-                        this.m_right_groups = [];
-                        if (selected_app_groups.length > 0) {
-                            this.m_app_groups.forEach((app_group: any): void => {
-                                this.m_left_groups.push(app_group.id);
-                            });
-                            selected_app_groups.forEach((app_group: any): void => {
-                                this.m_right_groups.push(app_group.app_group_id);
-                                let pos = this.m_left_groups.indexOf(app_group.app_group_id);
-                                this.m_left_groups.splice(pos, 1);
-                            });
-                        } else {
-                            this.m_app_groups.forEach((app_group: any): void => {
-                                this.m_left_groups.push(app_group.id);
-                            });
-                        }
-                    } else {
-                        this.m_left_groups = [];
-                        this.m_right_groups = [];
-                        this.m_app_groups.forEach((app_group: any): void => {
-                            this.m_left_groups.push(app_group.id);
-                        });
-                    }
-
-                    this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
-                    this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
-                    this._drawSelectedApps();
-
-                    $("#spiner_4").hide();
-                    this.m_btnSubmit.disabled = false;
-
-                    return false;
-                },
-                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
-                    $("#spiner_4").hide();
-                    that.m_progressWait.Show(that.TITLE_ACTION_FAILED, that.MESSAGE_ACTION_FAILED.replace('%ERROR_MSG', jqXHR.responseText));
-                    setTimeout(() => {
-                        this.m_progressWait.Hide();
-                    }, that.ERROR_MESSAGE_DELAY_TIME);
-                }
-            }
-
-            $.ajax(ajaxSettings);
         }
 
         public StartEditing(allFilters: DataTables.Api, data: Object = null, cloneData: Object = null): void {
@@ -737,26 +890,17 @@ namespace Citadel {
                                 this.m_inputSecondaryDNS.value = '';
                             }
 
-                            this.loadAppGroupDatas(true);
+                            this.m_filterListGroupEditor.loadAppGroupDatas(this.m_groupId);
+                            this.m_blockedAppsGroupEditor.loadAppGroupDatas(this.m_groupId);
+                            this.m_filterListGroupEditor.deserializeFilterKey(this.m_appConfig);
 
-                            if ('Blacklist' in this.m_appConfig) {
-                                this.m_inputBlacklist.checked = true;
-                                this.m_inputWhitelist.checked = false;
-                            } else if ('Whitelist' in this.m_appConfig) {
-                                this.m_inputBlacklist.checked = false;
-                                this.m_inputWhitelist.checked = true;
-                            } else {
-                                // Default
-                                this.m_inputBlacklist.checked = true;
-                                this.m_inputWhitelist.checked = false;
-                            }
                             this.m_groupId = undefined;
                         } else {
-
                             this.m_editorTitle.innerText = this.TITLE_NEW_GROUP;
                             this.m_btnSubmit.innerText = this.BTN_LABEL_CREATE_GROUP;
 
-                            this.loadAppGroupDatas(false);
+                            this.m_filterListGroupEditor.loadAppGroupDatas();
+                            this.m_blockedAppsGroupEditor.loadAppGroupDatas();
                             this.m_inputIsActive.checked = true;
                         }
                     }
@@ -771,6 +915,7 @@ namespace Citadel {
                         this.m_btnSubmit.innerText = this.BTN_LABEL_EDIT_GROUP;
 
                         this.m_inputGroupName.value = this.m_groupName;
+                        this.m_inputNotes.value = this.m_notes;
                         this.m_inputIsActive.checked = this.m_isActive != 0;
 
                         if (this.m_appConfig['ReportLevel'] === undefined)
@@ -809,7 +954,7 @@ namespace Citadel {
 
                         this.m_inputFrequency.valueAsNumber = parseInt(this.m_appConfig['UpdateFrequency']);
                         this.m_inputPrimaryDNS.value = this.m_appConfig['PrimaryDns'];
-                        this.m_inputSecondaryDNS.value = this.m_appConfig['SecondaryDns'];
+                        this.m_inputSecondaryDNS.value = this.m_appConfig['SecondaryDns'];;
 
                         if (this.m_inputPrimaryDNS.value == 'undefined') {
                             this.m_inputPrimaryDNS.value = '';
@@ -819,19 +964,9 @@ namespace Citadel {
                             this.m_inputSecondaryDNS.value = '';
                         }
 
-                        this.loadAppGroupDatas(true);
-
-                        if ('Blacklist' in this.m_appConfig) {
-                            this.m_inputBlacklist.checked = true;
-                            this.m_inputWhitelist.checked = false;
-                        } else if ('Whitelist' in this.m_appConfig) {
-                            this.m_inputBlacklist.checked = false;
-                            this.m_inputWhitelist.checked = true;
-                        } else {
-                            // Default
-                            this.m_inputBlacklist.checked = true;
-                            this.m_inputWhitelist.checked = false;
-                        }
+                        this.m_filterListGroupEditor.loadAppGroupDatas(this.m_groupId);
+                        this.m_filterListGroupEditor.deserializeFilterKey(this.m_appConfig);
+                        this.m_blockedAppsGroupEditor.loadAppGroupDatas(this.m_groupId)
                     }
                     break;
             }
@@ -863,56 +998,6 @@ namespace Citadel {
             $(this.m_editorOverlay).fadeOut(this.FADE_IN_DELAY_TIME);
         }
 
-        public onMoveRightAllClicked(e: MouseEvent): void {
-            this.m_left_groups.forEach((group_id): void => {
-                this.m_right_groups.push(group_id);
-            });
-            this.m_left_groups = [];
 
-            this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
-            this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
-            this._drawSelectedApps();
-        }
-
-        public onMoveLeftAllClicked(e: MouseEvent): void {
-            this.m_right_groups.forEach((group_id): void => {
-                this.m_left_groups.push(group_id);
-            });
-            this.m_right_groups = [];
-
-            this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
-            this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
-            this._drawSelectedApps();
-        }
-
-        public onMoveRightClicked(e: MouseEvent): void {
-            if (this.m_select_AG_Source.selectedIndex == -1) return;
-
-            for (var i = 0; i < this.m_select_AG_Source.selectedOptions.length; i++) {
-                let sel_id = parseInt(this.m_select_AG_Source.selectedOptions[i].value);
-                let sel_seq_idx = this.m_left_groups.indexOf(sel_id);
-                this.m_left_groups.splice(sel_seq_idx, 1);
-                this.m_right_groups.push(sel_id);
-            }
-
-            this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
-            this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
-            this._drawSelectedApps();
-        }
-
-        public onMoveLeftClicked(e: MouseEvent): void {
-            if (this.m_select_AG_Target.selectedIndex == -1) return;
-
-            for (var i = 0; i < this.m_select_AG_Target.selectedOptions.length; i++) {
-                let sel_id = parseInt(this.m_select_AG_Target.selectedOptions[i].value);
-                let sel_seq_idx = this.m_right_groups.indexOf(sel_id);
-                this.m_right_groups.splice(sel_seq_idx, 1);
-                this.m_left_groups.push(sel_id);
-            }
-
-            this._drawGroups(this.m_left_groups, this.m_select_AG_Source);
-            this._drawGroups(this.m_right_groups, this.m_select_AG_Target);
-            this._drawSelectedApps();
-        }
     }
 }

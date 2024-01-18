@@ -2,6 +2,8 @@
 <script src="{{ asset('js/admin/records/appuseractivationrecord.js') }}">
 </script>
 
+<script src="{{ asset('plugins/jquery-ui-1.13.2.custom/jquery-ui.min.js') }}"></script>
+
 <!-- User Editing Overlay -->
 <div class="bg-dark" id="overlay_activation_editor">
     <div id="div_activation_0">
@@ -17,13 +19,19 @@
                             <a href="#activation_info_tab">Activation</a>
                         </li>
                         <li>
-                            <a href="#activation_self_moderation_tab">Activation's Blocked Sites</a>
+                            <a href="#activation_self_moderation_tab">Blocked Sites</a>
                         </li>
                         <li>
-                            <a href="#activation_whitelist_tab">Activation's Allowed Sites</a>
+                            <a href="#activation_whitelist_tab">Allowed Sites</a>
                         </li>
                         <li>
-                            <a href="#activation_trigger_blacklist_tab">Activation's Blocked Triggers</a>
+                            <a href="#activation_trigger_blacklist_tab">Blocked Triggers</a>
+                        </li>
+                        <li>
+                            <a href="#activation_apps_blocked_tab">Blocked Apps</a>
+                        </li>
+                        <li>
+                            <a href="#time_restrictions_tab_activations">Time Restrictions</a>
                         </li>
                     </ul>
 
@@ -150,14 +158,25 @@
                                         />
                                     </div>
                                 </div>
-
+                                <div class="cell cell-auto-size padding-left-100">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_activation_input_update_channel">Update Channel:</label>
+                                        <select name="editor_activation_input_update_channel"
+                                                id="editor_activation_input_update_channel">
+                                            <option value=""></option>
+                                            <option value="Stable">Stable</option>
+                                            <option value="Alpha">Alpha</option>
+                                            <option value="Beta">Beta</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="frame" id="activation_self_moderation_tab">
                             <div class="grid" id="activation_self_moderation_list">
                                 <h2>
-                                    <small>Activation's Blocked Sites</small>
+                                    <small>Blocked Sites</small>
                                 </h2>
                                 <hr class="thin"/>
                                 <button type="button" event-click="addNewSelfModerationSite" class="button primary">Add
@@ -186,7 +205,7 @@
                         <div class="frame" id="activation_whitelist_tab">
                             <div class="grid" id="activation_whitelist_list">
                                 <h2>
-                                    <small>Activation's Allowed Sites</small>
+                                    <small>Allowed Sites</small>
                                 </h2>
                                 <hr class="thin"/>
                                 <button type="button" event-click="addNewWhitelistSite" class="button primary">Add
@@ -213,7 +232,7 @@
                         <div class="frame" id="activation_trigger_blacklist_tab">
                             <div class="grid">
                                 <h2>
-                                    <small>Activation's Blocked Triggers</small>
+                                    <small>Blocked Triggers</small>
                                 </h2>
                                 <hr class="thin"/>
                                 <button type="button" event-click="addNewCustomTextTrigger" class="button primary">Add
@@ -235,6 +254,36 @@
                                     </table>
                                 </div>
                             </div>
+                        </div>
+                        <div class="frame" id="activation_apps_blocked_tab">
+                            <div class="grid">
+                                <h2>
+                                    <small>Blocked Apps</small>
+                                </h2>
+                                <hr class="thin"/>
+                                <button type="button" event-click="addNewBlockedApp" class="button primary">Add
+                                    App
+                                </button>
+                                <div style="max-height: 350px; overflow-y: auto;">
+                                    <table id="activation_app_list_table"
+                                           class="table striped hovered border black-background" style="width: 100%">
+                                        <thead>
+                                        <tr>
+                                            <th>App Name</th>
+                                            <th>...</th>
+                                            <th>...</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="activation_apps_blocked_insert">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="frame" id="time_restrictions_tab_activations">
+                            @include('layouts.components.timerestrictionseditor')
                         </div>
                     </div>
 

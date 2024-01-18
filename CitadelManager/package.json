@@ -10,7 +10,7 @@
     "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
   },
   "devDependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "bootstrap-sass": "^3.4.1",
     "cross-env": "^3.2.3",
     "dragula": "3.7.2",
@@ -27,6 +27,7 @@
     "@types/dropzone": "^5.0.4",
     "@types/jquery": "^3.3.29",
     "@types/jquery.validation": "^1.16.5",
+    "@types/jqueryui": "^1.12.17",
     "@types/node": "^10.14.3",
     "@types/nouislider": "^9.0.4",
     "jquery": "^3.5.0",
