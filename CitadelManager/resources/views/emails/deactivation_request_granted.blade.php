@@ -1,8 +1,8 @@
 <strong>Hello {{ $user->name }},</strong>
 <p>This is a notification from {{ config('app.company_name') }}.  We have received and granted a deactivation request from your device: {{ $deactivationRequest->device_id }}</p>
-@if ( $platform = 'WIN')
+@if ( $platform == 'WIN')
     <p>Press deactivate again to disable the filter. CloudVeil will be deactivated until the next system restart, or until the Cloudveil app is opened again</p>
-@elseif ( $platform = 'OSX')
+@elseif ( $platform == 'OSX')
     <p>Press deactivate again to disable the filter. Put in your password when prompted and the filter will be disabled.</p>
     <p>To reactivate the filter:</p>
     <ol>
