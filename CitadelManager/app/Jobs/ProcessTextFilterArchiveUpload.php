@@ -17,6 +17,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
     public $listNamespace;
     public $file;
     public $shouldOverwrite;
+    public $category;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -30,11 +31,12 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(string $listNamespace, string $file, bool $shouldOverwrite)
+    public function __construct(string $listNamespace, string $file, bool $shouldOverwrite, string $category = '')
     {
         $this->listNamespace = $listNamespace;
         $this->file = $file;
         $this->shouldOverwrite = $shouldOverwrite;
+        $this->category = $category;
     }
 
     /**
@@ -51,7 +53,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             $payload = json_encode(
                 [
                     'channel' => config('services.slack.channel.import'),
-                    'text' => "Beginning File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
+                    'text' => "Beginning " . $this->category . " File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
                     'username' => config('app.name')
                 ]);
 
@@ -73,7 +75,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             $payload = json_encode(
                 [
                     'channel' => config('services.slack.channel.import'),
-                    'text' => "Completed File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
+                    'text' => "Completed " . $this->category . " File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
                     'username' => config('app.name')
                 ]);
 
