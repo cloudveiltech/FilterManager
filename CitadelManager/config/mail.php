@@ -117,7 +117,7 @@ return [
     |
     */
 
-    'markdown' => [
+    'text' => [
         'theme' => 'default',
 
         'paths' => [

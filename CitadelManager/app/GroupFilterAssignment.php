@@ -28,4 +28,10 @@ class GroupFilterAssignment extends Model
         'group_id', 'filter_list_id', 'as_blacklist', 'as_whitelist', 'as_bypass',
     ];
 
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = true;
 }

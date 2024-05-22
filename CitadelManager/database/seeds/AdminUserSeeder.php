@@ -4,6 +4,7 @@ use App\Role;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class AdminUserSeeder extends Seeder
 {
@@ -21,17 +22,17 @@ class AdminUserSeeder extends Seeder
         $mustChange = false;
 
         if (is_null($adminName)) {
-            $adminName = str_random(10);
+            $adminName = Str::random(10);
         }
 
         if (is_null($adminEmail)) {
             $mustChange = true;
-            $adminEmail = str_random(10) . '@localhost';
+            $adminEmail = Str::random(10) . '@localhost';
         }
 
         if (is_null($adminPass)) {
             $mustChange = true;
-            $adminPass = str_random(10);
+            $adminPass = Str::random(10);
         }
 
         DB::table('users')->insert([
