@@ -31,11 +31,13 @@ class SendDeactivationRequestGrantedNotification
         // We access the deactivationRequest via $event->deactivationRequest;
         //Log::info("Logging an object: " . print_r($event, true));
         $user = \App\User::find($event->deactivationRequest->user_id);
+        $platform = $event->deactivationRequest->activation->platform_name;
         Mail::to($user->email)
-            ->send(new DeactivationRequestGrantedMail($event->deactivationRequest, $user));
+            ->send(new DeactivationRequestGrantedMail($event->deactivationRequest, $user, $platform));
         $data = [];
         $data['user'] = $user;
         $data['deactivationRequest'] = $event->deactivationRequest;
+        $data['platform'] = $platform;
         $contents = view('emails.deactivation_request_granted', $data);
         //Log::debug($contents);
         $client = new Client(); //GuzzleHttp\Client

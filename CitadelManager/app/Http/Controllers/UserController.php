@@ -574,72 +574,35 @@ class UserController extends Controller {
                 $userGroup->rebuildGroupData();
             }
 
-            $configuration = json_decode($userGroup->config_cache, true);
-            if ($configuration == null) {
-                $configuration = [];
+            $groupConfiguration = json_decode($userGroup->config_cache, true) ?? [];
+
+            $userConfiguration =  json_decode($thisUser->config_override, true) ?? [];
+
+            $activationConfiguration = json_decode($activation->config_override, true) ?? [];
+
+            $activationConfiguration = Utils::purgeNulls($activationConfiguration);
+
+            $configuration = array_merge($groupConfiguration, $userConfiguration, $activationConfiguration);
+
+            /* -------------------------------------------------------------- */
+            /*                 Merge the arrays for these keys                */
+            /* -------------------------------------------------------------- */
+            $properties = [
+                'SelfModeration',
+                'CustomWhitelist',
+                'CustomBypasslist',
+                'CustomTriggerBlacklist',
+                'CustomBlockedApps',
+            ];
+
+            foreach ($properties as $property) {
+                $configuration[$property] = [];
+                // merge the arrays, remove duplicates and reset the keys
+                $configuration[$property] = array_values(array_unique(array_merge($userConfiguration[$property] ?? [], $activationConfiguration[$property] ?? [])));
+
             }
 
-            if ($thisUser->config_override) {
-                $configuration = array_merge($configuration, json_decode($thisUser->config_override, true));
-            }
-            if ($activation->config_override) {
-                $activationConfig = json_decode($activation->config_override, true);
-
-                if (!empty($activationConfig['SelfModeration'])) {
-                    $selfModeration = $activationConfig['SelfModeration'];
-                } else {
-                    $selfModeration = null;
-                }
-
-                if (!empty($activationConfig['CustomWhitelist'])) {
-                    $customWhitelist = $activationConfig['CustomWhitelist'];
-                } else {
-                    $customWhitelist = null;
-                }
-
-                if (!empty($activationConfig['CustomBypasslist'])) {
-                    $customBypasslist = $activationConfig['CustomBypasslist'];
-                } else {
-                    $customBypasslist = null;
-                }
-
-                if (!empty($activationConfig['CustomTriggerBlacklist'])) {
-                    $customTriggerBlacklist = $activationConfig['CustomTriggerBlacklist'];
-                } else {
-                    $customTriggerBlacklist = null;
-                }
-
-                if (!empty($activationConfig['CustomBlockedApps'])) {
-                    $customBlockedApps = $activationConfig['CustomBlockedApps'];
-                } else {
-                    $customBlockedApps = null;
-                }
-
-                $activationConfig = Utils::purgeNulls($activationConfig);
-                $configuration = array_merge($configuration, $activationConfig);
-
-                if ($selfModeration != null && isset($configuration["SelfModeration"])) {
-                    $configuration['SelfModeration'] = $this->compactAndMergeArrays($configuration['SelfModeration'], $selfModeration);
-                }
-
-                if ($customWhitelist != null && isset($configuration["CustomWhitelist"])) {
-                    $configuration['CustomWhitelist'] = $this->compactAndMergeArrays($configuration['CustomWhitelist'], $customWhitelist);
-                }
-
-                if ($customBypasslist != null && isset($configuration["CustomBypasslist"])) {
-                    $configuration['CustomBypasslist'] = $this->compactAndMergeArrays($configuration['CustomBypasslist'], $customBypasslist);
-                }
-
-                if ($customTriggerBlacklist != null && isset($configuration["CustomTriggerBlacklist"])) {
-                    $configuration['CustomTriggerBlacklist'] = $this->compactAndMergeArrays($configuration['CustomTriggerBlacklist'], $customTriggerBlacklist);
-                }
-
-                if ($customBlockedApps != null && isset($configuration["CustomBlockedApps"])) {
-                    $configuration['CustomBlockedApps'] = $this->compactAndMergeArrays($configuration['CustomBlockedApps'], $customBlockedApps);
-                }
-
-                $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
-            }
+            $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
 
             if ($activation->bypass_quantity) {
                 $configuration['BypassesPermitted'] = $activation->bypass_quantity;
@@ -663,27 +626,12 @@ class UserController extends Controller {
                 $configuration['BypassDuration'] = 0;
             }
 
-            $this->extractValueFromConfig($configuration, "SelfModeration");
-            $this->extractValueFromConfig($configuration, "CustomWhitelist");
-            $this->extractValueFromConfig($configuration, "CustomBypasslist");
-            $this->extractValueFromConfig($configuration, "CustomTriggerBlacklist");
-            $this->extractValueFromConfig($configuration, "CustomBlockedApps");
-
             return $configuration;
         } else {
             return null;
         }
     }
 
-    private function compactAndMergeArrays(&$array1, &$array2) {
-        return array_unique(array_merge($array1, $array2));
-    }
-
-    private function extractValueFromConfig(&$array, $key) {
-        if (isset($array[$key])) {
-            $array[$key] = array_values($array[$key]);
-        }
-    }
     /**
      * Request the current activation configuration.
      * This is for versions >=1.7.
