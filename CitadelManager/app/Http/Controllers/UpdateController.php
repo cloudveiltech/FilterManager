@@ -37,10 +37,15 @@ class UpdateController extends Controller
 
         if ($platforms->count() > 0) {
             $os = $platforms->first();
+            $osVersionParts = explode(".", $osVersion);
             if($os->platform == SystemPlatform::PLATFORM_WIN) {
-                $osVersionParts = explode(".", $osVersion);
                 if(!empty($osVersionParts) && $osVersionParts[0] < 10) {
                     $platforms = collect(); //don't support windows less than 10. Using a collection so that it's an object and the rest of the system will work.
+                    Log::info("Skipping update for " . $platform . " v " . $osVersion . ' Details: ' . json_encode($request->all()));
+                }
+            } else if($os->platform == SystemPlatform::PLATFORM_OSX) {
+                if(!empty($osVersionParts) && $osVersionParts[0] < 11) {
+                    $platforms = collect(); //don't support OSX less than 11 (Big Sur). Using a collection so that it's an object and the rest of the system will work.
                     Log::info("Skipping update for " . $platform . " v " . $osVersion . ' Details: ' . json_encode($request->all()));
                 }
             }
