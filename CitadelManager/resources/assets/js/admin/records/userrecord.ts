@@ -786,11 +786,12 @@ namespace Citadel {
             let that = this;
             let id = (this.m_id === undefined) ? 0 : this.m_id;
 
-            this.m_tableColumns = [{
-                title: 'Action Id',
-                data: 'id',
-                visible: false
-            },
+            this.m_tableColumns = [
+                {
+                    title: 'Action Id',
+                    data: 'id',
+                    visible: false
+                },
                 {
                     title: 'Identifier',
                     data: 'identifier',
