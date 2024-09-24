@@ -573,7 +573,7 @@ class UserController extends Controller {
             if ($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
                 $userGroup->rebuildGroupData();
             }
-
+			dump($userGroup->config_cache);
             $groupConfiguration = json_decode($userGroup->config_cache, true) ?? [];
 
             $userConfiguration =  json_decode($thisUser->config_override, true) ?? [];

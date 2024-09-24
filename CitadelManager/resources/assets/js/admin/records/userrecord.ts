@@ -294,6 +294,15 @@ namespace Citadel {
         URL_REFRESH_ACTIVATIONS = 'api/admin/user/{user_id}/activations';
         URL_GET_APP_AUTOSUGGEST = 'api/admin/app_suggest';
 
+        CATEGORY_OVERRIDES_OPTIONS = [
+            '',
+            'Whitelist',
+            'Blacklist',
+            'BypassList',
+            'TextTrigger',
+            'Ignored',
+        ]
+
 
         // ───────────────────────────────────────────────────
         //   :::::: U S E R   D A T A   M E M B E R S ::::::
@@ -350,12 +359,14 @@ namespace Citadel {
 
         private activationData: any[];
         private myConfigData: any;
+        private categoryOverrides: any;
         private selfModeration: any;
         private customWhitelist: any;
         private customBypasslist: any;
         private customTriggers: any;
         private appBlocklist: any;
         private allGroups: any;
+        private allCategories: any;
         private isDnsDisabled: any;
 
         // ─────────────────────────────────────────────────
@@ -373,6 +384,8 @@ namespace Citadel {
         private m_customBypasslistTable: SelfModerationTable;
         private m_textTriggerTable: SelfModerationTable;
         private m_appBlocklistTable: SelfModerationTable;
+
+        private m_categoryOverridesTable: any;
 
         private m_timeRestrictionsUI: TimeRestrictionUI
 
@@ -520,6 +533,7 @@ namespace Citadel {
             this.activationData = data['activations'];
             this.myConfigData = data['config_override'] == null ? null : JSON.parse(data['config_override']);
 
+
             if (this.myConfigData) {
                 this.m_numBypassesPermitted = this.myConfigData.BypassesPermitted;
                 this.m_bypassDuration = this.myConfigData.BypassDuration;
@@ -570,6 +584,17 @@ namespace Citadel {
             } else {
                 this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
             }
+
+            if (this.myConfigData && this.myConfigData.CategoryOverrides) {
+                // console.log(this.myConfigData.CategoryOverrides)
+                this.categoryOverrides = this.categoryOverrides.map((category) => {
+                    const categoryOverride = this.myConfigData.CategoryOverrides.find((override) => override.categoryId === category.categoryId);
+                    if (categoryOverride) {
+                        category.override = categoryOverride.override;
+                    }
+                    return category;
+                });
+            }
         }
 
         private eveningRestrictionsPreset(): void {
@@ -585,7 +610,6 @@ namespace Citadel {
         }
 
         protected LoadFromForm(): void {
-            console.log(this.m_fullName);
             this.m_groupId = this.getValueFromSelect(this.m_selectGroup);
             this.m_roleId = this.getValueFromSelect(this.m_selectRole);
             this.m_customerId = this.m_inputCustomerId.value == "" ? null : this.m_inputCustomerId.valueAsNumber;
@@ -600,6 +624,8 @@ namespace Citadel {
             this.customTriggers = this.m_textTriggerTable.getData();
             this.appBlocklist = this.m_appBlocklistTable.getData();
 
+            this.categoryOverrides = this.m_categoryOverridesTable.data().toArray();
+
             this.myConfigData = this.myConfigData || {};
 
             this.myConfigData.SelfModeration = this.selfModeration;
@@ -607,6 +633,8 @@ namespace Citadel {
             this.myConfigData.CustomBypasslist = this.customBypasslist;
             this.myConfigData.CustomTriggerBlacklist = this.customTriggers;
             this.myConfigData.CustomBlockedApps = this.appBlocklist;
+
+            this.myConfigData.CategoryOverrides = this.categoryOverrides.filter((category) => category.override !== '');
 
             this.myConfigData.TimeRestrictions = {};
             for (var day in this.m_timeRestrictionsUI.timeRestrictions) {
@@ -1011,6 +1039,53 @@ namespace Citadel {
             this.m_ActivationTables = $('#user_activation_table').DataTable(this.m_tableSettings);
         }
 
+        private InitCategoryOverridesTable() {
+            let that = this;
+            const options = this.CATEGORY_OVERRIDES_OPTIONS;
+
+            let columns = [
+                {
+                    title: 'Category',
+                    data: 'categoryName',
+                    visible: true,
+                },
+                {
+                    title: 'Override',
+                    data: 'override',
+                    visible: true,
+                    render: function (data, type, row) {
+                        const optionsHtml = options.map((option) => {
+                            const selected = data === option ? 'selected' : '';
+                            return `<option ${selected}>${option}</option>`;
+                        }).join('');
+                        const html = `<select class="category-override-select" data-category-id="${row.categoryId}">
+                            ${optionsHtml}
+                        </select>`;
+
+
+                        return html;
+                    })
+                }
+            ];
+
+            let settings = {
+                autoWidth: true,
+                stateSave: true,
+                responsive: true,
+                columns: columns,
+                data: this.categoryOverrides,
+                destroy: true,
+                createdRow: function (row, data, dataIndex) {
+                    const select = $(row).find('.category-override-select')[0] as HTMLSelectElement;
+                    select.addEventListener('change', function () {
+                        data.override = select.value;
+                    });
+                },
+            };
+
+            this.m_categoryOverridesTable = $('#user_category_table').DataTable(settings);
+        }
+
         public cancelClick(e: MouseEvent): any {
             if (this.m_actionCompleteCallback != null) {
                 this.m_actionCompleteCallback("Cancel");
@@ -1021,8 +1096,15 @@ namespace Citadel {
             return false;
         }
 
-        public StartEditing(allGroups, userData: Object = null): void {
+        public StartEditing(allGroups, allCategories, userData: Object = null): void {
             this.allGroups = allGroups;
+            this.categoryOverrides = allCategories.map((category) => {
+                return {
+                    categoryId: category.id,
+                    categoryName: category.category,
+                    override: '',
+                }
+            });
 
             if (this.m_selectGroup.options != null) {
                 this.m_selectGroup.options.length = 0;
@@ -1110,6 +1192,7 @@ namespace Citadel {
             }
 
             this.InitUserActivationTables();
+            this.InitCategoryOverridesTable();
             this.InitSelfModerationTable();
             this.m_timeRestrictionsUI.InitTimeRestrictions();
 
