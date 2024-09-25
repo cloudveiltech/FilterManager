@@ -299,7 +299,6 @@ namespace Citadel {
             'Whitelist',
             'Blacklist',
             'BypassList',
-            'TextTrigger',
             'Ignored',
         ]
 
@@ -974,7 +973,7 @@ namespace Citadel {
 
                         var data = that.getActivationById(id);
 
-                        appUserActivationRecord.StartEditing(that.allGroups, data);
+                        appUserActivationRecord.StartEditing(that.allGroups, that.allCategories, data);
                     });
 
                     $("#user_activation_table").off("click", "button.btn-delete");
@@ -1064,7 +1063,7 @@ namespace Citadel {
 
 
                         return html;
-                    })
+                    }
                 }
             ];
 
@@ -1098,6 +1097,7 @@ namespace Citadel {
 
         public StartEditing(allGroups, allCategories, userData: Object = null): void {
             this.allGroups = allGroups;
+            this.allCategories = allCategories;
             this.categoryOverrides = allCategories.map((category) => {
                 return {
                     categoryId: category.id,

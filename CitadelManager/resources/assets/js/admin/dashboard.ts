@@ -1759,7 +1759,7 @@ namespace Citadel {
                             appUserActivationRecord.StopEditing();
                             this.ForceTableRedraw(this.m_tableActivation);
                         });
-                        appUserActivationRecord.StartEditing(this.m_allGroups, data);
+                        appUserActivationRecord.StartEditing(this.m_allGroups, this.m_allFilters, data);
                     }
                     break;
 
