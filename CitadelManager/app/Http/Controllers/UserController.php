@@ -125,7 +125,7 @@ class UserController extends Controller {
             'group_id' => 'required|exists:groups,id',
         ]);
 
-        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id', 'customer_id', 'activations_allowed', 'isactive', 'report_level', 'config_override']);
+        $input = $request->only(['name', 'email', 'password', 'role_id', 'group_id', 'customer_id', 'activations_allowed', 'isactive', 'debug_enabled', 'config_override']);
         $input['password'] = Hash::make($input['password']);
 
         if (isset($input['config_override'])) {
@@ -160,26 +160,6 @@ class UserController extends Controller {
     public function edit($id) {
         // There is no form, son.
         return response('', 405);
-    }
-
-    public function updateField(Request $request) {
-        $id = $request->input('id');
-        $value = intval($request->input('value')); //0 or 1
-
-        $id_arr = explode("_", $id);
-        if ($id_arr[0] != "user") {
-            return response()->json([
-                "success" => false,
-            ]);
-        }
-        $user_id = intval($id_arr[2]);
-        User::where('id', $user_id)->update(['report_level' => $value]);
-        $user = User::with(['group', 'roles', 'activations'])
-            ->where('id', $user_id)->first();
-        return response()->json([
-            "user" => $user,
-            "success" => true,
-        ]);
     }
 
     /**
@@ -232,7 +212,7 @@ class UserController extends Controller {
             ]);
         }
 
-        $input = $request->only(['id', 'name', 'email', 'group_id', 'customer_id', 'activations_allowed', 'isactive', 'report_level', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode']);
+        $input = $request->only(['id', 'name', 'email', 'group_id', 'customer_id', 'activations_allowed', 'isactive', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode']);
 
         if (isset($input['config_override'])) {
             $input['config_override'] = Utils::purgeNullsFromJSONSelfModeration($input['config_override']);
@@ -593,6 +573,7 @@ class UserController extends Controller {
                 'CustomBypasslist',
                 'CustomTriggerBlacklist',
                 'CustomBlockedApps',
+                'DebugEnabled'
             ];
 
             foreach ($properties as $property) {
@@ -604,6 +585,9 @@ class UserController extends Controller {
 
             $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
 
+            if($activation->debug_enabled) {
+                $configuration['DebugEnabled'] = $activation->debug_enabled;
+            }
             if ($activation->bypass_quantity) {
                 $configuration['BypassesPermitted'] = $activation->bypass_quantity;
             }

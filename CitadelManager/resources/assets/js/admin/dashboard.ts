@@ -430,18 +430,6 @@ namespace Citadel {
                         width: '150px'
                     },
                     {
-                        title: 'Report Level',
-                        data: 'report_level',
-                        visible: true,
-                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            var chk_report = (data === 1) ? "checked" : "";
-                            var str = "<label class='switch-original'><input type='checkbox' id='user_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
-                            return str;
-                        }),
-                        className: 'content-center',
-                        width: '130px'
-                    },
-                    {
                         title: 'Status',
                         data: 'isactive',
                         className: 'content-center',
@@ -592,12 +580,12 @@ namespace Citadel {
                         width: '180px'
                     },
                     {
-                        title: 'Report Level',
-                        data: 'report_level',
+                        title: 'Debug Enabled',
+                        data: 'debug_enabled',
                         visible: true,
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
                             var app_cfg = JSON.parse(row.app_cfg);
-                            var chk_report = (app_cfg.ReportLevel == 1) ? "checked" : "";
+                            var chk_report = (app_cfg.DebugEnabled == 1) ? "checked" : "";
 
                             return "<label class='switch-original'><input type='checkbox' id='group_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
                         }),
@@ -1085,8 +1073,8 @@ namespace Citadel {
                         })
                     },
                     {
-                        title: 'Report Level',
-                        data: 'report_level',
+                        title: 'Debug Enabled',
+                        data: 'debug_enabled',
                         visible: true,
                         width: '140px',
                         className: 'content-center',

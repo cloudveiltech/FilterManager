@@ -7,7 +7,8 @@ use App\SystemPlatform;
 use Carbon\Carbon;
 use Closure;
 
-class CheckAndUpdateDeviceId {
+class CheckAndUpdateDeviceId
+{
     /**
      * Handle an incoming request.
      *
@@ -15,7 +16,8 @@ class CheckAndUpdateDeviceId {
      * @param \Closure $next
      * @return mixed
      */
-    public function handle($request, Closure $next) {
+    public function handle($request, Closure $next)
+    {
         if ($request->has('identifier')) {
             $input = $request->input();
 
@@ -28,12 +30,12 @@ class CheckAndUpdateDeviceId {
             }
 
             $osVersion = "";
-            if(!empty($input["os_version"])) {
+            if (!empty($input["os_version"])) {
                 $osVersion = $input["os_version"];
             }
 
             $appVersion = "";
-            if(!empty($input["app_version"])) {
+            if (!empty($input["app_version"])) {
                 $appVersion = $input["app_version"];
             }
 
@@ -48,11 +50,11 @@ class CheckAndUpdateDeviceId {
                     $activation->device_id = $input['device_id'];
                 }
             }
-            if($activation) {
-                if($appVersion != "") {
+            if ($activation) {
+                if ($appVersion != "") {
                     $activation->app_version = $appVersion;
                 }
-                if($osVersion != "") {
+                if ($osVersion != "") {
                     $activation->os_version = $osVersion;
                 }
                 $activation->save();

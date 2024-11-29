@@ -101,7 +101,7 @@ class AppUserActivationController extends Controller {
             ]);
         }
         $activation_id = intval($id_arr[2]);
-        AppUserActivation::where('id', $activation_id)->update(['report_level' => $value]);
+        AppUserActivation::where('id', $activation_id)->update(['debug_enabled' => $value]);
 
         return response()->json([
             "success" => true,
@@ -193,7 +193,7 @@ class AppUserActivationController extends Controller {
         }
 
         if ($user->can(['all', 'set-activation-report-level'])) {
-            $fields[] = 'report_level';
+            $fields[] = 'debug_enabled';
         }
 
         $input = $request->only($fields);

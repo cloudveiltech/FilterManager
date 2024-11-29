@@ -44,7 +44,6 @@ use Illuminate\Http\Request;
 Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admin']], function () {
 
     Route::resource('users', 'UserController');
-    Route::post('users/update_field', 'UserController@updateField');
 
     Route::resource('groups', 'GroupController');
     Route::post('groups/update_field', 'GroupController@updateField');
