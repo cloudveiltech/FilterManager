@@ -587,9 +587,9 @@ class UserController extends Controller {
             $configuration['DebugEnabled'] = 0;
             if($activation->debug_enabled) {
                 $configuration['DebugEnabled'] = $activation->debug_enabled;
-            } else if($userConfiguration["DebugEnabled"]) {
+            } else if(isset($userConfiguration["DebugEnabled"])) {
                 $configuration['DebugEnabled'] = $userConfiguration["DebugEnabled"];
-            } else if($groupConfiguration["DebugEnabled"]) {
+            } else if(isset($groupConfiguration["DebugEnabled"])) {
                 $configuration['DebugEnabled'] = $groupConfiguration["DebugEnabled"];
             }
 
