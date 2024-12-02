@@ -572,8 +572,7 @@ class UserController extends Controller {
                 'CustomWhitelist',
                 'CustomBypasslist',
                 'CustomTriggerBlacklist',
-                'CustomBlockedApps',
-                'DebugEnabled'
+                'CustomBlockedApps'
             ];
 
             foreach ($properties as $property) {
@@ -585,9 +584,15 @@ class UserController extends Controller {
 
             $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
 
+            $configuration['DebugEnabled'] = 0;
             if($activation->debug_enabled) {
                 $configuration['DebugEnabled'] = $activation->debug_enabled;
+            } else if($userConfiguration["DebugEnabled"]) {
+                $configuration['DebugEnabled'] = $userConfiguration["DebugEnabled"];
+            } else if($groupConfiguration["DebugEnabled"]) {
+                $configuration['DebugEnabled'] = $groupConfiguration["DebugEnabled"];
             }
+
             if ($activation->bypass_quantity) {
                 $configuration['BypassesPermitted'] = $activation->bypass_quantity;
             }
