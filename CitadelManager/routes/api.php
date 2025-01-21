@@ -148,6 +148,8 @@ Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin
     Route::put('activations/{id}', 'AppUserActivationController@update');
 });
 
+Route::post('activations/version', 'AppUserActivationController@updateVersion');
+
 Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:admin|business-owner']], function() {
     Route::get('deactivations', 'BusinessController@getDeactivationRequests');
 

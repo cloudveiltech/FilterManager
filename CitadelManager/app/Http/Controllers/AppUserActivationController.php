@@ -13,6 +13,7 @@ use App\AppUserActivation;
 use App\Events\ActivationBypassDenied;
 use App\Events\ActivationBypassGranted;
 use App\Group;
+use App\SystemPlatform;
 use App\User;
 use App\Utils;
 use Illuminate\Http\Request;
@@ -208,6 +209,23 @@ class AppUserActivationController extends Controller {
         AppUserActivation::where('id', $id)->update($input);
 
         return response('', 204);
+    }
+
+    public function updateVersion(Request $request) {
+        if(!$request->has("acid") || !$request->has("os") || !$request->has("os_version")) {
+            return response('', 200);
+        }
+        $osName = $request->input("os");
+        $osVersion = $request->input("os_version");
+
+        $activation = AppUserActivation::where('identifier', $request->input("acid"))->firstOrFail();
+        if(in_array($osName,SystemPlatform::PLATFORM_SUPPORTED)) {
+            $activation->platform_name = $osName;
+        }
+        $activation->os_version = $osVersion;
+        $activation->save();
+
+        return response('', 200);
     }
 
     public function show($id) {
