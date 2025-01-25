@@ -12,6 +12,7 @@ namespace App\Http\Controllers;
 use App\AppUserActivation;
 use App\SystemPlatform;
 use App\SystemVersion;
+use App\Utils;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
@@ -36,8 +37,20 @@ class UpdateController extends Controller
 
         if($osVersion == "0") {
             $activation = AppUserActivation::where('identifier', $data['activation_id'])->first();
-            if($activation != null && !empty($activation->os_version)) {
-                $osVersion = $activation->os_version;
+            if($activation != null) {
+                if (!empty($activation->os_version)) {
+                    $osVersion = $activation->os_version;
+                }
+                //TODO: remove, debug code
+                if ($osVersion == "0") {
+                    if(!empty($activation->config_override)) {
+                        $config = json_decode($activation->config_override);
+                        if($config->UpdateChannel == "Alpha") {
+                            $osVersion = "10";
+                        }
+                    }
+                }
+                //End of debug code
             }
         }
 
