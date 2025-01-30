@@ -139,14 +139,6 @@
                                         </label>
                                         <br />
                                         <br />
-                                        <label class="option-label" for="editor_user_report_level">Report Level:</label>
-                                        <label class="switch-original margin-left-add-30">
-                                            <input type="checkbox" id="editor_user_report_level" name="editor_user_report_level">
-                                            <span class="check"></span>
-                                        </label>
-
-                                        <br />
-                                        <br />
                                         <label class="option-label" for="editor_user_disable_dns">Disable DNS:</label>
                                         <label class="switch-original margin-left-add-30">
                                             <input type="checkbox" id="editor_user_disable_dns" name="editor_user_disable_dns">

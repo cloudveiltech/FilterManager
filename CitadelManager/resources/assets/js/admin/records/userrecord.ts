@@ -307,7 +307,6 @@ namespace Citadel {
         private m_numActivations: number;
         private m_customerId: number;
         private m_isActive: number;
-        private m_reportLevel: number;
         private m_registeredAt: string;
         private m_numBypassesPermitted: number;
         private m_bypassDuration: number;
@@ -332,7 +331,6 @@ namespace Citadel {
         private m_activationCountInputId: string;
         private m_inputCustomerId: HTMLInputElement;
         private m_inputIsActive: HTMLInputElement;
-        private m_inputReportLevel: HTMLInputElement;
         private m_inputRelaxedPolicyPasscodeEnabled: HTMLInputElement;
         private m_disableDns: HTMLInputElement;
 
@@ -409,7 +407,6 @@ namespace Citadel {
             this.m_selectRole = document.querySelector('#editor_user_input_role_id') as HTMLSelectElement;
             this.m_inputIsActive = document.querySelector('#editor_user_input_isactive') as HTMLInputElement;
             this.m_inputCustomerId = document.querySelector('#editor_user_input_customer_id') as HTMLInputElement;
-            this.m_inputReportLevel = document.querySelector('#editor_user_report_level') as HTMLInputElement;
             this.m_disableDns = document.querySelector('#editor_user_disable_dns') as HTMLInputElement;
             this.m_inputRelaxedPolicyPasscodeEnabled = document.querySelector('#editor_user_input_passcode_enabled') as HTMLInputElement;
             this.m_btnSubmit = document.querySelector('#user_editor_submit') as HTMLButtonElement;
@@ -514,7 +511,6 @@ namespace Citadel {
             this.m_numActivations = data['activations_allowed'];
             this.m_isActive = data['isactive'];
             this.m_registeredAt = data['dt'] as string;
-            this.m_reportLevel = data['report_level'] as number;
             this.m_relaxedPolicyPasscode = data['relaxed_policy_passcode'] as string;
             this.m_relaxedPolicyPasscodeEnabled = data['enable_relaxed_policy_passcode'] as number;
             this.activationData = data['activations'];
@@ -590,7 +586,6 @@ namespace Citadel {
             this.m_roleId = this.getValueFromSelect(this.m_selectRole);
             this.m_customerId = this.m_inputCustomerId.value == "" ? null : this.m_inputCustomerId.valueAsNumber;
             this.m_isActive = this.m_inputIsActive.checked == true ? 1 : 0;
-            this.m_reportLevel = this.m_inputReportLevel.checked == true ? 1 : 0;
             this.isDnsDisabled = this.m_disableDns.checked == true ? 1 : 0;
             this.m_relaxedPolicyPasscodeEnabled = this.m_inputRelaxedPolicyPasscodeEnabled.checked == true ? 1 : 0;
 
@@ -662,7 +657,6 @@ namespace Citadel {
                 'activations_allowed': this.m_numActivations,
                 'isactive': this.m_isActive,
                 'dt': this.m_registeredAt,
-                'report_level': this.m_reportLevel,
                 'relaxed_policy_passcode': this.m_relaxedPolicyPasscode,
                 'enable_relaxed_policy_passcode': this.m_relaxedPolicyPasscodeEnabled,
                 'bypasses_permitted': this.m_numBypassesPermitted,
@@ -910,7 +904,7 @@ namespace Citadel {
                     $("#user_activation_table").off("blur", "input[type='number']");
                     $("#user_activation_table").on("blur", "input[type='number']", function () {
                         let id = $(this).attr("data-id");
-                        let val = $(this).val();
+                        let val = <number>$(this).val();
                         if (val < 0) {
                             alert(that.MESSAGE_INVALID_CHECKED_IN_DAYS);
                             $(this).val(0);
@@ -1089,7 +1083,6 @@ namespace Citadel {
                 }
 
                 this.m_inputIsActive.checked = this.m_isActive != 0;
-                this.m_inputReportLevel.checked = this.m_reportLevel != 0;
                 this.m_disableDns.checked = this.isDnsDisabled;
                 this.m_inputRelaxedPolicyPasscodeEnabled.checked = this.m_relaxedPolicyPasscodeEnabled != 0;
             }

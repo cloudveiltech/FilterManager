@@ -13,6 +13,7 @@ use App\AppUserActivation;
 use App\Events\ActivationBypassDenied;
 use App\Events\ActivationBypassGranted;
 use App\Group;
+use App\SystemPlatform;
 use App\User;
 use App\Utils;
 use Illuminate\Http\Request;
@@ -101,7 +102,7 @@ class AppUserActivationController extends Controller {
             ]);
         }
         $activation_id = intval($id_arr[2]);
-        AppUserActivation::where('id', $activation_id)->update(['report_level' => $value]);
+        AppUserActivation::where('id', $activation_id)->update(['debug_enabled' => $value]);
 
         return response()->json([
             "success" => true,
@@ -193,7 +194,7 @@ class AppUserActivationController extends Controller {
         }
 
         if ($user->can(['all', 'set-activation-report-level'])) {
-            $fields[] = 'report_level';
+            $fields[] = 'debug_enabled';
         }
 
         $input = $request->only($fields);
@@ -208,6 +209,23 @@ class AppUserActivationController extends Controller {
         AppUserActivation::where('id', $id)->update($input);
 
         return response('', 204);
+    }
+
+    public function updateVersion(Request $request) {
+        if(!$request->has("acid") || !$request->has("os") || !$request->has("os_version")) {
+            return response('', 200);
+        }
+        $osName = $request->input("os");
+        $osVersion = $request->input("os_version");
+
+        $activation = AppUserActivation::where('identifier', $request->input("acid"))->firstOrFail();
+        if(in_array($osName,SystemPlatform::PLATFORM_SUPPORTED)) {
+            $activation->platform_name = $osName;
+        }
+        $activation->os_version = $osVersion;
+        $activation->save();
+
+        return response('', 200);
     }
 
     public function show($id) {

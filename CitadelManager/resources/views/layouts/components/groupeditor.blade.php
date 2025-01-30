@@ -120,14 +120,14 @@
                                     </div>
                                 </div>
                                 <div class="cell check-label">
-                                    <label for="editor_group_report_level">Report Level:</label>
+                                    <label for="editor_group_debug_enabled">Debug Enabled:</label>
                                     <br/>
                                     <br/>
                                     <label class="switch-original">
-                                        <input type="checkbox" id="editor_group_report_level" name="editor_group_report_level">
+                                        <input type="checkbox" id="editor_group_debug_enabled" name="editor_group_debug_enabled">
                                         <span class="check"></span>
                                     </label>
-                                    <label id="report_level_text">No reporting back to server</label>
+                                    <label id="debug_enabled_text">Debug mode disabled</label>
                                 </div>
                             </div>
                             <div class="row">

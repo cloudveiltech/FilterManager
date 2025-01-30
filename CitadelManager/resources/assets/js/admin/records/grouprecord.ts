@@ -325,8 +325,8 @@ namespace Citadel {
         ERROR_MESSAGE_EMAIL         = 'A valid group name is required.';
         ERROR_MESSAGE_UPDATE_FREQUENCY = 'Minimum update interval is ' + this.MIN_UPDATE_INTERVAL_MINUTES + " minutes";
         MESSAGE_PLACE_HOLDER        = 'Type To Filter Selection';
-        MESSAGE_REPORT_LABEL        = 'Report blocked sites back to server';
-        MESSAGE_NO_REPORT_LABEL     = 'No reporting back to server';
+        MESSAGE_REPORT_LABEL =    'Debug mode enabled';
+        MESSAGE_NO_REPORT_LABEL = 'Debug mode disabled';
 
         TITLE_NEW_GROUP             = 'Create New Group';
         TITLE_CLONE_GROUP           = 'Clone Group';
@@ -372,8 +372,8 @@ namespace Citadel {
         private m_inputSecondaryDNS     : HTMLInputElement;
         private m_inputNlpThreshold     : HTMLInputElement;
         private m_inputTrigerMaxsize    : HTMLInputElement;
-        private m_inputReportLevel      : HTMLInputElement;     // check box
-        private m_labelReportLevel      : HTMLLabelElement;
+        private m_inputDebugEnabled      : HTMLInputElement;     // check box
+        private m_labelDebugEnabled      : HTMLLabelElement;
         private m_selectChannel         : HTMLSelectElement;
         private m_inputNotes            : HTMLTextAreaElement;
 
@@ -468,8 +468,8 @@ namespace Citadel {
 
             this.m_inputPrimaryDNS      = document.querySelector('#editor_cfg_primary_dns_input') as HTMLInputElement;
             this.m_inputSecondaryDNS    = document.querySelector('#editor_cfg_secondary_dns_input') as HTMLInputElement;
-            this.m_inputReportLevel     = document.querySelector('#editor_group_report_level') as HTMLInputElement;
-            this.m_labelReportLevel     = document.querySelector('#report_level_text') as HTMLLabelElement;
+            this.m_inputDebugEnabled     = document.querySelector('#editor_group_debug_enabled') as HTMLInputElement;
+            this.m_labelDebugEnabled     = document.querySelector('#debug_enabled_text') as HTMLLabelElement;
             this.m_inputNotes          = document.querySelector('#editor_cfg_notes_input') as HTMLTextAreaElement;
 
             let ipv4andv6OnlyFilter = (e: KeyboardEvent) => {
@@ -617,11 +617,11 @@ namespace Citadel {
         private InitButtonHandlers(): void {
             let that = this;
 
-            this.m_inputReportLevel.onchange = ((e: MouseEvent): any => {
-                if (that.m_inputReportLevel.checked)
-                    that.m_labelReportLevel.innerHTML = that.MESSAGE_REPORT_LABEL;
+            this.m_inputDebugEnabled.onchange = ((e: MouseEvent): any => {
+                if (that.m_inputDebugEnabled.checked)
+                    that.m_labelDebugEnabled.innerHTML = that.MESSAGE_REPORT_LABEL;
                 else
-                    that.m_labelReportLevel.innerHTML = that.MESSAGE_NO_REPORT_LABEL;
+                    that.m_labelDebugEnabled.innerHTML = that.MESSAGE_NO_REPORT_LABEL;
             });
 
             this.m_btnCancel.onclick = ((e: MouseEvent): any => {
@@ -630,7 +630,7 @@ namespace Citadel {
 
             this.m_btnSubmit.onclick = ((e: MouseEvent): any => {
                 if (this.m_mainForm.onsubmit != null) {
-                    this.m_mainForm.onsubmit(new Event("submit"));
+                    this.m_mainForm.onsubmit(new SubmitEvent("submit"));
                 }
             });
         }
@@ -713,7 +713,7 @@ namespace Citadel {
                 'NlpThreshold': this.m_inputNlpThreshold.valueAsNumber,
                 'MaxTextTriggerScanningSize': this.m_inputTrigerMaxsize.valueAsNumber,
                 'UpdateChannel': this.m_selectChannel.options[this.m_selectChannel.selectedIndex].value,
-                'ReportLevel': this.m_inputReportLevel.checked ? 1 : 0
+                'DebugEnabled': this.m_inputDebugEnabled.checked ? 1 : 0
             };
 
             appConfig[filterAppsKey] = "checked";
@@ -918,15 +918,15 @@ namespace Citadel {
                         this.m_inputNotes.value = this.m_notes;
                         this.m_inputIsActive.checked = this.m_isActive != 0;
 
-                        if (this.m_appConfig['ReportLevel'] === undefined)
-                            this.m_inputReportLevel.checked = false;
+                        if (this.m_appConfig['DebugEnabled'] === undefined)
+                            this.m_inputDebugEnabled.checked = false;
                         else
-                            this.m_inputReportLevel.checked = this.m_appConfig['ReportLevel'];
+                            this.m_inputDebugEnabled.checked = this.m_appConfig['DebugEnabled'];
 
-                        if (this.m_inputReportLevel.checked)
-                            this.m_labelReportLevel.innerHTML = this.MESSAGE_REPORT_LABEL;
+                        if (this.m_inputDebugEnabled.checked)
+                            this.m_labelDebugEnabled.innerHTML = this.MESSAGE_REPORT_LABEL;
                         else
-                            this.m_labelReportLevel.innerHTML = this.MESSAGE_NO_REPORT_LABEL;
+                            this.m_labelDebugEnabled.innerHTML = this.MESSAGE_NO_REPORT_LABEL;
 
                         this.m_input_AT_NoTerminate.checked = this.m_appConfig['CannotTerminate'];
                         this.m_input_AT_DisableInternet.checked = this.m_appConfig['BlockInternet'];
