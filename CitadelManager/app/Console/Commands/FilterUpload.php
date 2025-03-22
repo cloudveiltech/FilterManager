@@ -35,10 +35,11 @@ class FilterUpload extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return int
      */
     public function handle()
     {
         ProcessTextFilterArchiveUpload::dispatch('default', $this->argument('file'), true);
+        return 0;
     }
 }

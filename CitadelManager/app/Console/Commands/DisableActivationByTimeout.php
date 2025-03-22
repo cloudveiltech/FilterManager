@@ -35,10 +35,11 @@ class DisableActivationByTimeout extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return int
      */
     public function handle()
     {
         AppUserActivation::whereRaw("last_sync_time < timestampadd(hour, ?, now())", ['-' . self::TIMEOUT_HOURS])->delete();
+        return 0;
     }
 }

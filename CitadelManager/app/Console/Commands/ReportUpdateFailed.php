@@ -23,18 +23,19 @@ class ReportUpdateFailed extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return int
      */
     public function handle()
     {
         if (!app()->bound('sentry')) {
             $this->error("Sentry is not bound");
-            return;
+            return 1;
         }
 
         $this->info("Checking users");
         $this->exec();
         $this->info("finished");
+        return 0;
     }
 
     public function exec()
