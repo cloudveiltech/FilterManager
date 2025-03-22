@@ -57,10 +57,7 @@ class Kernel extends HttpKernel
         'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-        'canInstall' => \RachidLaasri\LaravelInstaller\Middleware\canInstall::class,
-        'role' => \Zizaco\Entrust\Middleware\EntrustRole::class,
-        'permission' => \Zizaco\Entrust\Middleware\EntrustPermission::class,
-        'ability' => \Zizaco\Entrust\Middleware\EntrustAbility::class,
+        'role' => \App\Http\Middleware\RoleMiddleware::class,
         'db.live' => \App\Http\Middleware\checkDBLive::class,
         'check.device_id' => \App\Http\Middleware\CheckAndUpdateDeviceId::class,
     ];

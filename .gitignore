@@ -316,3 +316,4 @@ build/
 nbbuild/
 dist/
 nbdist/
+.cursor

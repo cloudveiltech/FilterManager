@@ -19,7 +19,7 @@ return [
 
     /* Where do we download list exports from.*/
     'default_list_export_url' => env('APP_DEFAULT_LIST_EXPORT_URL',''),
-    
+
     /*Where do accountability alerts go to?*/
     'accountability' => [
         'url' => env('APP_ACCOUNTABILITY_URL',''),
@@ -198,9 +198,6 @@ return [
         App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-	RachidLaasri\LaravelInstaller\Providers\LaravelInstallerServiceProvider::class,
-        Zizaco\Entrust\EntrustServiceProvider::class,
-        Mnabialek\LaravelSqlLogger\Providers\ServiceProvider::class,
         Laravel\Passport\PassportServiceProvider::class
     ],
 
@@ -216,7 +213,6 @@ return [
     */
 
     'aliases' => [
-
         'App' => Illuminate\Support\Facades\App::class,
         'Artisan' => Illuminate\Support\Facades\Artisan::class,
         'Auth' => Illuminate\Support\Facades\Auth::class,
@@ -250,8 +246,7 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-        'Entrust' => Zizaco\Entrust\EntrustFacade::class,
-        'Sentry' => Sentry\SentryLaravel\SentryFacade::class, 
+        'Sentry' => Sentry\SentryLaravel\SentryFacade::class,
     ],
 
 ];

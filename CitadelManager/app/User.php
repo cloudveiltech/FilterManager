@@ -10,6 +10,7 @@
 namespace App;
 
 use App\AppUserActivation;
+use App\Traits\HasRoles;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -18,7 +19,6 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Log;
 use Validator;
-use Zizaco\Entrust\Traits\EntrustUserTrait;
 
 class UserActivationAttemptResult {
 
@@ -34,7 +34,7 @@ class UserActivationAttemptResult {
 class User extends Authenticatable {
 
     use Notifiable;
-    use EntrustUserTrait;
+    use HasRoles;
     use HasApiTokens;
 
     public $timestamps = true;
