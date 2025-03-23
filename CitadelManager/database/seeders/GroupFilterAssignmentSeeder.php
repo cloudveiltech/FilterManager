@@ -1,5 +1,8 @@
 <?php
 
+namespace Database\Seeders;
+
+
 use App\GroupFilterAssignment;
 use Illuminate\Database\Seeder;
 

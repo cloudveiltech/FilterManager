@@ -1,5 +1,8 @@
 <?php
 
+namespace Database\Seeders;
+
+
 use App\DeactivationRequest;
 use Illuminate\Database\Seeder;
 

@@ -1,8 +1,11 @@
 <?php
 
+namespace Database\Seeders;
+
+
 use Illuminate\Database\Seeder;
 
-class AppSeeder extends Seeder
+class FilterListSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -11,7 +14,7 @@ class AppSeeder extends Seeder
      */
     public function run()
     {
-        factory(App\App::class, 50)
+        factory(App\FilterList::class, 40)
             ->create();
     }
 }
