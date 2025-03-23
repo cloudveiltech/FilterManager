@@ -13,6 +13,7 @@ use App\AppUserActivation;
 use App\Traits\HasRoles;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Notifiable;
@@ -36,6 +37,7 @@ class User extends Authenticatable {
     use Notifiable;
     use HasRoles;
     use HasApiTokens;
+    use HasFactory;
 
     public $timestamps = true;
 

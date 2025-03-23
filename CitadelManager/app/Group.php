@@ -17,6 +17,7 @@ use App\FilterRulesManager;
 use App\User;
 use App\UserGroupToAppGroup;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Log;
 
 /**
@@ -24,6 +25,8 @@ use Log;
  *
  */
 class Group extends Model {
+
+    use HasFactory;
 
     public $timestamps = true;
 
