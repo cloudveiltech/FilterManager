@@ -256,7 +256,7 @@ class UserController extends Controller {
 
             $suppliedUser = User::where('id', $id)->first();
             if (!$suppliedUser->hasRole($suppliedRole)) {
-                $suppliedUser->detachRoles();
+                $suppliedUser->roles()->detach();
                 $suppliedUser->attachRole($suppliedRole);
             }
         }
@@ -294,7 +294,7 @@ class UserController extends Controller {
                 $token->revoke();
             }
 
-            $user->detachRoles();
+            $user->roles()->detach();
 
             $user->delete();
         }

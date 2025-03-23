@@ -22,4 +22,15 @@ trait HasRoles
     {
         return $this->belongsToMany('App\Role');
     }
+
+    /**
+     * Attach a role to the user.
+     *
+     * @param \App\Role $role
+     * @return void
+     */
+    public function attachRole($role)
+    {
+        $this->roles()->attach($role->id);
+    }
 }
