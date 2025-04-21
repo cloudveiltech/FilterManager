@@ -100,6 +100,31 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row cells3">
+                                <div class="cell">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_cfg_primary_dns_input">Primary DNS V6</label>
+                                        <input type="text" name="editor_cfg_primary_v6_dns_input" id="editor_cfg_primary_dns_v6_input">
+                                        <button class="button helper-button clear" tabindex="-1" type="button">
+                                            <span class="mif-cross"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_cfg_secondary_dns_input">Secondary DNS V6</label>
+                                        <input type="text" name="editor_cfg_secondary_dns_v6_input" id="editor_cfg_secondary_dns_v6_input">
+                                        <button class="button helper-button clear" tabindex="-1" type="button">
+                                            <span class="mif-cross"></span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="cell">
+
+                                </div>
+                            </div>
+                            <br/>
 
                             <div class="row cells3">
                                 <div class="cell">
