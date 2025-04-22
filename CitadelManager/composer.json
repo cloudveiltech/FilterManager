@@ -23,9 +23,10 @@
         "zizaco/entrust": "1.9.0-beta1"
     },
     "require-dev": {
+        "barryvdh/laravel-ide-helper": "^2.4.3",
+        "filp/whoops": "~2.0",
         "fzaninotto/faker": "~1.4",
         "mockery/mockery": "0.9.*",
-        "filp/whoops": "~2.0",
         "phpunit/phpunit": "~7.0"
     },
     "autoload": {
