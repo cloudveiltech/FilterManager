@@ -9,6 +9,7 @@
 
 namespace App\Http\Controllers;
 
+use App\AppUserActivation;
 use App\DeactivationRequest;
 use App\Events\DeactivationRequestGranted;
 use Illuminate\Http\Request;
@@ -177,4 +178,36 @@ class DeactivationRequestController extends Controller
         DeactivationRequest::destroy($id);
         return response('', 204);
     }
+
+    public function apiCreateDeactivationRequest(Request $request) {
+        $request->validate([
+            'identifier' => 'required',
+        ]);
+
+        $activation = AppUserActivation::where('identifier', $request->identifier)
+            ->first();
+
+        if (!$activation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Activation not found',
+            ]);
+        }
+
+        $deactivateRequest = DeactivationRequest::firstOrCreate([
+            'identifier' => $request->identifier,
+            'device_id' => $activation->device_id,
+            'user_id' => $activation->user_id,
+        ]);
+
+
+        if ($request->has('approved') && $request->approved == true) {
+            $deactivateRequest->update(['granted' => $request->approved]);
+        }
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
 }
