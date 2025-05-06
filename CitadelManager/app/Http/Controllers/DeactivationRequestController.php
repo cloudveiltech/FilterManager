@@ -181,18 +181,14 @@ class DeactivationRequestController extends Controller
 
     public function apiCreateDeactivationRequest(Request $request) {
         $request->validate([
-            'identifier' => 'required',
+            'identifier' => [
+                'required',
+                'string',
+                'exists:app_user_activations,identifier'
+            ],
         ]);
 
-        $activation = AppUserActivation::where('identifier', $request->identifier)
-            ->first();
-
-        if (!$activation) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Activation not found',
-            ]);
-        }
+        $activation = AppUserActivation::where('identifier', $request->identifier)->first();
 
         $deactivateRequest = DeactivationRequest::firstOrCreate([
             'identifier' => $request->identifier,
