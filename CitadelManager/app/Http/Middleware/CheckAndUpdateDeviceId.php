@@ -58,6 +58,9 @@ class CheckAndUpdateDeviceId
                     $activation->os_version = $osVersion;
                 }
                 $activation->save();
+                if($activation->banned == 1) {
+                    return response("Device is blocked by server", 406);
+                }
             }
         }
         return $next($request);

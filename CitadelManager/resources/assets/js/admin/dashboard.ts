@@ -144,6 +144,7 @@ namespace Citadel {
         // Activation View
         private m_btnDeleteActivation           : HTMLButtonElement;
         private m_btnBlockActivation            : HTMLButtonElement;
+        private m_btnShowActivations            : HTMLInputElement;
 
         // ─────────────────────────────────────────────────────────────────
         //   :::::: T O P   M E N U   B A R   U I   E L E M E N T S ::::::
@@ -1122,6 +1123,9 @@ namespace Citadel {
                     dataSrc: function (json) {
                         return json.data;
                     },
+                    data: function(d) {
+                        (d as any).show_banned = (document.getElementById("show_banned_activations") as HTMLInputElement).checked ? "1" : "0";
+                    },
                     method: "GET",
                     error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
                         console.log(errorThrown);
@@ -1440,6 +1444,7 @@ namespace Citadel {
             this.m_btnBlockActivation           = document.getElementById('btn_block_activations') as HTMLButtonElement;
             this.m_btnDeleteActivation.disabled = true;
             this.m_btnBlockActivation.disabled  = true;
+            this.m_btnShowActivations           = document.getElementById('show_banned_activations') as HTMLInputElement;
 
             this.m_btnCreateVersion             = document.getElementById('btn_version_add') as HTMLButtonElement;
             this.m_btnDeleteVersion             = document.getElementById('btn_version_delete') as HTMLButtonElement;
@@ -1581,6 +1586,9 @@ namespace Citadel {
 
             this.m_btnBlockActivation.onclick = ((e: MouseEvent) => {
                 this.onBlockAppUserActivationClicked(e);
+            });
+            this.m_btnShowActivations.onclick = ((e: MouseEvent) => {
+                this.ForceTableRedraw(this.m_tableActivation);
             });
         }
 

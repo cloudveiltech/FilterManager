@@ -221,6 +221,13 @@
                                     <br/>Activation</span>
                             </button>
                         </div>
+                        <div class="tab-content-segment">
+                            <label class="input-control checkbox margin-20">
+                                <input id="show_banned_activations" type="checkbox" value="1" name="show_banned_activations">
+                                <span class="check"></span>
+                                <span class="caption">Show banned</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div class="tab-group-caption">Delete/Block Activations</div>
