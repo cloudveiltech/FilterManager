@@ -26,3 +26,5 @@ npm-debug.log
 /storage/.*.txt
 
 package-lock.json
+
+_ide_helper.php

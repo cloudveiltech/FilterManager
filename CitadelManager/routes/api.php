@@ -309,6 +309,7 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once
     Route::get('/activations', 'AppUserActivationController@index'); //Should be deprecated.
     Route::get('/activation', 'AppUserActivationController@index');
     Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
+    Route::post('/deactivation/create', 'DeactivationRequestController@apiCreateDeactivationRequest');
     Route::post('/deactivation/{id}', 'DeactivationRequestController@update');
     Route::get('/deactivation/{id}', 'DeactivationRequestController@update');
     Route::post('activations/delete/{id}', 'AppUserActivationController@destroy');
