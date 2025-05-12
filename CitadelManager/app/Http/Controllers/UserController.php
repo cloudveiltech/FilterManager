@@ -579,10 +579,11 @@ class UserController extends Controller {
                 $configuration[$property] = [];
                 // merge the arrays, remove duplicates and reset the keys
                 $configuration[$property] = array_values(array_unique(array_merge($userConfiguration[$property] ?? [], $activationConfiguration[$property] ?? [])));
-
             }
 
             $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
+
+            $configuration['CustomTriggerBlacklist'] = array_map("strtolower", $configuration['CustomTriggerBlacklist']);
 
             $configuration['DebugEnabled'] = 0;
             if($activation->debug_enabled) {
@@ -1051,7 +1052,7 @@ class UserController extends Controller {
 
         $data['whitelist'] = array_values($data["whitelist"]);
         $data['blacklist'] = array_values($data["blacklist"]);
-        $data['triggerBlacklist'] = array_map("strtolower", array_values($data["triggerBlacklist"]));
+        $data['triggerBlacklist'] = array_values($data["triggerBlacklist"]);
         $data['appBlockList'] = array_values($data["appBlockList"]);
 
         return $data;
