@@ -1051,7 +1051,7 @@ class UserController extends Controller {
 
         $data['whitelist'] = array_values($data["whitelist"]);
         $data['blacklist'] = array_values($data["blacklist"]);
-        $data['triggerBlacklist'] = array_values($data["triggerBlacklist"]);
+        $data['triggerBlacklist'] = array_map("strtolower", array_values($data["triggerBlacklist"]));
         $data['appBlockList'] = array_values($data["appBlockList"]);
 
         return $data;
