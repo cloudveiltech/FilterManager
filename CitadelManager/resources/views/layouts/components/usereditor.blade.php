@@ -3,7 +3,7 @@
 </script>
 <style>
     .banned {
-        background: #de4b74;
+        background: #de4b74 !important;
     }
 </style>
 <!-- User Editing Overlay -->

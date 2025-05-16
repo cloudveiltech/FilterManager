@@ -864,10 +864,10 @@ namespace Citadel {
                         var strButtons = "";
                         strButtons += "<button title='Edit' type='button' id='edit_" + row.id + "' class='btn-edit button primary'>\
                             <span class='mif mif-pencil'></span>\
-                        </button>";
+                        </button>&nbsp;";
 
                         strButtons += "&nbsp;<button title='Delete' type='button' id='delete_" + row.id + "' class='btn-delete button alert'>\
-                            <span class='mif mif-bin'></span></button>";
+                            <span class='mif mif-bin'></span></button>&nbsp;";
 
                         if((row as any).banned == 0) {
                             strButtons += "&nbsp;<button title='Block' type='button' id='block_" + row.id + "' class='btn-block button alert'>\
