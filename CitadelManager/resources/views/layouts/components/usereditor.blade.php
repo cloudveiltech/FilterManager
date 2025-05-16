@@ -1,7 +1,11 @@
 <!-- Include User Record Record Type JS. -->
 <script src="{{ asset('js/admin/records/userrecord.js') }}">
 </script>
-
+<style>
+    .banned {
+        background: #de4b74;
+    }
+</style>
 <!-- User Editing Overlay -->
 <div class="bg-dark overlay" id="overlay_user_editor">
     <div id="user_editor_body">

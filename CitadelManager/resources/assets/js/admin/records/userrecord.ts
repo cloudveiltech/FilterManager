@@ -274,7 +274,7 @@ namespace Citadel {
         ERROR_MESSAGE_DELAY_TIME = 5000;
         FADE_IN_DELAY_TIME = 200;
 
-        MESSAGE_BLOCK_ACTIVATION_CONFIRM = 'Are you sure you want to delete this activation and block the token?  The user will need to sign in again.';
+        MESSAGE_BLOCK_ACTIVATION_CONFIRM = 'Are you sure you want to block this activation?';
         MESSAGE_DELETE_ACTIVATION_CONFIRM = 'Are you sure you want to delete this activation?';
         MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
         MESSAGE_INVALID_CHECKED_IN_DAYS = 'Checked-In should be greater equal than 0.';
@@ -868,9 +868,11 @@ namespace Citadel {
 
                         strButtons += "&nbsp;<button title='Delete' type='button' id='delete_" + row.id + "' class='btn-delete button alert'>\
                             <span class='mif mif-bin'></span></button>";
-                        strButtons += "&nbsp;<button title='Block' type='button' id='block_" + row.id + "' class='btn-block button alert'>\
-                            <span class='mif mif-blocked'></span></button>";
 
+                        if((row as any).banned == 0) {
+                            strButtons += "&nbsp;<button title='Block' type='button' id='block_" + row.id + "' class='btn-block button alert'>\
+                            <span class='mif mif-blocked'></span></button>";
+                        }
                         return strButtons;
                     }
                 }
@@ -884,7 +886,9 @@ namespace Citadel {
                 data: this.activationData,
                 destroy: true,
                 rowCallback: ((row: Node, data: any[] | Object): void => {
-
+                    if((data as any).banned == 1) {
+                        $(row).addClass("banned");
+                    }
                 }),
                 drawCallback: ((settings): void => {
                     $("#user_activation_table").off("change", "input[type='checkbox']");
@@ -949,7 +953,7 @@ namespace Citadel {
                             let dataObject = {};
                             let id = that.getIdFromElementId(e.target['id']);
 
-                            let ajaxSettings: JQueryAjaxSettings = that.generateAjaxSettings(that.URL_DELETE_ACTIVATION + '/' + id, dataObject, {
+                            let ajaxSettings: JQueryAjaxSettings = that.generateAjaxSettings(that.URL_DELETE_ACTIVATION + '/' + id + "?" + Math.random(), dataObject, {
                                 success: (data: any): any => {
                                     that.removeActivationById(id);
                                     that.InitUserActivationTables();
@@ -980,7 +984,7 @@ namespace Citadel {
                             let ajaxSettings: JQueryAjaxSettings = {
                                 method: "POST",
                                 timeout: 60000,
-                                url: that.URL_BLOCK_ACTIVATION + '/' + id,
+                                url: that.URL_BLOCK_ACTIVATION + '/' + id + "?" + Math.random(),
                                 data: dataObject,
                                 success: (data: any): any => {
                                     that.removeActivationById(id);
