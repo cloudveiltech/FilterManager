@@ -44,7 +44,6 @@ use Illuminate\Http\Request;
 Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admin']], function () {
 
     Route::resource('users', 'UserController');
-    Route::post('users/update_field', 'UserController@updateField');
 
     Route::resource('groups', 'GroupController');
     Route::post('groups/update_field', 'GroupController@updateField');
@@ -148,6 +147,8 @@ Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin
     Route::get('activations', 'BusinessController@getActivations');
     Route::put('activations/{id}', 'AppUserActivationController@update');
 });
+
+Route::post('activations/version', 'AppUserActivationController@updateVersion');
 
 Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:admin|business-owner']], function() {
     Route::get('deactivations', 'BusinessController@getDeactivationRequests');

@@ -77,16 +77,15 @@
                                     </div>
                                 </div>
                                 <div class="cell cell-auto-size check-label" style="margin-right: -160px">
-                                    <label for="editor_activation_report_level">Report Level:</label>
+                                    <label for="editor_activation_debug_enabled">Debug Enabled:</label>
                                     <br/>
                                     <br/>
                                     <label class="switch-original">
-                                        <input type="checkbox" id="editor_activation_report_level"
-                                               name="editor_activation_report_level">
+                                        <input type="checkbox" id="editor_activation_debug_enabled"
+                                               name="editor_activation_debug_enabled">
                                         <span class="check"></span>
                                     </label>
-                                    <label id="editor_activation_report_level_text" class="report-level-width">No
-                                        reporting back to server</label>
+                                    <label id="editor_activation_debug_enabled_text" class="report-level-width">Debug mode disabled</label>
                                 </div>
                                 <div class="cell cell-auto-size">
                                     <div class="input-control text" data-role="input">
@@ -158,7 +157,18 @@
                                         />
                                     </div>
                                 </div>
-
+                                <div class="cell cell-auto-size padding-left-100">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_activation_input_update_channel">Update Channel:</label>
+                                        <select name="editor_activation_input_update_channel"
+                                                id="editor_activation_input_update_channel">
+                                            <option value=""></option>
+                                            <option value="Stable">Stable</option>
+                                            <option value="Alpha">Alpha</option>
+                                            <option value="Beta">Beta</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

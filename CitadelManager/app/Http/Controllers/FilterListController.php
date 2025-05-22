@@ -9,18 +9,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Group;
+use Carbon\Carbon;
+use App\FilterList;
+use GuzzleHttp\Client;
+use App\FilterRulesManager;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\GroupFilterAssignment;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use App\FilterList;
-use App\Group;
-use App\GroupFilterAssignment;
-use App\FilterRulesManager;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use App\Jobs\ProcessTextFilterArchiveUpload;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Client;
+use App\Jobs\ProcessTextFilterArchiveUpload;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class FilterListController extends Controller {
 
@@ -31,16 +32,18 @@ class FilterListController extends Controller {
         $timestamp = Carbon::now()->toIso8601ZuluString();
         $client = new Client();
         $filename = 'export.zip';
+        $category = '';
         if ($request->has('file')) {
             $filename = $request->input('file');
             $filename = preg_replace('/[^0-9a-zA-Z\-_\.]+/', '', $filename);
+            $category = Str::after(Str::before($filename, '.zip'), 'export_');
         }
         $results = 'Downloading File from ' . config('app.default_list_export_url') . $filename . '<br>';
         $response = $client->get(config('app.default_list_export_url') . $filename);
         $results .= 'Saving to: ' . $timestamp . '.zip<br>';
         Storage::put('export' . $timestamp . '.zip', $response->getBody());
-        $file = Storage::size('export' . $timestamp . '.zip');  
-        ProcessTextFilterArchiveUpload::dispatch('default', storage_path('app/export' . $timestamp . '.zip'), true);
+        $file = Storage::size('export' . $timestamp . '.zip');
+        ProcessTextFilterArchiveUpload::dispatch('default', storage_path('app/export' . $timestamp . '.zip'), true, $category);
         $results .= 'File is : ' . $file . ' bytes.<br>';
         $results .= 'Import has been triggered.<br>';
         return response($results);

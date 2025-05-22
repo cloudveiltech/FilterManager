@@ -13,9 +13,9 @@ class AppUserActivation extends Model
 
     protected $fillable = [
         'identifier', 'device_id', 'user_id', 'ip_address', 'group_id',
-        'bypass_quantity','bypass_period','bypass_used', 'report_level',
+        'bypass_quantity','bypass_period','bypass_used', 'debug_enabled',
         'check_in_days', 'alert_partner','config_override', 'last_update_requested_time',
-        'last_sync_time', 'platform_name', 'friendly_name', 'app_version', 'os_version'
+        'last_sync_time', 'platform_name', 'friendly_name', 'app_version', 'os_version', 'banned'
     ];
 
     public function user()

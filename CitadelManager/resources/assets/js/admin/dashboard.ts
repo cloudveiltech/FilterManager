@@ -144,6 +144,7 @@ namespace Citadel {
         // Activation View
         private m_btnDeleteActivation           : HTMLButtonElement;
         private m_btnBlockActivation            : HTMLButtonElement;
+        private m_btnShowActivations            : HTMLInputElement;
 
         // ─────────────────────────────────────────────────────────────────
         //   :::::: T O P   M E N U   B A R   U I   E L E M E N T S ::::::
@@ -430,18 +431,6 @@ namespace Citadel {
                         width: '150px'
                     },
                     {
-                        title: 'Report Level',
-                        data: 'report_level',
-                        visible: true,
-                        render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
-                            var chk_report = (data === 1) ? "checked" : "";
-                            var str = "<label class='switch-original'><input type='checkbox' id='user_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
-                            return str;
-                        }),
-                        className: 'content-center',
-                        width: '130px'
-                    },
-                    {
                         title: 'Status',
                         data: 'isactive',
                         className: 'content-center',
@@ -592,12 +581,12 @@ namespace Citadel {
                         width: '180px'
                     },
                     {
-                        title: 'Report Level',
-                        data: 'report_level',
+                        title: 'Debug Enabled',
+                        data: 'debug_enabled',
                         visible: true,
                         render: ((data: any, t: string, row: any, meta: DataTables.CellMetaSettings): any => {
                             var app_cfg = JSON.parse(row.app_cfg);
-                            var chk_report = (app_cfg.ReportLevel == 1) ? "checked" : "";
+                            var chk_report = (app_cfg.DebugEnabled == 1) ? "checked" : "";
 
                             return "<label class='switch-original'><input type='checkbox' id='group_report_" + row.id + "' " + chk_report + " /><span class='check'></span></label>";
                         }),
@@ -1085,8 +1074,8 @@ namespace Citadel {
                         })
                     },
                     {
-                        title: 'Report Level',
-                        data: 'report_level',
+                        title: 'Debug Enabled',
+                        data: 'debug_enabled',
                         visible: true,
                         width: '140px',
                         className: 'content-center',
@@ -1133,6 +1122,9 @@ namespace Citadel {
                     url: this.URL_FETCH_ACTIVATIONS_TABLE,
                     dataSrc: function (json) {
                         return json.data;
+                    },
+                    data: function(d) {
+                        (d as any).show_banned = (document.getElementById("show_banned_activations") as HTMLInputElement).checked ? "1" : "0";
                     },
                     method: "GET",
                     error: ((jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
@@ -1452,6 +1444,7 @@ namespace Citadel {
             this.m_btnBlockActivation           = document.getElementById('btn_block_activations') as HTMLButtonElement;
             this.m_btnDeleteActivation.disabled = true;
             this.m_btnBlockActivation.disabled  = true;
+            this.m_btnShowActivations           = document.getElementById('show_banned_activations') as HTMLInputElement;
 
             this.m_btnCreateVersion             = document.getElementById('btn_version_add') as HTMLButtonElement;
             this.m_btnDeleteVersion             = document.getElementById('btn_version_delete') as HTMLButtonElement;
@@ -1593,6 +1586,9 @@ namespace Citadel {
 
             this.m_btnBlockActivation.onclick = ((e: MouseEvent) => {
                 this.onBlockAppUserActivationClicked(e);
+            });
+            this.m_btnShowActivations.onclick = ((e: MouseEvent) => {
+                this.ForceTableRedraw(this.m_tableActivation);
             });
         }
 

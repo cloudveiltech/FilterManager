@@ -12,6 +12,7 @@ namespace App\Http\Controllers;
 use App\AppUserActivation;
 use App\SystemPlatform;
 use App\SystemVersion;
+use App\Utils;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
@@ -29,18 +30,41 @@ class UpdateController extends Controller
     public function retrieve(Request $request, $platform)
     {
         $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
-        $arr_data = ["platform" => $platform, "activation_id" => $request->input("acid", "acid")];
+        $data = ["platform" => $platform, "activation_id" => $request->input("acid", "acid")];
 
         $osVersion = $request->input("os", "0");
         $appVersion = $request->input("v", "0");
 
+        if($osVersion == "0") {
+            $activation = AppUserActivation::where('identifier', $data['activation_id'])->first();
+            if($activation != null) {
+                if (!empty($activation->os_version)) {
+                    $osVersion = $activation->os_version;
+                }
+                //TODO: remove, debug code
+                if ($osVersion == "0") {
+                    if(!empty($activation->config_override)) {
+                        $config = json_decode($activation->config_override);
+                        if($config->UpdateChannel == "Alpha") {
+                            $osVersion = "10";
+                        }
+                    }
+                }
+                //End of debug code
+            }
+        }
 
         if ($platforms->count() > 0) {
             $os = $platforms->first();
+            $osVersionParts = explode(".", $osVersion);
             if($os->platform == SystemPlatform::PLATFORM_WIN) {
-                $osVersionParts = explode(".", $osVersion);
                 if(!empty($osVersionParts) && $osVersionParts[0] < 10) {
                     $platforms = collect(); //don't support windows less than 10. Using a collection so that it's an object and the rest of the system will work.
+                    Log::info("Skipping update for " . $platform . " v " . $osVersion . ' Details: ' . json_encode($request->all()));
+                }
+            } else if($os->platform == SystemPlatform::PLATFORM_OSX) {
+                if(!empty($osVersionParts) && $osVersionParts[0] < 11) {
+                    $platforms = collect(); //don't support OSX less than 11 (Big Sur). Using a collection so that it's an object and the rest of the system will work.
                     Log::info("Skipping update for " . $platform . " v " . $osVersion . ' Details: ' . json_encode($request->all()));
                 }
             }
@@ -48,20 +72,20 @@ class UpdateController extends Controller
 
         if ($platforms->count() > 0) {
             $os = $platforms->first();
-            $arr_data["os_name"] = $os->os_name;
+            $data["os_name"] = $os->os_name;
             $platform_id = $os->id;
             $versions = SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
 
 
             if ($versions->count() > 0) {
                 $version = $versions->first();
-                $arr_data['app_name'] = $version->app_name;
-                $arr_data['file_name'] = $version->file_name;
-                $arr_data['file_ext'] = $version->file_ext;
-                $arr_data['version_number'] = $version->version_number;
-                $arr_data['changes'] = array($version->changes);
+                $data['app_name'] = $version->app_name;
+                $data['file_name'] = $version->file_name;
+                $data['file_ext'] = $version->file_ext;
+                $data['version_number'] = $version->version_number;
+                $data['changes'] = array($version->changes);
 
-                $arr_data['channels'] = [
+                $data['channels'] = [
                     [
                         'release' => 'Alpha',
                         'version_number' => $version->alpha,
@@ -80,16 +104,16 @@ class UpdateController extends Controller
                 ];
 // This comment is to show the format we need it in.  Changing the format will break updates.
 // It's been broken before and we may break it again so here's a reminder.
-//                $arr_data['date'] = 'Tue, 20 Feb 2018 12:39:00 MST';
-                $arr_data['date'] = Carbon::parse($version->release_date)->toRfc7231String();
+//                $data['date'] = 'Tue, 20 Feb 2018 12:39:00 MST';
+                $data['date'] = Carbon::parse($version->release_date)->toRfc7231String();
 
             } else {
-                $arr_data['app_name'] = "unavailable";
-                $arr_data['file_name'] = "unavailable";
-                $arr_data['file_ext'] = "unavailable";
-                $arr_data['version_number'] = "---";
-                $arr_data['changes'] = array();
-                $arr_data['channels'] = [
+                $data['app_name'] = "unavailable";
+                $data['file_name'] = "unavailable";
+                $data['file_ext'] = "unavailable";
+                $data['version_number'] = "---";
+                $data['changes'] = array();
+                $data['channels'] = [
                     [
                         'release' => 'Alpha',
                         'version_number' => "---",
@@ -103,16 +127,16 @@ class UpdateController extends Controller
                         'version_number' => "---",
                     ],
                 ];
-                $arr_data['date'] = "---";
+                $data['date'] = "---";
             }
         } else {
-            $arr_data['app_name'] = "unavailable";
-            $arr_data['os_name'] = "unavailable";
-            $arr_data['file_name'] = "unavailable";
-            $arr_data['file_ext'] = "unavailable";
-            $arr_data['version_number'] = "---";
-            $arr_data['changes'] = array();
-            $arr_data['channels'] = [
+            $data['app_name'] = "unavailable";
+            $data['os_name'] = "unavailable";
+            $data['file_name'] = "unavailable";
+            $data['file_ext'] = "unavailable";
+            $data['version_number'] = "---";
+            $data['changes'] = array();
+            $data['channels'] = [
                 [
                     'release' => 'Alpha',
                     'version_number' => "---",
@@ -129,11 +153,11 @@ class UpdateController extends Controller
                     'signature' => "---",
                 ],
             ];
-            $arr_data['date'] = "---";
+            $data['date'] = "---";
         }
 
         return response()
-            ->view('update.update_xml', $arr_data)
+            ->view('update.update_xml', $data)
             ->header('Content-Type', 'text/xml');
     }
 

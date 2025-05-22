@@ -69,19 +69,19 @@ Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platfor
 Route::get('/download/latest/64', function () {
     $versionSettings = DB::connection('mysql_cloudveil')->table('settings')->where('key', 'cv4w_last_version')->first();
     $version = $versionSettings->value;
-    return redirect('/releases/CloudVeilInstaller-' . $version . '-cv4w-x64.exe');
+    return response()->download(public_path('/releases/CloudVeilInstaller-' . $version . '-cv4w-x64.exe'));
 });
 
 Route::get('/download/latest/32', function () {
     $versionSettings = DB::connection('mysql_cloudveil')->table('settings')->where('key', 'cv4w_last_version')->first();
     $version = $versionSettings->value;
-    return redirect('/releases/CloudVeilInstaller-' . $version . '-cv4w-x86.exe');
+    return response()->download(public_path('/releases/CloudVeilInstaller-' . $version . '-cv4w-x86.exe'));
 });
 
 Route::get('/download/latest/mac', function () {
     $versionSettings = DB::connection('mysql_cloudveil')->table('settings')->where('key', 'cv4m_last_version')->first();
     $version = $versionSettings->value;
-    return redirect('/releases/CloudVeil-' . $version . '-macos.dmg');
+    return response()->download(public_path('/releases/CloudVeil-' . $version . '-macos.dmg'));
 });
 
 Route::get('/home', 'HomeController@index')->name('home');

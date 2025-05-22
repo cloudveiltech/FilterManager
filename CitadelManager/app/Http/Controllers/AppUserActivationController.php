@@ -13,11 +13,14 @@ use App\AppUserActivation;
 use App\Events\ActivationBypassDenied;
 use App\Events\ActivationBypassGranted;
 use App\Group;
+use App\SystemPlatform;
 use App\User;
 use App\Utils;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Log;
 use Validator;
+use function Clue\StreamFilter\fun;
 
 class AppUserActivationController extends Controller {
 
@@ -60,19 +63,24 @@ class AppUserActivationController extends Controller {
         $order_name = $request->input('columns')[intval($order)]['data'];
         $order_str = $request->input('order')[0]['dir'];
 
+        $showBanned = $request->input("show_banned", 0);
+
         $recordsTotal = AppUserActivation::count();
         $query = AppUserActivation::leftJoin("users", "users.id", "=", "app_user_activations.user_id")
             ->select('app_user_activations.*', 'users.name')
-            ->when($search, function ($query) use ($search) {
-                return $query->where('users.name', 'like', "%$search%")
-                    ->orWhere('users.email', 'like', "%$search%")
-                    ->orWhere('app_user_activations.device_id', 'like', "%$search%")
-                    ->orWhere('app_user_activations.identifier', 'like', "%$search%")
-                    ->orWhere('app_user_activations.friendly_name', 'like', "%$search%")
-                    ->orWhere('app_user_activations.ip_address', 'like', "%$search%");
-
-            }, function ($query) use ($order_str, $order_name) {
-                return $query->orderBy($order_name, $order_str);
+            ->when($search, function ($query) use ($search, $showBanned) {
+                $query->where(function($query) use($showBanned) {
+                    $query->where('banned', $showBanned);
+                })->where(function($query) use($search) {
+                    $query->where('users.name', 'like', "%$search%")
+                        ->orWhere('users.email', 'like', "%$search%")
+                        ->orWhere('app_user_activations.device_id', 'like', "%$search%")
+                        ->orWhere('app_user_activations.identifier', 'like', "%$search%")
+                        ->orWhere('app_user_activations.friendly_name', 'like', "%$search%")
+                        ->orWhere('app_user_activations.ip_address', 'like', "%$search%");
+                });
+            }, function ($query) use ($order_str, $order_name, $showBanned) {
+                return $query->where('banned', $showBanned)->orderBy($order_name, $order_str);
             });
 
         $recordsFilterTotal = $query->count();
@@ -101,7 +109,7 @@ class AppUserActivationController extends Controller {
             ]);
         }
         $activation_id = intval($id_arr[2]);
-        AppUserActivation::where('id', $activation_id)->update(['report_level' => $value]);
+        AppUserActivation::where('id', $activation_id)->update(['debug_enabled' => $value]);
 
         return response()->json([
             "success" => true,
@@ -152,15 +160,8 @@ class AppUserActivationController extends Controller {
     public function block($id) {
         $activation = AppUserActivation::where('id', $id)->first();
         if (!is_null($activation)) {
-            // If we're blocking the activation we go in and revoke the token for that installation.
-            if (!is_null($activation->token_id)) {
-                $token = \App\OauthAccessToken::where('id', $activation->token_id)->first();
-                if (!is_null($token)) {
-                    $token->revoked = 1;
-                    $token->save();
-                }
-            }
-            $activation->delete();
+            $activation->banned = 1;
+            $activation->save();
         }
 
         return response('', 204);
@@ -193,7 +194,7 @@ class AppUserActivationController extends Controller {
         }
 
         if ($user->can(['all', 'set-activation-report-level'])) {
-            $fields[] = 'report_level';
+            $fields[] = 'debug_enabled';
         }
 
         $input = $request->only($fields);
@@ -208,6 +209,23 @@ class AppUserActivationController extends Controller {
         AppUserActivation::where('id', $id)->update($input);
 
         return response('', 204);
+    }
+
+    public function updateVersion(Request $request) {
+        if(!$request->has("acid") || !$request->has("os") || !$request->has("os_version")) {
+            return response('', 200);
+        }
+        $osName = $request->input("os");
+        $osVersion = $request->input("os_version");
+
+        $activation = AppUserActivation::where('identifier', $request->input("acid"))->firstOrFail();
+        if(in_array($osName,SystemPlatform::PLATFORM_SUPPORTED)) {
+            $activation->platform_name = $osName;
+        }
+        $activation->os_version = $osVersion;
+        $activation->save();
+
+        return response('', 200);
     }
 
     public function show($id) {

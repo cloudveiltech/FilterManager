@@ -15,8 +15,8 @@ namespace Citadel {
         // ───────────────────────────────────────────────────
         ERROR_MESSAGE_APP_NAME = 'Application name is required.';
 
-        MESSAGE_REPORT_LABEL = 'Report blocked sites back to server';
-        MESSAGE_NO_REPORT_LABEL = 'No reporting back to server';
+        MESSAGE_REPORT_LABEL = 'Debug mode enabled';
+        MESSAGE_NO_REPORT_LABEL = 'Debug mode disabled';
 
         MESSAGE_ACTION_FAILED = 'Error reported by the server during action.\n %ERROR_MSG% \nCheck console for more information.';
         MESSAGE_ACTION_BLOCK = 'Blocking record to server.';
@@ -67,10 +67,11 @@ namespace Citadel {
         private m_inputBPPeriod: HTMLInputElement;    // Bypass Period
         private m_inputBPUsed: HTMLInputElement;    // Bypass Used
         private m_inputAppName: HTMLInputElement;
-        private m_inputReportLevel: HTMLInputElement;
-        private m_labelReportLevel: HTMLLabelElement;
+        private m_inputDebugEnabled: HTMLInputElement;
+        private m_labelDebugEnabled: HTMLLabelElement;
         private m_selectGroup: HTMLSelectElement;
         private m_inputFriendlyName: HTMLInputElement;
+        private m_selectUpdateChannel: HTMLSelectElement;
 
         private m_blacklistTable: SelfModerationTable;
         private m_whitelistTable: SelfModerationTable;
@@ -123,8 +124,8 @@ namespace Citadel {
             this.m_inputIdentifier = document.querySelector('#editor_activation_input_identifier') as HTMLInputElement;
             this.m_inputDeviceId = document.querySelector('#editor_activation_input_device_id') as HTMLInputElement;
             this.m_inputIPAddress = document.querySelector('#editor_activation_input_ip_address') as HTMLInputElement;
-            this.m_inputReportLevel = document.querySelector('#editor_activation_report_level') as HTMLInputElement;
-            this.m_labelReportLevel = document.querySelector('#editor_activation_report_level_text') as HTMLLabelElement;
+            this.m_inputDebugEnabled = document.querySelector('#editor_activation_debug_enabled') as HTMLInputElement;
+            this.m_labelDebugEnabled = document.querySelector('#editor_activation_debug_enabled_text') as HTMLLabelElement;
             this.m_inputFriendlyName = document.querySelector('#editor_activation_input_friendly_name') as HTMLInputElement;
 
             this.m_inputBPQuantity = document.querySelector('#editor_activation_input_bypass_quantity') as HTMLInputElement;
@@ -134,6 +135,8 @@ namespace Citadel {
             this.m_btnSubmit = document.querySelector('#activation_editor_submit') as HTMLButtonElement;
             this.m_btnCancel = document.querySelector('#activation_editor_cancel') as HTMLButtonElement;
             this.m_selectGroup = document.querySelector('#editor_ctivation_input_group_id') as HTMLSelectElement;
+            this.m_selectUpdateChannel = document.querySelector('#editor_activation_input_update_channel') as HTMLSelectElement;
+
             this.InitButtonHandlers();
         }
 
@@ -164,11 +167,11 @@ namespace Citadel {
         private InitButtonHandlers(): void {
             let that = this;
 
-            this.m_inputReportLevel.onchange = ((e: MouseEvent): any => {
-                if (that.m_inputReportLevel.checked)
-                    that.m_labelReportLevel.innerHTML = this.MESSAGE_REPORT_LABEL;
+            this.m_inputDebugEnabled.onchange = ((e: MouseEvent): any => {
+                if (that.m_inputDebugEnabled.checked)
+                    that.m_labelDebugEnabled.innerHTML = this.MESSAGE_REPORT_LABEL;
                 else
-                    that.m_labelReportLevel.innerHTML = this.MESSAGE_NO_REPORT_LABEL;
+                    that.m_labelDebugEnabled.innerHTML = this.MESSAGE_NO_REPORT_LABEL;
             });
 
             this.m_btnCancel.onclick = ((e: MouseEvent): any => {
@@ -187,7 +190,7 @@ namespace Citadel {
             this.m_bypassQuantity = (data['bypass_quantity'] != null) ? data['bypass_quantity'] as number : null;
             this.m_bypassPeriod = (data['bypass_period'] != null) ? data['bypass_period'] as number : null;
             this.m_bypassUsed = data['bypass_used'] as number;
-            this.m_reportLevel = data['report_level'] as number;
+            this.m_reportLevel = data['debug_enabled'] as number;
             this.m_os = data['platform_name'] as string;
             this.m_groupId = data['group_id'] as number;
             this.m_friendlyName = data['friendly_name'] as string;
@@ -195,7 +198,7 @@ namespace Citadel {
 
             if ('config_override' in data && data['config_override'] != null) {
                 try {
-                    this.configOverride = JSON.parse(data['config_override']);
+                    this.configOverride = JSON.parse(<string>data['config_override']);
                 } catch (e) {
                     this.configOverride = null;
                 }
@@ -217,12 +220,25 @@ namespace Citadel {
                 } else {
                     this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
                 }
+                try {
+                    for (let i = 0; i < this.m_selectUpdateChannel.options.length; ++i) {
+                        if (this.m_selectUpdateChannel.options[i].value.toLowerCase() == < string > this.configOverride['UpdateChannel'].toLowerCase()) {
+                            this.m_selectUpdateChannel.selectedIndex = this.m_selectUpdateChannel.options[i].index;
+                            break;
+                        }
+                    }
+                } catch (ex) {
+                    console.warn(ex);
+                    console.warn("Either the update channel is null or it's an invalid value. Defaulting...");
+                    this.m_selectUpdateChannel.selectedIndex = 0;
+                }
             } else {
                 this.selfModeration = null;
                 this.activationWhitelist = null;
                 this.triggerBlacklist = null;
                 this.appBlocklist = null;
                 this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
+                this.m_selectUpdateChannel.selectedIndex = 0;
             }
         }
 
@@ -239,7 +255,7 @@ namespace Citadel {
         protected LoadFromForm(): void {
             this.m_bypassQuantity = this.m_inputBPQuantity.value == "" ? null : parseInt(this.m_inputBPQuantity.value);
             this.m_bypassPeriod = this.m_inputBPPeriod.value == "" ? null : parseInt(this.m_inputBPPeriod.value);
-            this.m_reportLevel = this.m_inputReportLevel.checked ? 1 : 0;
+            this.m_reportLevel = this.m_inputDebugEnabled.checked ? 1 : 0;
             this.m_friendlyName = this.m_inputFriendlyName.value.trim();
 
             this.m_groupId = this.getValueFromSelect(this.m_selectGroup);
@@ -249,13 +265,15 @@ namespace Citadel {
             this.triggerBlacklist = this.m_triggerBlacklistTable.getData();
             this.appBlocklist = this.m_appBlocklistTable.getData();
 
-
             this.configOverride = {
                 SelfModeration: this.selfModeration,
                 CustomWhitelist: this.activationWhitelist,
                 CustomTriggerBlacklist: this.triggerBlacklist,
                 CustomBlockedApps: this.appBlocklist
             };
+            if(this.m_selectUpdateChannel.selectedIndex != 0) {
+                this.configOverride.UpdateChannel = this.m_selectUpdateChannel.options[this.m_selectUpdateChannel.selectedIndex].value;
+            }
 
             if(this.m_timeRestrictionsUI.HasRestrictions()) {
                 this.configOverride.TimeRestrictions = {};
@@ -297,7 +315,7 @@ namespace Citadel {
             this.m_inputBPQuantity.value = (this.m_bypassQuantity != null) ? this.m_bypassQuantity.toString() : '';
             this.m_inputBPPeriod.value = (this.m_bypassPeriod != null) ? this.m_bypassPeriod.toString() : '';
             this.m_inputBPUsed.value = this.m_bypassUsed.toString();
-            this.m_inputReportLevel.checked = (this.m_reportLevel === 1);
+            this.m_inputDebugEnabled.checked = (this.m_reportLevel === 1);
             this.m_inputFriendlyName.value = this.m_friendlyName;
 
             let optionInList = this.m_selectGroup.querySelector('option[value="' + this.m_groupId.toString() + '"]') as HTMLOptionElement;
@@ -308,9 +326,9 @@ namespace Citadel {
             }
 
             if (this.m_reportLevel === 1) {
-                this.m_labelReportLevel.innerHTML = this.MESSAGE_REPORT_LABEL;
+                this.m_labelDebugEnabled.innerHTML = this.MESSAGE_REPORT_LABEL;
             } else {
-                this.m_labelReportLevel.innerHTML = this.MESSAGE_NO_REPORT_LABEL;
+                this.m_labelDebugEnabled.innerHTML = this.MESSAGE_NO_REPORT_LABEL;
             }
 
             this.InitSelfModerationTables();
@@ -338,7 +356,7 @@ namespace Citadel {
                 'bypass_quantity': this.m_bypassQuantity,
                 'bypass_period': this.m_bypassPeriod,
                 'bypass_used': this.m_bypassUsed,
-                'report_level': this.m_reportLevel,
+                'debug_enabled': this.m_reportLevel,
                 'config_override': JSON.stringify(this.configOverride),
                 'friendly_name': this.m_friendlyName
             };
