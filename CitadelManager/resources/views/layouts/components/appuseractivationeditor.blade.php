@@ -80,16 +80,15 @@
                                     </div>
                                 </div>
                                 <div class="cell cell-auto-size check-label" style="margin-right: -160px">
-                                    <label for="editor_activation_report_level">Report Level:</label>
+                                    <label for="editor_activation_debug_enabled">Debug Enabled:</label>
                                     <br/>
                                     <br/>
                                     <label class="switch-original">
-                                        <input type="checkbox" id="editor_activation_report_level"
-                                               name="editor_activation_report_level">
+                                        <input type="checkbox" id="editor_activation_debug_enabled"
+                                               name="editor_activation_debug_enabled">
                                         <span class="check"></span>
                                     </label>
-                                    <label id="editor_activation_report_level_text" class="report-level-width">No
-                                        reporting back to server</label>
+                                    <label id="editor_activation_debug_enabled_text" class="report-level-width">Debug mode disabled</label>
                                 </div>
                                 <div class="cell cell-auto-size">
                                     <div class="input-control text" data-role="input">

@@ -1,7 +1,11 @@
 <!-- Include User Record Record Type JS. -->
 <script src="{{ asset('js/admin/records/userrecord.js') }}">
 </script>
-
+<style>
+    .banned {
+        background: #de4b74 !important;
+    }
+</style>
 <!-- User Editing Overlay -->
 <div class="bg-dark overlay" id="overlay_user_editor">
     <div id="user_editor_body">
@@ -140,14 +144,6 @@
                                             <input type="checkbox" id="editor_user_input_isactive" name="editor_user_input_isactive">
                                             <span class="check"></span>
                                         </label>
-                                        <br />
-                                        <br />
-                                        <label class="option-label" for="editor_user_report_level">Report Level:</label>
-                                        <label class="switch-original margin-left-add-30">
-                                            <input type="checkbox" id="editor_user_report_level" name="editor_user_report_level">
-                                            <span class="check"></span>
-                                        </label>
-
                                         <br />
                                         <br />
                                         <label class="option-label" for="editor_user_disable_dns">Disable DNS:</label>

@@ -176,7 +176,7 @@ class User extends Authenticatable {
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'isactive', 'group_id', 'activations_allowed', 'customer_id', 'report_level', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode'
+        'name', 'email', 'password', 'isactive', 'group_id', 'activations_allowed', 'customer_id', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode'
     ];
 
     /**

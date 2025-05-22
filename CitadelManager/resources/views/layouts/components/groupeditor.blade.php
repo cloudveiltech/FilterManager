@@ -100,6 +100,31 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row cells3">
+                                <div class="cell">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_cfg_primary_dns_input">Primary DNS V6</label>
+                                        <input type="text" name="editor_cfg_primary_v6_dns_input" id="editor_cfg_primary_dns_v6_input">
+                                        <button class="button helper-button clear" tabindex="-1" type="button">
+                                            <span class="mif-cross"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <div class="input-control text" data-role="input">
+                                        <label for="editor_cfg_secondary_dns_input">Secondary DNS V6</label>
+                                        <input type="text" name="editor_cfg_secondary_dns_v6_input" id="editor_cfg_secondary_dns_v6_input">
+                                        <button class="button helper-button clear" tabindex="-1" type="button">
+                                            <span class="mif-cross"></span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="cell">
+
+                                </div>
+                            </div>
+                            <br/>
 
                             <div class="row cells3">
                                 <div class="cell">
@@ -120,14 +145,14 @@
                                     </div>
                                 </div>
                                 <div class="cell check-label">
-                                    <label for="editor_group_report_level">Report Level:</label>
+                                    <label for="editor_group_debug_enabled">Debug Enabled:</label>
                                     <br/>
                                     <br/>
                                     <label class="switch-original">
-                                        <input type="checkbox" id="editor_group_report_level" name="editor_group_report_level">
+                                        <input type="checkbox" id="editor_group_debug_enabled" name="editor_group_debug_enabled">
                                         <span class="check"></span>
                                     </label>
-                                    <label id="report_level_text">No reporting back to server</label>
+                                    <label id="debug_enabled_text">Debug mode disabled</label>
                                 </div>
                             </div>
                             <div class="row">

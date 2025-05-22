@@ -98,9 +98,9 @@ class GroupController extends Controller
                 $bypass .= str_pad($app_cfg->BypassDuration, 3, '0', STR_PAD_LEFT);
             }
 
-            $report_level = 0;
-            if (isset($app_cfg->ReportLevel)) {
-                $report_level = $app_cfg->ReportLevel;
+            $debug_enabled = 0;
+            if (isset($app_cfg->DebugEnabled)) {
+                $debug_enabled = $app_cfg->DebugEnabled;
             }
 
             $group_data[] = array(
@@ -117,14 +117,14 @@ class GroupController extends Controller
                 "secondary_dns" => $app_cfg->SecondaryDns ?? null,
                 "terminate" => $terminate,
                 "bypass" => $bypass,
-                "report_level" => $report_level,
+                "debug_enabled" => $debug_enabled,
             );
         }
 
         if (count($group_data) == 0) {
 
         } else {
-            if ($order_name == "id" || $order_name == "primary_dns" || $order_name == "secondary_dns" || $order_name == "terminate" || $order_name == "bypass" || $order_name == "report_level") {
+            if ($order_name == "id" || $order_name == "primary_dns" || $order_name == "secondary_dns" || $order_name == "terminate" || $order_name == "bypass" || $order_name == "debug_enabled") {
 
                 $sortArray = array();
 
@@ -180,7 +180,7 @@ class GroupController extends Controller
                 $app_cfg->UseThreshold = $value === 1 ? true : false;
                 break;
             case "report":
-                $app_cfg->ReportLevel = $value;
+                $app_cfg->DebugEnabled = $value;
                 break;
             case "terminate":
                 $app_cfg->CannotTerminate = $value === 1 ? true : false;
