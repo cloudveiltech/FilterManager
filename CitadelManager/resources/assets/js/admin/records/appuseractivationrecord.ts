@@ -189,6 +189,11 @@ namespace Citadel {
                     visible: true,
                 },
                 {
+                    title: 'Type',
+                    data: 'type',
+                    visible: true,
+                },
+                {
                     title: 'Override',
                     data: 'override',
                     visible: true,
@@ -204,8 +209,8 @@ namespace Citadel {
 
                         return html;
                     }
-        }
-        ];
+                }
+            ];
 
             let settings = {
                 autoWidth: true,
@@ -370,6 +375,7 @@ namespace Citadel {
                 return {
                     categoryId: category.id,
                     categoryName: category.category,
+                    type: category.type,
                     override: '',
                 }
             });
