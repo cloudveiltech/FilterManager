@@ -19,6 +19,9 @@
                             <a href="#activation_info_tab">Activation</a>
                         </li>
                         <li>
+                            <a href="#activation_categories_tab">Categories</a>
+                        </li>
+                        <li>
                             <a href="#activation_self_moderation_tab">Blocked Sites</a>
                         </li>
                         <li>
@@ -169,6 +172,18 @@
                                         </select>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <div class="frame" id="activation_categories_tab">
+                            <div class="grid" id="category_list">
+                                <h2>
+                                    <small>User Categories Over-ride</small>
+                                </h2>
+                                <hr class="thin" />
+                                <table id="activation_category_table" class="table striped hovered border black-background" style="width:100%">
+                                
+                                </table>
                             </div>
                         </div>
 

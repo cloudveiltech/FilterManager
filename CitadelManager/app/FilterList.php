@@ -41,4 +41,9 @@ class FilterList extends Model
     {
         return $this->belongsToMany('App\Group');
     }
+	
+	public function getRelativeListPath()
+	{
+		return '/' . $this->namespace . '/' . $this->category . '/' . FilterRulesManager::TYPES[$this->type] . '.txt';
+	}
 }
