@@ -21,7 +21,6 @@ $.ajaxSetup({
 $.ajax('api/user/me', {
 	method: "GET"
 }).done(function(data, textStatus, xhr) {
-	console.log(data);
 	user = data;
 
 	if(user && user.roles) {
@@ -106,7 +105,7 @@ $(document).ready(function() {
 
 	// A short explanation of the purpose of this function
 	// Unfortunately, since vue does not allow us to create computed properties on the fly,
-	// we have to set our viewmodel in 
+	// we have to set our viewmodel in
 	function applyVmRef(data, vm) {
 		data.$vm = vm;
 		vueOptions.$unwatchers = vueOptions.$unwatchers || [];
@@ -175,7 +174,7 @@ function timeRestrictionsModel() {
 	};
 
 	that.$onApplyRef = function() {
-		
+
 	}
 
 	that.applySetting = function(entry, enabled, starting, ending) {
@@ -213,7 +212,7 @@ function timeRestrictionsModel() {
 			}
 		}
 	};
-	
+
 	that.setTimes = function(day, event) {
 		that.data[day] = that.data[day] || {};
 		that.data[day].EnabledThrough = that.data[day].EnabledThrough || [0, 24];
@@ -537,8 +536,12 @@ function activationEditorModel() {
 			var configOverride = convertConfigOverride(data.config_override);
 
 			if(configOverride) {
-				that.whitelist = configOverride.CustomWhitelist || [];
-				that.blacklist = configOverride.SelfModeration || [];
+                that.whitelist = configOverride.CustomWhitelist.map(item => {
+                    return {activation: 'ALL', value: item}
+                }) || [];
+                that.blacklist = configOverride.SelfModeration.map(item => {
+                    return {activation: 'ALL', value: item}
+                }) || [];
 			}
 		} else {
 			that.whitelist = [];
@@ -571,11 +574,11 @@ function activationEditorModel() {
 	that.save = function() {
 		var configOverride = convertConfigOverride(that.data.config_override) || {};
 
-		configOverride.CustomWhitelist = that.whitelist;
-		configOverride.SelfModeration = that.blacklist;
+		configOverride.CustomWhitelist = that.whitelist.map(item => item.value)
+		configOverride.SelfModeration = that.blacklist.map(item => item.value)
 
 		that.data.config_override = JSON.stringify(configOverride);
-		
+
 		// TODO: App user activation API
 		$.ajax("api/user/activations/" + that.data.id, {
 			method: "PUT",
