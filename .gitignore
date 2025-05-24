@@ -316,3 +316,4 @@ build/
 nbbuild/
 dist/
 nbdist/
+_ide_helper.php
