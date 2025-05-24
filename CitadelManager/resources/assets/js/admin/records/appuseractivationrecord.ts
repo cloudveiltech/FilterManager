@@ -35,7 +35,7 @@ namespace Citadel {
         // ──────────────────────────────────────────────────────
         private m_activationId: number;
         private m_groupId: number;
-        private m_userName: string;
+        private m_userId: number;
         private m_identifier: string;
         private m_deviceId: string;
         private m_ipAddress: string;
@@ -59,7 +59,7 @@ namespace Citadel {
 
         private m_editorOverlay: HTMLDivElement;
 
-        private m_inputUserName: HTMLInputElement;
+        private m_selectUser: HTMLSelectElement;
         private m_inputIdentifier: HTMLInputElement;
         private m_inputDeviceId: HTMLInputElement;
         private m_inputIPAddress: HTMLInputElement;
@@ -120,7 +120,7 @@ namespace Citadel {
             this.m_bindings.Refresh();
             this.m_timeRestrictionsUI = new TimeRestrictionUI(this.m_bindings, "#time_restrictions_tab_activations");
 
-            this.m_inputUserName = document.querySelector('#editor_activation_input_user_full_name') as HTMLInputElement;
+            this.m_selectUser = document.querySelector('#editor_activation_input_user_full_name') as HTMLSelectElement;
             this.m_inputIdentifier = document.querySelector('#editor_activation_input_identifier') as HTMLInputElement;
             this.m_inputDeviceId = document.querySelector('#editor_activation_input_device_id') as HTMLInputElement;
             this.m_inputIPAddress = document.querySelector('#editor_activation_input_ip_address') as HTMLInputElement;
@@ -183,7 +183,7 @@ namespace Citadel {
             console.log(data)
 
             this.m_activationId = data['id'] as number;
-            this.m_userName = data['name'] as string;
+            this.m_userId = data['user_id'] as number;
             this.m_identifier = data['identifier'] as string;
             this.m_ipAddress = data['ip_address'] as string;
             this.m_deviceId = data['device_id'] as string;
@@ -259,6 +259,7 @@ namespace Citadel {
             this.m_friendlyName = this.m_inputFriendlyName.value.trim();
 
             this.m_groupId = this.getValueFromSelect(this.m_selectGroup);
+            this.m_userId = this.getValueFromSelect(this.m_selectUser);
 
             this.selfModeration = this.m_blacklistTable.getData();
             this.activationWhitelist = this.m_whitelistTable.getData();
@@ -287,17 +288,18 @@ namespace Citadel {
             }
         }
 
-        public StartEditing(allGroups, userData: Object = null): void {
+        public StartEditing(allGroups, userData: Object = null, allUsers = null): void {
             this.LoadFromObject(userData);
 
+            // Populate Groups dropdown
             if (this.m_selectGroup.options != null) {
                 this.m_selectGroup.options.length = 0;
             }
 
-            let option = document.createElement('option') as HTMLOptionElement;
-            option.text = " ";
-            option.value = "-1";
-            this.m_selectGroup.options.add(option);
+            let groupOption = document.createElement('option') as HTMLOptionElement;
+            groupOption.text = " ";
+            groupOption.value = "-1";
+            this.m_selectGroup.options.add(groupOption);
 
             let groupsSorted = allGroups.sort((g1, g2) => (g1.name.toLowerCase() < g2.name.toLowerCase() ? -1 : 1));
 
@@ -308,7 +310,33 @@ namespace Citadel {
                 this.m_selectGroup.options.add(option);
             }
 
-            this.m_inputUserName.value = this.m_userName;
+            // Populate Users dropdown
+            if (allUsers && this.m_selectUser.options != null) {
+                this.m_selectUser.options.length = 0;
+
+                let userOption = document.createElement('option') as HTMLOptionElement;
+                userOption.text = " ";
+                userOption.value = "-1";
+                this.m_selectUser.options.add(userOption);
+
+                let usersSorted = allUsers.sort((u1, u2) => (u1.name.toLowerCase() < u2.name.toLowerCase() ? -1 : 1));
+
+                for (var user of usersSorted) {
+                    let option = document.createElement('option') as HTMLOptionElement;
+                    option.text = user['name'];
+                    option.value = user['id'];
+                    this.m_selectUser.options.add(option);
+                }
+            }
+
+            // Set form values
+            let userOptionInList = this.m_selectUser.querySelector('option[value="' + this.m_userId.toString() + '"]') as HTMLOptionElement;
+            if (userOptionInList != null) {
+                this.m_selectUser.selectedIndex = userOptionInList.index;
+            } else {
+                this.m_selectUser.selectedIndex = -1;
+            }
+
             this.m_inputIdentifier.value = this.m_identifier;
             this.m_inputDeviceId.value = this.m_deviceId;
             this.m_inputIPAddress.value = this.m_ipAddress;
@@ -352,6 +380,7 @@ namespace Citadel {
         public ToObject(): Object {
             let obj = {
                 'id': this.m_activationId,
+                'user_id': this.m_userId,
                 'group_id': this.m_groupId,
                 'bypass_quantity': this.m_bypassQuantity,
                 'bypass_period': this.m_bypassPeriod,

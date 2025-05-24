@@ -39,12 +39,11 @@
                         <div class="frame" id="activation_info_tab">
                             <div class="row cell-auto-size">
                                 <div class="cell cell-auto-size">
-                                    <div class="input-control text" data-role="input">
-                                        <label for="editor_activation_input_user_full_name">User Name:</label>
-                                        <input type="text" disabled="disabled"
-                                               name="editor_activation_input_user_full_name"
-                                               id="editor_activation_input_user_full_name"
-                                        />
+                                    <div class="input-control select" data-role="input">
+                                        <label for="editor_activation_input_user_full_name">User:</label>
+                                        <select name="editor_activation_input_user_full_name"
+                                               id="editor_activation_input_user_full_name">
+                                        </select>
                                     </div>
                                 </div>
 

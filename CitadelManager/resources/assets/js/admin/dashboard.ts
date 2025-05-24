@@ -172,6 +172,7 @@ namespace Citadel {
 
         private m_allFilters;
         private m_allGroups;
+        private m_allUsers: any;
 
         /**
          * Creates an instance of Dashboard.
@@ -182,6 +183,7 @@ namespace Citadel {
         constructor() {
             // Setup nav.
             this.ConstructNavigation();
+            this.loadAllUsers();
             this.loadAllFilters();
             this.loadAllGroups();
 
@@ -205,6 +207,23 @@ namespace Citadel {
             });
 
             this.loadPreviousTab();
+        }
+
+        private loadAllUsers(): void {
+            let ajaxSettings: JQueryAjaxSettings = {
+                method: "GET",
+                timeout: 60000,
+                url: this.URL_FETCH_USERS_TABLE,
+                success: (data: any): any => {
+                    console.log(data);
+                    this.m_allUsers = data;
+                },
+                error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string): any => {
+                    console.log(errorThrown);
+                }
+            }
+
+            $.ajax(ajaxSettings);
         }
 
         private loadAllFilters(): void {
