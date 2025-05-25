@@ -199,6 +199,7 @@ class DeactivationRequestController extends Controller
 
         if ($request->has('approved') && $request->approved == true) {
             $deactivateRequest->update(['granted' => $request->approved]);
+            event(new DeactivationRequestGranted($deactivateRequest));
         }
 
         return response()->json([
