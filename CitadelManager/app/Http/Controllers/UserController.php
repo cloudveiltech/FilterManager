@@ -553,7 +553,6 @@ class UserController extends Controller {
             if ($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
                 $userGroup->rebuildGroupData();
             }
-
             $groupConfiguration = json_decode($userGroup->config_cache, true) ?? [];
 
             $userConfiguration =  json_decode($thisUser->config_override, true) ?? [];
@@ -563,6 +562,42 @@ class UserController extends Controller {
             $activationConfiguration = Utils::purgeNulls($activationConfiguration);
 
             $configuration = array_merge($groupConfiguration, $userConfiguration, $activationConfiguration);
+
+			// Merge the category overrides
+			if (isset($activationConfiguration['CategoryOverrides']) || isset($userConfiguration['CategoryOverrides'])) {
+				$categoryOverrideArray = $mergedCategoryOverrides = array_merge($userConfiguration['CategoryOverrides'] ?? [], $activationConfiguration['CategoryOverrides'] ?? []);
+				$mergedCategoryOverrides = array_values(array_reduce($categoryOverrideArray, function($carry, $item) {
+					$carry[$item['categoryId']] = $item;
+					return $carry;
+				}, []));
+				foreach ($mergedCategoryOverrides as $categoryOverride) {
+					$category = FilterList::where('id', $categoryOverride['categoryId'])->first();
+					if ($category) {
+						$path = $category->getRelativeListPath();
+						// look for existing category in ConfiguredLists array
+						$matchIndex = array_search($path, array_column($configuration['ConfiguredLists'], 'RelativeListPath'));
+						if ($matchIndex !== false) {
+                            if ($categoryOverride['override'] == 'Ignored') {
+                                // remove the category from the ConfiguredLists array
+                                unset($configuration['ConfiguredLists'][$matchIndex]);
+                                $configuration['ConfiguredLists'] = array_values($configuration['ConfiguredLists']);
+                            } else {
+                                // merge the category override into the existing category
+                                $configuration['ConfiguredLists'][$matchIndex]['ListType'] = $categoryOverride['override'];
+                            }
+
+						} else {
+							// add the category override to the ConfiguredLists array if it's not ignored
+                            if ($categoryOverride['override'] != 'Ignored') {
+							    $configuration['ConfiguredLists'][] = [
+                                    'ListType' => $categoryOverride['override'],
+                                    'RelativeListPath' => $path
+                                ];
+                            }
+						}
+					}
+				}
+			}
 
             /* -------------------------------------------------------------- */
             /*                 Merge the arrays for these keys                */
