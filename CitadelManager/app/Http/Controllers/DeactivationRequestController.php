@@ -12,6 +12,7 @@ namespace App\Http\Controllers;
 use App\AppUserActivation;
 use App\DeactivationRequest;
 use App\Events\DeactivationRequestGranted;
+use App\Events\DeactivationRequestReceived;
 use Illuminate\Http\Request;
 use Log;
 
@@ -199,6 +200,10 @@ class DeactivationRequestController extends Controller
 
         if ($request->has('approved') && $request->approved == true) {
             $deactivateRequest->update(['granted' => $request->approved]);
+            event(new DeactivationRequestGranted($deactivateRequest));
+        } else {
+            $deactivateRequest->update(['granted' => $request->approved]);
+            event(new DeactivationRequestReceived($deactivateRequest));
         }
 
         return response()->json([
