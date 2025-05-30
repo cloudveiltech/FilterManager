@@ -1,0 +1,45 @@
+name: citadel-manager
+recipe: laravel
+config:
+  webroot: public
+  php: '7.2'
+  via: nginx
+  database: mariadb
+  cache: redis
+services:
+  appserver:
+    build_with_make:
+      - composer install --no-interaction --optimize-autoloader --no-dev
+    portforward: 8000:80
+  database:
+    type: mariadb
+    portforward: true
+  cache:
+    type: redis
+    portforward: true
+  mailhog:
+    type: mailhog
+    portforward: true
+    hogfrom:
+      - appserver
+tooling:
+  php:
+    service: appserver
+  composer:
+    service: appserver
+    cmd: composer --ignore-platform-reqs
+  artisan:
+    service: appserver
+    cmd: php artisan
+  node:
+    service: appserver
+    cmd: node
+  npm:
+    service: appserver
+    cmd: npm
+  yarn:
+    service: appserver
+    cmd: yarn
+proxy:
+  mailhog:
+    - mailhog.lndo.site
