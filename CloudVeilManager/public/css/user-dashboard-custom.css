@@ -1,0 +1,363 @@
+.hidden {
+	display: none;
+}
+
+/* start time restrictions */
+
+.timepickers input[type="text"] {
+	width: 50px;
+	display: inline;
+}
+
+.timepickers span {
+	line-height: 36px;
+}
+
+.timepickers input {
+	margin-bottom: 0px;
+}
+
+.timepickers label {
+	line-height: 36px;
+}
+
+.time-restrictions .entity-list-item.time-block {
+	height: 148px;
+	padding: 0px;
+}
+
+.time-restrictions .entity-list-item.time-block .item-content-primary {
+	height: 148px;
+	padding: 10px;
+}
+
+.time-restrictions .entity-list-item.time-block .item-content-secondary {
+	height: 148px;
+	width: 48px;
+}
+
+.time-restrictions .entity-list-item.time-block .item-content-secondary button {
+	min-width: 48px;
+	height: 148px;
+	margin: 0;
+}
+
+/* end time restrictions */
+
+.restrictions .checkbox,
+.restrictions .slider,
+.restrictions .checkbox:first-of-type {
+	margin: 12px 0;
+}
+
+.presets.btn-group {
+	margin-bottom: 10px;
+}
+
+.presets.btn-group label {
+	display: block;
+}
+
+.presets.btn-group button {
+	margin-top: 0px;
+}
+
+.swappable-password-box input {
+	float: left;
+	margin: 0;
+	height: 36px;
+}
+
+.swappable-password-box input.password {
+	text-security: disc;
+	-webkit-text-security: disc;
+	-moz-text-security: disc;
+}
+
+.swappable-password-box .btn {
+	margin: 0;
+	min-width: 48px;
+	height: 36px;
+	border-left: 0px;
+}
+
+/* Modern UI styling for noUiSlider */
+
+.inverse .noUi-target {
+	background-color: #0078d7;
+}
+
+.inverse .noUi-connect {
+	background-color: #ccc;
+}
+
+.noUi-target {
+	background-color: #ccc;
+	box-shadow: none;
+	border: none;
+}
+
+.noUi-horizontal {
+	height: 3px;
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+.noUi-horizontal .noUi-handle {
+	width: 8px;
+	height: 30px;
+}
+
+.noUi-handle {
+	border: none;
+	background-color: #0078d7;
+	box-shadow: none;
+	border-radius: 3px;
+}
+
+.noUi-connect {
+	background-color: #0078d7;
+}
+
+.noUi-handle:after, .noUi-handle:before {
+	content: none;
+}
+
+html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
+	right: -5px;
+	left: auto;
+}
+
+.noUi-horizontal .noUi-handle {
+	left: -5px;
+	top: -13px;
+}
+
+table.no-button-margins button {
+	margin: 0px;
+}
+
+.topnav-container {
+	background-color: #444;
+}
+
+.topnav-container .nav-tabs {
+	line-height: 48px;
+	height: 48px;
+}
+
+.topnav-container .nav-tabs li > a {
+	display: block;
+	float: left;
+	line-height: 48px;
+}
+
+.sidenav-container {
+	float: left;
+	display: none;
+	background-color: #444;
+	height: 100%;
+}
+
+.sidenav-container .nav-tabs, .topnav-container .nav-tabs {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.sidenav-container .side-navigation li {
+	width: 100%;
+}
+.sidenav-container .side-navigation li > a {
+	display: block;
+	line-height: 48px;
+	padding-left: 24px;
+	width: 100%;
+}
+
+.sidenav-container .side-navigation li.active, .topnav-container .nav-tabs li.active, .nav-tabs.cv4w li.active {
+	background-color: #1c8cbc;
+}
+
+@media(min-width: 768px) {
+	.topnav-container {
+		display: none;
+	}
+
+	.sidenav-container {
+		padding-top: 48px;
+		display: block;
+		float: left;
+		width: 300px;
+	}
+
+	.sidenav-container .side-navigation.side-navigation-large {
+		max-width: 300px;
+	}
+
+	#app > .row .tab-content {
+		width: calc(100% - 300px);
+	}
+}
+
+body, html {
+	height: 100%;
+}
+
+#usernav .container {
+	width: 100%;
+	max-width: none;
+}
+
+#app.container {
+	width: 100%;
+	height: calc(100% - 48px);
+	max-width: none;
+	padding: 0;
+	margin-left: 0px !important;
+	margin-right: 0px !important;
+}
+
+#app > .row {
+	height: 100%;
+}
+
+#app > .row > .tab-content {
+	height: 100%;
+	overflow: auto;
+	float: left;
+}
+
+.fa-stack.custom {
+	width: 1em;
+}
+
+.smaller-0_5x {
+	font-size: 0.5em;
+}
+
+.modal-content.with-tabs {
+	padding: 0;
+}
+
+.modal-content.with-tabs .modal-header {
+	padding-top: 20px;
+	padding-left: 24px;
+	padding-right: 24px;
+}
+
+.modal-content.with-tabs .modal-body {
+	margin-top: 0;
+}
+
+.modal-content.with-tabs .modal-body .nav-tabs {
+	margin-left: 0;
+	margin-right: 0;
+
+	padding-left: 24px;
+	padding-right: 24px;
+
+	margin-bottom: 12px;
+}
+
+.modal-content.with-tabs .modal-body .tab-content {
+	padding-left: 24px;
+	padding-right: 24px;
+}
+
+.modal-content.with-tabs .modal-footer {
+	padding-left: 24px;
+	padding-right: 24px;
+	padding-bottom: 20px;
+}
+
+.nav-tabs.cv4w {
+	background-color: #444;
+}
+
+.modal-header.cv4w {
+	background-color: #444;
+	color: #fff;
+}
+
+/* start self moderation */
+
+.self-moderation button.btn-danger {
+	min-width: 48px;
+	margin: 0;
+}
+
+.self-moderation .row {
+	padding: 0px;
+}
+
+.site-text button {
+	height: 36px;
+}
+
+.site-text span[name='viewer'] {
+	line-height: 36px;
+	display: block;
+}
+
+.self-moderation-container {
+	padding-left: 24px;
+	padding-right: 24px;
+}
+
+.self-moderation-list {
+	width: 100%;
+}
+
+.self-moderation-list .add-url {
+	display: block;
+	width: 100%;
+}
+
+.list-items.self-moderation {
+	overflow: hidden; /* collapsing parent bug! */
+
+	padding-right: 0;
+	padding-left: 0;
+	width: 100%;
+}
+
+.list-items-row {
+	overflow: hidden; /* collapsing parent bug! */
+}
+
+.list-items-row .site-text {
+	float: left;
+	width: calc(100% - 48px);
+}
+
+.list-items-row .remove-button-container {
+	float: left;
+	width: 48px;
+}
+
+#self-moderation {
+	height: calc(100% - 48px);
+}
+
+/* end self moderation */
+
+/* editable span */
+
+.editable-span {
+	padding-right: 12px;
+}
+
+.editable-span .viewer {
+	padding-left: 12px;
+}
+
+.editable-span .viewer.placeholder {
+	font-size: 0.9em;
+	color: #888;
+}
+
+.editable-span input.form-control {
+	max-width: none;
+}
+
+/* end editable span */
