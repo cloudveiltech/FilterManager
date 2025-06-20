@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\SystemPlatform;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -71,14 +72,28 @@ class AppGroupCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation([
-            // 'name' => 'required|min:2',
+            'group_name' => 'required|min:2',
         ]);
-        CRUD::setFromDb(); // set fields from db columns.
 
-        /**
-         * Fields can be defined using the fluent syntax:
-         * - CRUD::field('price')->type('number');
-         */
+        $this->crud->addFields([
+            [
+                'label' => 'Name',
+                'type' => 'text',
+                'name' => 'group_name',
+            ],
+            [
+                'label' => 'Linked Apps',
+                'type' => 'select2_multiple',
+                'name' => 'apps',
+                'entity' => 'apps',
+                'attribute' => 'name',
+                'model' => 'App\Models\App',
+                'pivot' => true,
+                'options' => (function ($query) {
+                    return $query->orderBy('name', 'ASC')->get();
+                })
+            ],
+        ]);
     }
 
     /**

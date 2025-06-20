@@ -10,13 +10,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Yadakhov\InsertOnDuplicateKey;
 
 class GroupFilterAssignment extends Model
 {
-    // Enables mass insert, and insert-ignore, insert-update etc.
-    use InsertOnDuplicateKey;
-
     public $timestamps = true;
 
     /**
@@ -28,4 +24,11 @@ class GroupFilterAssignment extends Model
         'group_id', 'filter_list_id', 'as_blacklist', 'as_whitelist', 'as_bypass',
     ];
 
+    public function filterList() {
+        return $this->belongsTo(FilterList::class);
+    }
+
+    public function getFilterListLabelAttribute() {
+        return $this->filterList->label;
+    }
 }

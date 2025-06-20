@@ -31,6 +31,8 @@ class FilterList extends Model
         'namespace', 'category', 'type', 'file_sha1', 'created_at', 'updated_at', 'entries_count'
     ];
 
+    protected $appends = array('label');
+
     protected $attributes = [
         'entries_count' => 0
     ];
@@ -41,5 +43,9 @@ class FilterList extends Model
     public function group()
     {
         return $this->belongsToMany('App\Models\Group');
+    }
+
+    public function getLabelAttribute() {
+        return $this->namespace . "/" . $this->category . "(" . $this->type . ")";
     }
 }

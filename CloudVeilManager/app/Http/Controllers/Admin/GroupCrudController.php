@@ -2,8 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\FilterList;
+use App\Models\Group;
+use App\Models\SystemPlatform;
+use App\Models\UserGroupToAppGroup;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Http\Request;
 
 /**
  * Class GroupCrudController
@@ -81,15 +88,193 @@ class GroupCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation([
-            // 'name' => 'required|min:2',
+            'name' => 'required|min:2',
         ]);
-        CRUD::setFromDb(); // set fields from db columns.
 
-        /**
-         * Fields can be defined using the fluent syntax:
-         * - CRUD::field('price')->type('number');
-         */
+        CRUD::setOperationSetting('strippedRequest', function ($request) {
+            $input = $request->only(CRUD::getAllFieldNames());
+
+            if(is_array($input["assignedBlockedApplicationRules"])) {
+                foreach ($input["assignedBlockedApplicationRules"] as &$assignedBlockedApplicationRule) {
+                    $assignedBlockedApplicationRule = [
+                        "assignedBlockedApplicationRules" => $assignedBlockedApplicationRule,
+                        "filter_type" => UserGroupToAppGroup::FILTER_TYPE_BLOCK_APPS
+                    ];
+                }
+            }
+            
+            if(is_array($input["assignedApplicationRules"])) {
+                $type = $input["assigned_application_rules_type"];
+                foreach ($input["assignedApplicationRules"] as &$assignedApplicationRule) {
+                    $assignedApplicationRule = [
+                        "assignedApplicationRules" => $assignedApplicationRule,
+                        "filter_type" => $type
+                    ];
+                }
+            }
+            return $input;
+        });
+
+        $this->crud->addFields([
+            [
+                'label' => 'Name',
+                'type' => 'text',
+                'name' => 'name',
+                'tab' => 'Settings'
+            ],
+            [
+                'label' => 'Enabled',
+                'type' => 'switch',
+                'name' => 'isactive',
+                'tab' => 'Settings'
+            ],
+            [
+                'label' => 'Config',
+                'name' => 'group_config',
+                'type' => 'repeatable',
+                'tab' => 'Settings',
+                'subfields' => [
+                    [
+                        'name' => 'UpdateFrequency',
+                        'type' => 'number',
+                        'label' => 'Update Frequency',
+                        'wrapper' => ['class' => 'form-group col-md-8'],
+                    ],
+                    [
+                        'name' => 'PrimaryDns',
+                        'type' => 'text',
+                        'label' => 'Primary Dns',
+                        'wrapper' => ['class' => 'form-group col-md-6'],
+                    ],
+
+                    [
+                        'name' => 'PrimaryDnsV6',
+                        'type' => 'text',
+                        'label' => 'Primary Dns V6',
+                        'wrapper' => ['class' => 'form-group col-md-6'],
+                    ],
+                    [
+                        'name' => 'SecondaryDns',
+                        'type' => 'text',
+                        'label' => 'Secondary Dns',
+                        'wrapper' => ['class' => 'form-group col-md-6'],
+                    ],
+                    [
+                        'name' => 'SecondaryDnsV6',
+                        'type' => 'text',
+                        'label' => 'Secondary Dns V6',
+                        'wrapper' => ['class' => 'form-group col-md-6'],
+                    ],
+                    [
+                        'name' => 'UpdateChannel',
+                        'type' => 'select_from_array',
+                        'options' => ["Stable" => "Stable", "Alpha" => "Alpha", "Beta" => "Beta"],
+                        'label' => 'Update Channel',
+                        'wrapper' => ['class' => 'form-group col-md-8'],
+                    ],
+                    [
+                        'name' => 'BypassesPermitted',
+                        'type' => 'number',
+                        'label' => 'Bypasses Permitted',
+                        'wrapper' => ['class' => 'form-group col-md-6'],
+                    ],
+                    [
+                        'name' => 'BypassDuration',
+                        'type' => 'number',
+                        'label' => 'Bypass Duration',
+                        'wrapper' => ['class' => 'form-group col-md-6'],
+                    ],
+                ],
+
+                'init_rows' => 1,
+                'min_rows' => 1,
+                'max_rows' => 1,
+                'reorder' => false,
+            ],
+            [
+                'label' => 'Notes',
+                'type' => 'textarea',
+                'name' => 'notes',
+                'tab' => 'Settings',
+            ],
+            [
+                'label' => 'Whitelist Rules',
+                'type' => 'select2_from_ajax_multiple',
+                'name' => 'assignedWhitelistFilters',
+                'entity' => 'assignedWhitelistFilters',
+                'attribute' => 'label',
+                'model' => 'App\Models\FilterList',
+                'pivot' => true,
+                'data_source' => url("admin/api/filter_list?type=whitelist"),
+                'method' => 'post',
+                'delay' => 500,
+                'include_all_form_fields' => true,
+                'minimum_input_length' => 3,
+                'tab' => 'Rule Selection',
+            ],
+            [
+                'label' => 'Blacklist Rules',
+                'type' => 'select2_from_ajax_multiple',
+                'name' => 'assignedBlacklistFilters',
+                'entity' => 'assignedBlacklistFilters',
+                'attribute' => 'label',
+                'model' => 'App\Models\FilterList',
+                'pivot' => true,
+                'data_source' => url("admin/api/filter_list?type=blacklist"),
+                'method' => 'post',
+                'delay' => 500,
+                'include_all_form_fields' => true,
+                'minimum_input_length' => 3,
+                'tab' => 'Rule Selection',
+            ],
+            [
+                'label' => 'Bypass Rules',
+                'type' => 'select2_from_ajax_multiple',
+                'name' => 'assignedBypassFilters',
+                'entity' => 'assignedBypassFilters',
+                'attribute' => 'label',
+                'model' => 'App\Models\FilterList',
+                'pivot' => true,
+                'data_source' => url("admin/api/filter_list?type=bypass"),
+                'method' => 'post',
+                'delay' => 500,
+                'include_all_form_fields' => true,
+                'minimum_input_length' => 3,
+                'tab' => 'Rule Selection',
+            ],
+            [
+                'label' => 'Application Groups Type',
+                'name' => 'assigned_application_rules_type',
+                'type' => 'radio',
+                'options' => [
+                    UserGroupToAppGroup::FILTER_TYPE_WHITELIST => "Whitelist",
+                    UserGroupToAppGroup::FILTER_TYPE_BLACKLIST => "Blacklist"
+                ],
+                'inline' => true,
+                'tab' => 'Application Selection',
+            ],
+            [
+                'label' => 'Application Groups',
+                'type' => 'relationship',
+                'name' => 'assignedApplicationRules',
+                'entity' => 'assignedApplicationRules',
+                'attribute' => 'group_name',
+                'model' => 'App\Models\AppGroup',
+                'tab' => 'Application Selection',
+            ],
+            [
+                'label' => 'Application Blocking',
+                'type' => 'relationship',
+                'pivot' => true,
+                'name' => 'assignedBlockedApplicationRules',
+                'entity' => 'assignedBlockedApplicationRules',
+                'attribute' => 'group_name',
+                'model' => 'App\Models\AppGroup',
+                'tab' => 'Application Selection',
+            ],
+        ]);
     }
+
 
     /**
      * Define what happens when the Update operation is loaded.
@@ -101,4 +286,39 @@ class GroupCrudController extends CrudController
     {
         $this->setupCreateOperation();
     }
+
+    function loadFilterLists(Request $request)
+    {
+        $type = $request->input("type");
+        $query = $request->input("q");
+        $formData = $request->input("form");
+        $groupId = null;
+
+        $formKeys = [
+            "whitelist" => "assignedWhitelistFilters[]",
+            "blacklist" => "assignedBlacklistFilters[]",
+            "bypass" => "assignedBypassFilters[]",
+        ];
+
+        $occupiedFilterIds = [];
+        foreach ($formData as $inputData) {
+            $name = $inputData["name"];
+            $value = $inputData["value"];
+            if ($name == "id") {
+                $groupId = $value;
+            }
+
+            if (in_array($name, $formKeys)) {
+                $occupiedFilterIds[] = (int)$value;
+            }
+        }
+
+        $group = Group::findOrFail($groupId);
+
+        return FilterList::where("namespace", "like", "%" . $query . "%")
+            ->orWhere("category", "like", "%" . $query . "%")
+            ->whereNotIn("id", $occupiedFilterIds)
+            ->get();
+    }
+
 }

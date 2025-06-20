@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\SystemPlatform;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -56,7 +57,7 @@ class AppCrudController extends CrudController
                 'name' => 'group',
                 'entity' => 'group',
                 'attribute' => 'group_name',
-                'model'     => 'App\Models\AppGroup',
+                'model' => 'App\Models\AppGroup',
                 'priority' => 2,
             ],
             [
@@ -83,14 +84,40 @@ class AppCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation([
-            // 'name' => 'required|min:2',
+            'name' => 'required|min:2',
+            'platform_name' => 'required|min:2',
         ]);
-        CRUD::setFromDb(); // set fields from db columns.
 
-        /**
-         * Fields can be defined using the fluent syntax:
-         * - CRUD::field('price')->type('number');
-         */
+        $this->crud->addFields([
+            [
+                'label' => 'Application Name',
+                'type' => 'text',
+                'name' => 'name',
+            ],
+            [
+                'label' => 'Notes',
+                'type' => 'text',
+                'name' => 'notes',
+            ],
+            [
+                'label' => 'Platform',
+                'type' => 'select_from_array',
+                'options' => [SystemPlatform::PLATFORM_WIN => SystemPlatform::PLATFORM_WIN, SystemPlatform::PLATFORM_OSX => SystemPlatform::PLATFORM_OSX],
+                'name' => 'platform_name',
+            ],
+            [
+                'label' => 'Linked Groups',
+                'type' => 'select2_multiple',
+                'name' => 'group',
+                'entity' => 'group',
+                'attribute' => 'group_name',
+                'model' => 'App\Models\AppGroup',
+                'pivot' => true,
+                'options' => (function ($query) {
+                    return $query->orderBy('group_name', 'ASC')->get();
+                })
+            ],
+        ]);
     }
 
     /**
