@@ -102,7 +102,7 @@ class GroupCrudController extends CrudController
                     ];
                 }
             }
-            
+
             if(is_array($input["assignedApplicationRules"])) {
                 $type = $input["assigned_application_rules_type"];
                 foreach ($input["assignedApplicationRules"] as &$assignedApplicationRule) {

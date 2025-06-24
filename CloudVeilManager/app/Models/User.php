@@ -9,8 +9,8 @@
 
 namespace App\Models;
 
+use App\Casts\Json;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use App\Models\AppUserActivation;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\HasApiTokens;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 
-class UserActivationAttemptResult {
+class UserActivationAttemptResult
+{
     const Success = 1;
     const ActivationLimitExceeded = 2;
     const AccountDisabled = 3;
@@ -31,7 +32,8 @@ class UserActivationAttemptResult {
 
 }
 
-class User extends Authenticatable {
+class User extends Authenticatable
+{
     use CrudTrait;
 
     use Notifiable;
@@ -47,10 +49,192 @@ class User extends Authenticatable {
      */
     protected $appends = ['activations_used'];
 
-    /**
-     * Set the default orderBy
-     */
-    protected static function boot() {
+
+    protected function casts(): array
+    {
+        return [
+            'config_override' => Json::class,
+        ];
+    }
+
+    public function getConfigAttribute()
+    {
+        return [$this->config_override];
+    }
+
+    public function setConfigAttribute($value)
+    {
+        $this->config_override = $value[0];
+    }
+
+    public function getBlockedSitesAttribute()
+    {
+        return $this->mapConfigArrayToNameValue("SelfModeration");
+    }
+
+    public function setBlockedSitesAttribute($value)
+    {
+        $this->assignConfigArray("SelfModeration", $value);
+    }
+
+    public function getAllowedSitesAttribute()
+    {
+        return $this->mapConfigArrayToNameValue("CustomWhitelist");
+    }
+
+    public function setAllowedSitesAttribute($value)
+    {
+        $this->assignConfigArray("CustomWhitelist", $value);
+    }
+
+    public function getBypassableSitesAttribute()
+    {
+        return $this->mapConfigArrayToNameValue("CustomBypasslist");
+    }
+
+    public function setBypassableSitesAttribute($value)
+    {
+        $this->assignConfigArray("CustomBypasslist", $value);
+    }
+
+    public function getBlockedTriggersAttribute()
+    {
+        return $this->mapConfigArrayToNameValue("CustomTriggerBlacklist");
+    }
+
+    public function setBlockedTriggersAttribute($value)
+    {
+        $this->assignConfigArray("CustomTriggerBlacklist", $value);
+    }
+
+    public function getBlockedApplicationsAttribute()
+    {
+        return $this->mapConfigArrayToNameValue("CustomBlockedApps");
+    }
+
+    public function setBlockedApplicationsAttribute($value)
+    {
+        $this->assignConfigArray("CustomBlockedApps", $value);
+    }
+
+    private function mapConfigArrayToNameValue($arrayKey)
+    {
+        $array = $this->config_override[$arrayKey] ?? [];
+        $result = [];
+        foreach ($array as $v) {
+            $result[] = ["name" => $v];
+        }
+        return $result;
+    }
+
+    private function assignConfigArray($arrayKey, $value)
+    {
+        $config = $this->config_override;
+        $valueArray = json_decode($value, true);
+        $res = [];
+        if (is_array($valueArray)) {
+            foreach ($valueArray as $value) {
+                $res[] = $value["name"];
+            }
+        }
+        $config[$arrayKey] = $res;
+        $this->config_override = $config;
+    }
+
+    private static $defaultTimeRestrictions = [
+        "monday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "tuesday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "wednesday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "thursday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "friday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "saturday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "sunday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+    ];
+
+    public function getTimeRestrictionsAttribute()
+    {
+        $config = $this->config_override["TimeRestrictions"] ?? User::$defaultTimeRestrictions;
+        $res = [];
+        foreach ($config as $key => $value) {
+            $field = [
+                "day" => $key,
+                "from" => date('H:i', strtotime(str_replace(".", ":", $value["EnabledThrough"][0]))),
+                "to" => date('H:i', strtotime(str_replace(".", ":", $value["EnabledThrough"][1]))),
+                "enabled" => $value["RestrictionsEnabled"] ?? false
+            ];
+            if ($field["to"] == "00:00") {
+                $field["to"] = "23:59";
+            }
+            $res [] = $field;
+        }
+        return $res;
+    }
+
+    public function setTimeRestrictionsAttribute($value)
+    {
+        $config = $this->config_override;
+        $res = [];
+        $days = array_keys(User::$defaultTimeRestrictions);
+        foreach ($value as $key => $dayData) {
+            $day = $days[$key];
+            $from = $this->convertTimeToTimeRestrictionFormat($dayData["from"]);
+            $to = $this->convertTimeToTimeRestrictionFormat($dayData["to"]);
+            $enabled = $dayData["enabled"];
+
+            $res[$day] = [
+                "EnabledThrough" => [
+                    $from, $to
+                ],
+                "RestrictionsEnabled" => (bool)$enabled
+            ];
+        }
+
+        $isDefaultTimeRestrictions = $this->isDefaultTimeRestrictions($res);
+        if($isDefaultTimeRestrictions) {
+            unset($config["TimeRestrictions"]);
+        } else {
+            $config["TimeRestrictions"] = $res;
+        }
+
+        $this->config_override = $config;
+    }
+
+    private function convertTimeToTimeRestrictionFormat($v)
+    {
+        $timeParts = explode(":", $v);
+        if ($timeParts[0] == 23 && $timeParts[1] == 59) {
+            return "24.00";
+        }
+        return $timeParts[0] . "." . $timeParts[1];
+    }
+
+    private function isDefaultTimeRestrictions($res) {
+        return json_encode($res) == json_encode(User::$defaultTimeRestrictions);
+    }
+
+    protected static function boot()
+    {
         parent::boot();
 
         // Order by name ASC
@@ -59,25 +243,30 @@ class User extends Authenticatable {
         });
     }
 
-    public function group() {
+    public function group()
+    {
         return $this->belongsTo('App\Models\Group');
     }
 
-    public function roles() {
+    public function roles()
+    {
         return $this->belongsToMany('App\Models\Role');
     }
 
-    public function permissions() {
+    public function permissions()
+    {
         return $this->hasMany('App\Models\Permission');
     }
 
-    public function activations() {
+    public function activations()
+    {
         return $this->hasMany('App\Models\AppUserActivation');
     }
 
-    public function findActivationById($identifier) {
-        foreach($this->activations as $activation) {
-            if($activation->identifier == $identifier) {
+    public function findActivationById($identifier)
+    {
+        foreach ($this->activations as $activation) {
+            if ($activation->identifier == $identifier) {
                 return $activation;
             }
         }
@@ -87,7 +276,8 @@ class User extends Authenticatable {
     /**
      * Gets a count of all activations for this user.
      */
-    public function activationsCountRelation() {
+    public function activationsCountRelation()
+    {
         return $this->hasOne('App\Models\AppUserActivation')
             ->selectRaw('user_id, count(*) as count')
             ->where('updated_at', '>=', Carbon::now()->subDays(config('app.license_expiration'))->format('Y-m-d H:i:s'))
@@ -97,7 +287,8 @@ class User extends Authenticatable {
     /**
      * Gets the number of rule entries for this filter list.
      */
-    public function getActivationsUsedAttribute(): int {
+    public function getActivationsUsedAttribute(): int
+    {
 
         $activationRelation = $this->activationsCountRelation()->first();
         //Log::debug($activationRelation);
@@ -109,16 +300,19 @@ class User extends Authenticatable {
     }
 
 
-    public function tryActivateUser(Request $request) {
+    public function tryActivateUser(Request $request)
+    {
         return $this->tryActivateUserArray($request->all());
     }
+
     /**
      * Attempts to activate the user or retrieve an existing activation
      * for the user from the given request.
      * @param Request $request
      * @return \App\Models\UserActivationAttemptResult
      */
-    public function tryActivateUserArray($params) {
+    public function tryActivateUserArray($params)
+    {
         if ($this->isactive == false) {
             return UserActivationAttemptResult::AccountDisabled;
         }
@@ -175,7 +369,11 @@ class User extends Authenticatable {
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'isactive', 'group_id', 'activations_allowed', 'customer_id', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode'
+        'name', 'email', 'password',
+        'isactive', 'group_id', 'activations_allowed',
+        'customer_id', 'config_override', 'relaxed_policy_passcode',
+        'config', 'enable_relaxed_policy_passcode', 'blocked_sites', 'allowed_sites',
+        'bypassable_sites', 'blocked_triggers', 'blocked_applications', 'time_restrictions'
     ];
 
     /**
