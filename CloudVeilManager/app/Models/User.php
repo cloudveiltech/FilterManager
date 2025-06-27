@@ -10,6 +10,8 @@
 namespace App\Models;
 
 use App\Casts\Json;
+use App\Models\Traits\OverridableConfigTrait;
+use App\Models\Traits\TimerRestrictionsTrait;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -40,6 +42,9 @@ class User extends Authenticatable
     use EntrustUserTrait;
     use HasApiTokens;
 
+    use OverridableConfigTrait;
+    use TimerRestrictionsTrait;
+
     public $timestamps = true;
 
     /**
@@ -55,16 +60,6 @@ class User extends Authenticatable
         return [
             'config_override' => Json::class,
         ];
-    }
-
-    public function getConfigAttribute()
-    {
-        return [$this->config_override];
-    }
-
-    public function setConfigAttribute($value)
-    {
-        $this->config_override = $value[0];
     }
 
     public function getBlockedSitesAttribute()
@@ -115,122 +110,6 @@ class User extends Authenticatable
     public function setBlockedApplicationsAttribute($value)
     {
         $this->assignConfigArray("CustomBlockedApps", $value);
-    }
-
-    private function mapConfigArrayToNameValue($arrayKey)
-    {
-        $array = $this->config_override[$arrayKey] ?? [];
-        $result = [];
-        foreach ($array as $v) {
-            $result[] = ["name" => $v];
-        }
-        return $result;
-    }
-
-    private function assignConfigArray($arrayKey, $value)
-    {
-        $config = $this->config_override;
-        $valueArray = json_decode($value, true);
-        $res = [];
-        if (is_array($valueArray)) {
-            foreach ($valueArray as $value) {
-                $res[] = $value["name"];
-            }
-        }
-        $config[$arrayKey] = $res;
-        $this->config_override = $config;
-    }
-
-    private static $defaultTimeRestrictions = [
-        "monday" => [
-            "EnabledThrough" => ["00.00", "24.00"],
-            "RestrictionsEnabled" => false
-        ],
-        "tuesday" => [
-            "EnabledThrough" => ["00.00", "24.00"],
-            "RestrictionsEnabled" => false
-        ],
-        "wednesday" => [
-            "EnabledThrough" => ["00.00", "24.00"],
-            "RestrictionsEnabled" => false
-        ],
-        "thursday" => [
-            "EnabledThrough" => ["00.00", "24.00"],
-            "RestrictionsEnabled" => false
-        ],
-        "friday" => [
-            "EnabledThrough" => ["00.00", "24.00"],
-            "RestrictionsEnabled" => false
-        ],
-        "saturday" => [
-            "EnabledThrough" => ["00.00", "24.00"],
-            "RestrictionsEnabled" => false
-        ],
-        "sunday" => [
-            "EnabledThrough" => ["00.00", "24.00"],
-            "RestrictionsEnabled" => false
-        ],
-    ];
-
-    public function getTimeRestrictionsAttribute()
-    {
-        $config = $this->config_override["TimeRestrictions"] ?? User::$defaultTimeRestrictions;
-        $res = [];
-        foreach ($config as $key => $value) {
-            $field = [
-                "day" => $key,
-                "from" => date('H:i', strtotime(str_replace(".", ":", $value["EnabledThrough"][0]))),
-                "to" => date('H:i', strtotime(str_replace(".", ":", $value["EnabledThrough"][1]))),
-                "enabled" => $value["RestrictionsEnabled"] ?? false
-            ];
-            if ($field["to"] == "00:00") {
-                $field["to"] = "23:59";
-            }
-            $res [] = $field;
-        }
-        return $res;
-    }
-
-    public function setTimeRestrictionsAttribute($value)
-    {
-        $config = $this->config_override;
-        $res = [];
-        $days = array_keys(User::$defaultTimeRestrictions);
-        foreach ($value as $key => $dayData) {
-            $day = $days[$key];
-            $from = $this->convertTimeToTimeRestrictionFormat($dayData["from"]);
-            $to = $this->convertTimeToTimeRestrictionFormat($dayData["to"]);
-            $enabled = $dayData["enabled"];
-
-            $res[$day] = [
-                "EnabledThrough" => [
-                    $from, $to
-                ],
-                "RestrictionsEnabled" => (bool)$enabled
-            ];
-        }
-
-        $isDefaultTimeRestrictions = $this->isDefaultTimeRestrictions($res);
-        if($isDefaultTimeRestrictions) {
-            unset($config["TimeRestrictions"]);
-        } else {
-            $config["TimeRestrictions"] = $res;
-        }
-
-        $this->config_override = $config;
-    }
-
-    private function convertTimeToTimeRestrictionFormat($v)
-    {
-        $timeParts = explode(":", $v);
-        if ($timeParts[0] == 23 && $timeParts[1] == 59) {
-            return "24.00";
-        }
-        return $timeParts[0] . "." . $timeParts[1];
-    }
-
-    private function isDefaultTimeRestrictions($res) {
-        return json_encode($res) == json_encode(User::$defaultTimeRestrictions);
     }
 
     protected static function boot()
@@ -363,6 +242,19 @@ class User extends Authenticatable
         return UserActivationAttemptResult::Success;
     }
 
+    public function setisEnabledAttribute($value) {
+        $this->isactive = $value;
+        if ($value == '0') {
+            $userTokens = $this->tokens;
+            foreach ($userTokens as $token) {
+                $token->revoke();
+            }
+        }
+    }
+
+    public function getisEnabledAttribute() {
+        return $this->isactive;
+    }
     /**
      * The attributes that are mass assignable.
      *

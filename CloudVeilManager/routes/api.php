@@ -21,9 +21,6 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::resource('deactivationreq', 'DeactivationRequestController');
         Route::post('deactivationreq/update_field', 'DeactivationRequestController@updateField');
 
-        Route::resource('filterlists', 'FilterListController');
-        Route::get('filterlist/all', 'FilterListController@get_filters');
-
         Route::resource('blockreview', 'BlockActionReviewRequestController');
 
         //Route::get('activations/{id}', 'UserController@activation_data');
@@ -44,9 +41,6 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::resource('app', 'ApplicationController');
         Route::resource('app_group', 'ApplicationGroupController');
 
-        // For handling mass upload of filter lists.
-        Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
-
         // Apply app  to appgroup.
         Route::post('/apply_app_to_app_group', 'ApplyAppToAppGroupController@applyToGroup');
         Route::get('/apply_app_to_appgroup/data', 'ApplyAppToAppGroupController@getRetrieveData');
@@ -56,9 +50,6 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::post('/apply_appgroup_to_usergroup', 'ApplyAppgroupToUsergroupController@applyToGroup');
         Route::get('/apply_appgroup_to_usergroup/data', 'ApplyAppgroupToUsergroupController@getRetrieveData');
         Route::get('/apply_appgroup_to_usergroup/selected_user_group/{id}', 'ApplyAppgroupToUsergroupController@getSelectedUsergroups');
-
-        // For handling deletion of all records in a namespace.
-        Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');
 
         // Get application for app_group_editing.
         Route::get('/applications', 'ApplicationController@get_application');
@@ -172,9 +163,6 @@ Route::namespace("App\Http\Controllers")->group(function () {
      * generate a new token.  We return that token and email address so the app can login again.
      */
     Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:api', 'role:admin']], function () {
-        // For handling mass upload of filter lists.
-        Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
-
         /* Manage Users */
         Route::put('/users/{id}', 'UserController@update');
         Route::get('/users', 'UserController@index');
@@ -198,9 +186,6 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::resource('deactivationreq', 'DeactivationRequestController');
         Route::post('deactivationreq/update_field', 'DeactivationRequestController@updateField');
 
-        Route::resource('filterlists', 'FilterListController');
-        Route::get('filterlist/all', 'FilterListController@get_filters');
-
         Route::resource('blockreview', 'BlockActionReviewRequestController');
 
         //Route::get('activations/{id}', 'UserController@activation_data');
@@ -219,16 +204,10 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::get('user_activations/{user_id}', 'AppUserActivationController@index');
         Route::resource('user_activations', 'AppUserActivationController');
 
-        // For handling mass upload of filter lists.
-        Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
-
         // Apply app  to appgroup.
         Route::post('/apply_app_to_app_group', 'ApplyAppToAppGroupController@applyToGroup');
         Route::get('/apply_app_to_appgroup/data', 'ApplyAppToAppGroupController@getRetrieveData');
         Route::get('/apply_app_to_appgroup/selected_group/{id}', 'ApplyAppToAppGroupController@getSelectedGroups');
-
-        // For handling deletion of all records in a namespace.
-        Route::delete('/filterlists/namespace/{namespace}/{type?}', 'FilterListController@deleteAllListsInNamespace');
 
         // Get application for app_group_editing.
         Route::get('/applications', 'ApplicationController@get_application');
@@ -259,9 +238,6 @@ Route::namespace("App\Http\Controllers")->group(function () {
      * At some point this will be revoked and rolled into v2 of the api.
      */
     Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once', 'role:admin']], function () {
-        // For handling mass upload of filter lists.
-        Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
-
         /* Manage Users */
         Route::post('/users/{id}', 'UserController@update'); //Should be deprecated.
         Route::post('/user/{id}', 'UserController@update');

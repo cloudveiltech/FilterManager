@@ -20,10 +20,15 @@ use Illuminate\Http\Request;
 class GroupCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation{
+        store as traitStore;
+    }
+    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
+        update as traitUpdate;
+    }
+    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation {
+        destroy as traitDelete;
+    }
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -321,4 +326,32 @@ class GroupCrudController extends CrudController
             ->get();
     }
 
+    public function store()
+    {
+        $result = $this->traitStore();
+        $model = $this->data["entry"] ?? null;
+        if($model) {
+            $model->rebuildGroupData();
+        }
+        return $result;
+    }
+
+    public function update()
+    {
+        $result = $this->traitUpdate();
+        $model = $this->data["entry"] ?? null;
+        if($model) {
+            $model->rebuildGroupData();
+        }
+        return $result;
+    }
+
+    public function destroy($id)
+    {
+        $group = Group::find($id);
+        if($group) {
+            $group->destroyGroupData();
+        }
+        return $this->traitDelete($id);
+    }
 }

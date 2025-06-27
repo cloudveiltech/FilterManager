@@ -35,7 +35,7 @@ Route::namespace("App\Http\Controllers")->group(function () {
     Route::get('login/callbacks/{provider}', 'Auth\LoginController@handleProviderCallback')->name('callback.sso');
 
     Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () {
-        Route::get('/update', 'FilterListController@triggerUpdate');
+        Route::get('/update', 'Admin\FilterListCrudController@triggerUpdate');
     });
 
     Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user|business-owner']], function () {

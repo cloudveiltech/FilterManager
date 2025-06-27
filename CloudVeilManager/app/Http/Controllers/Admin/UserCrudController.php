@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Support\Facades\Hash;
@@ -20,8 +21,8 @@ class UserCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
         update as traitUpdate;
     }
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 
     public function setup()
     {
@@ -32,7 +33,6 @@ class UserCrudController extends CrudController
 
     protected function setupListOperation()
     {
-        // 'name', 'email', 'password', 'isactive', 'group_id', 'activations_allowed', 'customer_id', 'config_override', 'relaxed_policy_passcode', 'enable_relaxed_policy_passcode'
         $this->crud->setColumns([
             [
                 'label' => 'User Name',
@@ -76,12 +76,24 @@ class UserCrudController extends CrudController
         ]);
     }
 
-    protected function setupCreateOperation()
+
+    protected function setupFields($fromEdit = true)
     {
-        CRUD::setValidation([
+        $validationRules = [
             'name' => 'required',
             'email' => 'required|email',
-        ]);
+            'password' => 'required|same:password_verify',
+            'password_verify' => 'required',
+            'roles' => 'required|exists:roles,id',
+            'group' => 'required|exists:groups,id',
+            'activations_allowed' => 'required|integer|gt:0',
+        ];
+        if ($fromEdit) {
+            $validationRules["password"] = "same:password_verify";
+            unset($validationRules['password_verify']);
+        }
+        CRUD::setValidation($validationRules);
+
 
         $this->crud->addFields([
                 [
@@ -99,7 +111,7 @@ class UserCrudController extends CrudController
                 [
                     'label' => 'Enabled',
                     'type' => 'switch',
-                    'name' => 'isactive',
+                    'name' => 'is_enabled',
                     'tab' => 'Information'
                 ],
                 [
@@ -112,13 +124,15 @@ class UserCrudController extends CrudController
                     'label' => 'Password',
                     'type' => 'password',
                     'name' => 'password',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
-                    'label' => 'Customer ID',
-                    'type' => 'number',
-                    'name' => 'customer_id',
-                    'tab' => 'Information'
+                    'label' => 'Password Confirm',
+                    'type' => 'password',
+                    'name' => 'password_verify',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
                     'label' => 'Activations Allowed',
@@ -148,13 +162,15 @@ class UserCrudController extends CrudController
                     'label' => 'Relaxed Policy Passcode',
                     'type' => 'password',
                     'name' => 'relaxed_policy_passcode',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
                     'label' => 'Enable Relaxed Policy Passcode',
                     'type' => 'switch',
                     'name' => 'enable_relaxed_policy_passcode',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
                 ],
                 [
                     'label' => 'Bypass Config',
@@ -290,7 +306,10 @@ class UserCrudController extends CrudController
 
     protected function setupUpdateOperation()
     {
-        $this->setupCreateOperation();
+        $this->setupFields(true);
+    }
+    protected function setupCreateOperation() {
+        $this->setupFields(false);
     }
 
     public function store()
@@ -307,18 +326,41 @@ class UserCrudController extends CrudController
 
     private function validatePassword()
     {
-        CRUD::setRequest(CRUD::validateRequest());
+        $request = CRUD::getRequest();
+        if (!$request->input('password')) {
+            $request->request->remove('password_verify');
+            $request->request->remove('password');
+            CRUD::setRequest($request);
+        }
 
+        CRUD::setRequest(CRUD::validateRequest());
         $request = CRUD::getRequest();
 
         // Encrypt password if specified.
         if ($request->input('password')) {
             $request->request->set('password', Hash::make($request->input('password')));
+            $request->request->remove('password_verify');
         } else {
             $request->request->remove('password');
         }
 
         CRUD::setRequest($request);
         CRUD::unsetValidation(); // Validation has alr
+    }
+
+    public function destroy($id)
+    {
+        $user = User::where('id', $id)->first();
+        if (!is_null($user)) {
+            $userTokens = $user->tokens;
+            foreach ($userTokens as $token) {
+                $token->revoke();
+            }
+
+            $user->detachRoles();
+            $user->delete();
+        }
+
+        return true;
     }
 }

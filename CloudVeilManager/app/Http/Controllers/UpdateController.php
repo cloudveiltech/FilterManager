@@ -12,7 +12,6 @@ namespace App\Http\Controllers;
 use App\Models\AppUserActivation;
 use App\Models\SystemPlatform;
 use App\Models\SystemVersion;
-use App\Models\Utils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

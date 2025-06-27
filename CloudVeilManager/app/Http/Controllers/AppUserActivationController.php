@@ -9,13 +9,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AppUserActivation;
 use App\Events\ActivationBypassDenied;
 use App\Events\ActivationBypassGranted;
-use App\Models\Group;
+use App\Models\AppUserActivation;
+use App\Models\Helpers\Utils;
 use App\Models\SystemPlatform;
 use App\Models\User;
-use App\Models\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;

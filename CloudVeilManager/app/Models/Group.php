@@ -33,7 +33,7 @@ class Group extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'isactive', 'app_cfg', 'data_sha1', 'config_cache', 'notes', 'assigned_application_rules_type'
+        'name', 'isactive', 'app_cfg', 'data_sha1', 'config_cache', 'notes', 'assigned_application_rules_type', "group_config"
     ];
 
     public function users()
@@ -150,7 +150,7 @@ class Group extends Model
 
     public function setGroupConfigAttribute($value)
     {
-        $this->app_cfg = $value[0];
+        $this->app_cfg = $value[0] ?? "";
     }
 
     public function setNotesAttribute($value)
@@ -216,7 +216,7 @@ class Group extends Model
         // Merge app_groups into configuration.
         $app_cfg = $this->app_cfg;
         $app_group_ids = UserGroupToAppGroup::where('user_group_id', $this->id)->pluck('filter_type', 'app_group_id')->toArray();
-        $app_groups = AppGroup::with('app')->find(array_keys($app_group_ids));
+        $app_groups = AppGroup::with('apps')->find(array_keys($app_group_ids));
         $whitelistApps = [];
         $blocklistApps = [];
         $blacklistApps = [];
@@ -228,7 +228,7 @@ class Group extends Model
             } else if ($app_group_ids[$ag->id] == UserGroupToAppGroup::FILTER_TYPE_BLOCK_APPS) {
                 $collection = &$blocklistApps;
             }
-            foreach ($ag['app'] as $app) {
+            foreach ($ag['apps'] as $app) {
                 $collection[$app['name']] = ["name" => $app['name'], "os" => $app["platform_name"]];
             }
         }

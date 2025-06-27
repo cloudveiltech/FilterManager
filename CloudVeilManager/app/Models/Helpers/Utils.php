@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Helpers;
 
 class Utils {
 	public static function purgeNulls($arr) {
