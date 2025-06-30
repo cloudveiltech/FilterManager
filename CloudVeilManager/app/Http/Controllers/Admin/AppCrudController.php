@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\App;
+use App\Models\AppGroupToApp;
 use App\Models\SystemPlatform;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -53,12 +55,17 @@ class AppCrudController extends CrudController
             ],
             [
                 'label' => 'Linked Groups',
-                'type' => 'select_multiple',
+                'type' => 'text',
                 'name' => 'group',
-                'entity' => 'group',
-                'attribute' => 'group_name',
-                'model' => 'App\Models\AppGroup',
-                'priority' => 2,
+                'limit' => 200000,
+                'priority' => 1,
+                'value' => function ($entry) {
+                    $groups = $entry->group;
+                    return $groups->pluck("group_name")->sort()->join(", ");
+                },
+                'wrapper' => [
+                    'style' => 'white-space: normal',
+                ]
             ],
             [
                 'label' => 'Updated at',
@@ -129,5 +136,17 @@ class AppCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+    public function destroy($id)
+    {
+        AppGroupToApp::where('app_id', $id)->delete();
+
+        $application = App::where('id', $id)->first();
+        if (!is_null($application)) {
+            $application->delete();
+        }
+
+        return true;
     }
 }

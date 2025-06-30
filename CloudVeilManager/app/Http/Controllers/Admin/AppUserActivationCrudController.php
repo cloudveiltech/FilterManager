@@ -20,6 +20,7 @@ class AppUserActivationCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
         update as traitUpdate;
     }
+
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -82,6 +83,12 @@ class AppUserActivationCrudController extends CrudController
                 'type' => 'text',
                 'name' => 'friendly_name',
             ],
+            [
+                'label' => 'Identifier',
+                'type' => 'hidden',
+                'name' => 'identifier',
+                'searchLogic' => 'text'
+            ]
         ]);
     }
 
@@ -95,13 +102,6 @@ class AppUserActivationCrudController extends CrudController
     {
         CRUD::setValidation([
         ]);
-
-        $fillable = [
-            'identifier', 'device_id', 'user_id', 'ip_address', 'group_id',
-            'bypass_quantity', 'bypass_period', 'bypass_used', 'debug_enabled',
-            'check_in_days', 'alert_partner', 'config_override', 'last_update_requested_time',
-            'last_sync_time', 'platform_name', 'friendly_name', 'app_version', 'os_version', 'banned'
-        ];
 
         $this->crud->addFields([
                 [
@@ -311,11 +311,11 @@ class AppUserActivationCrudController extends CrudController
 
     public function update()
     {
-        $this->validatGroup();
+        $this->validatData();
         return $this->traitUpdate();
     }
 
-    private function validatGroup()
+    private function validatData()
     {
         CRUD::setRequest(CRUD::validateRequest());
 
