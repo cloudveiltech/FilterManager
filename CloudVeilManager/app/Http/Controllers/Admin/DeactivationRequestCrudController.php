@@ -15,6 +15,7 @@ class DeactivationRequestCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use \Backpack\EditableColumns\Http\Controllers\Operations\MinorUpdateOperation;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -63,7 +64,7 @@ class DeactivationRequestCrudController extends CrudController
             ],
             [
                 'label' => 'Granted',
-                'type' => 'switch',
+                'type' => 'editable_switch',
                 'name' => 'granted',
             ],
         ]);
