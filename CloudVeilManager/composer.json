@@ -28,6 +28,7 @@
         "laravel/passport": "^13.0",
         "laravel/socialite": "^5.21",
         "laravel/tinker": "^2.10.1",
+        "laravel/ui": "^4.6",
         "patriciy/entrust": "dev-master",
         "predis/predis": "^3.0",
         "sentry/sentry-laravel": "^4.14"

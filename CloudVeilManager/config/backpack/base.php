@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\Cors;
+
 return [
 
     /*
