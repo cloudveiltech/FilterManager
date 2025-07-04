@@ -27,9 +27,13 @@ Route::namespace("App\Http\Controllers")->group(function () {
     Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.reset');
     Route::post('password/reset', 'Auth\ResetPasswordController@reset')->name('password.update');
 
+    Route::get('admin/login', function () {
+        return redirect()->route('login');
+    });
     Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
     Route::post('login', 'Auth\LoginController@login');
     Route::post('logout', 'Auth\LoginController@logout')->name('logout');
+    Route::get('admin/logout', 'Auth\LoginController@logout')->name('logout');
 
     Route::get('login/{provider}', 'Auth\LoginController@loginWithProvider')->name('login.withSso');
     Route::get('login/callbacks/{provider}', 'Auth\LoginController@handleProviderCallback')->name('callback.sso');
