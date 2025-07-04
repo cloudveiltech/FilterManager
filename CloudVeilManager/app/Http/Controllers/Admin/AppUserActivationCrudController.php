@@ -269,24 +269,11 @@ class AppUserActivationCrudController extends CrudController
                                 'disabled' => 'disabled',
                             ],
                         ],
-
-                        /*[
-                            'name' => 'from',
+                        [
+                            'name' => 'interval',
                             'type' => 'time_range_multiple',
-                            'label' => 'From',
+                            'label' => 'Interval',
                             'wrapper' => ['class' => 'form-group col-md-7'],
-                        ],*/
-                        [
-                            'name' => 'from',
-                            'type' => 'time',
-                            'label' => 'From',
-                            'wrapper' => ['class' => 'form-group col-md-1'],
-                        ],
-                        [
-                            'name' => 'to',
-                            'type' => 'time',
-                            'label' => 'To',
-                            'wrapper' => ['class' => 'form-group col-md-1'],
                         ],
                         [
                             'name' => 'enabled',

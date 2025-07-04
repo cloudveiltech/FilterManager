@@ -128,7 +128,7 @@ return [
 
     // JS files that are loaded in all pages, using Laravel's @vite() helper
     'vite_scripts' => [ // resource file_path
-//        'resources/js/app.js',
+        'resources/js/app.js',
     ],
 
     'classes' => [

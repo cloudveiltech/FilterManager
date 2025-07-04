@@ -9,14 +9,18 @@ export default {
         },
         max: {
             type: Number,
-            default: 1440
+            default: 1439
+        },
+        initialIntervals: {
+            type: Object,
+            required: true
         }
     },
 
     data() {
         return {
             options: {
-                start: ["06:10", "12:00"],
+                start: ["00:00", "23:59"],
                 connect: [false, true, false],
                 range: {
                     'min': [this.min],
@@ -136,13 +140,27 @@ export default {
             if (this.$refs.slider.noUiSlider) {
                 this.$refs.slider.noUiSlider.destroy();
             }
+
+            let sliderIntervals = [];
+            let initIntervalsJSON = JSON.parse(this.initialIntervals);
+            initIntervalsJSON.forEach((interval) => {
+                sliderIntervals.push(interval.from)
+                sliderIntervals.push(interval.to)
+            });
+            this.updateOptions(sliderIntervals);
             noUiSlider.create(slider, this.options);
 
             this.mergeTooltips(slider, "10", " ");
         },
 
+
         setIntervals(intervals) {
             this.$refs.slider.noUiSlider.off('update');
+            this.updateOptions(intervals);
+            this.initSlider();
+        },
+
+        updateOptions(intervals) {
             let connect = [];
             for (let i = 0; i < intervals.length + 1; i++) {
                 connect.push(i % 2 ? true : false);
@@ -150,8 +168,6 @@ export default {
 
             this.options.start = intervals;
             this.options.connect = connect;
-
-            this.initSlider();
         }
     }
 }
@@ -200,6 +216,22 @@ export default {
     border: none;
 }
 
+[data-bs-theme=dark] .noUi-tooltip, .noUi-connects, noUi-value{
+    background-color: var(--tblr-bg-surface);
+    border-color: var(--tblr-primary-border-subtle);
+    color: rgba(var(--tblr-border-active-color), 0.5);
+}
+
+[data-bs-theme=dark] .noUi-horizontal {
+    border-color: var(--tblr-border-color-active);
+}
+
+[data-bs-theme=dark] .noUi-handle {
+    border-color: var(--tblr-border-active-color);
+    background-color: var(--tblr-border-active-color);
+}
+
+
 .noUi-pips-horizontal {
     height: auto;
 }
@@ -207,4 +239,10 @@ export default {
 .noUi-pips {
     z-index: 0;
 }
+
+
+#saveActions a {
+    margin-left: 2px;
+}
+
 </style>

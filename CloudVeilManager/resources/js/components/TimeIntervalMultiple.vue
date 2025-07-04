@@ -5,25 +5,31 @@ export default {
         slider
     },
     props: {
-        formKey:  {
-            type: String,
-            required: true
-        },
+        formKey: String,
         maxIntervals: {
             type: String,
             default: 6
         },
+        initialIntervals: {
+            type: String,
+            required: true
+        }
     },
     data() {
         return {
-            intervals: [
-                {
-                    from: "10:00",
-                    to: "10:30"
-                },
-            ],
+            intervals: JSON.parse(this.initialIntervals),
             debounceTimer: null,
             listHidden: true,
+        }
+    },
+    created() {
+        if(!this.intervals || this.intervals.length == 0) {
+            this.intervals = [
+                {
+                    from: "00:00",
+                    to: "23:59"
+                }
+            ];
         }
     },
     mounted() {
@@ -77,7 +83,7 @@ export default {
 
 <template>
     <div>
-        <slider class="slider" ref="slider" @updated="onSliderChanged" />
+        <slider class="slider" ref="slider" @updated="onSliderChanged" :initial-intervals="this.initialIntervals" />
     </div>
     <div style="z-index: 10">
         <div class="row">
