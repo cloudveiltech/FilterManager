@@ -3,6 +3,7 @@
 namespace App\Providers\Socialite;
 
 // use SocialiteProviders\Manager\OAuth2\User;
+use Illuminate\Support\Arr;
 use Laravel\Socialite\Two\User;
 use Laravel\Socialite\Two\ProviderInterface;
 use Laravel\Socialite\Two\AbstractProvider;
@@ -60,7 +61,7 @@ class CloudVeilProvider extends AbstractProvider implements ProviderInterface
         return (new User())->setRaw($user)->map(
             [
                 'id' => $user['ID'],
-                'name' => array_get($user, 'user_login'),
+                'name' => Arr::get($user, 'user_login'),
                 'email' => $user['user_email']
             ]
         );
