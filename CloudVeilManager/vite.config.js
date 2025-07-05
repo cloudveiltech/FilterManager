@@ -24,7 +24,4 @@ export default defineConfig({
             vue: 'vue/dist/vue.esm-bundler.js',
         },
     },
-	server: {
-	  origin: 'http://www.cloudveil.local',
-	}
 });
