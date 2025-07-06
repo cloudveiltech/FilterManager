@@ -45,6 +45,14 @@ export default {
         }
     },
     mounted() {
+        let sliderIntervals = [];
+        let initIntervalsJSON = JSON.parse(this.initialIntervals);
+        initIntervalsJSON.forEach((interval) => {
+            sliderIntervals.push(interval.from)
+            sliderIntervals.push(interval.to)
+        });
+        this.updateOptions(sliderIntervals);
+
         this.initSlider();
     },
     methods: {
@@ -136,18 +144,10 @@ export default {
 
         initSlider() {
             let slider = this.$refs.slider;
-
             if (this.$refs.slider.noUiSlider) {
                 this.$refs.slider.noUiSlider.destroy();
             }
 
-            let sliderIntervals = [];
-            let initIntervalsJSON = JSON.parse(this.initialIntervals);
-            initIntervalsJSON.forEach((interval) => {
-                sliderIntervals.push(interval.from)
-                sliderIntervals.push(interval.to)
-            });
-            this.updateOptions(sliderIntervals);
             noUiSlider.create(slider, this.options);
 
             this.mergeTooltips(slider, "10", " ");
