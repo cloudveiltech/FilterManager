@@ -270,9 +270,10 @@ class AppUserActivationCrudController extends CrudController
                             ],
                         ],
                         [
-                            'name' => 'interval',
+                            'name' => 'intervals',
                             'type' => 'time_range_multiple',
                             'label' => 'Interval',
+                            'max-intervals' => 6,
                             'wrapper' => ['class' => 'form-group col-md-7'],
                         ],
                         [

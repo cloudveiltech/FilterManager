@@ -276,8 +276,9 @@ class UserCrudController extends CrudController
                             ],
                         ],
                         [
-                            'name' => 'interval',
+                            'name' => 'intervals',
                             'type' => 'time_range_multiple',
+                            'max-intervals' => 6,
                             'label' => 'Interval',
                             'wrapper' => ['class' => 'form-group col-md-7'],
                         ],

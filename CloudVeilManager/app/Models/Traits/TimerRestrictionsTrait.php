@@ -55,17 +55,25 @@ trait TimerRestrictionsTrait
         $config = $this->config_override["TimeRestrictions"] ?? TimerRestrictionsTrait::$DEFAULT;
         $res = [];
         foreach ($config as $key => $value) {
+            $intervals = [];
+            $enabledThrough = $value["EnabledThrough"];
+            for($i=0; $i<count($enabledThrough); $i+=2) {
+                $interval = [
+                    "from" => date('H:i', strtotime(str_replace(".", ":", $enabledThrough[$i]))),
+                    "to" => date('H:i', strtotime(str_replace(".", ":", $enabledThrough[$i+1]))),
+                ];
+
+                if ($interval["to"] == "00:00" || $interval["to"] == "24:00") {
+                    $interval["to"] = "23:59";
+                }
+
+                $intervals[] = $interval;
+            }
             $field = [
                 "day" => $key,
-                "interval"=> [
-                    "from" => date('H:i', strtotime(str_replace(".", ":", $value["EnabledThrough"][0]))),
-                    "to" => date('H:i', strtotime(str_replace(".", ":", $value["EnabledThrough"][1]))),
-                ],
+                "intervals"=> $intervals,
                 "enabled" => $value["RestrictionsEnabled"] ?? false
             ];
-            if ($field["interval"]["to"] == "00:00" || $field["interval"]["to"] == "24:00") {
-                $field["interval"]["to"] = "23:59";
-            }
             $res [] = $field;
         }
         return $res;
@@ -78,14 +86,19 @@ trait TimerRestrictionsTrait
         $days = array_keys(TimerRestrictionsTrait::$DEFAULT);
         foreach ($value as $key => $dayData) {
             $day = $days[$key];
-            $from = $this->convertTimeToTimeRestrictionFormat($dayData["interval"][0]["from"] ?? "00:00");
-            $to = $this->convertTimeToTimeRestrictionFormat($dayData["interval"][0]["to"] ?? "23:59");
+            $intervals = $dayData["intervals"];
+            $enabledThrough = [];
+            for($i=0; $i<count($intervals); $i++) {
+                $from = $this->convertTimeToTimeRestrictionFormat($intervals[$i]["from"] ?? "00:00");
+                $to = $this->convertTimeToTimeRestrictionFormat($intervals[$i]["to"] ?? "23:59");
+                $enabledThrough[] = $from;
+                $enabledThrough[] = $to;
+            }
+
             $enabled = $dayData["enabled"];
 
             $res[$day] = [
-                "EnabledThrough" => [
-                    $from, $to
-                ],
+                "EnabledThrough" => $enabledThrough,
                 "RestrictionsEnabled" => (bool)$enabled
             ];
         }

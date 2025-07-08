@@ -304,10 +304,8 @@ class UserController extends Controller {
             }
 
             $groupConfiguration = json_decode($userGroup->config_cache, true) ?? [];
-
-            $userConfiguration =  json_decode($thisUser->config_override, true) ?? [];
-
-            $activationConfiguration = json_decode($activation->config_override, true) ?? [];
+            $userConfiguration = $thisUser->config_override ?? [];
+            $activationConfiguration = $activation->config_override ?? [];
 
             $activationConfiguration = Utils::purgeNulls($activationConfiguration);
 

@@ -74,7 +74,6 @@ export default {
             var tooltips = slider.noUiSlider.getTooltips();
             var origins = slider.noUiSlider.getOrigins();
 
-            // Move tooltips into the origin element. The default stylesheet handles this.
             tooltips.forEach(function (tooltip, index) {
                 if (tooltip) {
                     origins[index].appendChild(tooltip);
@@ -89,7 +88,6 @@ export default {
                 var poolValues = [[]];
                 var atPool = 0;
 
-                // Assign the first tooltip to the first pool, if the tooltip is configured
                 if (tooltips[0]) {
                     pools[0][0] = 0;
                     poolPositions[0][0] = positions[0];
