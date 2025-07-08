@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7c460634796eac02eb30f6b626f53510",
+    "content-hash": "24e7a8da739b658e3783c14142fff02a",
     "packages": [
         {
             "name": "backpack/basset",
@@ -8014,6 +8014,66 @@
                 "source": "https://github.com/tijsverkoyen/CssToInlineStyles/tree/v2.3.0"
             },
             "time": "2024-12-21T16:25:41+00:00"
+        },
+        {
+            "name": "vemcogroup/laravel-sparkpost-driver",
+            "version": "5.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vemcogroup/laravel-sparkpost-driver.git",
+                "reference": "215e7d757699e7935a00c2e58e6b4d338406f994"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vemcogroup/laravel-sparkpost-driver/zipball/215e7d757699e7935a00c2e58e6b4d338406f994",
+                "reference": "215e7d757699e7935a00c2e58e6b4d338406f994",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^7.2",
+                "laravel/framework": "^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.0.2",
+                "symfony/mailer": "^6.0|^7.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Vemcogroup\\SparkPostDriver\\SparkPostDriverServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Vemcogroup\\SparkPostDriver\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "vemDevs",
+                    "homepage": "https://vemcogroup.com"
+                }
+            ],
+            "description": "SparkPost driver to use with Laravel 6.x|7.x|8.x|9.x|10.x",
+            "homepage": "https://github.com/vemcogroup/laravel-sparkpost-driver",
+            "keywords": [
+                "laravel",
+                "mail",
+                "sparkpost"
+            ],
+            "support": {
+                "issues": "https://github.com/vemcogroup/laravel-sparkpost-driver/issues",
+                "source": "https://github.com/vemcogroup/laravel-sparkpost-driver/tree/5.1.0"
+            },
+            "time": "2025-02-17T11:33:40+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
