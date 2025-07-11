@@ -47,41 +47,58 @@ class AppUserActivationCrudController extends CrudController
                 'type' => 'select',
                 'name' => 'user_id',
                 'attribute' => 'name',
+                'key' => 'user_name',
+                'priority' => 1
+            ],
+            [
+                'label' => 'E-Mail',
+                'type' => 'select',
+                'name' => 'user_id',
+                'attribute' => 'email',
+                'key' => 'user_email',
+                'priority' => 2
             ],
             [
                 'label' => 'Device ID',
                 'type' => 'text',
                 'name' => 'device_id',
+                'priority' => 1
             ],
             [
                 'label' => 'IP Address',
                 'type' => 'text',
                 'name' => 'ip_address',
+                'priority' => 1
             ],
             [
                 'label' => 'Bypass',
                 'type' => 'text',
                 'name' => 'bypass_formatted',
+                'priority' => 1
             ],
             [
                 'label' => 'Version',
                 'type' => 'text',
                 'name' => 'app_version',
+                'priority' => 1
             ],
             [
                 'label' => 'Updated at',
                 'type' => 'datetime',
                 'name' => 'updated_at',
+                'priority' => 1
             ],
             [
                 'label' => 'OS',
                 'type' => 'text',
                 'name' => 'os_formatted',
+                'priority' => 1
             ],
             [
                 'label' => 'Friendly Name',
                 'type' => 'text',
                 'name' => 'friendly_name',
+                'priority' => 2
             ],
             [
                 'label' => 'Identifier',
@@ -247,7 +264,6 @@ class AppUserActivationCrudController extends CrudController
                     'name' => 'time_restrictions',
                     'type' => 'repeatable',
                     'tab' => 'Time Restrictions',
-                    'entity_singular' => 'Application',
                     'subfields' => [
                         [
                             'name' => 'day',

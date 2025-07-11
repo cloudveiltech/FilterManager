@@ -90,6 +90,9 @@ export default {
             <a href="javascript:void(0)" class="col-md-2 pt-1" @click="this.listHidden = !this.listHidden">Toggle List</a>
         </div>
         <div v-show="!this.listHidden">
+            <div class="row alert alert-info mt-2" v-if="intervals.length > 1">
+                Only the very first interval would be used for older apps' versions.
+            </div>
             <div class="row" v-for="(interval, index) in intervals">
                 <div class="form-group col-md-2">
                     <label>From</label>
