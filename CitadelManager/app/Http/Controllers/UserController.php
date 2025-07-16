@@ -616,6 +616,11 @@ class UserController extends Controller {
                 $configuration['BypassDuration'] = 0;
             }
 
+            if(isset($configuration["TimeRestrictionsTemplates"])) {
+                $configuration["TimeRestrictions"] = AppUserActivation::applyTemplates($configuration["TimeRestrictions"], $configuration["TimeRestrictionsTemplates"]);
+                unset($configuration["TimeRestrictionsTemplates"]);
+            }
+
             return $configuration;
         } else {
             return null;

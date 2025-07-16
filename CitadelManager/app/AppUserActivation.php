@@ -42,4 +42,22 @@ class AppUserActivation extends Model
         }
         $query->update(["last_update_requested_time" => Carbon::now()]);
     }
+
+    public static  function applyTemplates($timeRestrictions, $templates): array {
+        $timeRestrictions = self::applyTemplate($timeRestrictions, $templates["workdays"], self::$WORKDAYS);
+        $timeRestrictions = self::applyTemplate($timeRestrictions, $templates["all"], self::$ALL_DAYS);
+        return $timeRestrictions;
+    }
+
+    public static function applyTemplate($timeRestrictions, $template, $days): array {
+        if($template["RestrictionsEnabled"]) {
+            foreach($days as $day) {
+                if(!$timeRestrictions[$day]["RestrictionsEnabled"]) {
+                    $timeRestrictions[$day]["EnabledThrough"] = $template["EnabledThrough"];
+                    $timeRestrictions[$day]["RestrictionsEnabled"] = true;
+                }
+            }
+        }
+        return $timeRestrictions;
+    }
 }
