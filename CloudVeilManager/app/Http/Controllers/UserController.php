@@ -17,6 +17,7 @@ use App\Models\FilterRulesManager;
 use App\Models\Helpers\Utils;
 use App\Models\Role;
 use App\Models\SystemPlatform;
+use App\Models\Traits\TimerRestrictionsTrait;
 use App\Models\User;
 use App\Models\UserActivationAttemptResult;
 use Carbon\Carbon;
@@ -362,7 +363,7 @@ class UserController extends Controller {
             if(!isset($configuration['BypassDuration'])) {
                 $configuration['BypassDuration'] = 0;
             }
-
+            $configuration["TimeRestrictions"] = AppUserActivation::applyTemplates($configuration["TimeRestrictions"], $configuration["TimeRestrictionsTemplates"]);
             return $configuration;
         } else {
             return null;

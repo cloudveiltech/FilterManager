@@ -259,6 +259,8 @@ class UserCrudController extends CrudController
                             'name' => 'day',
                             'type' => 'select_from_array',
                             'options' => [
+                                'workdays' => "Workdays",
+                                'all' => "All Days",
                                 'monday' => 'Monday',
                                 'tuesday' => 'Tuesday',
                                 'wednesday' => 'Wednesday',
@@ -289,9 +291,9 @@ class UserCrudController extends CrudController
                             'wrapper' => ['class' => 'form-group col-md-3 pt-3'],
                         ],
                     ],
-                    'init_rows' => 7,
-                    'min_rows' => 7,
-                    'max_rows' => 7,
+                    'init_rows' => 9,
+                    'min_rows' => 9,
+                    'max_rows' => 9,
                     'reorder' => false,
                 ],
             ]
