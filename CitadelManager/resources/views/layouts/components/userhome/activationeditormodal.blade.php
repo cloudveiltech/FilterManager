@@ -72,11 +72,13 @@
                         <div role="tabpanel" class="tab-pane" id="activationBlacklist">
                             <self-moderation-list
                                 v-model="activationEditor.blacklist"
+                                :activation-edit="true"
                                 add-button-text="Block Site"></self-moderation-list>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="activationWhitelist">
                             <self-moderation-list
                                 v-model="activationEditor.whitelist"
+                                :activation-edit="true"
                                 add-button-text="Allow Site"></self-moderation-list>
                         </div>
                     </div>
