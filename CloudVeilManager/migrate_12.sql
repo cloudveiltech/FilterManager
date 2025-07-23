@@ -1,0 +1,1 @@
+ALTER TABLE oauth_clients ADD COLUMN provider VARCHAR(255) NULL;
