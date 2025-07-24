@@ -177,7 +177,7 @@ class AppUserActivationCrudController extends CrudController
                     'type' => 'number',
                     'label' => 'Bypasses Permitted',
                     'attributes' => ["min" => "0"],
-                    'wrapper' => ['class' => 'form-group col-md-4'],
+                    'wrapper' => ['class' => 'form-group col-md-3'],
                     'tab' => 'Activation',
                 ],
                 [
@@ -185,7 +185,7 @@ class AppUserActivationCrudController extends CrudController
                     'type' => 'number',
                     'label' => 'Bypass Duration, minutes',
                     'attributes' => ["min" => "0"],
-                    'wrapper' => ['class' => 'form-group col-md-4'],
+                    'wrapper' => ['class' => 'form-group col-md-3'],
                     'tab' => 'Activation',
                 ],
                 [
@@ -193,7 +193,28 @@ class AppUserActivationCrudController extends CrudController
                     'type' => 'number',
                     'label' => 'Bypasses Used',
                     'attributes' => ["min" => "0"],
-                    'wrapper' => ['class' => 'form-group col-md-4'],
+                    'wrapper' => ['class' => 'form-group col-md-3'],
+                    'tab' => 'Activation',
+                ],
+                [
+                    'name' => 'DisableBypass',
+                    'type' => 'switch',
+                    'label' => 'Disable Bypass',
+                    'wrapper' => ['class' => 'form-group col-md-3 d-flex pt-3'],
+                    'tab' => 'Activation',
+                ],
+                [
+                    'type' => 'custom_html',
+                    'name' => 'my_custom_html',
+                    'value' => '<script>
+                                    document.addEventListener("DOMContentLoaded", function() {
+                                        crud.field("DisableBypass").onChange(function(field) {
+                                            crud.field("bypass_period").disable(field.value == 1);
+                                            crud.field("bypass_quantity").disable(field.value == 1);
+                                            crud.field("bypass_used").disable(field.value == 1);
+                                        }).change();
+                                    });
+                                </script>',
                     'tab' => 'Activation',
                 ],
                 [

@@ -175,20 +175,37 @@ class GroupCrudController extends CrudController
                         'type' => 'select_from_array',
                         'options' => ["Stable" => "Stable", "Alpha" => "Alpha", "Beta" => "Beta"],
                         'label' => 'Update Channel',
-                        'wrapper' => ['class' => 'form-group col-md-8'],
                     ],
                     [
                         'name' => 'BypassesPermitted',
                         'type' => 'number',
                         'label' => 'Bypasses Permitted',
-                        'wrapper' => ['class' => 'form-group col-md-6'],
+                        'wrapper' => ['class' => 'form-group col-md-4'],
                     ],
                     [
                         'name' => 'BypassDuration',
                         'type' => 'number',
                         'label' => 'Bypass Duration',
-                        'wrapper' => ['class' => 'form-group col-md-6'],
+                        'wrapper' => ['class' => 'form-group col-md-4'],
                     ],
+                    [
+                        'name' => 'DisableBypass',
+                        'type' => 'switch',
+                        'label' => 'Disable Bypass',
+                        'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
+                    ],
+                    [
+                        'type' => 'custom_html',
+                        'name' => 'my_custom_html',
+                        'value' => '<script>
+                                document.addEventListener("DOMContentLoaded", function() {
+                                    crud.field("group_config[0][DisableBypass]").onChange(function(field) {
+                                        crud.field("group_config[0][BypassesPermitted]").disable(field.value == 1);
+                                        crud.field("group_config[0][BypassDuration]").disable(field.value == 1);
+                                    }).change();
+                                });
+                            </script>'
+                    ]
                 ],
 
                 'init_rows' => 1,

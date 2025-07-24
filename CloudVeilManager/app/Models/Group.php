@@ -290,6 +290,10 @@ class Group extends Model
 
     function getBypassFormattedAttribute()
     {
+        $appConfig = $this->app_cfg;
+        if($appConfig["DisableBypass"] ?? "") {
+            return "";
+        }
         return $this->getConcatenatedConfigField("BypassDuration", "BypassesPermitted", " min", " times/day");
     }
 
@@ -298,6 +302,9 @@ class Group extends Model
         $appConfig = $this->app_cfg;
         $v1 = $appConfig[$key1] ?? "";
         $v2 = $appConfig[$key2] ?? "";
+        if(empty($v1) && empty($v2)) {
+            return "";
+        }
         if (!empty($v1)) {
             if (!empty($v2)) {
                 return $v1 . $suffix1 . ", " . $v2 . $suffix2;

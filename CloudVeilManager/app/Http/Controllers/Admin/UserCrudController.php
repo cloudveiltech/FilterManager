@@ -94,7 +94,6 @@ class UserCrudController extends CrudController
         }
         CRUD::setValidation($validationRules);
 
-
         $this->crud->addFields([
                 [
                     'label' => 'User Full Name',
@@ -163,7 +162,7 @@ class UserCrudController extends CrudController
                     'type' => 'password',
                     'name' => 'relaxed_policy_passcode',
                     'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-6'],
+                    'wrapper' => ['class' => 'form-group col-md-8'],
                 ],
                 [
                     'label' => 'Enable Relaxed Policy Passcode',
@@ -173,30 +172,40 @@ class UserCrudController extends CrudController
                     'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
                 ],
                 [
-                    'label' => 'Bypass Config',
-                    'name' => 'config',
-                    'type' => 'repeatable',
+                    'name' => 'BypassesPermitted',
+                    'type' => 'number',
+                    'label' => 'Bypasses Permitted',
+                    'attributes' => ["min" => "0"],
                     'tab' => 'Information',
-                    'init_rows' => 1,
-                    'min_rows' => 1,
-                    'max_rows' => 1,
-                    'reorder' => false,
-                    'subfields' => [
-                        [
-                            'name' => 'BypassesPermitted',
-                            'type' => 'number',
-                            'label' => 'Bypasses Permitted',
-                            'attributes' => ["min" => "0"],
-                            'wrapper' => ['class' => 'form-group col-md-4'],
-                        ],
-                        [
-                            'name' => 'BypassDuration',
-                            'type' => 'number',
-                            'label' => 'Bypass Duration, minutes',
-                            'attributes' => ["min" => "0"],
-                            'wrapper' => ['class' => 'form-group col-md-4'],
-                        ],
-                    ]
+                    'wrapper' => ['class' => 'form-group col-md-4'],
+                ],
+                [
+                    'name' => 'BypassDuration',
+                    'type' => 'number',
+                    'label' => 'Bypass Duration, minutes',
+                    'attributes' => ["min" => "0"],
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-4'],
+                ],
+                [
+                    'name' => 'DisableBypass',
+                    'type' => 'switch',
+                    'label' => 'Disable Bypass',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
+                ],
+                [
+                    'type' => 'custom_html',
+                    'name' => 'my_custom_html',
+                    'tab' => 'Information',
+                    'value' => '<script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            crud.field("DisableBypass").onChange(function(field) {
+                                crud.field("BypassesPermitted").disable(field.value == 1);
+                                crud.field("BypassDuration").disable(field.value == 1);
+                            }).change();
+                        });
+                    </script>'
                 ],
                 [
                     'label' => 'Blocked Sites',

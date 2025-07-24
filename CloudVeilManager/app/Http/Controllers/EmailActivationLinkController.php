@@ -6,7 +6,7 @@ use App\Models\EmailActivationUrl;
 use App\Models\GlobalWhitelist;
 use App\Mail\EmailActivation;
 use App\Models\User;
-use App\Models\UserActivationAttemptResult;
+use App\Models\Helpers\UserActivationAttemptResult;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

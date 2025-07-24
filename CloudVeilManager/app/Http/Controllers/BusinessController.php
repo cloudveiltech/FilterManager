@@ -18,7 +18,7 @@ use App\Models\Group;
 use App\Models\OauthAccessToken;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\UserActivationAttemptResult;
+use App\Models\Helpers\UserActivationAttemptResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

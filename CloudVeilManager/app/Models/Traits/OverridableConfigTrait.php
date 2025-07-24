@@ -52,4 +52,19 @@ trait OverridableConfigTrait
         }
         $this->config_override = $config;
     }
+
+    private function setConfigValue($key, $value) {
+        $config = $this->config_override;
+        if (empty($value)) {
+            unset($config[$key]);
+        } else {
+            $config[$key] = $value;
+        }
+        $this->config_override = $config;
+    }
+
+    private function getConfigValue($key) {
+        $value = $this->config_override[$key] ?? "";
+        return $value;
+    }
 }

@@ -23,17 +23,6 @@ use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\HasApiTokens;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 
-class UserActivationAttemptResult
-{
-    const Success = 1;
-    const ActivationLimitExceeded = 2;
-    const AccountDisabled = 3;
-    const GroupDisabled = 4;
-    const IndentifyingInformationMissing = 5;
-    const UnknownError = 6;
-
-}
-
 class User extends Authenticatable
 {
     use CrudTrait;
@@ -53,14 +42,6 @@ class User extends Authenticatable
      * @var array
      */
     protected $appends = ['activations_used'];
-
-
-    protected function casts(): array
-    {
-        return [
-            'config_override' => Json::class,
-        ];
-    }
 
     public function getBlockedSitesAttribute()
     {
@@ -188,18 +169,18 @@ class User extends Authenticatable
      * Attempts to activate the user or retrieve an existing activation
      * for the user from the given request.
      * @param Request $request
-     * @return \App\Models\UserActivationAttemptResult
+     * @return \App\Models\Helpers\UserActivationAttemptResult
      */
     public function tryActivateUserArray($params)
     {
         if ($this->isactive == false) {
-            return UserActivationAttemptResult::AccountDisabled;
+            return Helpers\UserActivationAttemptResult::AccountDisabled;
         }
 
         $userGroup = $this->group()->first();
         if (!is_null($userGroup)) {
             if ($userGroup->isactive == false) {
-                return UserActivationAttemptResult::GroupDisabled;
+                return Helpers\UserActivationAttemptResult::GroupDisabled;
             }
         }
 
@@ -209,7 +190,7 @@ class User extends Authenticatable
         ]);
 
         if ($validator->fails()) {
-            return UserActivationAttemptResult::IndentifyingInformationMissing;
+            return Helpers\UserActivationAttemptResult::IndentifyingInformationMissing;
         }
 
         $userInfo = ["identifier" => $params['identifier'], "device_id" => $params['device_id']];
@@ -227,7 +208,7 @@ class User extends Authenticatable
             // maximum.
             if ($numActivations > $this->activations_allowed + config('app.license_overage_allowed') && $activation->wasRecentlyCreated) {
                 $activation->delete();
-                return UserActivationAttemptResult::ActivationLimitExceeded;
+                return Helpers\UserActivationAttemptResult::ActivationLimitExceeded;
             }
 
             // Update timestamp on this user's access. This can be used to
@@ -236,10 +217,10 @@ class User extends Authenticatable
 
         } catch (Exception $ex) {
             Log::error(print_r($ex, true));
-            return UserActivationAttemptResult::UnknownError;
+            return Helpers\UserActivationAttemptResult::UnknownError;
         }
 
-        return UserActivationAttemptResult::Success;
+        return Helpers\UserActivationAttemptResult::Success;
     }
 
     public function setisEnabledAttribute($value) {
@@ -265,7 +246,8 @@ class User extends Authenticatable
         'isactive', 'group_id', 'activations_allowed',
         'customer_id', 'config_override', 'relaxed_policy_passcode',
         'config', 'enable_relaxed_policy_passcode', 'blocked_sites', 'allowed_sites',
-        'bypassable_sites', 'blocked_triggers', 'blocked_applications', 'time_restrictions'
+        'bypassable_sites', 'blocked_triggers', 'blocked_applications', 'time_restrictions',
+        "BypassesPermitted", "BypassDuration", "DisableBypass",
     ];
 
     /**
@@ -276,4 +258,29 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+
+    public function getBypassesPermittedAttribute() {
+        return $this->getConfigValue("BypassesPermitted");
+    }
+
+    public function setBypassesPermittedAttribute($value) {
+        $this->setConfigValue("BypassesPermitted", $value);
+    }
+
+    public function getBypassDurationAttribute() {
+        return $this->getConfigValue("BypassDuration");
+    }
+
+    public function setBypassDurationAttribute($value) {
+        $this->setConfigValue("BypassDuration", $value);
+    }
+
+    public function getDisableBypassAttribute() {
+        return $this->getConfigValue("DisableBypass");
+    }
+
+    public function setDisableBypassAttribute($value) {
+        $this->setConfigValue("DisableBypass", $value);
+    }
 }
