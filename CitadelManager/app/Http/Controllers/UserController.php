@@ -10,6 +10,7 @@
 namespace App\Http\Controllers;
 
 use App\App;
+use App\Client\PlainTextFilteringListType;
 use App\FilterRulesManager;
 use App\AppUserActivation;
 use App\DeactivationRequest;
@@ -609,13 +610,24 @@ class UserController extends Controller {
 
             $configuration["FriendlyName"] = $activation->friendly_name;
 
-            if(!isset($configuration['BypassesPermitted'])) {
+            $bypassDisabled = $configuration["DisableBypass"] ?? false;
+            if ($bypassDisabled || !isset($configuration['BypassesPermitted'])) {
                 $configuration['BypassesPermitted'] = 0;
             }
-            if(!isset($configuration['BypassDuration'])) {
+            if ($bypassDisabled || !isset($configuration['BypassDuration'])) {
                 $configuration['BypassDuration'] = 0;
             }
 
+            if($bypassDisabled) {
+                $configuration["SelfModeration"] = array_merge($configuration["SelfModeration"] ?? [], $configuration["CustomBypasslist"] ?? []);
+                foreach ($configuration["ConfiguredLists"] as &$list) {
+                    if($list["ListType"] == PlainTextFilteringListType::BypassList) {
+                        var_dump($list);
+                        $list["ListType"] = PlainTextFilteringListType::Blacklist;
+                    }
+                }
+            }
+            
             if(isset($configuration["TimeRestrictionsTemplates"])) {
                 $configuration["TimeRestrictions"] = AppUserActivation::applyTemplates($configuration["TimeRestrictions"], $configuration["TimeRestrictionsTemplates"]);
                 unset($configuration["TimeRestrictionsTemplates"]);
