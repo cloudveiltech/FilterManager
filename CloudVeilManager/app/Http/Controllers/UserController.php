@@ -379,7 +379,6 @@ class UserController extends Controller
                 $configuration["SelfModeration"] = array_merge($configuration["SelfModeration"] ?? [], $configuration["CustomBypasslist"] ?? []);
                 foreach ($configuration["ConfiguredLists"] as &$list) {
                     if($list["ListType"] == PlainTextFilteringListType::BypassList) {
-                        var_dump($list);
                         $list["ListType"] = PlainTextFilteringListType::Blacklist;
                     }
                 }
