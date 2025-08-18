@@ -21,7 +21,8 @@ class AppUserActivationCrudController extends CrudController
         update as traitUpdate;
     }
 
-    /**
+
+        /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
      * @return void

@@ -6,6 +6,7 @@ use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Class UserCrudController
@@ -95,6 +96,14 @@ class UserCrudController extends CrudController
         CRUD::setValidation($validationRules);
 
         $this->crud->addFields([
+                [
+                    'type' => 'custom_html',
+                    'name' => 'activations',
+                    'value' => '
+                        <a href="javascript:void(0)" onclick="window.open(\''. backpack_url("app-user-activation") .'?q=\' + encodeURIComponent(crud.field(\'email\').value))">Activations</a>
+                        ',
+                    'tab' => 'Information',
+                ],
                 [
                     'label' => 'User Full Name',
                     'type' => 'text',
@@ -313,6 +322,7 @@ class UserCrudController extends CrudController
     {
         $this->setupFields(true);
     }
+
     protected function setupCreateOperation() {
         $this->setupFields(false);
     }

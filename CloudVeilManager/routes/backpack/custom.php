@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 
 // --------------------------
 // Custom Backpack Routes
@@ -24,7 +23,6 @@ Route::group([
     Route::crud('app-user-activation', 'AppUserActivationCrudController');
     Route::crud('system-version', 'SystemVersionCrudController');
     Route::crud('app', 'AppCrudController');
-
     Route::post('api/filter_list', 'GroupCrudController@loadFilterLists');
 }); // this should be the absolute last line of this file
 

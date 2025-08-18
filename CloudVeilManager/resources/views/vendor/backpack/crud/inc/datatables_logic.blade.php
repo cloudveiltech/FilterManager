@@ -3,6 +3,7 @@
     // and flush them from session, so we will get them later from localStorage.
     $backpack_alerts = \Alert::getMessages();
     \Alert::flush();
+    $searchQuery = Request::input('q');
  @endphp
 
   {{-- DATA TABLES SCRIPT --}}
@@ -24,7 +25,7 @@
         ? JSON.parse(localStorage.getItem('DataTables_crudTable_/{{$crud->getRoute()}}')) : [];
     var $dtDefaultPageLength = {{ $crud->getDefaultPageLength() }};
     let $pageLength = @json($crud->getPageLengthMenu());
-    
+
     let $dtStoredPageLength = parseInt(localStorage.getItem('DataTables_crudTable_/{{$crud->getRoute()}}_pageLength'));
 
     if(!$dtStoredPageLength && $dtCachedInfo.length !== 0 && $dtCachedInfo.length !== $dtDefaultPageLength) {
@@ -149,6 +150,7 @@
             localStorage.setItem('{{ Str::slug($crud->getRoute()) }}_list_url', newUrl);
         @endif
       },
+
       dataTableConfiguration: {
         bInfo: {{ var_export($crud->getOperationSetting('showEntryCount') ?? true) }},
         @if ($crud->getResponsiveTable())
@@ -181,12 +183,12 @@
                         if (col.title) {
                             let tempDiv = document.createElement('div');
                             tempDiv.innerHTML = col.title;
-                            
+
                             let checkboxSpan = tempDiv.querySelector('.crud_bulk_actions_checkbox');
                             if (checkboxSpan) {
                                 checkboxSpan.remove();
                             }
-                            
+
                             colTitle = tempDiv.textContent.trim();
                         } else {
                             colTitle = '';
@@ -210,7 +212,7 @@
         scrollX: true,
         @endif
 
-        @if ($crud->getPersistentTable())
+        @if ($crud->getPersistentTable() && !$searchQuery)
         stateSave: true,
         /*
             if developer forced field into table 'visibleInTable => true' we make sure when saving datatables state
@@ -303,6 +305,11 @@
             "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
             "<'table-content row'<'col-sm-12'tr>>" +
             "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
+          @if (Request::input('q'))
+          search: {
+              search: '{{Request::input('q')}}'
+          },
+          @endif
       }
   }
   </script>
@@ -320,6 +327,9 @@
       $("#crudTable_filter input").appendTo($('#datatable_search_stack .input-icon'));
       $("#datatable_search_stack input").removeClass('form-control-sm');
       $("#crudTable_filter").remove();
+        @if ($searchQuery)
+        $('.dataTables_filter input').val('{{$searchQuery}}');
+        @endif
 
       // remove btn-secondary from export and column visibility buttons
       $("#crudTable_wrapper .table-footer .btn-secondary").removeClass('btn-secondary');
@@ -396,7 +406,7 @@
         }
 
          if (crud.table.responsive.hasHidden()) {
-            $('.dtr-control').removeClass('d-none'); 
+            $('.dtr-control').removeClass('d-none');
             $('.dtr-control').addClass('d-inline');
             $("#crudTable").removeClass('has-hidden-columns').addClass('has-hidden-columns');
          }
@@ -424,11 +434,11 @@
                     $this.prependTo($firstVisibleColumn);
                 });
 
-                $('.dtr-control').removeClass('d-none'); 
+                $('.dtr-control').removeClass('d-none');
                 $('.dtr-control').addClass('d-inline');
                 $("#crudTable").removeClass('has-hidden-columns').addClass('has-hidden-columns');
             } else {
-                $('.dtr-control').removeClass('d-none').removeClass('d-inline').addClass('d-none');  
+                $('.dtr-control').removeClass('d-none').removeClass('d-inline').addClass('d-none');
                 $("#crudTable").removeClass('has-hidden-columns');
             }
         });
@@ -452,7 +462,7 @@
       @endif
 
     });
- 
+
     function formatActionColumnAsDropdown() {
         // Get action column
         const actionColumnIndex = $('#crudTable').find('th[data-action-column=true]').index();
@@ -481,7 +491,7 @@
                 actionCell.wrapInner('<div class="dropdown-menu dropdown-menu-left"></div>');
 
                 actionCell.prepend('<a class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" href="#" data-toggle="dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">{{ trans('backpack::crud.actions') }}</a>');
-                
+
                 // Move the remaining buttons outside the dropdown
                 const remainingButtons = actionButtons.slice(0, buttonsToShowBeforeDropdown);
                 actionCell.prepend(remainingButtons);
