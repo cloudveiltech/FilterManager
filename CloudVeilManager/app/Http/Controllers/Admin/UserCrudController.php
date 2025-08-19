@@ -75,6 +75,17 @@ class UserCrudController extends CrudController
                 'name' => 'created_at'
             ],
         ]);
+        $this->crud->button('activations')->stack('line')->view('crud::buttons.quick')->meta([
+            'wrapper' => [
+                'href' => function ($entry, $crud) {
+                    return backpack_url("app-user-activation?q=" . urlencode($entry->email));
+                },
+                'target' => '_blank',
+            ],
+            'icon' => 'la la-sliders-h',
+            'access' => true,
+            'label' => 'Activations',
+        ]);
     }
 
 
@@ -100,7 +111,7 @@ class UserCrudController extends CrudController
                     'type' => 'custom_html',
                     'name' => 'activations',
                     'value' => '
-                        <a href="javascript:void(0)" onclick="window.open(\''. backpack_url("app-user-activation") .'?q=\' + encodeURIComponent(crud.field(\'email\').value))">Activations</a>
+                        <a href="javascript:void(0)" onclick="window.open(\''. backpack_url("app-user-activation") .'?q=\' + encodeURIComponent(crud.field(\'email\').value))">Show Activations</a>
                         ',
                     'tab' => 'Information',
                 ],
