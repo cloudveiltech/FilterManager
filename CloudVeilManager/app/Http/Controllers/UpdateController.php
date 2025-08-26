@@ -42,7 +42,7 @@ class UpdateController extends Controller
                 if ($osVersion == "0") {
                     if(!empty($activation->config_override)) {
                         $config = json_decode($activation->config_override);
-                        if($config->UpdateChannel == "Alpha") {
+                        if(isset($config->UpdateChannel) && $config->UpdateChannel == "Alpha") {
                             $osVersion = "10";
                         }
                     }
