@@ -579,7 +579,11 @@ class UserController extends Controller {
             foreach ($properties as $property) {
                 $configuration[$property] = [];
                 // merge the arrays, remove duplicates and reset the keys
-                $configuration[$property] = array_values(array_unique(array_merge($userConfiguration[$property] ?? [], $activationConfiguration[$property] ?? [])));
+                $userConfig = $userConfiguration[$property] ?? [];
+                $activationConfig = $activationConfiguration[$property] ?? [];
+                if(is_array($userConfig) && is_array($activationConfig)) {
+                    $configuration[$property] = array_values(array_unique(array_merge($userConfig, $activationConfig)));
+                }
             }
 
             $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
