@@ -8,5 +8,5 @@ return array(
 
     // Capture bindings on SQL queries
     'breadcrumbs.sql_bindings' => true,
-    'error_types' =>  E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED
+    'error_types' =>  E_ALL & ~E_NOTICE & ~E_DEPRECATED
 );
