@@ -7,11 +7,14 @@
 // This route file is loaded automatically by Backpack\CRUD.
 // Routes you generate using Backpack\Generators will be placed here.
 
+use App\Http\Middleware\CheckIfAdmin;
+
 Route::group([
     'prefix' => config('backpack.base.route_prefix', 'admin'),
     'middleware' => array_merge(
+        [CheckIfAdmin::class],
         (array) config('backpack.base.web_middleware', 'web'),
-        (array) config('backpack.base.middleware_key', 'admin')
+        (array) config('backpack.base.middleware_key', 'admin'),
     ),
     'namespace' => 'App\Http\Controllers\Admin',
 ], function () { // custom admin routes
