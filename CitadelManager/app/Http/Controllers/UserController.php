@@ -31,7 +31,8 @@ use Illuminate\Validation\Rule;
 use Log;
 use Validator;
 
-class UserController extends Controller {
+class UserController extends Controller
+{
     const ID_ACTIVATION_ALL = "ALL";
 
     /**
@@ -40,7 +41,8 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
 
         $draw = $request->input('draw');
         $start = $request->input('start');
@@ -106,7 +108,8 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function create() {
+    public function create()
+    {
         // No forms here kids.
         return response('', 405);
     }
@@ -117,7 +120,8 @@ class UserController extends Controller {
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $this->validate($request, [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
@@ -148,7 +152,8 @@ class UserController extends Controller {
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id) {
+    public function show($id)
+    {
         return User::where('id', $id)->get();
     }
 
@@ -158,7 +163,8 @@ class UserController extends Controller {
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id) {
+    public function edit($id)
+    {
         // There is no form, son.
         return response('', 405);
     }
@@ -170,7 +176,8 @@ class UserController extends Controller {
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
 
         // The javascript side/admin UI will not send
         // password or password_verify unless they are
@@ -266,7 +273,8 @@ class UserController extends Controller {
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id) {
+    public function destroy($id)
+    {
         $user = User::where('id', $id)->first();
         if (!is_null($user)) {
             // Revoke all tokens.
@@ -289,7 +297,8 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function checkUserData(Request $request) {
+    public function checkUserData(Request $request)
+    {
         $thisUser = \Auth::user();
         $token = $thisUser->token();
         $activation = $this->getAndTouchActivation($thisUser, $request, $token);
@@ -307,7 +316,8 @@ class UserController extends Controller {
         return response('', 204);
     }
 
-    public function rebuildRules(Request $request) {
+    public function rebuildRules(Request $request)
+    {
         $globalFilterRules = new FilterRulesManager();
 
         $globalFilterRules->buildRuleData();
@@ -334,7 +344,8 @@ class UserController extends Controller {
         return response('', 204);
     }*/
 
-    public function checkRules(Request $request) {
+    public function checkRules(Request $request)
+    {
         $array = $request->all();
         $responseArray = [];
 
@@ -351,7 +362,7 @@ class UserController extends Controller {
 
             $keyTrimmed = trim($key, '/');
             $keyParts = explode('/', $keyTrimmed);
-            if(count($keyParts) != 3) {
+            if (count($keyParts) != 3) {
                 continue;
             }
 
@@ -379,7 +390,8 @@ class UserController extends Controller {
         return response()->json($responseArray);
     }
 
-    public function changePassword(Request $request) {
+    public function changePassword(Request $request)
+    {
         $user = \Auth::user();
 
         if (!$request->has('current_password') || $request->input('current_password') == null || strlen($request->input('current_password')) == 0) {
@@ -412,7 +424,8 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function getUserData(Request $request) {
+    public function getUserData(Request $request)
+    {
         $this->validate($request, [
             'identifier' => 'required',
             'device_id' => 'required'
@@ -437,7 +450,8 @@ class UserController extends Controller {
         return response('', 204);
     }
 
-    private function getInternalType($type) {
+    private function getInternalType($type)
+    {
         $internalType = null;
         switch ($type) {
             case 'rules':
@@ -452,7 +466,8 @@ class UserController extends Controller {
         return $internalType;
     }
 
-    public function getRuleset(Request $request, $namespace, $category, $type) {
+    public function getRuleset(Request $request, $namespace, $category, $type)
+    {
         $filterRulesManager = new FilterRulesManager();
 
         // Get etag from request and compare it against the cached file SHA1 for the matched ruleset.
@@ -493,7 +508,8 @@ class UserController extends Controller {
         }
     }
 
-    public function getRules(Request $request) {
+    public function getRules(Request $request)
+    {
         // POST should be a key-value pair list that has the following attributes
         // It should be in the format
         /*
@@ -549,7 +565,8 @@ class UserController extends Controller {
         return response(implode("\n", $responseArray))->header('Content-Type', 'text/plain')->header("X-Time-Sec", $dt);
     }
 
-    private function mergeConfigurations($userGroup, $thisUser, $activation) {
+    private function mergeConfigurations($userGroup, $thisUser, $activation)
+    {
         if (!is_null($userGroup)) {
             if ($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
                 $userGroup->rebuildGroupData();
@@ -557,7 +574,7 @@ class UserController extends Controller {
 
             $groupConfiguration = json_decode($userGroup->config_cache, true) ?? [];
 
-            $userConfiguration =  json_decode($thisUser->config_override, true) ?? [];
+            $userConfiguration = json_decode($thisUser->config_override, true) ?? [];
 
             $activationConfiguration = json_decode($activation->config_override, true) ?? [];
 
@@ -581,8 +598,8 @@ class UserController extends Controller {
                 // merge the arrays, remove duplicates and reset the keys
                 $userConfig = $userConfiguration[$property] ?? [];
                 $activationConfig = $activationConfiguration[$property] ?? [];
-                if(is_array($userConfig) && is_array($activationConfig)) {
-                    $configuration[$property] = array_values(array_unique(array_merge($userConfig, $activationConfig)));
+                if (is_array($userConfig) && is_array($activationConfig)) {
+                    $configuration[$property] = array_values(array_unique(array_merge($userConfig, $activationConfig), SORT_REGULAR));
                 }
             }
 
@@ -591,11 +608,11 @@ class UserController extends Controller {
             $configuration['CustomTriggerBlacklist'] = array_map("strtolower", $configuration['CustomTriggerBlacklist']);
 
             $configuration['DebugEnabled'] = 0;
-            if($activation->debug_enabled) {
+            if ($activation->debug_enabled) {
                 $configuration['DebugEnabled'] = $activation->debug_enabled;
-            } else if(isset($userConfiguration["DebugEnabled"])) {
+            } else if (isset($userConfiguration["DebugEnabled"])) {
                 $configuration['DebugEnabled'] = $userConfiguration["DebugEnabled"];
-            } else if(isset($groupConfiguration["DebugEnabled"])) {
+            } else if (isset($groupConfiguration["DebugEnabled"])) {
                 $configuration['DebugEnabled'] = $groupConfiguration["DebugEnabled"];
             }
 
@@ -622,16 +639,16 @@ class UserController extends Controller {
                 $configuration['BypassDuration'] = 0;
             }
 
-            if($bypassDisabled) {
+            if ($bypassDisabled) {
                 $configuration["SelfModeration"] = array_merge($configuration["SelfModeration"] ?? [], $configuration["CustomBypasslist"] ?? []);
                 foreach ($configuration["ConfiguredLists"] as &$list) {
-                    if($list["ListType"] == PlainTextFilteringListType::BypassList) {
+                    if ($list["ListType"] == PlainTextFilteringListType::BypassList) {
                         $list["ListType"] = PlainTextFilteringListType::Blacklist;
                     }
                 }
             }
 
-            if(isset($configuration["TimeRestrictionsTemplates"])) {
+            if (isset($configuration["TimeRestrictionsTemplates"])) {
                 $configuration["TimeRestrictions"] = AppUserActivation::applyTemplates($configuration["TimeRestrictions"], $configuration["TimeRestrictionsTemplates"]);
                 unset($configuration["TimeRestrictionsTemplates"]);
             }
@@ -648,7 +665,8 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function getConfig(Request $request) {
+    public function getConfig(Request $request)
+    {
         $this->validate($request, [
             'identifier' => 'required',
             'device_id' => 'required'
@@ -675,10 +693,11 @@ class UserController extends Controller {
         }
     }
 
-    private function filterAppCollectionByPlatform(&$collection, $platform) {
+    private function filterAppCollectionByPlatform(&$collection, $platform)
+    {
         $newCollection = [];
         foreach ($collection as $item) {
-            if($item["os"] == $platform) {
+            if ($item["os"] == $platform) {
                 $newCollection[] = $item["name"];
             }
         }
@@ -691,7 +710,8 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function checkConfig(Request $request) {
+    public function checkConfig(Request $request)
+    {
         $this->validate($request, [
             'identifier' => 'required',
             'device_id' => 'required'
@@ -723,7 +743,8 @@ class UserController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function getCanUserDeactivate(Request $request) {
+    public function getCanUserDeactivate(Request $request)
+    {
 
         $validator = Validator::make($request->all(), [
             'identifier' => 'required',
@@ -764,7 +785,8 @@ class UserController extends Controller {
      * Handles when user is requesting their license terms.
      * @param Request $request
      */
-    public function getUserTerms(Request $request) {
+    public function getUserTerms(Request $request)
+    {
 
         $userLicensePath = resource_path() . DIRECTORY_SEPARATOR . 'UserLicense.txt';
 
@@ -779,7 +801,8 @@ class UserController extends Controller {
      * it returns a token and the users email address.
      * @param Request $request
      */
-    public function retrieveUserToken(Request $request) {
+    public function retrieveUserToken(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'identifier' => 'required',
             'device_id' => 'required',
@@ -814,7 +837,8 @@ class UserController extends Controller {
      * Handles when user logs in from the application.  Returns their access token.
      * @param Request $request
      */
-    public function getUserToken(Request $request) {
+    public function getUserToken(Request $request)
+    {
         $user = \Auth::user();
 
         $userActivateResult = $user->tryActivateUser($request);
@@ -871,7 +895,8 @@ class UserController extends Controller {
      * This could probably be rolled into deactivation requests in the future.
      * @param Request $request
      */
-    public function revokeUserToken(Request $request) {
+    public function revokeUserToken(Request $request)
+    {
 
         $user = \Auth::user();
         $token = $user->token();
@@ -883,7 +908,8 @@ class UserController extends Controller {
      * Used by our debugging tool to provide a central place to store logs received from users.
      * @param Request $request
      */
-    public function uploadLog(Request $request) {
+    public function uploadLog(Request $request)
+    {
         $this->validate($request, [
             'user_email' => 'required|email',
             'log' => 'required',
@@ -893,11 +919,13 @@ class UserController extends Controller {
         return "OK";
     }
 
-    public function activation_data(Request $request, $id) {
+    public function activation_data(Request $request, $id)
+    {
         return AppUserActivation::where('user_id', $id)->get();
     }
 
-    private function getAndTouchActivation(User $user, Request $request, $token) {
+    private function getAndTouchActivation(User $user, Request $request, $token)
+    {
         // If we receive an identifier, and we always should, then we touch the updated_at field in the database to show the last contact time.
         // If the identifier doesn't exist in the system we create a new activation.
         if ($request->has('identifier')) {
@@ -970,14 +998,16 @@ class UserController extends Controller {
      * response server time
      * @return [ server_time => '2018-07-24T18:58:04Z' ]
      */
-    public function getTime() {
+    public function getTime()
+    {
         $time = [
             "server_time" => date('Y-m-d\Th:i:s\Z')
         ];
         return response($time, 200);
     }
 
-    public function getRelaxedPolicyPasscode() {
+    public function getRelaxedPolicyPasscode()
+    {
         $user = \Auth::user();
 
         $result = [
@@ -997,7 +1027,8 @@ class UserController extends Controller {
         return $result;
     }
 
-    public function setRelaxedPolicyPasscode(Request $request) {
+    public function setRelaxedPolicyPasscode(Request $request)
+    {
         $user = \Auth::user();
 
         if ($request->has('enable_relaxed_policy_passcode')) {
@@ -1031,7 +1062,8 @@ class UserController extends Controller {
         return '{}';
     }
 
-    public function getSelfModerationInfo(Request $request) {
+    public function getSelfModerationInfo(Request $request)
+    {
         $user = \Auth::user();
 
         $config = json_decode($user->config_override);
@@ -1078,7 +1110,8 @@ class UserController extends Controller {
         return $data;
     }
 
-    private function fillSelfModerationArray($result, $newData, $activationKey, $activationName) {
+    private function fillSelfModerationArray($result, $newData, $activationKey, $activationName)
+    {
         foreach ($newData as $value) {
             $result[] = [
                 "value" => $value,
@@ -1088,7 +1121,8 @@ class UserController extends Controller {
         return $result;
     }
 
-    public function addSelfModeratedWebsite(Request $request) {
+    public function addSelfModeratedWebsite(Request $request)
+    {
         $user = \Auth::user();
 
         $token = $user->token();
@@ -1149,7 +1183,8 @@ class UserController extends Controller {
         return response('', 204);
     }
 
-    public function setSelfModerationInfo(Request $request) {
+    public function setSelfModerationInfo(Request $request)
+    {
         $user = \Auth::user();
 
         if ($user->can(['all', 'manage-whitelisted-sites'])) {
@@ -1186,7 +1221,8 @@ class UserController extends Controller {
         return '{}';
     }
 
-    private function saveSelfModerationList($list, $user, $confgiKey, $filterVarFlag = FILTER_DEFAULT) {
+    private function saveSelfModerationList($list, $user, $confgiKey, $filterVarFlag = FILTER_DEFAULT)
+    {
         /*
          * items should be in the form
          * [
@@ -1223,7 +1259,8 @@ class UserController extends Controller {
         }
     }
 
-    private function preparePerUserActivationsArray($user) {
+    private function preparePerUserActivationsArray($user)
+    {
         $perActivationsList = [
             self::ID_ACTIVATION_ALL => []
         ];
@@ -1234,7 +1271,8 @@ class UserController extends Controller {
         return $perActivationsList;
     }
 
-    private function filterSelfModerationArrays($list, $filterVarFlag, $perActivationsList) {
+    private function filterSelfModerationArrays($list, $filterVarFlag, $perActivationsList)
+    {
         foreach ($list as $item) {
             $activationId = trim($item['activation']);
             $value = filter_var(trim($item['value']), $filterVarFlag);
@@ -1250,16 +1288,17 @@ class UserController extends Controller {
             if ($activationId != self::ID_ACTIVATION_ALL) { //&& isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
                 $perActivationsList[$activationId] = Arr::except($perActivationsList[$activationId], $perActivationsList[self::ID_ACTIVATION_ALL]);
             }
-/*            //if ($activationId != self::ID_ACTIVATION_ALL && isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
-            //    unset($perActivationsList[$activationId][$value]);
-            //}*/
+            /*            //if ($activationId != self::ID_ACTIVATION_ALL && isset($perActivationsList[self::ID_ACTIVATION_ALL][$value])) {//to be sure we set values only for this user's activations
+                        //    unset($perActivationsList[$activationId][$value]);
+                        //}*/
         }
 
         return $perActivationsList;
     }
 
 
-    public function getTimeRestrictions() {
+    public function getTimeRestrictions()
+    {
         $user = \Auth::user();
 
         $config = json_decode($user->config_override);
@@ -1271,7 +1310,8 @@ class UserController extends Controller {
         return json_encode($config->TimeRestrictions);
     }
 
-    public function setTimeRestrictions(Request $request) {
+    public function setTimeRestrictions(Request $request)
+    {
         $user = \Auth::user();
 
         $config = json_decode($user->config_override);
