@@ -14,6 +14,7 @@ use App\Models\SystemPlatform;
 use App\Models\SystemVersion;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class UpdateController extends Controller
@@ -26,23 +27,26 @@ class UpdateController extends Controller
      */
     public function retrieve(Request $request, $platform)
     {
-        $platforms = SystemPlatform::where('os_name', '=', $platform)->get();
+        $platforms = Cache::remember('SystemPlatform_' . $platform, 3600, function() use ($platform) {
+            return SystemPlatform::where('os_name', '=', $platform)->get();
+        });
+
         $data = ["platform" => $platform, "activation_id" => $request->input("acid", "acid")];
 
         $osVersion = $request->input("os", "0");
         $appVersion = $request->input("v", "0");
 
-        if($osVersion == "0") {
+        if ($osVersion == "0") {
             $activation = AppUserActivation::where('identifier', $data['activation_id'])->first();
-            if($activation != null) {
+            if ($activation != null) {
                 if (!empty($activation->os_version)) {
                     $osVersion = $activation->os_version;
                 }
                 //TODO: remove, debug code
                 if ($osVersion == "0") {
-                    if(!empty($activation->config_override)) {
+                    if (!empty($activation->config_override)) {
                         $config = json_decode($activation->config_override);
-                        if(isset($config->UpdateChannel) && $config->UpdateChannel == "Alpha") {
+                        if (isset($config->UpdateChannel) && $config->UpdateChannel == "Alpha") {
                             $osVersion = "10";
                         }
                     }
@@ -54,13 +58,13 @@ class UpdateController extends Controller
         if ($platforms->count() > 0) {
             $os = $platforms->first();
             $osVersionParts = explode(".", $osVersion);
-            if($os->platform == SystemPlatform::PLATFORM_WIN) {
-                if(!empty($osVersionParts) && $osVersionParts[0] < 10) {
+            if ($os->platform == SystemPlatform::PLATFORM_WIN) {
+                if (!empty($osVersionParts) && $osVersionParts[0] < 10) {
                     $platforms = collect(); //don't support windows less than 10. Using a collection so that it's an object and the rest of the system will work.
                     Log::info("Skipping update for " . $platform . " v " . $osVersion . ' Details: ' . json_encode($request->all()));
                 }
-            } else if($os->platform == SystemPlatform::PLATFORM_OSX) {
-                if(!empty($osVersionParts) && $osVersionParts[0] < 11) {
+            } else if ($os->platform == SystemPlatform::PLATFORM_OSX) {
+                if (!empty($osVersionParts) && $osVersionParts[0] < 11) {
                     $platforms = collect(); //don't support OSX less than 11 (Big Sur). Using a collection so that it's an object and the rest of the system will work.
                     Log::info("Skipping update for " . $platform . " v " . $osVersion . ' Details: ' . json_encode($request->all()));
                 }
@@ -71,8 +75,9 @@ class UpdateController extends Controller
             $os = $platforms->first();
             $data["os_name"] = $os->os_name;
             $platform_id = $os->id;
-            $versions = SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
-
+            $versions = Cache::remember('SystemVersion_isactive_' . $platform_id, 3600, function() use ($platform_id) {
+                SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
+            });
 
             if ($versions->count() > 0) {
                 $version = $versions->first();
@@ -210,3 +215,4 @@ class UpdateController extends Controller
         }
     }
 }
+
