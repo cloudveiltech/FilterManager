@@ -76,7 +76,7 @@ class UpdateController extends Controller
             $data["os_name"] = $os->os_name;
             $platform_id = $os->id;
             $versions = Cache::remember('SystemVersion_isactive_' . $platform_id, 3600, function() use ($platform_id) {
-                SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
+                return SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
             });
 
             if ($versions->count() > 0) {
