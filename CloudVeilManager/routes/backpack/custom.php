@@ -12,9 +12,9 @@ use App\Http\Middleware\CheckIfAdmin;
 Route::group([
     'prefix' => config('backpack.base.route_prefix', 'admin'),
     'middleware' => array_merge(
-        [CheckIfAdmin::class],
         (array) config('backpack.base.web_middleware', 'web'),
         (array) config('backpack.base.middleware_key', 'admin'),
+        [CheckIfAdmin::class],
     ),
     'namespace' => 'App\Http\Controllers\Admin',
 ], function () { // custom admin routes
