@@ -27,7 +27,7 @@ class EmailActivation extends Mailable {
      * @return $this
      */
     public function build() {
-        return $this->subject("Email activation request from " . config('app.company_name'))
+        return $this->subject("CloudVeil Filter Login Link")
             ->view('emails.activation_request', ["link" => $this->link]);
     }
 }
