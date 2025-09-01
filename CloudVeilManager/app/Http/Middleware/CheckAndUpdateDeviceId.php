@@ -3,7 +3,9 @@
 namespace App\Http\Middleware;
 
 use App\Models\AppUserActivation;
+use App\Models\SystemVersion;
 use Closure;
+use Illuminate\Support\Facades\Cache;
 
 class CheckAndUpdateDeviceId
 {
@@ -37,11 +39,15 @@ class CheckAndUpdateDeviceId
                 $appVersion = $input["app_version"];
             }
 
-            // Get Specific Activation with $identifier
-            $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
+            $activation = Cache::remember('AppUserActivation  ' . implode("_", $args), 1800, function() use ($whereStatement, $args) {
+                return AppUserActivation::whereRaw($whereStatement, $args)->first();
+            });
+
             if (!$activation && $request->has('identifier_2') && $request->has('device_id_2')) {//identifier_2 is passed in case we changed device name locally
                 $args = [0 => $input['identifier_2'], 1 => $input['device_id_2']];
-                $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
+                $activation = Cache::remember('AppUserActivation  ' . implode("_", $args), 1800, function() use ($whereStatement, $args) {
+                    return AppUserActivation::whereRaw($whereStatement, $args)->first();
+                });
                 if ($activation) {
                     //update info
                     $activation->identifier = $input['identifier'];
