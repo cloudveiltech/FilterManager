@@ -22,10 +22,10 @@
     <link href="{{ asset('css/metro-responsive.css') }}" rel="stylesheet">-->
     <link href="{{ asset('css/winstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dragula.min.css') }}" rel="stylesheet">
-    
+
     @yield('styles')
 
-    <!--<link href="{{ asset('css/citadel-main.css') }}" rel="stylesheet">-->
+    <!--<link href="{{ asset('css/cloudveil-main.css') }}" rel="stylesheet">-->
 
     <link href="{{ asset('plugins/datetimepicker-2.2.4/jquery.datetimepicker.css') }}" rel="stylesheet">
     <!-- re-enable these when we manage to make datatables.responsive work properly.. -->
@@ -34,7 +34,7 @@
 
     <!-- Scripts -->
     @yield('prescripts')
-    
+
     <script src="{{ asset('js/dragula.min.js') }}"></script>
     <!-- Require for form/data validation. -->
     <script src="{{ asset('js/vendor/jquery.min.js') }}" crossorigin="anonymous"></script>

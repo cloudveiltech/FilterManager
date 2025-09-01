@@ -4,7 +4,7 @@
     <link href="{{ asset('css/toastr.min.css') }}" rel="stylesheet"/>
     <link href="{{ asset('css/nouislider.min.css') }}" rel="stylesheet"/>
     <link href="{{ asset('css/user-dashboard-custom.css') }}" rel="stylesheet"/>
-    <link href="{{ asset('css/citadel-main.css') }}" rel="stylesheet"/>
+    <link href="{{ asset('css/cloudveil-main.css') }}" rel="stylesheet"/>
     <link href="{{ asset('fontawesome/css/all.css') }}" rel="stylesheet"/>
 @endsection
 

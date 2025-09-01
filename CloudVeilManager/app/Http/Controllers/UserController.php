@@ -753,11 +753,11 @@ class UserController extends Controller
         ];
 
         if ($user->can(['all', 'manage-relaxed-policy'])) {
-            $config = json_decode($user->config_override);
+            $config = $user->config_override;
 
             if (json_last_error() == JSON_ERROR_NONE) {
-                $result['bypasses_permitted'] = isset($config->BypassesPermitted) ? $config->BypassesPermitted : null;
-                $result['bypass_duration'] = isset($config->BypassDuration) ? $config->BypassDuration : null;
+                $result['bypasses_permitted'] = $config["BypassesPermitted"] ?? null;
+                $result['bypass_duration'] = $config["BypassDuration"] ?? null;
             }
         }
 
@@ -777,21 +777,17 @@ class UserController extends Controller
         }
 
         if ($user->can(['all', 'manage-relaxed-policy'])) {
-            $config = json_decode($user->config_override);
-
-            if (json_last_error() != JSON_ERROR_NONE) {
-                $config = new \stdClass();
-            }
+            $config = $user->config_override;
 
             if ($request->has('bypasses_permitted')) {
-                $config->BypassesPermitted = $request->input('bypasses_permitted');
+                $config["BypassesPermitted"] = $request->input('bypasses_permitted');
             }
 
             if ($request->has('bypass_duration')) {
-                $config->BypassDuration = $request->input('bypass_duration');
+                $config["BypassDuration"] = $request->input('bypass_duration');
             }
 
-            $user->config_override = json_encode($config);
+            $user->config_override = $config;
         }
 
         $user->save();
@@ -803,39 +799,32 @@ class UserController extends Controller
     {
         $user = \Auth::user();
 
-        $config = json_decode($user->config_override);
+        $config = $user->config_override;
 
         $data = [];
 
-        if (json_last_error() != JSON_ERROR_NONE) {
-            $data['whitelist'] = [];
-            $data['blacklist'] = [];
-            $data['triggerBlacklist'] = [];
-            $data['appBlockList'] = [];
-        } else {
-            $data['whitelist'] = $this->fillSelfModerationArray([], isset($config->CustomWhitelist) ? $config->CustomWhitelist : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
-            $data['blacklist'] = $this->fillSelfModerationArray([], isset($config->SelfModeration) ? $config->SelfModeration : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
-            $data['triggerBlacklist'] = $this->fillSelfModerationArray([], isset($config->CustomTriggerBlacklist) ? $config->CustomTriggerBlacklist : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
-            $data['appBlockList'] = $this->fillSelfModerationArray([], isset($config->CustomBlockedApps) ? $config->CustomBlockedApps : [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
-        }
+        $data['whitelist'] = $this->fillSelfModerationArray([], $config["CustomWhitelist"] ?? [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
+        $data['blacklist'] = $this->fillSelfModerationArray([], $config["SelfModeration"] ?? [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
+        $data['triggerBlacklist'] = $this->fillSelfModerationArray([], $config["CustomTriggerBlacklist"] ?? [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
+        $data['appBlockList'] = $this->fillSelfModerationArray([], $config["CustomBlockedApps"] ?? [], self::ID_ACTIVATION_ALL, self::ID_ACTIVATION_ALL);
 
         $activations = $user->activations;
         foreach ($activations as $activation) {
-            $activationConfig = json_decode($activation->config_override);
+            $activationConfig = $activation->config_override;
 
-            if (!empty($activationConfig->CustomWhitelist)) {
-                $data['whitelist'] = $this->fillSelfModerationArray($data['whitelist'], $activationConfig->CustomWhitelist, $activation->identifier, $activation->device_id);
+            if (!empty($activationConfig["CustomWhitelist"])) {
+                $data['whitelist'] = $this->fillSelfModerationArray($data['whitelist'], $activationConfig["CustomWhitelist"], $activation->identifier, $activation->device_id);
             }
 
-            if (!empty($activationConfig->SelfModeration)) {
-                $data['blacklist'] = $this->fillSelfModerationArray($data['blacklist'], $activationConfig->SelfModeration, $activation->identifier, $activation->device_id);
+            if (!empty($activationConfig["SelfModeration"])) {
+                $data['blacklist'] = $this->fillSelfModerationArray($data['blacklist'], $activationConfig["SelfModeration"], $activation->identifier, $activation->device_id);
             }
 
-            if (!empty($activationConfig->CustomTriggerBlacklist)) {
-                $data['triggerBlacklist'] = $this->fillSelfModerationArray($data['triggerBlacklist'], $activationConfig->CustomTriggerBlacklist, $activation->identifier, $activation->device_id);
+            if (!empty($activationConfig["CustomTriggerBlacklist"])) {
+                $data['triggerBlacklist'] = $this->fillSelfModerationArray($data['triggerBlacklist'], $activationConfig["CustomTriggerBlacklist"], $activation->identifier, $activation->device_id);
             }
-            if (!empty($activationConfig->CustomBlockedApps)) {
-                $data['appBlockList'] = $this->fillSelfModerationArray($data['appBlockList'], $activationConfig->CustomBlockedApps, $activation->identifier, $activation->device_id);
+            if (!empty($activationConfig["CustomBlockedApps"])) {
+                $data['appBlockList'] = $this->fillSelfModerationArray($data['appBlockList'], $activationConfig["CustomBlockedApps"], $activation->identifier, $activation->device_id);
             }
         }
 
@@ -865,14 +854,10 @@ class UserController extends Controller
         $token = $user->token();
         $activation = $this->getAndTouchActivation($user, $request, $token);
 
-        $config = json_decode($activation->config_override);
+        $config = $activation->config_override;
 
-        if (json_last_error() != JSON_ERROR_NONE) {
-            $config = new \stdClass();
-        }
-
-        if (!isset($config->SelfModeration)) {
-            $config->SelfModeration = [];
+        if (!isset($config["SelfModeration"])) {
+            $config["SelfModeration"] = [];
         }
 
         $listType = 'blacklist';
@@ -882,12 +867,12 @@ class UserController extends Controller
 
         if ($listType == 'whitelist') {
             if ($user->can(['all', 'manage-whitelisted-sites'])) {
-                if (!isset($config->CustomWhitelist)) {
-                    $config->CustomWhitelist = [];
+                if (!isset($config["CustomWhitelist"])) {
+                    $config["CustomWhitelist"] = [];
                 }
 
                 if ($request->has('url') && !empty($request->input('url'))) {
-                    $config->CustomWhitelist[] = $request->input('url');
+                    $config["CustomWhitelist"][] = $request->input('url');
                 } else {
                     return response(json_encode(['error' => 'Please specify a URL.']), 400);
                 }
@@ -903,18 +888,18 @@ class UserController extends Controller
                 $key = "CustomBlockedApps";
             }
 
-            if (!isset($config->$key)) {
-                $config->$key = [];
+            if (!isset($config[$key])) {
+                $config[$key] = [];
             }
 
             if ($request->has('url') && !empty($request->input('url'))) {
-                $config->$key[] = $request->input('url');
+                $config[$key][] = $request->input('url');
             } else {
                 return response(json_encode(['error' => 'Please specify a URL.']), 400);
             }
         }
 
-        $activation->config_override = json_encode($config);
+        $activation->config_override = $config;
         $activation->save();
 
         return response('', 204);
@@ -960,36 +945,21 @@ class UserController extends Controller
 
     private function saveSelfModerationList($list, $user, $confgiKey, $filterVarFlag = FILTER_DEFAULT)
     {
-        /*
-         * items should be in the form
-         * [
-         *   [
-         *     "value" => ..
-         *     "activation" => ..
-         *   ]
-         * ]
-         */
-        $userConfig = json_decode($user->config_override);
-        if (json_last_error() != JSON_ERROR_NONE) {
-            $userConfig = new \stdClass();
-        }
+        $userConfig = $user->config_override;
         $perActivationsList = $this->preparePerUserActivationsArray($user);
         $perActivationsList = $this->filterSelfModerationArrays($list, $filterVarFlag, $perActivationsList);
 
         foreach ($perActivationsList as $key => $list) {
             if ($key == self::ID_ACTIVATION_ALL) {
-                $userConfig->{$confgiKey} = $list;
-                $user->config_override = json_encode($userConfig);
+                $userConfig[$confgiKey] = $list;
+                $user->config_override = $userConfig;
                 $user->save();
             } else {
                 $activation = $user->findActivationById($key);
                 if ($activation != null) {
-                    $config = json_decode($activation->config_override);
-                    if (json_last_error() != JSON_ERROR_NONE) {
-                        $config = new \stdClass();
-                    }
-                    $config->{$confgiKey} = $list;
-                    $activation->config_override = json_encode($config);
+                    $config = $activation->config_override;
+                    $config[$confgiKey] = $list;
+                    $activation->config_override = $config;
                     $activation->save();
                 }
             }
@@ -1038,34 +1008,25 @@ class UserController extends Controller
     {
         $user = \Auth::user();
 
-        $config = json_decode($user->config_override);
-
-        if (json_last_error() != JSON_ERROR_NONE || !isset($config->TimeRestrictions)) {
-            return "{}";
-        }
-
-        return json_encode($config->TimeRestrictions);
+        $config = $user->config_override;
+        return json_encode($config["TimeRestrictions"] ?? []);
     }
 
     public function setTimeRestrictions(Request $request)
     {
         $user = \Auth::user();
 
-        $config = json_decode($user->config_override);
-
-        if (json_last_error() != JSON_ERROR_NONE) {
-            $config = new \stdClass();
-        }
+        $config = $user->config_override;
 
         if ($request->has('time_restrictions')) {
-            $config->TimeRestrictions = $request->input('time_restrictions');
+            $config["TimeRestrictions"] = $request->input('time_restrictions');
         }
 
-        if (!isset($config->TimeRestrictions)) {
-            $config->TimeRestrictions = [];
+        if (!isset($config["TimeRestrictions"])) {
+            $config["TimeRestrictions"] = [];
         }
 
-        $user->config_override = json_encode($config);
+        $user->config_override = $config;
         $user->save();
 
         return '{}';
