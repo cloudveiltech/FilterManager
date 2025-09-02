@@ -223,48 +223,91 @@ class GroupCrudController extends CrudController
             ],
             [
                 'label' => 'Whitelist Rules',
-                'type' => 'select2_from_ajax_multiple',
+                'type' => 'relationship',
                 'name' => 'assignedWhitelistFilters',
                 'entity' => 'assignedWhitelistFilters',
                 'attribute' => 'label',
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
-                'method' => 'post',
-                'include_all_form_fields' => true,
-                'data_source' => url("admin/api/filter_list?type=whitelist"),
-                'delay' => 100,
-                'minimum_input_length' => 0,
+                'allow_duplicate_pivots' => true,
                 'tab' => 'Rule Selection',
+                'options' => function ($query) {
+                    return $query->orderBy('category', 'ASC')->get();
+                }
             ],
             [
                 'label' => 'Blacklist Rules',
-                'type' => 'select2_from_ajax_multiple',
+                'type' => 'relationship',
                 'name' => 'assignedBlacklistFilters',
                 'entity' => 'assignedBlacklistFilters',
                 'attribute' => 'label',
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
-                'data_source' => url("admin/api/filter_list?type=blacklist"),
-                'method' => 'post',
-                'include_all_form_fields' => true,
+                'allow_duplicate_pivots' => true,
                 'tab' => 'Rule Selection',
-                'delay' => 500,
-                'minimum_input_length' => 0,
+                'options' => function ($query) {
+                    return $query->orderBy('category', 'ASC')->get();
+                }
             ],
             [
                 'label' => 'Bypass Rules',
-                'type' => 'select2_from_ajax_multiple',
+                'type' => 'relationship',
                 'name' => 'assignedBypassFilters',
                 'entity' => 'assignedBypassFilters',
                 'attribute' => 'label',
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
-                'data_source' => url("admin/api/filter_list?type=bypass"),
-                'method' => 'post',
-                'include_all_form_fields' => true,
+                'allow_duplicate_pivots' => true,
                 'tab' => 'Rule Selection',
-                'delay' => 500,
-                'minimum_input_length' => 0,
+                'options' => function ($query) {
+                    return $query->orderBy('category', 'ASC')->get();
+                }
+            ],
+            [
+                'type' => 'custom_html',
+                'name' => 'my_custom_html',
+                'value' => '<script>
+                            function hideConnectedOptions(elName, otherName, label) {
+                                $("select[name=\'" + otherName + "\'] option").each(function(i, el) {
+                                    let val = $(el).val();
+                                    let selected = $(el).is(":selected");
+                                    $("select[name=\'" + elName + "\']").find("option[value=\'" + val + "\']").each(function(i, optionEl) {
+                                        let text = $(optionEl).text();
+                                        if(selected) {
+                                            if(text.indexOf(" — #") === -1) {
+                                                text = text + " — #" + label;
+                                            }
+                                        } else {
+                                            if(text.indexOf(" — #" + label) !== -1) {
+                                                text = text.replace(" — #" + label, "")
+                                            }
+                                        }
+                                        $(optionEl).text(text).prop("disabled", text.indexOf(" — #") !== -1);
+                                    });
+                                });
+
+                                let recreateEl = $("select[name=\'" + elName + "\']");
+                                if (recreateEl.hasClass("select2-hidden-accessible")) {
+                                    recreateEl.select2("destroy");
+                                    bpFieldInitRelationshipSelectElement(recreateEl);
+                                }
+                            }
+                                document.addEventListener("DOMContentLoaded", function() {
+                                    crud.field("assignedWhitelistFilters").onChange(function(field) {
+                                        hideConnectedOptions("assignedBypassFilters[]", "assignedWhitelistFilters[]", "whitelist");
+                                        hideConnectedOptions("assignedBlacklistFilters[]", "assignedWhitelistFilters[]", "whitelist");
+                                    }).change();
+                                    crud.field("assignedBlacklistFilters").onChange(function(field) {
+                                        hideConnectedOptions("assignedWhitelistFilters[]", "assignedBlacklistFilters[]", "blacklist");
+                                        hideConnectedOptions("assignedBypassFilters[]", "assignedBlacklistFilters[]", "blacklist");
+                                    }).change();
+                                    crud.field("assignedBypassFilters").onChange(function(field) {
+                                        hideConnectedOptions("assignedWhitelistFilters[]", "assignedBypassFilters[]", "bypasslist");
+                                        hideConnectedOptions("assignedBlacklistFilters[]", "assignedBypassFilters[]", "bypasslist");
+                                    }).change();
+                                });
+                                </script>',
+                'tab' => 'Activation',
             ],
             [
                 'label' => 'Application Groups Type',
