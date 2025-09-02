@@ -11,6 +11,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Class GroupCrudController
@@ -20,7 +21,7 @@ use Illuminate\Http\Request;
 class GroupCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation{
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
         store as traitStore;
     }
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
@@ -29,6 +30,7 @@ class GroupCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation {
         destroy as traitDelete;
     }
+
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -99,7 +101,7 @@ class GroupCrudController extends CrudController
         CRUD::setOperationSetting('strippedRequest', function ($request) {
             $input = $request->only(CRUD::getAllFieldNames());
 
-            if(is_array($input["assignedBlockedApplicationRules"])) {
+            if (is_array($input["assignedBlockedApplicationRules"])) {
                 foreach ($input["assignedBlockedApplicationRules"] as &$assignedBlockedApplicationRule) {
                     $assignedBlockedApplicationRule = [
                         "assignedBlockedApplicationRules" => $assignedBlockedApplicationRule,
@@ -108,7 +110,7 @@ class GroupCrudController extends CrudController
                 }
             }
 
-            if(is_array($input["assignedApplicationRules"])) {
+            if (is_array($input["assignedApplicationRules"])) {
                 $type = $input["assigned_application_rules_type"];
                 foreach ($input["assignedApplicationRules"] as &$assignedApplicationRule) {
                     $assignedApplicationRule = [
@@ -227,11 +229,11 @@ class GroupCrudController extends CrudController
                 'attribute' => 'label',
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
-                'data_source' => url("admin/api/filter_list?type=whitelist"),
                 'method' => 'post',
-                'delay' => 500,
                 'include_all_form_fields' => true,
-                'minimum_input_length' => 3,
+                'data_source' => url("admin/api/filter_list?type=whitelist"),
+                'delay' => 100,
+                'minimum_input_length' => 0,
                 'tab' => 'Rule Selection',
             ],
             [
@@ -244,10 +246,10 @@ class GroupCrudController extends CrudController
                 'pivot' => true,
                 'data_source' => url("admin/api/filter_list?type=blacklist"),
                 'method' => 'post',
-                'delay' => 500,
                 'include_all_form_fields' => true,
-                'minimum_input_length' => 3,
                 'tab' => 'Rule Selection',
+                'delay' => 500,
+                'minimum_input_length' => 0,
             ],
             [
                 'label' => 'Bypass Rules',
@@ -259,10 +261,10 @@ class GroupCrudController extends CrudController
                 'pivot' => true,
                 'data_source' => url("admin/api/filter_list?type=bypass"),
                 'method' => 'post',
-                'delay' => 500,
                 'include_all_form_fields' => true,
-                'minimum_input_length' => 3,
                 'tab' => 'Rule Selection',
+                'delay' => 500,
+                'minimum_input_length' => 0,
             ],
             [
                 'label' => 'Application Groups Type',
@@ -335,11 +337,17 @@ class GroupCrudController extends CrudController
             }
         }
 
-        $group = Group::findOrFail($groupId);
+        $group = Cache::remember("group_id" . $groupId, 3600, function () use ($groupId) {
+            return Group::find($groupId);
+        });
+        if ($group == null) {
+            return response("not found", 404);
+        }
 
         return FilterList::where("namespace", "like", "%" . $query . "%")
             ->orWhere("category", "like", "%" . $query . "%")
             ->whereNotIn("id", $occupiedFilterIds)
+            ->orderBy("category")
             ->get();
     }
 
@@ -347,7 +355,7 @@ class GroupCrudController extends CrudController
     {
         $result = $this->traitStore();
         $model = $this->data["entry"] ?? null;
-        if($model) {
+        if ($model) {
             $model->rebuildGroupData();
         }
         return $result;
@@ -357,7 +365,7 @@ class GroupCrudController extends CrudController
     {
         $result = $this->traitUpdate();
         $model = $this->data["entry"] ?? null;
-        if($model) {
+        if ($model) {
             $model->rebuildGroupData();
         }
         return $result;
@@ -366,7 +374,7 @@ class GroupCrudController extends CrudController
     public function destroy($id)
     {
         $group = Group::find($id);
-        if($group) {
+        if ($group) {
             $group->destroyGroupData();
         }
         return $this->traitDelete($id);
