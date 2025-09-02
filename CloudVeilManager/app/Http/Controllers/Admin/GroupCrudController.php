@@ -285,6 +285,9 @@ class GroupCrudController extends CrudController
                 'attribute' => 'group_name',
                 'model' => 'App\Models\AppGroup',
                 'tab' => 'Application Selection',
+                'options' => function ($query) {
+                    return $query->orderBy('group_name', 'ASC')->get();
+                }
             ],
             [
                 'label' => 'Application Blocking',
@@ -295,6 +298,9 @@ class GroupCrudController extends CrudController
                 'attribute' => 'group_name',
                 'model' => 'App\Models\AppGroup',
                 'tab' => 'Application Selection',
+                'options' => function ($query) {
+                    return $query->orderBy('group_name', 'ASC')->get();
+                }
             ],
         ]);
     }
