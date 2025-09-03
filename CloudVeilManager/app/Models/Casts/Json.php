@@ -26,6 +26,11 @@ class Json implements CastsAttributes
             } else if(is_numeric($value)) {
                 $intV = (int)$value;
                 if((string)$intV === $value) {
+                    //TODO: Change Time Restrictions representation
+                    //THIS IS A HACK.
+                    //only casting integers interpreted as integers. Ignoring float values so "2.00" would remain strings.
+                    //because TimeRestrictions field is hacky and time represented with dot like "23.42"
+                    //but other counters like Bypasses should be integers
                     $value = (int)$value;
                 }
             }
