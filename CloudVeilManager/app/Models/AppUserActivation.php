@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Casts\Json;
+use App\Models\Casts\Json;
 use App\Models\Traits\OverridableConfigTrait;
 use App\Models\Traits\TimerRestrictionsTrait;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;

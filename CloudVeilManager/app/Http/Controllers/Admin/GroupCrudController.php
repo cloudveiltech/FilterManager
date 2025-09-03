@@ -12,6 +12,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Class GroupCrudController
@@ -229,7 +230,6 @@ class GroupCrudController extends CrudController
                 'attribute' => 'label',
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
-                'allow_duplicate_pivots' => true,
                 'tab' => 'Rule Selection',
                 'options' => function ($query) {
                     return $query->orderBy('category', 'ASC')->get();
@@ -243,7 +243,6 @@ class GroupCrudController extends CrudController
                 'attribute' => 'label',
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
-                'allow_duplicate_pivots' => true,
                 'tab' => 'Rule Selection',
                 'options' => function ($query) {
                     return $query->orderBy('category', 'ASC')->get();
@@ -257,11 +256,10 @@ class GroupCrudController extends CrudController
                 'attribute' => 'label',
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
-                'allow_duplicate_pivots' => true,
                 'tab' => 'Rule Selection',
                 'options' => function ($query) {
                     return $query->orderBy('category', 'ASC')->get();
-                }
+                },
             ],
             [
                 'type' => 'custom_html',
@@ -402,6 +400,7 @@ class GroupCrudController extends CrudController
 
     public function store()
     {
+        $this->patchRules();
         $result = $this->traitStore();
         $model = $this->data["entry"] ?? null;
         if ($model) {
@@ -412,12 +411,40 @@ class GroupCrudController extends CrudController
 
     public function update()
     {
+        $this->patchRules();
         $result = $this->traitUpdate();
         $model = $this->data["entry"] ?? null;
         if ($model) {
             $model->rebuildGroupData();
         }
         return $result;
+    }
+
+    private function patchRules()
+    {
+        $this->patchRule("assignedBlacklistFilters", 1, 0, 0);
+        $this->patchRule("assignedWhitelistFilters", 0, 1, 0);
+        $this->patchRule("assignedBypassFilters", 0, 0, 1);
+    }
+
+    private function patchRule($key, $asBlacklist, $asWhitelist, $asBypass)
+    {
+        $request = CRUD::getRequest();
+        $listFilters = $request->input($key);
+        if (!empty($listFilters)) {
+            $newData = [];
+            foreach ($listFilters as $listFilterId) {
+                $newData[] = [
+                    $key => $listFilterId,
+                    "as_blacklist" => $asBlacklist,
+                    "as_whitelist" => $asWhitelist,
+                    "as_bypass" => $asBypass
+                ];
+            }
+
+            $request->request->set($key, $newData);
+            CRUD::setRequest($request);
+        }
     }
 
     public function destroy($id)

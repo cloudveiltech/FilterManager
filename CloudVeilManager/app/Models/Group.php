@@ -9,13 +9,12 @@
 
 namespace App\Models;
 
-use App\Casts\Json;
 use App\Client\FilteringPlainTextListModel;
 use App\Client\PlainTextFilteringListType;
+use App\Models\Casts\Json;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Description of Group

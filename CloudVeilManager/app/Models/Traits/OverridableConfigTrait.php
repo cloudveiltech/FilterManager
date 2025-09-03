@@ -2,7 +2,7 @@
 
 namespace App\Models\Traits;
 
-use App\Casts\Json;
+use App\Models\Casts\Json;
 
 trait OverridableConfigTrait
 {
