@@ -14,6 +14,21 @@ class Json implements CastsAttributes
 
     public function set(Model $model, string $key, mixed $value, array $attributes): mixed
     {
-        return json_encode($value, JSON_NUMERIC_CHECK);
+        $this->castIntegers($value);
+        return json_encode($value);
+    }
+
+    private function castIntegers(mixed &$values) {
+
+        foreach ($values as $key=>&$value) {
+            if(is_array($value) || is_object($value)) {
+                $this->castIntegers($value);
+            } else if(is_numeric($value)) {
+                $intV = (int)$value;
+                if((string)$intV === $value) {
+                    $value = (int)$value;
+                }
+            }
+        }
     }
 }
