@@ -389,7 +389,7 @@ class UserController extends Controller
             }
 
             if (isset($configuration["TimeRestrictionsTemplates"])) {
-                $configuration["TimeRestrictions"] = AppUserActivation::applyTemplates($configuration["TimeRestrictions"], $configuration["TimeRestrictionsTemplates"]);
+                $configuration["TimeRestrictions"] = AppUserActivation::applyTemplates($configuration["TimeRestrictions"] ?? [], $configuration["TimeRestrictionsTemplates"] ?? []);
                 unset($configuration["TimeRestrictionsTemplates"]);
             }
             return $configuration;

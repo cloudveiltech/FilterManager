@@ -10,6 +10,49 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class AppUserActivation extends Model
 {
     use SoftDeletes;
+    
+    public static $WORKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+    public static $ALL_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    public static $DEFAULT = [
+        "monday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "tuesday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "wednesday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "thursday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "friday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "saturday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "sunday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+    ];
+    public static $TEMPLATES = [
+        "workdays" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "all" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+    ];
 
     protected $fillable = [
         'identifier', 'device_id', 'user_id', 'ip_address', 'group_id',
@@ -44,6 +87,12 @@ class AppUserActivation extends Model
     }
 
     public static  function applyTemplates($timeRestrictions, $templates): array {
+        if(empty($timeRestrictions)) {
+            $timeRestrictions = self::$DEFAULT;
+        }
+        if(empty($templates)) {
+            $templates = self::$TEMPLATES;
+        }
         $timeRestrictions = self::applyTemplate($timeRestrictions, $templates["workdays"], self::$WORKDAYS);
         $timeRestrictions = self::applyTemplate($timeRestrictions, $templates["all"], self::$ALL_DAYS);
         return $timeRestrictions;

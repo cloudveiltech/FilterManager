@@ -140,6 +140,12 @@ trait TimerRestrictionsTrait
     }
 
     public static  function applyTemplates($timeRestrictions, $templates): array {
+        if(empty($timeRestrictions)) {
+            $timeRestrictions = self::$DEFAULT;
+        }
+        if(empty($templates)) {
+            $templates = self::$TEMPLATES;
+        }
         $timeRestrictions = self::applyTemplate($timeRestrictions, $templates["workdays"], self::$WORKDAYS);
         $timeRestrictions = self::applyTemplate($timeRestrictions, $templates["all"], self::$ALL_DAYS);
         return $timeRestrictions;
