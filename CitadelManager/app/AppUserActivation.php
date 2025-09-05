@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class AppUserActivation extends Model
 {
     use SoftDeletes;
-    
+
     public static $WORKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday"];
     public static $ALL_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
     public static $DEFAULT = [

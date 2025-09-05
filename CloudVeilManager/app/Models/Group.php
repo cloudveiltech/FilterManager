@@ -103,6 +103,9 @@ class Group extends Model
 
     public function getAssignedApplicationRulesTypeAttribute()
     {
+        if($this->assignedApplicationRules->count() == 0) {
+            return UserGroupToAppGroup::FILTER_TYPE_BLACKLIST;
+        }
         $value = $this->assignedApplicationRules->first()->pivot->filter_type;
         return (int)$value;
     }
