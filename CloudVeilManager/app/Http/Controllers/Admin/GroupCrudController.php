@@ -305,7 +305,7 @@ class GroupCrudController extends CrudController
                                     }).change();
                                 });
                                 </script>',
-                'tab' => 'Activation',
+                'tab' => 'Rule Selection',
             ],
             [
                 'label' => 'Application Groups Type',
