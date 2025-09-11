@@ -93,7 +93,11 @@ class AppUserActivationCrudController extends CrudController
                 'label' => 'OS',
                 'type' => 'text',
                 'name' => 'os_formatted',
-                'priority' => 1
+                'priority' => 1,
+                'orderable'  => true,
+                'orderLogic' => function ($query, $column, $columnDirection) {
+                    return $query->orderBy('platform_name', $columnDirection);
+                }
             ],
             [
                 'label' => 'Friendly Name',

@@ -358,46 +358,6 @@ class GroupCrudController extends CrudController
         $this->setupCreateOperation();
     }
 
-    function loadFilterLists(Request $request)
-    {
-        $type = $request->input("type");
-        $query = $request->input("q");
-        $formData = $request->input("form");
-        $groupId = null;
-
-        $formKeys = [
-            "whitelist" => "assignedWhitelistFilters[]",
-            "blacklist" => "assignedBlacklistFilters[]",
-            "bypass" => "assignedBypassFilters[]",
-        ];
-
-        $occupiedFilterIds = [];
-        foreach ($formData as $inputData) {
-            $name = $inputData["name"];
-            $value = $inputData["value"];
-            if ($name == "id") {
-                $groupId = $value;
-            }
-
-            if (in_array($name, $formKeys)) {
-                $occupiedFilterIds[] = (int)$value;
-            }
-        }
-
-        $group = Cache::remember("group_id" . $groupId, 3600, function () use ($groupId) {
-            return Group::find($groupId);
-        });
-        if ($group == null) {
-            return response("not found", 404);
-        }
-
-        return FilterList::where("namespace", "like", "%" . $query . "%")
-            ->orWhere("category", "like", "%" . $query . "%")
-            ->whereNotIn("id", $occupiedFilterIds)
-            ->orderBy("category")
-            ->get();
-    }
-
     public function store()
     {
         $this->patchRules();
