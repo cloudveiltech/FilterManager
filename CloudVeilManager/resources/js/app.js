@@ -37,3 +37,13 @@ app.component('time-interval-picker-multiple', TimeIntervalMultiple);
  */
 
 app.mount('.page-body');
+
+window.debounce = function(callback, wait) {
+    let timerId;
+    return (...args) => {
+        clearTimeout(timerId);
+        timerId = setTimeout(() => {
+            callback(...args);
+        }, wait);
+    };
+}

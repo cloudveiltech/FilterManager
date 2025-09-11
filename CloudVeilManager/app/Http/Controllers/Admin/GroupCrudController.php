@@ -282,26 +282,32 @@ class GroupCrudController extends CrudController
                                         }
                                         $(optionEl).text(text).prop("disabled", text.indexOf(" — #") !== -1);
                                     });
-                                });
+                                    });
 
-                                let recreateEl = $("select[name=\'" + elName + "\']");
-                                if (recreateEl.hasClass("select2-hidden-accessible")) {
-                                    recreateEl.select2("destroy");
-                                    bpFieldInitRelationshipSelectElement(recreateEl);
+                                    let recreateEl = $("select[name=\'" + elName + "\']");
+                                    if (recreateEl.hasClass("select2-hidden-accessible")) {
+                                        recreateEl.select2("destroy");
+                                        bpFieldInitRelationshipSelectElement(recreateEl);
+                                    }
                                 }
-                            }
                                 document.addEventListener("DOMContentLoaded", function() {
                                     crud.field("assignedWhitelistFilters").onChange(function(field) {
-                                        hideConnectedOptions("assignedBypassFilters[]", "assignedWhitelistFilters[]", "whitelist");
-                                        hideConnectedOptions("assignedBlacklistFilters[]", "assignedWhitelistFilters[]", "whitelist");
+                                        debounce(function() {
+                                                hideConnectedOptions("assignedBypassFilters[]", "assignedWhitelistFilters[]", "whitelist");
+                                                hideConnectedOptions("assignedBlacklistFilters[]", "assignedWhitelistFilters[]", "whitelist");
+                                        }, 100)();
                                     }).change();
                                     crud.field("assignedBlacklistFilters").onChange(function(field) {
-                                        hideConnectedOptions("assignedWhitelistFilters[]", "assignedBlacklistFilters[]", "blacklist");
-                                        hideConnectedOptions("assignedBypassFilters[]", "assignedBlacklistFilters[]", "blacklist");
+                                        debounce(function() {
+                                            hideConnectedOptions("assignedWhitelistFilters[]", "assignedBlacklistFilters[]", "blacklist");
+                                            hideConnectedOptions("assignedBypassFilters[]", "assignedBlacklistFilters[]", "blacklist");
+                                        }, 100)();
                                     }).change();
                                     crud.field("assignedBypassFilters").onChange(function(field) {
-                                        hideConnectedOptions("assignedWhitelistFilters[]", "assignedBypassFilters[]", "bypasslist");
-                                        hideConnectedOptions("assignedBlacklistFilters[]", "assignedBypassFilters[]", "bypasslist");
+                                        debounce(function() {
+                                            hideConnectedOptions("assignedWhitelistFilters[]", "assignedBypassFilters[]", "bypasslist");
+                                            hideConnectedOptions("assignedBlacklistFilters[]", "assignedBypassFilters[]", "bypasslist");
+                                        }, 100)();
                                     }).change();
                                 });
                                 </script>',
