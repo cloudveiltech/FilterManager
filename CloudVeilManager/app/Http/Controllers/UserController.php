@@ -435,6 +435,9 @@ class UserController extends Controller
     private function filterAppCollectionByPlatform(&$collection, $platform)
     {
         $newCollection = [];
+        if(empty($collection)) {
+            return $newCollection;
+        }
         foreach ($collection as $item) {
             if ($item["os"] == $platform) {
                 $newCollection[] = $item["name"];
