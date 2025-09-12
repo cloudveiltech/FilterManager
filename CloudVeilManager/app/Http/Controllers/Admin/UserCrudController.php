@@ -98,7 +98,7 @@ class UserCrudController extends CrudController
             'password_verify' => 'required',
             'roles' => 'required|exists:roles,id',
             'group' => 'required|exists:groups,id',
-            'activations_allowed' => 'required|integer|gt:0',
+            'activations_allowed' => 'required|integer|gte:0',
         ];
         if ($fromEdit) {
             $validationRules["password"] = "same:password_verify";
