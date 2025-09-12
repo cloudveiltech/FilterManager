@@ -141,6 +141,8 @@
                 let param = params_arr[i].split("=")[0];
                 if (param === 'persistent-table') {
                     params_arr.splice(i, 1);
+                } else if (param === 'q') {
+                    params_arr.splice(i, 1);
                 }
             }
             newUrl = params_arr.length ? tmpUrl + "?" + params_arr.join("&") : tmpUrl;
