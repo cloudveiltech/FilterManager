@@ -30,7 +30,7 @@ class UpdateController extends Controller
      */
     public function retrieve(Request $request, $platform)
     {
-        $platforms = Cache::remember('SystemPlatform_' . $platform, 3600, function() use ($platform) {
+        $platforms = Cache::remember('SystemPlatform_' . $platform, 60, function() use ($platform) {
             return SystemPlatform::where('os_name', '=', $platform)->get();
         });
 
@@ -78,7 +78,7 @@ class UpdateController extends Controller
             $os = $platforms->first();
             $data["os_name"] = $os->os_name;
             $platform_id = $os->id;
-            $versions = Cache::remember('SystemVersion_isactive_' . $platform_id, 3600, function() use ($platform_id) {
+            $versions = Cache::remember('SystemVersion_isactive_' . $platform_id, 60, function() use ($platform_id) {
                 return SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
             });
 
