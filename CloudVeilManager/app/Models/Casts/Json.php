@@ -19,7 +19,9 @@ class Json implements CastsAttributes
     }
 
     private function castIntegers(mixed &$values) {
-
+        if(empty($values)) {
+            return;
+        }
         foreach ($values as $key=>&$value) {
             if(is_array($value) || is_object($value)) {
                 $this->castIntegers($value);
