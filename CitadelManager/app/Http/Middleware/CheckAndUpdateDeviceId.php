@@ -41,12 +41,12 @@ class CheckAndUpdateDeviceId
                 $appVersion = $input["app_version"];
             }
 
-            $activation = Cache::remember('AppUserActivation  ' . implode("_", $args), self::CACHE_TIMEOUT_MINUTES*60, function() use ($whereStatement, $args) {
+            $activation = Cache::remember('AppUserActivation  ' . implode("_", $args), self::CACHE_TIMEOUT_MINUTES, function() use ($whereStatement, $args) {
                 return AppUserActivation::whereRaw($whereStatement, $args)->first();
             });
             if (!$activation && $request->has('identifier_2') && $request->has('device_id_2')) {//identifier_2 is passed in case we changed device name locally
                 $args = [0 => $input['identifier_2'], 1 => $input['device_id_2']];
-                $activation = Cache::remember('AppUserActivation  ' . implode("_", $args), self::CACHE_TIMEOUT_MINUTES*60, function() use ($whereStatement, $args) {
+                $activation = Cache::remember('AppUserActivation  ' . implode("_", $args), self::CACHE_TIMEOUT_MINUTES, function() use ($whereStatement, $args) {
                     return AppUserActivation::whereRaw($whereStatement, $args)->first();
                 });
                 if ($activation) {

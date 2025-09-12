@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -350,7 +351,13 @@ class AppUserActivationCrudController extends CrudController
     public function update()
     {
         $this->validatData();
-        return $this->traitUpdate();
+        $result = $this->traitUpdate();
+        $model = $this->data["entry"] ?? null;
+        if ($model) {
+            $activationId = $model->identifier;
+            Cache::forget('AppUserActivation ' . $activationId);
+        }
+        return $result;
     }
 
     private function validatData()
