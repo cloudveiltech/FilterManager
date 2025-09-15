@@ -201,7 +201,7 @@ class GroupCrudController extends CrudController
                         'name' => 'MaxTextTriggerScanningSize',
                         'type' => 'number',
                         'value' => 3,
-                        'label' => 'Max Text Trigger Scanning Size (deprecated)',
+                        'label' => 'Max Text Trigger Scanning Size',
                         'wrapper' => ['class' => 'form-group col-md-4'],
                     ],
                     [
