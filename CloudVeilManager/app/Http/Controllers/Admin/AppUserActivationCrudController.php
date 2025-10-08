@@ -177,6 +177,14 @@ class AppUserActivationCrudController extends CrudController
                     'type' => 'switch',
                     'name' => 'banned',
                     'tab' => 'Activation',
+                    'wrapper' => ['class' => 'form-group col-md-2'],
+                ],
+                [
+                    'label' => 'Debug Enabled',
+                    'type' => 'switch',
+                    'name' => 'debug_enabled',
+                    'tab' => 'Activation',
+                    'wrapper' => ['class' => 'form-group col-md-8'],
                 ],
                 [
                     'name' => 'bypass_quantity',

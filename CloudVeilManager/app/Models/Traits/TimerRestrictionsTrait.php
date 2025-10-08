@@ -99,7 +99,7 @@ trait TimerRestrictionsTrait
         $days = array_keys(self::$TEMPLATES + self::$DEFAULT);
         foreach ($value as $key => $dayData) {
             $day = $days[$key];
-            $intervals = $dayData["intervals"];
+            $intervals = $dayData["intervals"] ?? [["from" => "00:00", "to" => "23:59"]];
             $enabledThrough = [];
             for($i=0; $i<count($intervals); $i++) {
                 $from = $this->convertTimeToTimeRestrictionFormat($intervals[$i]["from"] ?? "00:00");
