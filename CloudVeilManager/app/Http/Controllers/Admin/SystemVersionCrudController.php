@@ -223,5 +223,6 @@ class SystemVersionCrudController extends CrudController
         if ($model) {
             Cache::forget("SystemVersion_isactive_" . $model->platform_id);
         }
+        return $result;
     }
 }
