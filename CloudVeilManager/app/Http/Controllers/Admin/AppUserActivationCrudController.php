@@ -23,7 +23,7 @@ class AppUserActivationCrudController extends CrudController
     }
 
 
-        /**
+    /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
      * @return void
@@ -45,66 +45,55 @@ class AppUserActivationCrudController extends CrudController
     {
         $this->crud->setColumns([
             [
+                'label' => 'Device',
+                'type' => 'custom_html',
+                'name' => 'device',
+                'value' => function ($entry) {
+                    $friendlyName = $entry->friendly_name ?: '-';
+                    $deviceId = $entry->device_id ?: '-';
+                    return '<div>' . e($friendlyName) . '</div><div class="text-muted small">' . e($deviceId) . '</div>';
+                },
+                'escaped' => false,
+                'priority' => 1
+            ],
+            [
                 'label' => 'User',
-                'type' => 'select',
+                'type' => 'custom_html',
                 'name' => 'user_id',
+                'value' => function ($entry) {
+                    $user = $entry->user;
+                    if (!$user) {
+                        return '-';
+                    }
+                    return '<div>' . e($user->name) . '</div><div class="text-muted small">' . e($user->email) . '</div>';
+                },
+                'escaped' => false,
+                'priority' => 1
+            ],
+            [
+                'label' => 'Group',
+                'type' => 'select',
+                'name' => 'group_id',
                 'attribute' => 'name',
-                'key' => 'user_name',
-                'priority' => 1
-            ],
-            [
-                'label' => 'E-Mail',
-                'type' => 'select',
-                'name' => 'user_id',
-                'attribute' => 'email',
-                'key' => 'user_email',
-                'priority' => 2
-            ],
-            [
-                'label' => 'Device ID',
-                'type' => 'text',
-                'name' => 'device_id',
-                'priority' => 1
-            ],
-            [
-                'label' => 'IP Address',
-                'type' => 'text',
-                'name' => 'ip_address',
-                'priority' => 1
-            ],
-            [
-                'label' => 'Bypass',
-                'type' => 'text',
-                'name' => 'bypass_formatted',
+                'entity' => 'group',
+                'key' => 'group_name',
                 'priority' => 1
             ],
             [
                 'label' => 'Version',
-                'type' => 'text',
-                'name' => 'app_version',
-                'priority' => 1
-            ],
-            [
-                'label' => 'Updated at',
-                'type' => 'datetime',
-                'name' => 'updated_at',
-                'priority' => 1
-            ],
-            [
-                'label' => 'OS',
-                'type' => 'text',
-                'name' => 'os_formatted',
+                'type' => 'custom_html',
+                'name' => 'version',
+                'value' => function ($entry) {
+                    $appVersion = $entry->app_version ?: '-';
+                    $osFormatted = $entry->os_formatted ?: '-';
+                    return '<div>' . e($appVersion) . '</div><div class="text-muted small">' . e($osFormatted) . '</div>';
+                },
+                'escaped' => false,
                 'priority' => 1,
-                'orderable'  => true,
+                'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDirection) {
                     return $query->orderBy('platform_name', $columnDirection);
                 }
-            ],
-            [
-                'label' => 'Friendly Name',
-                'type' => 'text',
-                'name' => 'friendly_name',
-                'priority' => 2
             ],
             [
                 'label' => 'Identifier',
@@ -123,10 +112,10 @@ class AppUserActivationCrudController extends CrudController
      */
     protected function setupCreateOperation()
     {
-        CRUD::setValidation([
-        ]);
+        CRUD::setValidation([]);
 
-        $this->crud->addFields([
+        $this->crud->addFields(
+            [
                 [
                     'label' => 'User Name',
                     'type' => 'select',
