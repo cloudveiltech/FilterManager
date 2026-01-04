@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use App\Models\User;
+use App\Models\SystemPlatform;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -102,6 +104,59 @@ class AppUserActivationCrudController extends CrudController
                 'searchLogic' => 'text'
             ]
         ]);
+
+        // Platform filter
+        CRUD::filter('platform_name')
+            ->type('dropdown')
+            ->label('Platform')
+            ->values([
+                SystemPlatform::PLATFORM_WIN => 'Windows',
+                SystemPlatform::PLATFORM_OSX => 'macOS',
+            ])
+            ->whenActive(function ($value) {
+                CRUD::addClause('where', 'platform_name', $value);
+            });
+
+        // App Version filter
+        CRUD::filter('app_version')
+            ->type('text')
+            ->label('App Version')
+            ->whenActive(function ($value) {
+                CRUD::addClause('where', 'app_version', 'LIKE', "%{$value}%");
+            });
+
+        // User filter
+        CRUD::filter('user_id')
+            ->type('select2')
+            ->label('User')
+            ->values(function () {
+                return User::all()->pluck('name', 'id')->toArray();
+            })
+            ->whenActive(function ($value) {
+                CRUD::addClause('where', 'user_id', $value);
+            });
+
+        // Last Sync Time filter
+        CRUD::filter('last_sync_time')
+            ->type('date_range')
+            ->label('Last Sync Time')
+            ->whenActive(function ($value) {
+                $dates = json_decode($value);
+                if ($dates->from) {
+                    CRUD::addClause('where', 'last_sync_time', '>=', $dates->from);
+                }
+                if ($dates->to) {
+                    CRUD::addClause('where', 'last_sync_time', '<=', $dates->to . ' 23:59:59');
+                }
+            });
+
+        // OS Version filter
+        CRUD::filter('os_version')
+            ->type('text')
+            ->label('OS Version')
+            ->whenActive(function ($value) {
+                CRUD::addClause('where', 'os_version', 'LIKE', "%{$value}%");
+            });
     }
 
     /**
