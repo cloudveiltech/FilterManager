@@ -153,13 +153,6 @@ class UserCrudController extends CrudController
                     'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
-                    'label' => 'Password Confirm',
-                    'type' => 'password',
-                    'name' => 'password_verify',
-                    'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-6'],
-                ],
-                [
                     'label' => 'Activations Allowed',
                     'type' => 'number',
                     'name' => 'activations_allowed',
@@ -185,17 +178,17 @@ class UserCrudController extends CrudController
                 ],
                 [
                     'label' => 'Relaxed Policy Passcode',
-                    'type' => 'password',
+                    'type' => 'password_revealable',
                     'name' => 'relaxed_policy_passcode',
                     'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-8'],
+                    'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
                     'label' => 'Enable Relaxed Policy Passcode',
                     'type' => 'switch',
                     'name' => 'enable_relaxed_policy_passcode',
                     'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
+                    'wrapper' => ['class' => 'form-group col-md-6 d-flex pt-3'],
                 ],
                 [
                     'name' => 'BypassesPermitted',
