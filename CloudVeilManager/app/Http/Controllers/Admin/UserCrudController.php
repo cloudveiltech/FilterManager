@@ -125,38 +125,22 @@ class UserCrudController extends CrudController
                     'label' => 'User Full Name',
                     'type' => 'text',
                     'name' => 'name',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-5'],
                 ],
                 [
                     'label' => 'User E-Mail',
                     'type' => 'text',
                     'name' => 'email',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-5'],
                 ],
                 [
                     'label' => 'Enabled',
                     'type' => 'switch',
                     'name' => 'is_enabled',
-                    'tab' => 'Information'
-                ],
-                [
-                    'label' => 'Customer ID',
-                    'type' => 'number',
-                    'name' => 'customer_id',
-                    'tab' => 'Information'
-                ],
-                [
-                    'label' => 'Password',
-                    'type' => 'password',
-                    'name' => 'password',
                     'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-6'],
-                ],
-                [
-                    'label' => 'Activations Allowed',
-                    'type' => 'number',
-                    'name' => 'activations_allowed',
-                    'tab' => 'Information'
+                    'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
                 ],
                 [
                     'label' => 'Group',
@@ -165,7 +149,15 @@ class UserCrudController extends CrudController
                     'model' => 'App\Models\Group',
                     'name' => 'group',
                     'attribute' => 'name',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
+                ],
+                [
+                    'label' => 'Activations Allowed',
+                    'type' => 'number',
+                    'name' => 'activations_allowed',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
                     'label' => 'Roles',
@@ -174,7 +166,15 @@ class UserCrudController extends CrudController
                     'model' => 'App\Models\Role',
                     'attribute' => 'display_name',
                     'name' => 'roles',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
+                ],
+                [
+                    'label' => 'Password',
+                    'type' => 'password',
+                    'name' => 'password',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
                     'label' => 'Relaxed Policy Passcode',
