@@ -61,8 +61,13 @@ class UserCrudController extends CrudController
             ],
             [
                 'label' => 'License Used',
-                'type' => 'datetime',
-                'name' => 'updated_at'
+                'type' => 'text',
+                'name' => 'license_used',
+                'value' => function ($entry) {
+                    $used = $entry->activations_used ?? 0;
+                    $allowed = $entry->activations_allowed ?? 0;
+                    return $used . ' of ' . $allowed;
+                }
             ],
             [
                 'label' => 'Active',
@@ -106,12 +111,13 @@ class UserCrudController extends CrudController
         }
         CRUD::setValidation($validationRules);
 
-        $this->crud->addFields([
+        $this->crud->addFields(
+            [
                 [
                     'type' => 'custom_html',
                     'name' => 'activations',
                     'value' => '
-                        <a href="javascript:void(0)" onclick="window.open(\''. backpack_url("app-user-activation") .'?q=\' + encodeURIComponent(crud.field(\'email\').value))">Show Activations</a>
+                        <a href="javascript:void(0)" onclick="window.open(\'' . backpack_url("app-user-activation") . '?q=\' + encodeURIComponent(crud.field(\'email\').value))">Show Activations</a>
                         ',
                     'tab' => 'Information',
                 ],
@@ -334,7 +340,8 @@ class UserCrudController extends CrudController
         $this->setupFields(true);
     }
 
-    protected function setupCreateOperation() {
+    protected function setupCreateOperation()
+    {
         $this->setupFields(false);
     }
 
