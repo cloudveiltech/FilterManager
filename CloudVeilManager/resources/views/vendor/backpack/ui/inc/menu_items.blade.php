@@ -9,3 +9,4 @@
 <x-backpack::menu-item title="App groups" :link="backpack_url('app-group')" />
 <x-backpack::menu-item title="Activations" :link="backpack_url('app-user-activation')" />
 <x-backpack::menu-item title="System versions" :link="backpack_url('system-version')" />
+<x-backpack::menu-item title="System platforms" :link="backpack_url('system-platform')" />
