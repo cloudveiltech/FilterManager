@@ -67,6 +67,11 @@ class DeactivationRequestCrudController extends CrudController
                 'type' => 'editable_switch',
                 'name' => 'granted',
             ],
+            [
+                'label' => 'Created At',
+                'type' => 'datetime',
+                'name' => 'created_at'
+            ],
         ]);
     }
 
