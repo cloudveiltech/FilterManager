@@ -61,8 +61,13 @@ class UserCrudController extends CrudController
             ],
             [
                 'label' => 'License Used',
-                'type' => 'datetime',
-                'name' => 'updated_at'
+                'type' => 'text',
+                'name' => 'license_used',
+                'value' => function ($entry) {
+                    $used = $entry->activations_used ?? 0;
+                    $allowed = $entry->activations_allowed ?? 0;
+                    return $used . ' of ' . $allowed;
+                }
             ],
             [
                 'label' => 'Active',
@@ -106,12 +111,13 @@ class UserCrudController extends CrudController
         }
         CRUD::setValidation($validationRules);
 
-        $this->crud->addFields([
+        $this->crud->addFields(
+            [
                 [
                     'type' => 'custom_html',
                     'name' => 'activations',
                     'value' => '
-                        <a href="javascript:void(0)" onclick="window.open(\''. backpack_url("app-user-activation") .'?q=\' + encodeURIComponent(crud.field(\'email\').value))">Show Activations</a>
+                        <a href="javascript:void(0)" onclick="window.open(\'' . backpack_url("app-user-activation") . '?q=\' + encodeURIComponent(crud.field(\'email\').value))">Show Activations</a>
                         ',
                     'tab' => 'Information',
                 ],
@@ -119,25 +125,49 @@ class UserCrudController extends CrudController
                     'label' => 'User Full Name',
                     'type' => 'text',
                     'name' => 'name',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-5'],
                 ],
                 [
                     'label' => 'User E-Mail',
                     'type' => 'text',
                     'name' => 'email',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-5'],
                 ],
                 [
                     'label' => 'Enabled',
                     'type' => 'switch',
                     'name' => 'is_enabled',
-                    'tab' => 'Information'
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
                 ],
                 [
-                    'label' => 'Customer ID',
+                    'label' => 'Group',
+                    'type' => 'select2',
+                    'entity' => 'group',
+                    'model' => 'App\Models\Group',
+                    'name' => 'group',
+                    'attribute' => 'name',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
+                ],
+                [
+                    'label' => 'Activations Allowed',
                     'type' => 'number',
-                    'name' => 'customer_id',
-                    'tab' => 'Information'
+                    'name' => 'activations_allowed',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
+                ],
+                [
+                    'label' => 'Roles',
+                    'type' => 'select2_multiple',
+                    'entity' => 'roles',
+                    'model' => 'App\Models\Role',
+                    'attribute' => 'display_name',
+                    'name' => 'roles',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
                     'label' => 'Password',
@@ -147,49 +177,18 @@ class UserCrudController extends CrudController
                     'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
-                    'label' => 'Password Confirm',
-                    'type' => 'password',
-                    'name' => 'password_verify',
-                    'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-6'],
-                ],
-                [
-                    'label' => 'Activations Allowed',
-                    'type' => 'number',
-                    'name' => 'activations_allowed',
-                    'tab' => 'Information'
-                ],
-                [
-                    'label' => 'Group',
-                    'type' => 'select2',
-                    'entity' => 'group',
-                    'model' => 'App\Models\Group',
-                    'name' => 'group',
-                    'attribute' => 'name',
-                    'tab' => 'Information'
-                ],
-                [
-                    'label' => 'Roles',
-                    'type' => 'select2_multiple',
-                    'entity' => 'roles',
-                    'model' => 'App\Models\Role',
-                    'attribute' => 'display_name',
-                    'name' => 'roles',
-                    'tab' => 'Information'
-                ],
-                [
                     'label' => 'Relaxed Policy Passcode',
-                    'type' => 'password',
+                    'type' => 'password_revealable',
                     'name' => 'relaxed_policy_passcode',
                     'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-8'],
+                    'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
                     'label' => 'Enable Relaxed Policy Passcode',
                     'type' => 'switch',
                     'name' => 'enable_relaxed_policy_passcode',
                     'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
+                    'wrapper' => ['class' => 'form-group col-md-6 d-flex pt-3'],
                 ],
                 [
                     'name' => 'BypassesPermitted',
@@ -334,7 +333,8 @@ class UserCrudController extends CrudController
         $this->setupFields(true);
     }
 
-    protected function setupCreateOperation() {
+    protected function setupCreateOperation()
+    {
         $this->setupFields(false);
     }
 
