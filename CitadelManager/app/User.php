@@ -145,7 +145,7 @@ class User extends Authenticatable {
         $userInfo['platform_name'] = $params["os"] ?? "WIN";
 
         try {
-            $activation = AppUserActivation::firstOrCreate($userInfo);
+            $activation = AppUserActivation::withTrashed()->orderBy("last_sync_time", "DESC")->firstOrCreate($userInfo);
             Log::debug('Created New Activation');
             Log::debug($activation);
             $numActivations = $this->getActivationsUsedAttribute();

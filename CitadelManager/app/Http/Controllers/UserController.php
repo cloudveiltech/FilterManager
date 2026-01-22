@@ -978,20 +978,25 @@ class UserController extends Controller
                 $activation->save();
                 //Log::debug('Activation Exists.  Saved');
             } else {
-                $activation = new AppUserActivation;
-                $activation->updated_at = Carbon::now()->timestamp;
-                $activation->last_sync_time = Carbon::now();
-                $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';
-                $activation->user_id = $user->id;
-                $activation->device_id = $request->input('device_id');
-                $activation->identifier = $request->input('identifier');
-                $activation->ip_address = $request->ip();
-                $activation->platform_name = $os;
-                if ($token) {
-                    $activation->token_id = $token->id;
+                $activation = \App\Models\AppUserActivation::withTrashed()->orderBy("last_sync_time", "DESC")->first();
+                if(!$activation) {
+                    $activation = new AppUserActivation;
+                    $activation->updated_at = Carbon::now()->timestamp;
+                    $activation->last_sync_time = Carbon::now();
+                    $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';
+                    $activation->user_id = $user->id;
+                    $activation->device_id = $request->input('device_id');
+                    $activation->identifier = $request->input('identifier');
+                    $activation->ip_address = $request->ip();
+                    $activation->platform_name = $os;
+                    if ($token) {
+                        $activation->token_id = $token->id;
+                    }
+                    $activation->bypass_used = 0;
+                    $activation->save();
+                } else {
+                    $activation->restore();
                 }
-                $activation->bypass_used = 0;
-                $activation->save();
             }
             return $activation;
         }
