@@ -146,6 +146,7 @@ class User extends Authenticatable {
 
         try {
             $activation = AppUserActivation::withTrashed()->orderBy("last_sync_time", "DESC")->firstOrCreate($userInfo);
+            $activation->restore();
             Log::debug('Created New Activation');
             Log::debug($activation);
             $numActivations = $this->getActivationsUsedAttribute();
