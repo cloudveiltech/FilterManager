@@ -16,6 +16,7 @@ use App\AppUserActivation;
 use App\DeactivationRequest;
 use App\Events\DeactivationRequestReceived;
 use App\Group;
+use App\Http\Helpers\ZendeskLogHelper;
 use App\Role;
 use App\SystemPlatform;
 use App\User;
@@ -1000,6 +1001,23 @@ class UserController extends Controller
             }
             return $activation;
         }
+    }
+
+    public function acceptDebugLogs(Request $request)
+    {
+        $thisUser = \Auth::user();
+
+        $token = $thisUser->token();
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
+
+        $fileData = $request->input("log");
+        if($fileData != null) {
+            $fileName = "log.zip";
+            $fileContent = base64_decode($fileData);
+            ZendeskLogHelper::createTicket($thisUser, $activation->platform_name, $fileName, $fileContent);
+            return response('', 200);
+        }
+        return response("", 500);
     }
 
     /**

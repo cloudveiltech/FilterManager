@@ -16,6 +16,7 @@ use App\Models\DeactivationRequest;
 use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use App\Models\Helpers\Utils;
+use App\Models\Helpers\ZendeskLogHelper;
 use App\Models\Role;
 use App\Models\SystemPlatform;
 use App\Models\Traits\TimerRestrictionsTrait;
@@ -27,6 +28,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -68,6 +70,22 @@ class UserController extends Controller
         return response('', 204);
     }
 
+    public function acceptDebugLogs(Request $request)
+    {
+        $thisUser = \Auth::user();
+
+        $token = $thisUser->token();
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
+
+        $fileData = $request->input("log");
+        if($fileData != null) {
+            $fileName = "log.zip";
+            $fileContent = base64_decode($fileData);
+            ZendeskLogHelper::createTicket($thisUser, $activation->platform_name, $fileName, $fileContent);
+            return response('', 200);
+        }
+        return response("", 500);
+    }
     /**
      * Return the SHA1 hash of the rule zip. This is for versions >=1.7
      *

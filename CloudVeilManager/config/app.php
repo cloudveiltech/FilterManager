@@ -252,5 +252,10 @@ return [
         'Str' => Illuminate\Support\Str::class,
         'Arr' => Illuminate\Support\Arr::class,
     ],
-
+    'zendesk' => [
+        'username' => env('ZENDESK_USERNAME', ''),
+        'token' => env('ZENDESK_TOKEN', ''),
+        'url' => env('ZENDESK_URL', ''),
+        'log_mode' => env('ZENDESK_LOG_MODE', false),
+    ],
 ];

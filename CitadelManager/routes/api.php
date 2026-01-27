@@ -182,6 +182,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'check.device_id', '
     Route::post('/rules/get', 'UserController@getRules'); //This will return each file listed in its own key in a JSON request.
     Route::post('/rules/check', 'UserController@checkRules'); //This will return a checksum for all rules listed in the POST request
     Route::post('/rules/rebuild', 'UserController@rebuildRules');
+    Route::post('/debug/log', 'UserController@acceptDebugLogs');
 
     // New feature API calls.
     Route::post('/me/self_moderation/add', 'UserController@addSelfModeratedWebsite'); // This adds a website to the user's sef moderation list.
