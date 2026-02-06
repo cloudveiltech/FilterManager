@@ -30,7 +30,7 @@ class DeactivationRequest extends Model
 
     public function user()
     {
-        return $this->belongsTo('App\User');
+        return $this->;
     }
 
     public function activation()

@@ -30,7 +30,10 @@ class SendDeactivationRequestGrantedNotification
     {
         // We access the deactivationRequest via $event->deactivationRequest;
         //Log::info("Logging an object: " . print_r($event, true));
-        $user = \App\User::find($event->deactivationRequest->user_id);
+        $user = $event->deactivationRequest->user;
+        if($user == null) {
+            return;
+        }
         $platform = $event->deactivationRequest->activation->platform_name;
         Mail::to($user->email)
             ->send(new DeactivationRequestGrantedMail($event->deactivationRequest, $user, $platform));

@@ -16,8 +16,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
-use Log;
-use Validator;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 
 class UserActivationAttemptResult {
