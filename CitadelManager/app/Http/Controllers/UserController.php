@@ -816,7 +816,6 @@ class UserController extends Controller
         ]);
 
         if (!$validator->fails()) {
-            $this->getAndTouchActivation()
             $activation = AppUserActivation::where('identifier', $request->input('identifier'))
                 ->where('device_id', $request->input('device_id'))
                 ->first();
