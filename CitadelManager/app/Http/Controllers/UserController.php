@@ -982,7 +982,7 @@ class UserController extends Controller
                 $activation->save();
                 //Log::debug('Activation Exists.  Saved');
             } else {
-                $activation = \App\Models\AppUserActivation::withTrashed()->orderBy("last_sync_time", "DESC")->first();
+                $activation = AppUserActivation::withTrashed()->orderBy("last_sync_time", "DESC")->first();
                 if(!$activation) {
                     $activation = new AppUserActivation;
                     $activation->updated_at = Carbon::now()->timestamp;
