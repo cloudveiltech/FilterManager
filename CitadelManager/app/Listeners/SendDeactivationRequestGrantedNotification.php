@@ -34,6 +34,9 @@ class SendDeactivationRequestGrantedNotification
         if($user == null) {
             return;
         }
+        if($event->deactivationRequest->activation == null) {
+            return;
+        }
         $platform = $event->deactivationRequest->activation->platform_name;
         Mail::to($user->email)
             ->send(new DeactivationRequestGrantedMail($event->deactivationRequest, $user, $platform));
