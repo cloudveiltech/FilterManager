@@ -769,7 +769,10 @@ class UserController extends Controller
 
                 // Remove this user's registration, since they're being
                 // granted an uninstall/removal.
-                AppUserActivation::where($reqArgs)->delete();
+                $activation = AppUserActivation::where($reqArgs);
+                if($activation) {
+                    $activation->delete();
+                }
 
                 return response('', 204);
             } else {
