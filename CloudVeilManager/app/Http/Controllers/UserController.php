@@ -570,6 +570,16 @@ class UserController extends Controller
             $activation = AppUserActivation::where('identifier', $request->input('identifier'))
                 ->where('device_id', $request->input('device_id'))
                 ->first();
+            if(!$activation) {
+                $activation = AppUserActivation::withTrashed()
+                    ->where('identifier', $request->input('identifier'))
+                    ->where('device_id', $request->input('device_id'))
+                    ->orderBy("last_sync_time", "DESC")
+                    ->first();
+                if($activation) {
+                    $activation->restore();
+                }
+            }
             if ($activation) {
                 // Lookup the user this activation belongs to.
                 $user = User::where('id', $activation->user_id)->first();
