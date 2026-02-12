@@ -142,4 +142,32 @@ class AppUserActivation extends Model
     public function setDisableBypassAttribute($value) {
         $this->setConfigValue("DisableBypass", $value);
     }
+
+    public function getUpdateChannel() {
+        $config = $this->config_override;
+        if (isset($config["UpdateChannel"])) {
+            return $config["UpdateChannel"];
+        }
+
+        $user = $this->user;
+        if($user) {
+            $config = $user->config_override;
+            if (isset($config["UpdateChannel"])) {
+                return $config["UpdateChannel"];
+            }
+        }
+
+        $group = $this->group;
+        if(!$group) {
+            $group = $user->group;
+        }
+        if($group) {
+            $config = $group->app_cfg;
+            if (isset($config["UpdateChannel"])) {
+                return $config["UpdateChannel"];
+            }
+        }
+
+        return "Stable";
+    }
 }

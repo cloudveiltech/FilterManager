@@ -174,6 +174,45 @@ class UpdateController extends Controller
         return response()->download($file);
     }
 
+    public function downloadLatestRelease(Request $request, $platform, $activationId="")
+    {
+        Log::info("Latest Update download from " . $request->ip() . " id: " . $activationId);
+        AppUserActivation::setLastUpdateRequestTime($request->ip(), $activationId);
+        $platforms = Cache::remember('SystemPlatform_' . $platform, 60, function() use ($platform) {
+            return SystemPlatform::where('os_name', '=', $platform)->get();
+        });
+        $os = $platforms->first();
+        $data["os_name"] = $os->os_name;
+        $platformId = $os->id;
+        $versions = Cache::remember('SystemVersion_isactive_' . $platformId, 60, function() use ($platformId) {
+            return SystemVersion::where('platform_id', '=', $platformId)->where('active', '=', 1)->get();
+        });
+
+        $updateChannel = "Stable";
+        $version = $versions->first();
+        if(!empty($activationId)) {
+            $activation = AppUserActivation::where("identifier", $activationId)->first();
+            if($activation) {
+                $updateChannel = $activation->getUpdateChannel();
+            }
+        }
+
+        $versionNumber = $version->stable;
+
+        switch ($updateChannel) {
+            case "Alpha":
+                $versionNumber = $version->alpha;
+                break;
+            case "Beta":
+                $versionNumber = $version->beta;
+                break;
+        }
+
+        $fileName = $version->file_name . "-" . $versionNumber . "-" . $os->os_name . $version->file_ext;
+
+        $file = public_path() . "/releases/" . $fileName;
+        return response()->download($file);
+    }
     /**
      * Returns the version with JSON.
      *

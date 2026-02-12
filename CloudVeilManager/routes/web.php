@@ -64,6 +64,7 @@ Route::namespace("App\Http\Controllers")->group(function () {
     });
 
     Route::get('/update/{platform}/update.xml', 'UpdateController@retrieve');
+    Route::get('update/latest/{platform}/{activationId?}', 'UpdateController@downloadLatestRelease');
     Route::get('update/releases/{activationId}/{fileName}', 'UpdateController@downloadRelease');
 
     Route::middleware(['auth.basic.once', 'role:admin|user'])->get('/update/{platform}', 'UpdateController@currentVersions');
