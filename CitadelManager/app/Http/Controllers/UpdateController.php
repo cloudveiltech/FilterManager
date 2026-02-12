@@ -40,23 +40,23 @@ class UpdateController extends Controller
         $osVersion = $request->input("os", "0");
         $appVersion = $request->input("v", "0");
 
-        if ($osVersion == "0") {
-            $activation = AppUserActivation::where('identifier', $data['activation_id'])->first();
-            if ($activation != null) {
-                if (!empty($activation->os_version)) {
-                    $osVersion = $activation->os_version;
-                }
-                //TODO: remove, debug code
-                if ($osVersion == "0") {
-                    if (!empty($activation->config_override)) {
-                        $config = json_decode($activation->config_override);
-                        if (isset($config->UpdateChannel) && $config->UpdateChannel == "Alpha") {
-                            $osVersion = "10";
-                        }
-                    }
-                }
-                //End of debug code
+        $isUniversal = false;
+        $activation = AppUserActivation::where('identifier', $data['activation_id'])->first();
+        if ($activation != null) {
+            if (!empty($activation->os_version)) {
+                $osVersion = $activation->os_version;
             }
+            //TODO: remove, debug code
+            if (!empty($activation->config_override)) {
+                $updateChannel = $activation->getUpdateChannel();
+                if ($updateChannel == "Alpha") {
+                    if ($osVersion == "0") {
+                        $osVersion = "10";
+                    }
+                    $isUniversal = true;
+                }
+            }
+            //End of debug code
         }
 
         if ($platforms->count() > 0) {
@@ -77,18 +77,20 @@ class UpdateController extends Controller
 
         if ($platforms->count() > 0) {
             $os = $platforms->first();
+            $isUniversal = $isUniversal && $os->platform == SystemPlatform::PLATFORM_WIN;
+            $data["is_web_installer"] = $isUniversal;
             $data["os_name"] = $os->os_name;
             $platform_id = $os->id;
-            $versions = Cache::remember('SystemVersion_isactive_' . $platform_id, 60, function() use ($platform_id) {
+            $versions = Cache::remember('SystemVersion_isactive_' . $platform_id, 3600, function() use ($platform_id) {
                 return SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
             });
 
             if ($versions->count() > 0) {
                 $version = $versions->first();
                 $data['app_name'] = $version->app_name;
-                $data['file_name'] = $version->file_name;
-                $data['file_ext'] = $version->file_ext;
-                $data['version_number'] = $version->version_number;
+                $data['file_name'] = $isUniversal ? "CloudVeilWebInstaller" : $version->file_name;
+                $data['file_ext'] = $isUniversal ? ".exe" : $version->file_ext;
+                $data['version_number'] =  $version->version_number;
                 $data['changes'] = array($version->changes);
 
                 $data['channels'] = [
