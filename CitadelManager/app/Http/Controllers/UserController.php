@@ -774,6 +774,8 @@ class UserController extends Controller
                     $activation->delete();
                 }
 
+                $thisUser->token()->revoke();
+
                 return response('', 204);
             } else {
                 // If this is a deactivate request that has not been granted then we fire an event.
