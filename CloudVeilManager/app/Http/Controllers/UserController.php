@@ -26,6 +26,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -525,6 +526,8 @@ class UserController extends Controller
                 // Remove this user's registration, since they're being
                 // granted an uninstall/removal.
                 AppUserActivation::where($reqArgs)->delete();
+
+                Cache::delete('AppUserActivation' . $reqArgs['identifier']);
 
                 return response('', 204);
             } else {
