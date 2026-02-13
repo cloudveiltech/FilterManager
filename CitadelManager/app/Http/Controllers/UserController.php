@@ -749,7 +749,6 @@ class UserController extends Controller
      */
     public function getCanUserDeactivate(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'identifier' => 'required',
             'device_id' => 'required',
@@ -773,8 +772,6 @@ class UserController extends Controller
                 if($activation) {
                     $activation->delete();
                 }
-
-                $thisUser->token()->revoke();
 
                 return response('', 204);
             } else {
