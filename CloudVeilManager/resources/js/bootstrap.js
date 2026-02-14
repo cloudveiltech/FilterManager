@@ -1,4 +1,6 @@
-import 'bootstrap';
+// Bootstrap is loaded via CDN in config/backpack/ui.php
+// This ensures window.bootstrap is available globally for Backpack's JavaScript
+// import 'bootstrap';
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
