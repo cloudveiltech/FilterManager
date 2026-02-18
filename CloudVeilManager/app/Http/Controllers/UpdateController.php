@@ -112,6 +112,7 @@ class UpdateController extends Controller
                 $data['date'] = Carbon::parse($version->release_date)->toRfc7231String();
 
             } else {
+                $data["is_web_installer"] = false;
                 $data['app_name'] = "unavailable";
                 $data['file_name'] = "unavailable";
                 $data['file_ext'] = "unavailable";
