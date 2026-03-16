@@ -2,18 +2,83 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\EmailActivationTrait;
+use App\Mail\EmailTwoFactorActivation;
 use App\Models\EmailActivationUrl;
-use App\Models\GlobalWhitelist;
-use App\Mail\EmailActivation;
+use App\Models\TwoFactorCode;
 use App\Models\User;
 use App\Models\Helpers\UserActivationAttemptResult;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\URL;
 
 class EmailActivationLinkController extends Controller {
+    use EmailActivationTrait;
+
+    function activateOverEmail(Request $request)
+    {
+        $user = User::where("email", $request->input("email"))->first();
+        if ($user == null) {
+            return response("User Not Found.", 401);
+        }
+
+        if($user->is2FAAuthEnabled())
+        {
+            return $this->send2FACode($user);
+        }
+        return $this->sendLinkToEmail($request, "App\Mail\EmailActivation", "email_activation_url");
+    }
+
+    /**
+     * @throws \Exception
+     */
+    function send2FACode($user)
+    {
+        TwoFactorCode::removeExpiredCodes();
+        TwoFactorCode::dropCodesForUserId($user->id);
+
+        $expiredTime = Carbon::now()->addHours(TwoFactorCode::EXPIRATION_INTERVAL_HR);
+        $twoFactorCode = new TwoFactorCode();
+        $twoFactorCode->expired_at = $expiredTime;
+        $twoFactorCode->code = random_int(100000, 999999);
+        $twoFactorCode->user_id = $user->id;
+        $twoFactorCode->save();
+
+        Mail::to($user->email)
+            ->send(new EmailTwoFactorActivation($twoFactorCode->code));
+
+        return response(["type" => "2fa"], 200);
+    }
+
+    function activate2FA(Request $request)
+    {
+        if(!$request->has(["email", "identifier", "device_id", "code"])) {
+            return response('Some required fields missing.', 401);
+        }
+
+        $user = User::where("email", $request->input("email"))->first();
+        if ($user == null) {
+            return response('User not found.', 401);
+        }
+        if (!$user->is2FAAuthEnabled()) {
+            return response('Two factor authentication not allowed. Use other methods instead.', 403);
+        }
+        TwoFactorCode::removeExpiredCodes();
+
+        $code = $request->input("code");
+
+        $twoFactorCode = TwoFactorCode::where("user_id", $user->id)->where("code", $code)->first();
+        if (!$twoFactorCode) {
+            return response("Invalid 2FA Code.", 401);
+        }
+        $twoFactorCode->delete();
+
+        $this->activateUser($request->all());
+
+        return response(["type" => "2fa"], 200);
+    }
+
     public function activate(Request $request) {
         EmailActivationUrl::removeExpiredUrls();
         if (!$request->hasValidSignature()) {
@@ -26,11 +91,16 @@ class EmailActivationLinkController extends Controller {
         }
 
         $requestFields = $linkModel->login_request;
+
+        $result = $this->activateUser($requestFields);
+        $linkModel->delete();
+        return $result;
+    }
+
+    private function activateUser($requestFields) {
         $user = User::where("email", $requestFields["email"])->firstOrFail();
 
         $userActivateResult = $user->tryActivateUserArray($requestFields);
-
-        $linkModel->delete();
 
         switch ($userActivateResult) {
             case UserActivationAttemptResult::Success:
@@ -52,31 +122,5 @@ class EmailActivationLinkController extends Controller {
                 return response('An unknown error occurred while trying to activate or verify your account activation.', 401);
         }
         return response("", 500);
-    }
-
-
-    public function sendLink(Request $request) {
-        $user = User::where("email", $request->input("email"))->first();
-        if($user == null) {
-            return response('User not found.', 401);
-        }
-
-        $expiredTime = Carbon::now()->addHour();
-        $url = Url::signedRoute('email_activation_url', [],$expiredTime);
-        $parsedUrl = parse_url($url);
-        $query = [];
-        parse_str($parsedUrl["query"], $query);
-        $signature = $query["signature"];
-
-        $emailActivationLink = new EmailActivationUrl();
-        $emailActivationLink->expired_at = $expiredTime;
-        $emailActivationLink->login_request = $request->all();
-        $emailActivationLink->hash = $signature;
-        $emailActivationLink->save();
-
-        Mail::to($user->email)
-            ->send(new EmailActivation($url));
-
-        return response("", 200);
     }
 }
