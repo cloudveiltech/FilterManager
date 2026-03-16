@@ -139,12 +139,11 @@ class UserCrudController extends CrudController
                     'type' => 'switch',
                     'label' => 'Enable Two Factor Authentication',
                     'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-3 d-flex pt-3'],
                 ],
                 [
-                    'label' => 'Enabled',
+                    'label' => 'Enable User',
                     'type' => 'switch',
-                    'name' => 'is_enabled',
+                    'name' => 'isactive',
                     'tab' => 'Information'
                 ],
                 [
