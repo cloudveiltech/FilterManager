@@ -172,6 +172,12 @@ class User extends Authenticatable {
         return UserActivationAttemptResult::Success;
     }
 
+    private function getConfigValue($key) {
+        $config = json_decode($this->config_override, true);
+        $value = $config[$key] ?? "";
+        return $value;
+    }
+
     /**
      * The attributes that are mass assignable.
      *
