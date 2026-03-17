@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\HasApiTokens;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 
@@ -34,6 +36,7 @@ class User extends Authenticatable {
     use Notifiable;
     use EntrustUserTrait;
     use HasApiTokens;
+    use LoginPreferencesTrait;
 
     public $timestamps = true;
 
