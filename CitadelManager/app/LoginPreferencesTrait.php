@@ -7,7 +7,6 @@ trait LoginPreferencesTrait
     protected $defaultLoginPreferencesName = 'login_preferences';
 
     public function is2FAAuthEnabled() {
-        return true;
         if(method_exists($this, "getConfigValue")) {
             return $this->getConfigValue("two_factor_email_enabled") ?? false;
         } else {
