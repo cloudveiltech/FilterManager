@@ -22,19 +22,19 @@ class EmailActivationLinkController extends Controller {
         if ($user == null) {
             return response("User Not Found.", 401);
         }
-
-        if($user->is2FAAuthEnabled())
-        {
-            return $this->send2FACode($user);
-        }
         return $this->sendLinkToEmail($request, "App\Mail\EmailActivation", "email_activation_url");
     }
 
     /**
      * @throws \Exception
      */
-    function send2FACode($user)
+    function send2FACode(Request $request)
     {
+        $user = User::where("email", $request->input("email"))->first();
+        if ($user == null) {
+            return response("User Not Found.", 401);
+        }
+
         TwoFactorCode::removeExpiredCodes();
         TwoFactorCode::dropCodesForUserId($user->id);
 

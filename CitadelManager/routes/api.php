@@ -284,7 +284,8 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:a
 Route::middleware(['auth.basic.once', 'role:admin|user|business-owner', 'check.device_id'])->post('/v2/user/gettoken', 'UserController@getUserToken');
 Route::get('/v2/activation/email', 'EmailActivationLinkController@activate')->name('email_activation_url');
 Route::middleware(['check.device_id'])->post('/v2/user/activation/email', 'EmailActivationLinkController@activateOverEmail');
-Route::middleware(['check.device_id'])->post('/v2/user/activation/2fa', 'EmailActivationLinkController@activate2FA');
+Route::middleware(['check.device_id'])->post('/v2/user/activation/otp', 'EmailActivationLinkController@send2FACode');
+Route::middleware(['check.device_id'])->put('/v2/user/activation/otp', 'EmailActivationLinkController@activate2FA');
 Route::middleware(['check.device_id'])->post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
 
 /**

@@ -127,19 +127,6 @@ class UserCrudController extends CrudController
                     'name' => 'email',
                     'tab' => 'Information'
                 ],
-             /*   [//no need for now
-                    'name' => 'PasswordAuthEnabled',
-                    'type' => 'switch',
-                    'label' => 'Enable Password Authentication',
-                    'tab' => 'Information',
-                    'wrapper' => ['class' => 'form-group col-md-3 d-flex pt-3'],
-                ],*/
-                [
-                    'name' => 'TwoFAAuthEnabled',
-                    'type' => 'switch',
-                    'label' => 'Enable Two Factor Authentication',
-                    'tab' => 'Information',
-                ],
                 [
                     'label' => 'Enable User',
                     'type' => 'switch',
