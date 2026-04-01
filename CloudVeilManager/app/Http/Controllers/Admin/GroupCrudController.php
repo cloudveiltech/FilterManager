@@ -32,6 +32,13 @@ class GroupCrudController extends CrudController
         destroy as traitDelete;
     }
 
+    private $rules = [
+        'name' => 'required|min:2',
+        'group_config.*.PrimaryDns' => 'nullable|ipv4',
+        'group_config.*.PrimaryDnsV6' => 'nullable|ipv6',
+        'group_config.*.SecondaryDns' => 'nullable|ipv4',
+        'group_config.*.SecondaryDnsV6' => 'nullable|ipv6',
+        ];
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -95,9 +102,7 @@ class GroupCrudController extends CrudController
      */
     protected function setupCreateOperation()
     {
-        CRUD::setValidation([
-            'name' => 'required|min:2',
-        ]);
+        CRUD::setValidation($this->rules);
 
         CRUD::setOperationSetting('strippedRequest', function ($request) {
             $input = $request->only(CRUD::getAllFieldNames());
@@ -373,6 +378,9 @@ class GroupCrudController extends CrudController
 
     public function store()
     {
+        if(!$this->validate(CRUD::getRequest(), $this->rules)) {
+            return $this->traitStore();
+        }
         $this->patchRules();
         $result = $this->traitStore();
         $model = $this->data["entry"] ?? null;
@@ -384,6 +392,9 @@ class GroupCrudController extends CrudController
 
     public function update()
     {
+        if(!$this->validate(CRUD::getRequest(), $this->rules)) {
+            return $this->traitUpdate();
+        }
         $this->patchRules();
         $result = $this->traitUpdate();
         $model = $this->data["entry"] ?? null;

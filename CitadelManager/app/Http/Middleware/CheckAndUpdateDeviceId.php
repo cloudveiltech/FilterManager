@@ -51,6 +51,16 @@ class CheckAndUpdateDeviceId
                     $activation->device_id = $input['device_id'];
                 }
             }
+            if(!$activation) {
+                $activation = AppUserActivation::withTrashed()->
+                    where("identifier", $input['identifier'])->
+                    where("device_id", $input['device_id'])->
+                    orderBy("last_sync_time", "DESC")->first();
+                if ($activation && $activation->trashed()) {
+                    $activation->restore();
+                }
+            }
+
             if ($activation) {
                 if ($appVersion != "") {
                     $activation->app_version = $appVersion;

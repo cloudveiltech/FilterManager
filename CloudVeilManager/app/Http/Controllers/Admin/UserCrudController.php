@@ -136,7 +136,7 @@ class UserCrudController extends CrudController
                     'wrapper' => ['class' => 'form-group col-md-5'],
                 ],
                 [
-                    'label' => 'Enabled',
+                    'label' => 'Enable User',
                     'type' => 'switch',
                     'name' => 'is_enabled',
                     'tab' => 'Information',

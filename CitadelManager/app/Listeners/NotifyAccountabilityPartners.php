@@ -26,7 +26,7 @@ class NotifyAccountabilityPartners implements ShouldQueue
     /**
      * Handle the event.
      *
-     * @param  AccountabilityPartnerEvent  $event
+     * @param AccountabilityPartnerEvent $event
      * @return void
      */
     public function handle(AccountabilityPartnerEvent $event)
@@ -34,31 +34,31 @@ class NotifyAccountabilityPartners implements ShouldQueue
 //        Log::debug(json_encode($event));
         if (config('app.accountability.enabled')) {
             Log::info('Sending Accountability Report.');
-        // If we hit this  we need to send the data off to this endpoint.
-	$body = [
-	    'user_email' => $event->user->email,
-            'data_type' => $event->data_type,
-            'source_name' => $event->source_name,
-            'url' => $event->url,
-            'message' => $event->message,
-            'importance_level' => $event->severity,
-	    'certainty_level' => $event->certainty,
-	];
+            // If we hit this  we need to send the data off to this endpoint.
+            $body = [
+                'user_email' => $event->user->email,
+                'data_type' => $event->data_type,
+                'source_name' => $event->source_name,
+                'url' => $event->url,
+                'message' => $event->message,
+                'importance_level' => $event->severity,
+                'certainty_level' => $event->certainty,
+            ];
 
-	$client = new Client([
-            'base_uri' => config('app.accountability.url'),
-            'headers' => ['Content-Type' => 'application/json'],
-            'verify' => false
-        ]);
+            $client = new Client([
+                'base_uri' => config('app.accountability.url'),
+                'headers' => ['Content-Type' => 'application/json'],
+                'verify' => false
+            ]);
 
-        $response = $client->post('api/v1/data/general', [
-            'headers' => [
-                'Accept'     => 'application/json',
-                'Content-Type'     => 'application/json',
-		'Authorization' => 'Bearer ' . $this->getAccessToken()
-            ],
-            RequestOptions::JSON => $body
-        ]);
+            $response = $client->post('api/v1/data/general', [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $this->getAccessToken()
+                ],
+                RequestOptions::JSON => $body
+            ]);
         } else {
             Log::error('Accountability Reporting Disabled.');
         }
@@ -72,7 +72,7 @@ class NotifyAccountabilityPartners implements ShouldQueue
             return $token;
         }
 
-	$client = new Client([
+        $client = new Client([
             'base_uri' => config('app.accountability.url'),
             'headers' => ['Content-Type' => 'application/json'],
             'verify' => false

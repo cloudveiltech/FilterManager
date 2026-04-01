@@ -142,6 +142,8 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::post('/rules/get', 'UserController@getRules'); //This will return each file listed in its own key in a JSON request.
         Route::post('/rules/check', 'UserController@checkRules'); //This will return a checksum for all rules listed in the POST request
         Route::post('/rules/rebuild', 'UserController@rebuildRules');
+        Route::post('/debug/log', 'UserController@acceptDebugLogs');
+
 
         // New feature API calls.
         Route::post('/me/self_moderation/add', 'UserController@addSelfModeratedWebsite'); // This adds a website to the user's sef moderation list.
@@ -230,7 +232,9 @@ Route::namespace("App\Http\Controllers")->group(function () {
     /* Token Management */
     Route::middleware(['auth.basic.once', 'role:admin|user|business-owner', 'check.device_id'])->post('/v2/user/gettoken', 'UserController@getUserToken');
     Route::get('/v2/activation/email', 'EmailActivationLinkController@activate')->name('email_activation_url');
-    Route::middleware(['check.device_id'])->post('/v2/user/activation/email', 'EmailActivationLinkController@sendLink');
+    Route::middleware(['check.device_id'])->post('/v2/user/activation/email', 'EmailActivationLinkController@activateOverEmail');
+    Route::middleware(['check.device_id'])->post('/v2/user/activation/otp', 'EmailActivationLinkController@send2FACode');
+    Route::middleware(['check.device_id'])->put('/v2/user/activation/otp', 'EmailActivationLinkController@activate2FA');
     Route::middleware(['check.device_id'])->post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
 
     /**

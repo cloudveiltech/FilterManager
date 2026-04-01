@@ -16,6 +16,7 @@ use App\AppUserActivation;
 use App\DeactivationRequest;
 use App\Events\DeactivationRequestReceived;
 use App\Group;
+use App\Http\Helpers\ZendeskLogHelper;
 use App\Role;
 use App\SystemPlatform;
 use App\User;
@@ -748,7 +749,6 @@ class UserController extends Controller
      */
     public function getCanUserDeactivate(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'identifier' => 'required',
             'device_id' => 'required',
@@ -768,7 +768,10 @@ class UserController extends Controller
 
                 // Remove this user's registration, since they're being
                 // granted an uninstall/removal.
-                AppUserActivation::where($reqArgs)->delete();
+                $activation = AppUserActivation::where($reqArgs);
+                if($activation) {
+                    $activation->delete();
+                }
 
                 return response('', 204);
             } else {
@@ -815,6 +818,16 @@ class UserController extends Controller
             $activation = AppUserActivation::where('identifier', $request->input('identifier'))
                 ->where('device_id', $request->input('device_id'))
                 ->first();
+            if(!$activation) {
+                $activation = AppUserActivation::withTrashed()
+                    ->where('identifier', $request->input('identifier'))
+                    ->where('device_id', $request->input('device_id'))
+                    ->orderBy("last_sync_time", "DESC")
+                    ->first();
+                if($activation) {
+                    $activation->restore();
+                }
+            }
             if ($activation) {
                 // Lookup the user this activation belongs to.
                 $user = User::where('id', $activation->user_id)->first();
@@ -978,23 +991,45 @@ class UserController extends Controller
                 $activation->save();
                 //Log::debug('Activation Exists.  Saved');
             } else {
-                $activation = new AppUserActivation;
-                $activation->updated_at = Carbon::now()->timestamp;
-                $activation->last_sync_time = Carbon::now();
-                $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';
-                $activation->user_id = $user->id;
-                $activation->device_id = $request->input('device_id');
-                $activation->identifier = $request->input('identifier');
-                $activation->ip_address = $request->ip();
-                $activation->platform_name = $os;
-                if ($token) {
-                    $activation->token_id = $token->id;
+                $activation = AppUserActivation::withTrashed()->orderBy("last_sync_time", "DESC")->first();
+                if(!$activation) {
+                    $activation = new AppUserActivation;
+                    $activation->updated_at = Carbon::now()->timestamp;
+                    $activation->last_sync_time = Carbon::now();
+                    $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';
+                    $activation->user_id = $user->id;
+                    $activation->device_id = $request->input('device_id');
+                    $activation->identifier = $request->input('identifier');
+                    $activation->ip_address = $request->ip();
+                    $activation->platform_name = $os;
+                    if ($token) {
+                        $activation->token_id = $token->id;
+                    }
+                    $activation->bypass_used = 0;
+                    $activation->save();
+                } else {
+                    $activation->restore();
                 }
-                $activation->bypass_used = 0;
-                $activation->save();
             }
             return $activation;
         }
+    }
+
+    public function acceptDebugLogs(Request $request)
+    {
+        $thisUser = \Auth::user();
+
+        $token = $thisUser->token();
+        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
+
+        $fileData = $request->input("log");
+        if($fileData != null) {
+            $fileName = "log.zip";
+            $fileContent = base64_decode($fileData);
+            ZendeskLogHelper::createTicket($thisUser, $activation->platform_name, $fileName, $fileContent);
+            return response('', 200);
+        }
+        return response("", 500);
     }
 
     /**

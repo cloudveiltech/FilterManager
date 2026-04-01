@@ -9,7 +9,7 @@
 
 namespace App\Models;
 
-use App\Casts\Json;
+use App\Models\Traits\LoginPreferencesTrait;
 use App\Models\Traits\OverridableConfigTrait;
 use App\Models\Traits\TimerRestrictionsTrait;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
@@ -33,9 +33,10 @@ class User extends Authenticatable
 
     use OverridableConfigTrait;
     use TimerRestrictionsTrait;
+    use LoginPreferencesTrait;
 
     public $timestamps = true;
-
+    protected string $loginPreferencesName = "config_override";
     /**
      * The accessors to append to the model's array form.
      *
@@ -198,7 +199,8 @@ class User extends Authenticatable
         $userInfo['platform_name'] = $params["os"] ?? "WIN";
 
         try {
-            $activation = AppUserActivation::firstOrCreate($userInfo);
+            $activation = AppUserActivation::withTrashed()->orderBy("last_sync_time", "DESC")->firstOrCreate($userInfo);
+            $activation->restore();
             Log::debug('Created New Activation');
             Log::debug($activation);
             $numActivations = $this->getActivationsUsedAttribute();
@@ -247,7 +249,7 @@ class User extends Authenticatable
         'customer_id', 'config_override', 'relaxed_policy_passcode',
         'config', 'enable_relaxed_policy_passcode', 'blocked_sites', 'allowed_sites',
         'bypassable_sites', 'blocked_triggers', 'blocked_applications', 'time_restrictions',
-        "BypassesPermitted", "BypassDuration", "DisableBypass",
+        "BypassesPermitted", "BypassDuration", "DisableBypass", "TwoFAAuthEnabled", "PasswordAuthEnabled"
     ];
 
     /**

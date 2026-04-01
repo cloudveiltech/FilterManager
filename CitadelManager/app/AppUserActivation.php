@@ -109,4 +109,32 @@ class AppUserActivation extends Model
         }
         return $timeRestrictions;
     }
+
+    public function getUpdateChannel() {
+        $config = json_decode($this->config_override);
+        if (isset($config->UpdateChannel)) {
+            return $config->UpdateChannel;
+        }
+
+        $user = $this->user;
+        if($user) {
+            $config = json_decode($user->config_override);
+            if (isset($config->UpdateChannel)) {
+                return $config->UpdateChannel;
+            }
+        }
+
+        $group = $this->group;
+        if(!$group) {
+            $group = $user->group;
+        }
+        if($group) {
+            $config = json_decode($group->app_cfg);
+            if (isset($config->UpdateChannel)) {
+                return $config->UpdateChannel;
+            }
+        }
+
+        return "Stable";
+    }
 }

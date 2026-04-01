@@ -16,6 +16,15 @@
                 ]]>
             </description>
             <pubDate>{{ $date }}</pubDate>
+            @if($is_web_installer)
+                <enclosure
+                    channel="{{ $channel['release'] }}"
+                    url="{{ url('/') }}/update/releases/{{ urlencode($activation_id) }}/{{ $file_name }}{{ $file_ext }}" sparkle:os="{{ $os_name }}"
+                    sparkle:installerArguments="/quiet /norestart" sparkle:version="{{ $channel['version_number'] }}"
+                    sparkle:edSignature="{{ $channel["signature"] }}"
+                    length="0"
+                    type="application/octet-stream"/>
+            @else
             <enclosure
                     channel="{{ $channel['release'] }}"
                     url="{{ url('/') }}/update/releases/{{ urlencode($activation_id) }}/{{ $file_name }}-{{ $channel['version_number'] }}-{{ $platform }}{{ $file_ext }}" sparkle:os="{{ $os_name }}"
@@ -23,6 +32,7 @@
                     sparkle:edSignature="{{ $channel["signature"] }}"
                     length="0"
                     type="application/octet-stream"/>
+            @endif
         </item>
         @endforeach
     </channel>

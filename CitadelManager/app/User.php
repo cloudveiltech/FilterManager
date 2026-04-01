@@ -15,9 +15,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\HasApiTokens;
-use Log;
-use Validator;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 
 class UserActivationAttemptResult {
@@ -36,6 +36,7 @@ class User extends Authenticatable {
     use Notifiable;
     use EntrustUserTrait;
     use HasApiTokens;
+    use LoginPreferencesTrait;
 
     public $timestamps = true;
 
@@ -145,7 +146,8 @@ class User extends Authenticatable {
         $userInfo['platform_name'] = $params["os"] ?? "WIN";
 
         try {
-            $activation = AppUserActivation::firstOrCreate($userInfo);
+            $activation = AppUserActivation::withTrashed()->orderBy("last_sync_time", "DESC")->firstOrCreate($userInfo);
+            $activation->restore();
             Log::debug('Created New Activation');
             Log::debug($activation);
             $numActivations = $this->getActivationsUsedAttribute();
@@ -168,6 +170,12 @@ class User extends Authenticatable {
         }
 
         return UserActivationAttemptResult::Success;
+    }
+
+    private function getConfigValue($key) {
+        $config = json_decode($this->config_override, true);
+        $value = $config[$key] ?? "";
+        return $value;
     }
 
     /**

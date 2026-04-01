@@ -12,6 +12,7 @@ namespace App\Http\Controllers;
 use App\AppUserActivation;
 use App\SystemPlatform;
 use App\SystemVersion;
+use App\User;
 use App\Utils;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -39,23 +40,23 @@ class UpdateController extends Controller
         $osVersion = $request->input("os", "0");
         $appVersion = $request->input("v", "0");
 
-        if ($osVersion == "0") {
-            $activation = AppUserActivation::where('identifier', $data['activation_id'])->first();
-            if ($activation != null) {
-                if (!empty($activation->os_version)) {
-                    $osVersion = $activation->os_version;
-                }
-                //TODO: remove, debug code
-                if ($osVersion == "0") {
-                    if (!empty($activation->config_override)) {
-                        $config = json_decode($activation->config_override);
-                        if (isset($config->UpdateChannel) && $config->UpdateChannel == "Alpha") {
-                            $osVersion = "10";
-                        }
-                    }
-                }
-                //End of debug code
+        $isUniversal = false;
+        $activation = AppUserActivation::where('identifier', $data['activation_id'])->first();
+        if ($activation != null) {
+            if (!empty($activation->os_version)) {
+                $osVersion = $activation->os_version;
             }
+            //TODO: remove, debug code
+            if (!empty($activation->config_override)) {
+                $updateChannel = $activation->getUpdateChannel();
+                if ($updateChannel == "Alpha") {
+                    if ($osVersion == "0") {
+                        $osVersion = "10";
+                    }
+                    $isUniversal = true;
+                }
+            }
+            //End of debug code
         }
 
         if ($platforms->count() > 0) {
@@ -76,18 +77,20 @@ class UpdateController extends Controller
 
         if ($platforms->count() > 0) {
             $os = $platforms->first();
+            $isUniversal = $isUniversal && $os->platform == SystemPlatform::PLATFORM_WIN;
+            $data["is_web_installer"] = $isUniversal;
             $data["os_name"] = $os->os_name;
             $platform_id = $os->id;
-            $versions = Cache::remember('SystemVersion_isactive_' . $platform_id, 60, function() use ($platform_id) {
+            $versions = Cache::remember('SystemVersion_isactive_' . $platform_id, 3600, function() use ($platform_id) {
                 return SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->get();
             });
 
             if ($versions->count() > 0) {
                 $version = $versions->first();
                 $data['app_name'] = $version->app_name;
-                $data['file_name'] = $version->file_name;
-                $data['file_ext'] = $version->file_ext;
-                $data['version_number'] = $version->version_number;
+                $data['file_name'] = $isUniversal ? "CloudVeilWebInstaller" : $version->file_name;
+                $data['file_ext'] = $isUniversal ? ".exe" : $version->file_ext;
+                $data['version_number'] =  $version->version_number;
                 $data['changes'] = array($version->changes);
 
                 $data['channels'] = [
@@ -113,6 +116,7 @@ class UpdateController extends Controller
                 $data['date'] = Carbon::parse($version->release_date)->toRfc7231String();
 
             } else {
+                $data["is_web_installer"] = false;
                 $data['app_name'] = "unavailable";
                 $data['file_name'] = "unavailable";
                 $data['file_ext'] = "unavailable";
@@ -166,6 +170,45 @@ class UpdateController extends Controller
             ->header('Content-Type', 'text/xml');
     }
 
+    public function downloadLatestRelease(Request $request, $platform, $activationId="")
+    {
+        Log::info("Latest Update download from " . $request->ip() . " id: " . $activationId);
+        AppUserActivation::setLastUpdateRequestTime($request->ip(), $activationId);
+        $platforms = Cache::remember('SystemPlatform_' . $platform, 60, function() use ($platform) {
+            return SystemPlatform::where('os_name', '=', $platform)->get();
+        });
+        $os = $platforms->first();
+        $data["os_name"] = $os->os_name;
+        $platformId = $os->id;
+        $versions = Cache::remember('SystemVersion_isactive_' . $platformId, 60, function() use ($platformId) {
+            return SystemVersion::where('platform_id', '=', $platformId)->where('active', '=', 1)->get();
+        });
+
+        $updateChannel = "Stable";
+        $version = $versions->first();
+        if(!empty($activationId)) {
+            $activation = AppUserActivation::where("identifier", $activationId)->first();
+            if($activation) {
+                $updateChannel = $activation->getUpdateChannel();
+            }
+        }
+
+        $versionNumber = $version->stable;
+        switch ($updateChannel) {
+            case "Alpha":
+                $versionNumber = $version->alpha;
+                break;
+            case "Beta":
+                $versionNumber = $version->beta;
+                break;
+        }
+
+        $fileName = $version->file_name . "-" . $versionNumber . "-" . $os->os_name . $version->file_ext;
+
+        $file = public_path() . "/releases/" . $fileName;
+        return response()->download($file);
+    }
+
     public function downloadRelease(Request $request, $activationId, $fileName)
     {
         if ($activationId == "acid") {
@@ -176,6 +219,7 @@ class UpdateController extends Controller
         $file = public_path() . "/releases/" . $fileName;
         return response()->download($file);
     }
+
 
     /**
      * Returns the version with JSON.
