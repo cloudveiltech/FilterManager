@@ -129,7 +129,7 @@ class AppUserActivationCrudController extends CrudController
                     'label' => 'User Name',
                     'type' => 'select2',
                     'name' => 'user_id',
-                    'attribute' => 'name',
+                    'attribute' => 'username_email',
                     'tab' => 'Activation',
                     'wrapper' => ['class' => 'form-group col-md-2'],
                 ],

@@ -285,4 +285,8 @@ class User extends Authenticatable
     public function setDisableBypassAttribute($value) {
         $this->setConfigValue("DisableBypass", $value);
     }
+
+    public function getUsernameEmailAttribute() {
+        return $this->name . " - " . $this->email;
+    }
 }
