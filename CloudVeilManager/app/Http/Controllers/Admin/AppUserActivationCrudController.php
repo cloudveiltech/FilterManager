@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Backpack\CRUD\app\Library\Widget;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Class AppUserActivationCrudController
@@ -129,14 +127,10 @@ class AppUserActivationCrudController extends CrudController
         $this->crud->addFields([
                 [
                     'label' => 'User Name',
-                    'type' => 'select',
+                    'type' => 'select2',
                     'name' => 'user_id',
                     'attribute' => 'name',
                     'tab' => 'Activation',
-                    'attributes' => [
-                        'readonly' => 'readonly',
-                        'disabled' => 'disabled',
-                    ],
                     'wrapper' => ['class' => 'form-group col-md-2'],
                 ],
                 [
@@ -227,6 +221,18 @@ class AppUserActivationCrudController extends CrudController
                                             crud.field("bypass_quantity").disable(field.value == 1);
                                             crud.field("bypass_used").disable(field.value == 1);
                                         }).change();
+
+                                        var initialUserId = crud.field("user_id").value;
+                                        crud.field("user_id").onChange(function(field) {
+                                            if(field.value === initialUserId) {
+                                                return;
+                                            }
+
+                                            if (!confirm("Are you sure you want to change the user of this activation?")) {
+                                                crud.field("user_id").input.value = initialUserId;
+                                            }
+                                            initialUserId = crud.field("user_id").input.value
+                                        });
                                     });
                                 </script>',
                     'tab' => 'Activation',
