@@ -115,6 +115,8 @@ return [
 
     // JS files that are loaded in all pages, using Laravel's asset() helper
     'scripts' => [
+        // Bootstrap 5 JavaScript - required for dropdowns and collapses
+        'https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js',
         // 'js/example.js',
         // 'https://cdn.jsdelivr.net/npm/vue@2.4.4/dist/vue.min.js',
         // 'https://cdn.jsdelivr.net/npm/react@16/umd/react.production.min.js',
