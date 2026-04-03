@@ -170,6 +170,12 @@ class UserCrudController extends CrudController
                     'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
+                    'label' => 'Check-In Days',
+                    'type' => 'number',
+                    'name' => 'check_in_days',
+                    'tab' => 'Information'
+                ],
+                [
                     'label' => 'Password',
                     'type' => 'password',
                     'name' => 'password',
