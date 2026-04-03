@@ -238,6 +238,12 @@ class AppUserActivationCrudController extends CrudController
                     'tab' => 'Activation',
                 ],
                 [
+                    'label' => 'Check-In Days',
+                    'type' => 'number',
+                    'name' => 'check_in_days',
+                    'tab' => 'Activation',
+                ],
+                [
                     'label' => 'Group',
                     'type' => 'select2',
                     'entity' => 'group',

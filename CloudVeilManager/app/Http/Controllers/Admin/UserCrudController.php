@@ -140,6 +140,12 @@ class UserCrudController extends CrudController
                     'tab' => 'Information'
                 ],
                 [
+                    'label' => 'Check-In Days',
+                    'type' => 'number',
+                    'name' => 'check_in_days',
+                    'tab' => 'Information'
+                ],
+                [
                     'label' => 'Password',
                     'type' => 'password',
                     'name' => 'password',

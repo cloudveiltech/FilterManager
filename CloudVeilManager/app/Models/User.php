@@ -244,7 +244,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'check_in_days',
         'isactive', 'group_id', 'activations_allowed',
         'customer_id', 'config_override', 'relaxed_policy_passcode',
         'config', 'enable_relaxed_policy_passcode', 'blocked_sites', 'allowed_sites',
