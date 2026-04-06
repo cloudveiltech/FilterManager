@@ -19,7 +19,7 @@ Vue.component("self-moderation-list", {
                                         </editable-span>\
                                     </div>\
                                     <div class="remove-button-container">\
-                                        <button class="btn btn-danger" @click.prevent="removeUrl(index)">
+                                        <button v-if="canRemove" class="btn btn-danger" @click.prevent="removeUrl(index)">
                                             <span class="glyph glyph-remove"></span>
                                         </button>\
                                     </div>\
@@ -32,6 +32,9 @@ Vue.component("self-moderation-list", {
         addButtonText: {},
         activations: {},
         isurl: {},
+        canRemove: {
+            default: true
+        },
         activationEdit: {
             default: false
         }
@@ -49,6 +52,10 @@ Vue.component("self-moderation-list", {
 
   methods: {
     removeUrl: function (index) {
+      if (!this.canRemove) {
+        return;
+      }
+
       this.value.splice(index, 1);
     },
 
