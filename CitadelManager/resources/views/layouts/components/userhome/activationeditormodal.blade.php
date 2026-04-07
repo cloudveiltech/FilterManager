@@ -74,6 +74,7 @@
                                 v-model="activationEditor.blacklist"
                                 :activation-edit="true"
                                 :can-remove="isBusinessOwner"
+                                :can-edit-existing="isBusinessOwner"
                                 add-button-text="Block Site"></self-moderation-list>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="activationWhitelist">
@@ -81,6 +82,7 @@
                                 v-model="activationEditor.whitelist"
                                 :activation-edit="true"
                                 :can-remove="isBusinessOwner"
+                                :can-edit-existing="isBusinessOwner"
                                 add-button-text="Allow Site"></self-moderation-list>
                         </div>
                     </div>

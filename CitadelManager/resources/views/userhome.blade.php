@@ -204,6 +204,7 @@
                                     isurl="true"
                                     :activations="activations.data"
                                     :can-remove="isBusinessOwner"
+                                    :can-edit-existing="isBusinessOwner"
                                     v-model="selfModeration.blacklist"
                                     add-button-text="Block Site"></self-moderation-list>
                         </div>
@@ -212,6 +213,7 @@
                             <self-moderation-list
                                     :activations="activations.data"
                                     :can-remove="isBusinessOwner"
+                                    :can-edit-existing="isBusinessOwner"
                                     v-model="selfModeration.triggerBlacklist"
                                     add-button-text="Block Text Trigger"></self-moderation-list>
                         </div>
@@ -220,6 +222,7 @@
                             <self-moderation-list
                                     isurl="true"
                                     :activations="activations.data"
+                                    :can-edit-existing="isBusinessOwner"
                                     v-model="selfModeration.whitelist"
                                     add-button-text="Allow Site"></self-moderation-list>
                         </div>
