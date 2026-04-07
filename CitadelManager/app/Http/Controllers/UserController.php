@@ -1320,7 +1320,7 @@ class UserController extends Controller
          * ]
          */
         $userConfig = json_decode($user->config_override);
-        if (json_last_error() != JSON_ERROR_NONE) {
+        if (json_last_error() != JSON_ERROR_NONE || !is_object($userConfig)) {
             $userConfig = new \stdClass();
         }
         $perActivationsList = $this->preparePerUserActivationsArray($user);
@@ -1335,7 +1335,7 @@ class UserController extends Controller
                 $activation = $user->findActivationById($key);
                 if ($activation != null) {
                     $config = json_decode($activation->config_override);
-                    if (json_last_error() != JSON_ERROR_NONE) {
+                    if (json_last_error() != JSON_ERROR_NONE || !is_object($config)) {
                         $config = new \stdClass();
                     }
                     $config->{$confgiKey} = $list;
