@@ -233,6 +233,10 @@
                         <button class="btn btn-secondary" @click="selfModeration.fetch">Cancel</button>
                     </div>
 
+                    <p v-if="!isBusinessOwner">
+                        Please contact <a href="mailto:support@cloudveil.org">support</a> to remove blocked sites and triggers.
+                    </p>
+
                     <p>
                         NOTE: You can modify a specific computer's self-moderation lists by going to the Activations tab
                         and editing the activation there.
