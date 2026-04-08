@@ -203,6 +203,8 @@
                             <self-moderation-list
                                     isurl="true"
                                     :activations="activations.data"
+                                    :can-remove="isBusinessOwner"
+                                    :can-edit-existing="isBusinessOwner"
                                     v-model="selfModeration.blacklist"
                                     add-button-text="Block Site"></self-moderation-list>
                         </div>
@@ -210,6 +212,8 @@
                         <div class="col-md-8 col-sm-8 col-xs-24 self-moderation-container">
                             <self-moderation-list
                                     :activations="activations.data"
+                                    :can-remove="isBusinessOwner"
+                                    :can-edit-existing="isBusinessOwner"
                                     v-model="selfModeration.triggerBlacklist"
                                     add-button-text="Block Text Trigger"></self-moderation-list>
                         </div>
@@ -218,6 +222,7 @@
                             <self-moderation-list
                                     isurl="true"
                                     :activations="activations.data"
+                                    :can-edit-existing="isBusinessOwner"
                                     v-model="selfModeration.whitelist"
                                     add-button-text="Allow Site"></self-moderation-list>
                         </div>
@@ -228,10 +233,10 @@
                         <button class="btn btn-secondary" @click="selfModeration.fetch">Cancel</button>
                     </div>
 
-                    <p>
-                        NOTE: You can modify a specific computer's self-moderation lists by going to the Activations tab
-                        and editing the activation there.
+                    <p v-if="!isBusinessOwner">
+                        Please contact <a href="mailto:support@cloudveil.org">support</a> to remove blocked sites and triggers.
                     </p>
+
                 </div>
 
                 <div role="tabpanel" class="tab-pane" id="relaxed-policy">
