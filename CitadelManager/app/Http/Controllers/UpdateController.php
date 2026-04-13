@@ -35,7 +35,7 @@ class UpdateController extends Controller
             return SystemPlatform::where('os_name', '=', $platform)->get();
         });
 
-        $data = ["platform" => $platform, "activation_id" => $request->input("acid", "acid")];
+        $data = ["platform" => $platform, "activation_id" => $request->input("acid", "acid"), "is_web_installer" => false];
 
         $osVersion = $request->input("os", "0");
         $appVersion = $request->input("v", "0");

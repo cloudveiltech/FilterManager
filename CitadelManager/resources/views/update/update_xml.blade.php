@@ -16,7 +16,7 @@
                     ]]>
                 </description>
                 <pubDate>{{ $date }}</pubDate>
-                @if($is_web_installer)
+                @if(!empty($is_web_installer))
                     <enclosure
                             channel="{{ $channel['release'] }}"
                             url="{{ url('/') }}/update/releases/{{ urlencode($activation_id) }}/{{ $file_name }}{{ $file_ext }}" sparkle:os="{{ $os_name }}"
