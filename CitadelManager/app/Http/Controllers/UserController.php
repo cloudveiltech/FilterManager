@@ -1224,6 +1224,12 @@ class UserController extends Controller
     public function setSelfModerationInfo(Request $request)
     {
         $user = \Auth::user();
+        $isPrivilegedSelfModerationUser = $this->isPrivilegedSelfModerationUser($user);
+        $currentSelfModerationData = [];
+
+        if (!$isPrivilegedSelfModerationUser) {
+            $currentSelfModerationData = $this->getSelfModerationInfo($request);
+        }
 
         if ($user->can(['all', 'manage-whitelisted-sites'])) {
             if ($request->has('whitelist')) {
@@ -1240,12 +1246,18 @@ class UserController extends Controller
         } else {
             $selfModeration = [];
         }
+        if (!$isPrivilegedSelfModerationUser) {
+            $selfModeration = $this->mergeSelfModerationEntries($currentSelfModerationData['blacklist'] ?? [], $selfModeration);
+        }
         $this->saveSelfModerationList($selfModeration, $user, "SelfModeration", FILTER_VALIDATE_DOMAIN);
 
         if ($request->has('triggerBlacklist')) {
             $customTriggerBlacklist = Utils::purgeNulls($request->input('triggerBlacklist'));
         } else {
             $customTriggerBlacklist = [];
+        }
+        if (!$isPrivilegedSelfModerationUser) {
+            $customTriggerBlacklist = $this->mergeSelfModerationEntries($currentSelfModerationData['triggerBlacklist'] ?? [], $customTriggerBlacklist);
         }
         $this->saveSelfModerationList($customTriggerBlacklist, $user, "CustomTriggerBlacklist");
 
@@ -1254,9 +1266,46 @@ class UserController extends Controller
         } else {
             $customBlockedApps = [];
         }
+        if (!$isPrivilegedSelfModerationUser) {
+            $customBlockedApps = $this->mergeSelfModerationEntries($currentSelfModerationData['appBlockList'] ?? [], $customBlockedApps);
+        }
         $this->saveSelfModerationList($customBlockedApps, $user, "CustomBlockedApps");
 
         return '{}';
+    }
+
+    private function isPrivilegedSelfModerationUser($user)
+    {
+        return $user->hasRole('business-owner') || $user->hasRole('admin');
+    }
+
+    private function mergeSelfModerationEntries($existingEntries, $newEntries)
+    {
+        $mergedEntries = [];
+
+        foreach ([$existingEntries, $newEntries] as $entries) {
+            foreach ($entries as $entry) {
+                if (!isset($entry['activation']) || !isset($entry['value'])) {
+                    continue;
+                }
+
+                $activation = trim((string)$entry['activation']);
+                $value = trim((string)$entry['value']);
+                if ($activation === "" || $value === "") {
+                    continue;
+                }
+
+                $key = $activation . "|" . $value;
+                if (!isset($mergedEntries[$key])) {
+                    $mergedEntries[$key] = [
+                        "activation" => $activation,
+                        "value" => $value
+                    ];
+                }
+            }
+        }
+
+        return array_values($mergedEntries);
     }
 
     private function saveSelfModerationList($list, $user, $confgiKey, $filterVarFlag = FILTER_DEFAULT)
@@ -1271,7 +1320,7 @@ class UserController extends Controller
          * ]
          */
         $userConfig = json_decode($user->config_override);
-        if (json_last_error() != JSON_ERROR_NONE) {
+        if (json_last_error() != JSON_ERROR_NONE || !is_object($userConfig)) {
             $userConfig = new \stdClass();
         }
         $perActivationsList = $this->preparePerUserActivationsArray($user);
@@ -1286,7 +1335,7 @@ class UserController extends Controller
                 $activation = $user->findActivationById($key);
                 if ($activation != null) {
                     $config = json_decode($activation->config_override);
-                    if (json_last_error() != JSON_ERROR_NONE) {
+                    if (json_last_error() != JSON_ERROR_NONE || !is_object($config)) {
                         $config = new \stdClass();
                     }
                     $config->{$confgiKey} = $list;

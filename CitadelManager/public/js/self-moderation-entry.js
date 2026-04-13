@@ -9,7 +9,7 @@ Vue.component("self-moderation-list", {
                             <ul class="list-items self-moderation">\
                                 <li class="list-items-row" v-for="(item, index) in value">\
                                     <div class="site-text">\
-                                        <editable-span :isurl="isurl" v-model="value[index]" :activations="activations" placeholder="(click here to edit)">\
+                                        <editable-span :isurl="isurl" :can-edit="canEditExisting || (value[index] && value[index].isNew)" v-model="value[index]" :activations="activations" placeholder="(click here to edit)">\
                                             <select class='form-select width-25-percent' style='display: inline-block;' v-if='!activationEdit' v-model='value[index].activation'>\
                                                 <option :value='globalId'>{{ globalId }}</option>\
                                                 <option v-for='(item, index) in activations' :value='activations[index].identifier'>\
@@ -19,7 +19,7 @@ Vue.component("self-moderation-list", {
                                         </editable-span>\
                                     </div>\
                                     <div class="remove-button-container">\
-                                        <button class="btn btn-danger" @click.prevent="removeUrl(index)">
+                                        <button v-if="canRemove" class="btn btn-danger" @click.prevent="removeUrl(index)">
                                             <span class="glyph glyph-remove"></span>
                                         </button>\
                                     </div>\
@@ -32,6 +32,12 @@ Vue.component("self-moderation-list", {
         addButtonText: {},
         activations: {},
         isurl: {},
+        canRemove: {
+            default: true
+        },
+        canEditExisting: {
+            default: true
+        },
         activationEdit: {
             default: false
         }
@@ -49,6 +55,10 @@ Vue.component("self-moderation-list", {
 
   methods: {
     removeUrl: function (index) {
+      if (!this.canRemove) {
+        return;
+      }
+
       this.value.splice(index, 1);
     },
 
@@ -56,6 +66,7 @@ Vue.component("self-moderation-list", {
       this.value.push({
         value: "",
         activation: ACTIVATIONS_ALL_ID,
+        isNew: true,
       });
     },
   },
@@ -70,7 +81,7 @@ Vue.component("editable-span", {
 		<div class='alert-danger' v-if='error.length > 0'>{{ error }}</div>
 	</div>`,
 
-  props: ["value", "placeholder", "activations", "isurl"],
+  props: ["value", "placeholder", "activations", "isurl", "canEdit"],
 
   data: function () {
     return {
@@ -92,6 +103,10 @@ Vue.component("editable-span", {
 
   methods: {
     edit: function () {
+      if (!this.canEdit) {
+        return;
+      }
+
       this.isEditing = true;
 
       this.$nextTick(function () {
