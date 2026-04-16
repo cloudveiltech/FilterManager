@@ -72,6 +72,11 @@ class CheckAndUpdateDeviceId
                 if($activation->banned == 1) {
                     return response("Device is blocked by server", 406);
                 }
+
+                $user = \Auth::user();
+                if($activation->user->id != $user->id) {
+                    \Auth::login($activation->user);
+                }
             }
         }
         return $next($request);

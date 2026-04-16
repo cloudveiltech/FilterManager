@@ -1011,6 +1011,9 @@ class UserController extends Controller
                     $activation->restore();
                 }
             }
+            if($activation && $activation->user->id != $user->id) {
+                \Auth::login($activation->user);
+            }
             return $activation;
         }
     }
