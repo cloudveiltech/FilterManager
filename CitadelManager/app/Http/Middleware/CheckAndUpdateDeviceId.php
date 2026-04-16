@@ -75,7 +75,7 @@ class CheckAndUpdateDeviceId
 
                 $user = \Auth::user();
                 if($user && $activation->user->id != $user->id) {
-                    return response("Refresh auth token", 401);
+                    \Auth::setUser($activation->user);
                 }
             }
         }
