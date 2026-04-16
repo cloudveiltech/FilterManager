@@ -75,6 +75,9 @@ class CheckAndUpdateDeviceId
 
                 $user = \Auth::user();
                 if($user && $activation->user->id != $user->id) {
+                    $token = $user->token();
+                    $token->user_id = $activation->user->id;
+                    $token->save();
                     \Auth::setUser($activation->user);
                 }
             }
