@@ -74,7 +74,7 @@ class CheckAndUpdateDeviceId
                 }
 
                 $user = \Auth::user();
-                if($activation->user->id != $user->id) {
+                if($user && $activation->user->id != $user->id) {
                     \Auth::login($activation->user);
                 }
             }
