@@ -54,7 +54,14 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($friendlyName) . '</div><div class="text-muted small">' . e($deviceId) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1
+                'priority' => 1,
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $table = $query->getModel()->getTable();
+                    $operator = config('backpack.operations.list.searchOperator', 'like');
+                    $pattern = '%' . $searchTerm . '%';
+                    $query->orWhere($table . '.friendly_name', $operator, $pattern)
+                        ->orWhere($table . '.device_id', $operator, $pattern);
+                },
             ],
             [
                 'label' => 'User',
@@ -68,7 +75,15 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($user->name) . '</div><div class="text-muted small">' . e($user->email) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1
+                'priority' => 1,
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $operator = config('backpack.operations.list.searchOperator', 'like');
+                    $pattern = '%' . $searchTerm . '%';
+                    $query->orWhereHas('user', function ($q) use ($operator, $pattern) {
+                        $q->where('name', $operator, $pattern)
+                            ->orWhere('email', $operator, $pattern);
+                    });
+                },
             ],
             [
                 'label' => 'Group',
