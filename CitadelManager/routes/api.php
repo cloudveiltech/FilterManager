@@ -295,6 +295,7 @@ Route::middleware(['check.device_id'])->post('/v2/user/retrievetoken', 'UserCont
 Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once', 'role:admin']], function () {
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
+    Route::post('/filterlists/trigger-update', 'FilterListController@triggerUpdateFromExport');
 
     /* Manage Users */
     Route::post('/users/{id}', 'UserController@update'); //Should be deprecated.

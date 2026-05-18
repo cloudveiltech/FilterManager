@@ -50,6 +50,26 @@ class FilterListController extends Controller {
     }
 
     /**
+     * Trigger an import from a file on the S3-compatible export disk.
+     */
+    public function triggerUpdateFromExport(Request $request) {
+        $this->validate($request, [
+            'category' => 'required|string|min:1|max:64',
+        ]);
+
+        $category = preg_replace('/[^0-9a-zA-Z\-_\.]+/', '', $request->input('category'));
+        $filename = 'export_' . $category . '.zip';
+
+        if (!Storage::disk('export')->exists($filename)) {
+            return response()->json(['error' => 'File not found on export disk: ' . $filename], 404);
+        }
+
+        ProcessTextFilterArchiveUpload::dispatch('default', $filename, true, $category, 'export');
+
+        return response()->json(['message' => 'Import has been triggered for category: ' . $category]);
+    }
+
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
