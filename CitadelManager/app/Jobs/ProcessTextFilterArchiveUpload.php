@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Storage;
 use Log;
 
 class ProcessTextFilterArchiveUpload implements ShouldQueue
@@ -18,6 +19,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
     public $file;
     public $shouldOverwrite;
     public $category;
+    public $disk;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -31,12 +33,13 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(string $listNamespace, string $file, bool $shouldOverwrite, string $category = '')
+    public function __construct(string $listNamespace, string $file, bool $shouldOverwrite, string $category = '', ?string $disk = null)
     {
         $this->listNamespace = $listNamespace;
         $this->file = $file;
         $this->shouldOverwrite = $shouldOverwrite;
         $this->category = $category;
+        $this->disk = $disk;
     }
 
     /**
@@ -66,8 +69,15 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             Log::error($e);
         }
 
+        $file = $this->file;
+        if ($this->disk) {
+            $tempFile = tempnam(sys_get_temp_dir(), 'export_');
+            file_put_contents($tempFile, Storage::disk($this->disk)->get($this->file));
+            $file = $tempFile;
+        }
+
         $flc = new \App\Http\Controllers\FilterListController;
-        $flc->processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
+        $flc->processTextFilterArchive($this->listNamespace, $file, $this->shouldOverwrite);
 
         Log::info('Finished processTextFilterArchive Job.');
 
