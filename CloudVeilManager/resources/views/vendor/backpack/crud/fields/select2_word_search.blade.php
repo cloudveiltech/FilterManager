@@ -60,62 +60,22 @@
         $crud->markFieldTypeAsLoaded($field);
     @endphp
 
+    {{-- FIELD CSS - will be loaded in the after_styles section --}}
+    @push('crud_fields_styles')
+        {{-- include select2 css --}}
+        @basset('https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css')
+        @basset('https://cdn.jsdelivr.net/npm/select2-bootstrap-theme@0.1.0-beta.10/dist/select2-bootstrap.min.css')
+    @endpush
+
     {{-- FIELD JS - will be loaded in the after_scripts section --}}
     @push('crud_fields_scripts')
+        {{-- include select2 js --}}
+        @basset('https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.full.min.js')
+        @if (app()->getLocale() !== 'en')
+            @basset('https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/i18n/' . str_replace('_', '-', app()->getLocale()) . '.js')
+        @endif
         @bassetBlock('backpack/pro/fields/select2-word-search-field.js')
         <script>
-            function bpLoadSelect2WordSearchFallbackAssets() {
-                if ($.fn.select2) {
-                    return Promise.resolve();
-                }
-
-                function loadSelect2WordSearchScript(url) {
-                    return new Promise(function(resolve, reject) {
-                        var existingScript = document.querySelector('script[src="' + url + '"]');
-
-                        if (existingScript) {
-                            existingScript.addEventListener('load', resolve);
-                            existingScript.addEventListener('error', reject);
-                            return;
-                        }
-
-                        var script = document.createElement('script');
-                        script.src = url;
-                        script.onload = resolve;
-                        script.onerror = reject;
-                        document.head.appendChild(script);
-                    });
-                }
-
-                window.bpSelect2WordSearchFallbackPromise = window.bpSelect2WordSearchFallbackPromise || new Promise(function(resolve, reject) {
-                    var assetUrls = [
-                        'https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css',
-                        'https://cdn.jsdelivr.net/npm/select2-bootstrap-theme@0.1.0-beta.10/dist/select2-bootstrap.min.css'
-                    ];
-
-                    assetUrls.forEach(function(url) {
-                        if (!document.querySelector('link[href="' + url + '"]')) {
-                            var link = document.createElement('link');
-                            link.rel = 'stylesheet';
-                            link.href = url;
-                            document.head.appendChild(link);
-                        }
-                    });
-
-                    var scriptUrl = 'https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.full.min.js';
-                    loadSelect2WordSearchScript(scriptUrl)
-                        @if (app()->getLocale() !== 'en')
-                            .then(function() {
-                                return loadSelect2WordSearchScript('https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/i18n/{{ str_replace('_', '-', app()->getLocale()) }}.js');
-                            })
-                        @endif
-                        .then(resolve)
-                        .catch(reject);
-                });
-
-                return window.bpSelect2WordSearchFallbackPromise;
-            }
-
             function bpSelect2AllWordsAnyOrderMatcher(params, data) {
                 if ($.trim(params.term) === '') {
                     return data;
@@ -164,11 +124,7 @@
                 // element will be a jQuery wrapped DOM node
                 if (!element.hasClass("select2-hidden-accessible"))
                 {
-                    bpLoadSelect2WordSearchFallbackAssets().then(function() {
-                        bpInitializeSelect2WordSearchElement(element);
-                    }).catch(function() {
-                        console.error('Could not load Select2 for the select2_word_search Backpack field.');
-                    });
+                    bpInitializeSelect2WordSearchElement(element);
                 }
             }
         </script>
