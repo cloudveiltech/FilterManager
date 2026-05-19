@@ -304,7 +304,7 @@ class AppUserActivationCrudController extends CrudController
                 ],
                 [
                     'label' => 'Group',
-                    'type' => 'select2',
+                    'type' => 'select2_word_search',
                     'entity' => 'group',
                     'model' => 'App\Models\Group',
                     'name' => 'group',
