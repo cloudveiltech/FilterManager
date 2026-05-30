@@ -55,7 +55,8 @@ class SendDeactivationRequestNotification
             '',
             $contents->render(),
             2,
-            10)
+            10,
+            $event->deactivationRequest->identifier)
         );
 
 
