@@ -8,6 +8,7 @@ package-lock.json
 
 share/
 CitadelManager/resources/rules
+notes
 
 
 # User-specific files
@@ -318,3 +319,4 @@ dist/
 nbdist/
 /CloudVeilManager/storage/*
 /CloudVeilManager/docker/*
+

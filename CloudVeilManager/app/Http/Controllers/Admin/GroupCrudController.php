@@ -64,6 +64,9 @@ class GroupCrudController extends CrudController
                 'label' => 'Name',
                 'type' => 'text',
                 'name' => 'name',
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $this->applyAllWordsAnyOrderSearch($query, 'groups.name', $searchTerm);
+                },
             ],
             [
                 'label' => 'Primary DNS',
@@ -374,6 +377,21 @@ class GroupCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+    private function applyAllWordsAnyOrderSearch($query, string $column, string $searchTerm): void
+    {
+        $words = preg_split('/\s+/', trim($searchTerm), -1, PREG_SPLIT_NO_EMPTY);
+
+        if (empty($words)) {
+            return;
+        }
+
+        $query->orWhere(function ($query) use ($column, $words) {
+            foreach ($words as $word) {
+                $query->where($column, 'LIKE', '%' . $word . '%');
+            }
+        });
     }
 
     public function store()
