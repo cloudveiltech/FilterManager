@@ -237,6 +237,19 @@ class GroupCrudController extends CrudController
                 'name' => 'notes',
                 'tab' => 'Settings',
             ],
+            // Rule Selection table (the visible control). Renders one row per FilterList with a
+            // single status control (Blacklist / Whitelist / Bypass / Ignored) and drives the three
+            // hidden relationship selects below, which the existing patchRules()/pivot sync consume.
+            [
+                'name' => 'rule_selection_table',
+                'type' => 'rule_selection_table',
+                'tab' => 'Rule Selection',
+                'filter_lists' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
+                    ->get(['id', 'namespace', 'category', 'type']),
+            ],
+            // The three status relationships stay registered so Backpack's relationship->pivot sync
+            // and patchRules() keep writing group_filter_assignments unchanged. They are hidden;
+            // the table above is their UI and drives their selected options via JS.
             [
                 'label' => 'Whitelist Rules',
                 'type' => 'relationship',
@@ -246,6 +259,7 @@ class GroupCrudController extends CrudController
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
                 'tab' => 'Rule Selection',
+                'wrapper' => ['class' => 'd-none'],
                 'options' => function ($query) {
                     return $query->orderBy('category', 'ASC')->get();
                 }
@@ -259,6 +273,7 @@ class GroupCrudController extends CrudController
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
                 'tab' => 'Rule Selection',
+                'wrapper' => ['class' => 'd-none'],
                 'options' => function ($query) {
                     return $query->orderBy('category', 'ASC')->get();
                 }
@@ -272,61 +287,10 @@ class GroupCrudController extends CrudController
                 'model' => 'App\Models\FilterList',
                 'pivot' => true,
                 'tab' => 'Rule Selection',
+                'wrapper' => ['class' => 'd-none'],
                 'options' => function ($query) {
                     return $query->orderBy('category', 'ASC')->get();
                 },
-            ],
-            [
-                'type' => 'custom_html',
-                'name' => 'my_custom_html',
-                'value' => '<script>
-                            function hideConnectedOptions(elName, otherName, label) {
-                                $("select[name=\'" + otherName + "\'] option").each(function(i, el) {
-                                    let val = $(el).val();
-                                    let selected = $(el).is(":selected");
-                                    $("select[name=\'" + elName + "\']").find("option[value=\'" + val + "\']").each(function(i, optionEl) {
-                                        let text = $(optionEl).text();
-                                        if(selected) {
-                                            if(text.indexOf(" — #") === -1) {
-                                                text = text + " — #" + label;
-                                            }
-                                        } else {
-                                            if(text.indexOf(" — #" + label) !== -1) {
-                                                text = text.replace(" — #" + label, "")
-                                            }
-                                        }
-                                        $(optionEl).text(text).prop("disabled", text.indexOf(" — #") !== -1);
-                                    });
-                                    });
-
-                                    let recreateEl = $("select[name=\'" + elName + "\']");
-                                    if (recreateEl.hasClass("select2-hidden-accessible")) {
-                                        recreateEl.select2("destroy");
-                                        bpFieldInitRelationshipSelectElement(recreateEl);
-                                    }
-                                }
-                                document.addEventListener("DOMContentLoaded", function() {
-                                    crud.field("assignedWhitelistFilters").onChange(function(field) {
-                                        debounce(function() {
-                                                hideConnectedOptions("assignedBypassFilters[]", "assignedWhitelistFilters[]", "whitelist");
-                                                hideConnectedOptions("assignedBlacklistFilters[]", "assignedWhitelistFilters[]", "whitelist");
-                                        }, 100)();
-                                    }).change();
-                                    crud.field("assignedBlacklistFilters").onChange(function(field) {
-                                        debounce(function() {
-                                            hideConnectedOptions("assignedWhitelistFilters[]", "assignedBlacklistFilters[]", "blacklist");
-                                            hideConnectedOptions("assignedBypassFilters[]", "assignedBlacklistFilters[]", "blacklist");
-                                        }, 100)();
-                                    }).change();
-                                    crud.field("assignedBypassFilters").onChange(function(field) {
-                                        debounce(function() {
-                                            hideConnectedOptions("assignedWhitelistFilters[]", "assignedBypassFilters[]", "bypasslist");
-                                            hideConnectedOptions("assignedBlacklistFilters[]", "assignedBypassFilters[]", "bypasslist");
-                                        }, 100)();
-                                    }).change();
-                                });
-                                </script>',
-                'tab' => 'Rule Selection',
             ],
             [
                 'label' => 'Application Groups Type',
