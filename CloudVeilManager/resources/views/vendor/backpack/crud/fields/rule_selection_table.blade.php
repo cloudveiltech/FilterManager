@@ -55,14 +55,11 @@
                     @endphp
                     <tr data-list-id="{{ $list->id }}" data-status="ignored">
                         <td>{{ $list->category }}</td>
-                        <td>
-                            <span class="badge {{ $isTrigger ? 'bg-red' : 'bg-green' }}">
-                                {{ $isTrigger ? 'Trigger' : 'Filter' }}
-                            </span>
-                        </td>
-                        <td>
+                        <td>{{ $isTrigger ? 'Trigger' : 'Filter' }}</td>
+                        {{-- data-order drives the (dynamic) sort of the status column; JS keeps it in sync --}}
+                        <td class="rule-status-cell" data-order="9">
                             <select class="form-select form-select-sm rule-status-select" data-list-id="{{ $list->id }}">
-                                <option value="ignored">Ignored</option>
+                                <option value="ignored"></option>
                                 <option value="blacklist">Blacklist</option>
                                 <option value="whitelist">Whitelist</option>
                                 <option value="bypass">Bypass</option>
@@ -83,6 +80,18 @@
 
 @push('crud_fields_styles')
     @basset('https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css')
+    <style>
+        /* Borderless, transparent status control — colored text only, keyed off the row's status
+           (tr[data-status], kept in sync by JS). Tabler's .form-select rules tie on specificity and
+           load after ours, so force with !important. */
+        select.rule-status-select { border: 0 !important; box-shadow: none !important; background-color: transparent !important; outline: none !important; }
+
+        table.rule-selection-datatable tbody td:first-child { font-weight: 600; }
+
+        tr[data-status="blacklist"] .rule-status-select { color: #d63939; font-weight: 600; }
+        tr[data-status="whitelist"] .rule-status-select { color: #1f9d57; font-weight: 600; }
+        tr[data-status="bypass"]    .rule-status-select { color: #d9a406; font-weight: 600; }
+    </style>
 @endpush
 
 @push('crud_fields_scripts')
@@ -147,14 +156,24 @@
                     });
                 }
 
+                // Sort rank for the status column (blank/ignored sorts last).
+                var STATUS_RANK = { blacklist: 0, whitelist: 1, bypass: 2, ignored: 9 };
+
+                // Sync a row's visible state (row data-status, the control's value + color class,
+                // and the status cell's data-order used for sorting). DOM-only; safe pre-DataTables.
+                function applyRowVisual($tr, status) {
+                    $tr.attr('data-status', status); // drives the color CSS
+                    $tr.find('.rule-status-select').val(status);
+                    var rank = STATUS_RANK[status];
+                    $tr.find('.rule-status-cell').attr('data-order', rank == null ? 9 : rank);
+                }
+
                 // Initialize each row's control + data-status from the hidden selects.
                 var initial = readInitialStatuses();
                 $table.find('tbody tr').each(function () {
                     var $tr = $(this);
                     var listId = String($tr.data('list-id'));
-                    var status = initial[listId] || 'ignored';
-                    $tr.attr('data-status', status);
-                    $tr.find('.rule-status-select').val(status);
+                    applyRowVisual($tr, initial[listId] || 'ignored');
                 });
 
                 // DataTables: search Category column only; keep pagination.
@@ -166,8 +185,8 @@
                     ordering: true,
                     order: [[0, 'asc']],
                     columnDefs: [
+                        // Type + Status columns aren't full-text searchable; Status sorts by data-order.
                         { targets: [1, 2], searchable: false },
-                        { targets: [2], orderable: false },
                     ],
                     // no default search box (we use our own); 'l' = length menu, 'i' = info, 'p' = pagination
                     dom: 'rltip',
@@ -195,16 +214,17 @@
                     dt.draw();
                 });
 
-                // Row status change -> update hidden selects, row state, and re-apply the filter.
+                // Row status change -> update hidden selects, row visuals, status-sort key, and
+                // re-apply search/filter/sort (draw(false) preserves the current page length).
                 $table.on('change', '.rule-status-select', function () {
                     var $select = $(this);
+                    var $tr = $select.closest('tr');
                     var listId = $select.data('list-id');
                     var status = $select.val();
-                    $select.closest('tr').attr('data-status', status);
+                    applyRowVisual($tr, status);
                     applyStatus(listId, status);
-                    if (activeStatusFilter) {
-                        dt.draw();
-                    }
+                    dt.cell($tr.find('.rule-status-cell')[0]).invalidate();
+                    dt.draw(false);
                 });
             }
 
