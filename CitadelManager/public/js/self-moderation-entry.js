@@ -10,7 +10,7 @@ Vue.component("self-moderation-list", {
                                 <li class="list-items-row" v-for="(item, index) in value">\
                                     <div class="site-text">\
                                         <editable-span :isurl="isurl" :can-edit="canEditExisting || (value[index] && value[index].isNew)" v-model="value[index]" :activations="activations" placeholder="(click here to edit)">\
-                                            <select class='form-select width-25-percent' style='display: inline-block;' v-if='!activationEdit' v-model='value[index].activation'>\
+                                            <select class='form-select width-25-percent' style='display: inline-block;' v-if='!activationEdit' v-model='value[index].activation' :disabled='!(canEditExisting || (value[index] && value[index].isNew))'>\
                                                 <option :value='globalId'>{{ globalId }}</option>\
                                                 <option v-for='(item, index) in activations' :value='activations[index].identifier'>\
                                                 {{ activations[index].device_id }}\
