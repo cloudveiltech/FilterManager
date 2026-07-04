@@ -1,28 +1,39 @@
 {{-- Rule selection table field --}}
 {{--
-    Renders one row per FilterList with a single status control
-    (Blacklist / Whitelist / Bypass / Ignored). The control drives the three hidden
-    `relationship` select2 fields (assignedBlacklistFilters / assignedWhitelistFilters /
-    assignedBypassFilters) rendered elsewhere on this tab, which the existing
-    GroupCrudController::patchRules() + Backpack pivot sync consume unchanged.
+    Self-contained field. Renders one row per FilterList with a single status control
+    (Blacklist / Whitelist / Bypass / blank) whose <select> submits directly as
+    rule_status[<filter_list_id>]. GroupCrudController::store()/update() read that map and
+    sync() the single Group::assignedFilters() relation into group_filter_assignments — no hidden
+    relationship fields, no patchRules().
 
-    Search filters the Category column only. A single-select status dropdown filters rows
-    by their current status. Persistence happens only on the group form Save.
+    Search filters the Category column only. A single-select status dropdown filters rows by their
+    current status. The status column sorts by status. Persistence happens only on group form Save.
 --}}
 @php
     $filterLists = $field['filter_lists'] ?? collect();
     $tableId = 'rule_selection_table_' . \Illuminate\Support\Str::random(6);
+
+    // Sort rank for the status column (blank/ignored sorts last).
+    $rankMap = ['blacklist' => 0, 'whitelist' => 1, 'bypass' => 2, 'ignored' => 9];
+
+    // Prefill: old() input wins (validation error re-render), else the group's saved assignments.
+    $oldStatuses = old('rule_status');
+    $currentStatuses = [];
+    if (!$oldStatuses && isset($entry) && $entry) {
+        foreach ($entry->assignedFilters as $assigned) {
+            $p = $assigned->pivot;
+            $currentStatuses[$assigned->id] = $p->as_blacklist ? 'blacklist'
+                : ($p->as_whitelist ? 'whitelist'
+                : ($p->as_bypass ? 'bypass' : 'ignored'));
+        }
+    }
 @endphp
 
 @include('crud::fields.inc.wrapper_start')
 
     <label>Rule Selection</label>
 
-    <div class="rule-selection-field" data-init="0"
-         data-table="#{{ $tableId }}"
-         data-blacklist-select="assignedBlacklistFilters[]"
-         data-whitelist-select="assignedWhitelistFilters[]"
-         data-bypass-select="assignedBypassFilters[]">
+    <div class="rule-selection-field" data-init="0" data-table="#{{ $tableId }}">
 
         <div class="row mb-2">
             <div class="col-md-4 mb-2">
@@ -52,17 +63,20 @@
                 @foreach ($filterLists as $list)
                     @php
                         $isTrigger = $list->type === 'Triggers';
+                        $status = $oldStatuses[$list->id] ?? $currentStatuses[$list->id] ?? 'ignored';
+                        $rank = $rankMap[$status] ?? 9;
                     @endphp
-                    <tr data-list-id="{{ $list->id }}" data-status="ignored">
+                    <tr data-list-id="{{ $list->id }}" data-status="{{ $status }}">
                         <td>{{ $list->category }}</td>
                         <td>{{ $isTrigger ? 'Trigger' : 'Filter' }}</td>
                         {{-- data-order drives the (dynamic) sort of the status column; JS keeps it in sync --}}
-                        <td class="rule-status-cell" data-order="9">
-                            <select class="form-select form-select-sm rule-status-select" data-list-id="{{ $list->id }}">
-                                <option value="ignored"></option>
-                                <option value="blacklist">Blacklist</option>
-                                <option value="whitelist">Whitelist</option>
-                                <option value="bypass">Bypass</option>
+                        <td class="rule-status-cell" data-order="{{ $rank }}">
+                            <select class="form-select form-select-sm rule-status-select"
+                                    name="rule_status[{{ $list->id }}]">
+                                <option value="ignored" @selected($status === 'ignored')></option>
+                                <option value="blacklist" @selected($status === 'blacklist')>Blacklist</option>
+                                <option value="whitelist" @selected($status === 'whitelist')>Whitelist</option>
+                                <option value="bypass" @selected($status === 'bypass')>Bypass</option>
                             </select>
                         </td>
                     </tr>
@@ -109,74 +123,12 @@
 
                 var $ = window.jQuery;
                 var $root = $(root);
-                var tableSelector = root.getAttribute('data-table');
-                var $table = $(tableSelector);
-
-                // The three hidden relationship <select multiple> that actually get submitted.
-                var statusSelects = {
-                    blacklist: document.querySelector('select[name="' + root.getAttribute('data-blacklist-select') + '"]'),
-                    whitelist: document.querySelector('select[name="' + root.getAttribute('data-whitelist-select') + '"]'),
-                    bypass: document.querySelector('select[name="' + root.getAttribute('data-bypass-select') + '"]'),
-                };
-
-                // Read the current selection out of the hidden selects (honors old() on validation
-                // errors and prefilled values on edit). Returns { listId: status }.
-                function readInitialStatuses() {
-                    var map = {};
-                    Object.keys(statusSelects).forEach(function (status) {
-                        var sel = statusSelects[status];
-                        if (!sel) return;
-                        Array.prototype.forEach.call(sel.options, function (opt) {
-                            if (opt.selected) {
-                                map[String(opt.value)] = status;
-                            }
-                        });
-                    });
-                    return map;
-                }
-
-                // Drive a hidden select2 relationship select so listId is selected there iff
-                // `shouldSelect`, then notify select2/Backpack via change.
-                function setHiddenSelectValue(status, listId, shouldSelect) {
-                    var sel = statusSelects[status];
-                    if (!sel) return;
-                    var id = String(listId);
-                    var current = $(sel).val() || [];
-                    current = current.map(String).filter(function (v) { return v !== id; });
-                    if (shouldSelect) {
-                        current.push(id);
-                    }
-                    $(sel).val(current).trigger('change');
-                }
-
-                // Apply a status to one list across all three hidden selects (mutually exclusive).
-                function applyStatus(listId, status) {
-                    ['blacklist', 'whitelist', 'bypass'].forEach(function (s) {
-                        setHiddenSelectValue(s, listId, s === status);
-                    });
-                }
+                var $table = $(root.getAttribute('data-table'));
 
                 // Sort rank for the status column (blank/ignored sorts last).
                 var STATUS_RANK = { blacklist: 0, whitelist: 1, bypass: 2, ignored: 9 };
 
-                // Sync a row's visible state (row data-status, the control's value + color class,
-                // and the status cell's data-order used for sorting). DOM-only; safe pre-DataTables.
-                function applyRowVisual($tr, status) {
-                    $tr.attr('data-status', status); // drives the color CSS
-                    $tr.find('.rule-status-select').val(status);
-                    var rank = STATUS_RANK[status];
-                    $tr.find('.rule-status-cell').attr('data-order', rank == null ? 9 : rank);
-                }
-
-                // Initialize each row's control + data-status from the hidden selects.
-                var initial = readInitialStatuses();
-                $table.find('tbody tr').each(function () {
-                    var $tr = $(this);
-                    var listId = String($tr.data('list-id'));
-                    applyRowVisual($tr, initial[listId] || 'ignored');
-                });
-
-                // DataTables: search Category column only; keep pagination.
+                // DataTables: search Category column only; status column sorts by data-order.
                 var dt = $table.DataTable({
                     paging: true,
                     pageLength: 10,
@@ -214,15 +166,15 @@
                     dt.draw();
                 });
 
-                // Row status change -> update hidden selects, row visuals, status-sort key, and
-                // re-apply search/filter/sort (draw(false) preserves the current page length).
+                // Row status change -> the <select> is the submitted input, so we only keep the row's
+                // data-status (drives color + filter) and the status-sort key in sync, then redraw.
                 $table.on('change', '.rule-status-select', function () {
                     var $select = $(this);
                     var $tr = $select.closest('tr');
-                    var listId = $select.data('list-id');
                     var status = $select.val();
-                    applyRowVisual($tr, status);
-                    applyStatus(listId, status);
+                    var rank = STATUS_RANK[status];
+                    $tr.attr('data-status', status);
+                    $tr.find('.rule-status-cell').attr('data-order', rank == null ? 9 : rank);
                     dt.cell($tr.find('.rule-status-cell')[0]).invalidate();
                     dt.draw(false);
                 });

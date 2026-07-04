@@ -237,60 +237,16 @@ class GroupCrudController extends CrudController
                 'name' => 'notes',
                 'tab' => 'Settings',
             ],
-            // Rule Selection table (the visible control). Renders one row per FilterList with a
-            // single status control (Blacklist / Whitelist / Bypass / Ignored) and drives the three
-            // hidden relationship selects below, which the existing patchRules()/pivot sync consume.
+            // Rule Selection table — a self-contained field. Renders one row per FilterList with a
+            // single status control (Blacklist / Whitelist / Bypass / blank) whose <select> submits
+            // as rule_status[<filter_list_id>]. store()/update() read that and sync() the single
+            // Group::assignedFilters() relation into group_filter_assignments.
             [
                 'name' => 'rule_selection_table',
                 'type' => 'rule_selection_table',
                 'tab' => 'Rule Selection',
                 'filter_lists' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
                     ->get(['id', 'namespace', 'category', 'type']),
-            ],
-            // The three status relationships stay registered so Backpack's relationship->pivot sync
-            // and patchRules() keep writing group_filter_assignments unchanged. They are hidden;
-            // the table above is their UI and drives their selected options via JS.
-            [
-                'label' => 'Whitelist Rules',
-                'type' => 'relationship',
-                'name' => 'assignedWhitelistFilters',
-                'entity' => 'assignedWhitelistFilters',
-                'attribute' => 'label',
-                'model' => 'App\Models\FilterList',
-                'pivot' => true,
-                'tab' => 'Rule Selection',
-                'wrapper' => ['class' => 'd-none'],
-                'options' => function ($query) {
-                    return $query->orderBy('category', 'ASC')->get();
-                }
-            ],
-            [
-                'label' => 'Blacklist Rules',
-                'type' => 'relationship',
-                'name' => 'assignedBlacklistFilters',
-                'entity' => 'assignedBlacklistFilters',
-                'attribute' => 'label',
-                'model' => 'App\Models\FilterList',
-                'pivot' => true,
-                'tab' => 'Rule Selection',
-                'wrapper' => ['class' => 'd-none'],
-                'options' => function ($query) {
-                    return $query->orderBy('category', 'ASC')->get();
-                }
-            ],
-            [
-                'label' => 'Bypass Rules',
-                'type' => 'relationship',
-                'name' => 'assignedBypassFilters',
-                'entity' => 'assignedBypassFilters',
-                'attribute' => 'label',
-                'model' => 'App\Models\FilterList',
-                'pivot' => true,
-                'tab' => 'Rule Selection',
-                'wrapper' => ['class' => 'd-none'],
-                'options' => function ($query) {
-                    return $query->orderBy('category', 'ASC')->get();
-                },
             ],
             [
                 'label' => 'Application Groups Type',
@@ -363,10 +319,12 @@ class GroupCrudController extends CrudController
         if(!$this->validate(CRUD::getRequest(), $this->rules)) {
             return $this->traitStore();
         }
-        $this->patchRules();
+        // Capture the rule-selection table's input before Backpack strips unregistered inputs.
+        $ruleStatuses = (array) CRUD::getRequest()->input('rule_status', []);
         $result = $this->traitStore();
         $model = $this->data["entry"] ?? null;
         if ($model) {
+            $this->syncRuleAssignments($model, $ruleStatuses);
             $model->rebuildGroupData();
         }
         return $result;
@@ -377,40 +335,35 @@ class GroupCrudController extends CrudController
         if(!$this->validate(CRUD::getRequest(), $this->rules)) {
             return $this->traitUpdate();
         }
-        $this->patchRules();
+        $ruleStatuses = (array) CRUD::getRequest()->input('rule_status', []);
         $result = $this->traitUpdate();
         $model = $this->data["entry"] ?? null;
         if ($model) {
+            $this->syncRuleAssignments($model, $ruleStatuses);
             $model->rebuildGroupData();
         }
         return $result;
     }
 
-    private function patchRules()
+    /**
+     * Persist the rule-selection table into group_filter_assignments via a single sync().
+     * $statuses maps filter_list_id => 'blacklist'|'whitelist'|'bypass'|'ignored'. Anything not one
+     * of the three active statuses is omitted, so sync() removes any existing assignment row for it.
+     */
+    private function syncRuleAssignments(Group $group, array $statuses): void
     {
-        $this->patchRule("assignedBlacklistFilters", 1, 0, 0);
-        $this->patchRule("assignedWhitelistFilters", 0, 1, 0);
-        $this->patchRule("assignedBypassFilters", 0, 0, 1);
-    }
-
-    private function patchRule($key, $asBlacklist, $asWhitelist, $asBypass)
-    {
-        $request = CRUD::getRequest();
-        $listFilters = $request->input($key);
-        if (!empty($listFilters)) {
-            $newData = [];
-            foreach ($listFilters as $listFilterId) {
-                $newData[] = [
-                    $key => $listFilterId,
-                    "as_blacklist" => $asBlacklist,
-                    "as_whitelist" => $asWhitelist,
-                    "as_bypass" => $asBypass
-                ];
+        $sync = [];
+        foreach ($statuses as $filterListId => $status) {
+            if (!in_array($status, ['blacklist', 'whitelist', 'bypass'], true)) {
+                continue;
             }
-
-            $request->request->set($key, $newData);
-            CRUD::setRequest($request);
+            $sync[(int) $filterListId] = [
+                'as_blacklist' => $status === 'blacklist' ? 1 : 0,
+                'as_whitelist' => $status === 'whitelist' ? 1 : 0,
+                'as_bypass'    => $status === 'bypass' ? 1 : 0,
+            ];
         }
+        $group->assignedFilters()->sync($sync);
     }
 
     public function destroy($id)
