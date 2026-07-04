@@ -238,9 +238,9 @@ class GroupCrudController extends CrudController
                 'tab' => 'Settings',
             ],
             // Rule Selection table — a self-contained field. Renders one row per FilterList with a
-            // single status control (Blacklist / Whitelist / Bypass / blank) whose <select> submits
-            // as rule_status[<filter_list_id>]. store()/update() read that and sync() the single
-            // Group::assignedFilters() relation into group_filter_assignments.
+            // single status control (Blacklist / Whitelist / Bypass / blank). The table serializes all
+            // non-ignored rows into one hidden field (rule_status_json); store()/update() json_decode
+            // it and sync() the single Group::assignedFilters() relation into group_filter_assignments.
             [
                 'name' => 'rule_selection_table',
                 'type' => 'rule_selection_table',
@@ -320,7 +320,7 @@ class GroupCrudController extends CrudController
             return $this->traitStore();
         }
         // Capture the rule-selection table's input before Backpack strips unregistered inputs.
-        $ruleStatuses = (array) CRUD::getRequest()->input('rule_status', []);
+        $ruleStatuses = $this->ruleStatusesFromRequest(CRUD::getRequest());
         $result = $this->traitStore();
         $model = $this->data["entry"] ?? null;
         if ($model) {
@@ -335,7 +335,7 @@ class GroupCrudController extends CrudController
         if(!$this->validate(CRUD::getRequest(), $this->rules)) {
             return $this->traitUpdate();
         }
-        $ruleStatuses = (array) CRUD::getRequest()->input('rule_status', []);
+        $ruleStatuses = $this->ruleStatusesFromRequest(CRUD::getRequest());
         $result = $this->traitUpdate();
         $model = $this->data["entry"] ?? null;
         if ($model) {
@@ -343,6 +343,18 @@ class GroupCrudController extends CrudController
             $model->rebuildGroupData();
         }
         return $result;
+    }
+
+    /**
+     * Decode the rule-selection table's single JSON payload (rule_status_json) into a
+     * filter_list_id => status map. The table posts one hidden field for the whole grid, so the map
+     * can't be truncated by max_input_vars. A missing/invalid payload yields an empty map, which
+     * sync() interprets as "clear all assignments" — matching an all-ignored table.
+     */
+    private function ruleStatusesFromRequest($request): array
+    {
+        $decoded = json_decode((string) $request->input('rule_status_json', ''), true);
+        return is_array($decoded) ? $decoded : [];
     }
 
     /**

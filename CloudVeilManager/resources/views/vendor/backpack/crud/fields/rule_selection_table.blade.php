@@ -1,10 +1,12 @@
 {{-- Rule selection table field --}}
 {{--
     Self-contained field. Renders one row per FilterList with a single status control
-    (Blacklist / Whitelist / Bypass / blank) whose <select> submits directly as
-    rule_status[<filter_list_id>]. GroupCrudController::store()/update() read that map and
-    sync() the single Group::assignedFilters() relation into group_filter_assignments — no hidden
-    relationship fields, no patchRules().
+    (Blacklist / Whitelist / Bypass / blank). On submit, JS serializes every non-ignored row into a
+    single hidden input (rule_status_json) — one form variable regardless of list count, so the POST
+    can't be truncated by PHP's max_input_vars, and DataTables detaching off-page rows can't drop
+    inputs (we read all rows via the DataTables API, not the DOM). GroupCrudController::store()/update()
+    json_decode that map and sync() the single Group::assignedFilters() relation into
+    group_filter_assignments — no per-row inputs, no hidden relationship fields, no patchRules().
 
     Search filters the Category column only. A single-select status dropdown filters rows by their
     current status. The status column sorts by status. Persistence happens only on group form Save.
@@ -17,9 +19,12 @@
     $rankMap = ['blacklist' => 0, 'whitelist' => 1, 'bypass' => 2, 'ignored' => 9];
 
     // Prefill: old() input wins (validation error re-render), else the group's saved assignments.
-    $oldStatuses = old('rule_status');
+    // old() now carries the JSON map (rule_status_json); an empty map is still a valid "all ignored"
+    // submission, so key off presence of the field, not truthiness of the decoded array.
+    $hasOld = old('rule_status_json') !== null;
+    $oldStatuses = $hasOld ? (json_decode(old('rule_status_json'), true) ?: []) : [];
     $currentStatuses = [];
-    if (!$oldStatuses && isset($entry) && $entry) {
+    if (!$hasOld && isset($entry) && $entry) {
         foreach ($entry->assignedFilters as $assigned) {
             $p = $assigned->pivot;
             $currentStatuses[$assigned->id] = $p->as_blacklist ? 'blacklist'
@@ -71,8 +76,8 @@
                         <td>{{ $isTrigger ? 'Trigger' : 'Filter' }}</td>
                         {{-- data-order drives the (dynamic) sort of the status column; JS keeps it in sync --}}
                         <td class="rule-status-cell" data-order="{{ $rank }}">
-                            <select class="form-select form-select-sm rule-status-select"
-                                    name="rule_status[{{ $list->id }}]">
+                            {{-- No name: values are gathered into rule_status_json on submit (below). --}}
+                            <select class="form-select form-select-sm rule-status-select">
                                 <option value="ignored" @selected($status === 'ignored')></option>
                                 <option value="blacklist" @selected($status === 'blacklist')>Blacklist</option>
                                 <option value="whitelist" @selected($status === 'whitelist')>Whitelist</option>
@@ -83,6 +88,11 @@
                 @endforeach
             </tbody>
         </table>
+
+        {{-- Single form variable for the whole table. JS fills it on submit; the value here keeps a
+             valid payload if JS never runs (e.g. save before boot) and preserves old() on re-render. --}}
+        <input type="hidden" name="rule_status_json" class="rule-status-json"
+               value="{{ $hasOld ? old('rule_status_json') : json_encode(array_filter($currentStatuses, fn ($s) => $s !== 'ignored')) }}">
     </div>
 
     {{-- HINT --}}
@@ -124,6 +134,7 @@
                 var $ = window.jQuery;
                 var $root = $(root);
                 var $table = $(root.getAttribute('data-table'));
+                var $hidden = $root.find('.rule-status-json');
 
                 // Sort rank for the status column (blank/ignored sorts last).
                 var STATUS_RANK = { blacklist: 0, whitelist: 1, bypass: 2, ignored: 9 };
@@ -166,8 +177,27 @@
                     dt.draw();
                 });
 
-                // Row status change -> the <select> is the submitted input, so we only keep the row's
-                // data-status (drives color + filter) and the status-sort key in sync, then redraw.
+                // Serialize every non-ignored row into the single hidden input. Reads via the
+                // DataTables API (dt.rows().nodes()) rather than the DOM, so rows detached by
+                // pagination are still included — that's the whole point of the JSON payload.
+                function serialize() {
+                    var map = {};
+                    dt.rows().nodes().to$().find('.rule-status-select').each(function () {
+                        var v = this.value;
+                        if (v && v !== 'ignored') {
+                            map[this.closest('tr').getAttribute('data-list-id')] = v;
+                        }
+                    });
+                    $hidden.val(JSON.stringify(map));
+                }
+
+                // Keep the payload current on every change, and rebuild once more at submit time as the
+                // authoritative capture (covers any row not touched since boot).
+                serialize();
+                $root.closest('form').on('submit', serialize);
+
+                // Row status change -> keep the row's data-status (drives color + filter) and the
+                // status-sort key in sync, refresh the payload, then redraw.
                 $table.on('change', '.rule-status-select', function () {
                     var $select = $(this);
                     var $tr = $select.closest('tr');
@@ -177,6 +207,7 @@
                     $tr.find('.rule-status-cell').attr('data-order', rank == null ? 9 : rank);
                     dt.cell($tr.find('.rule-status-cell')[0]).invalidate();
                     dt.draw(false);
+                    serialize();
                 });
             }
 
