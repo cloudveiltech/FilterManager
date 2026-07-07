@@ -6,6 +6,7 @@ use App\SystemPlatform;
 use App\SystemVersion;
 use App\SystemExtension;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SystemVersionController extends Controller
 {
@@ -85,6 +86,8 @@ class SystemVersionController extends Controller
         SystemVersion::where('platform_id', '=', $platform_id)->where('active', '=', 1)->update(['active' => 0]);
         $item->active = 1;
         $item->save();
+
+        Cache::forget("SystemVersion_isactive_" . $platform_id);
         return response()->json([
             "version" => $item,
             "success" => true,
@@ -266,6 +269,8 @@ class SystemVersionController extends Controller
             }
         }
         SystemVersion::create($input);
+
+        Cache::forget("SystemVersion_isactive_" . $input['platform_id']);
         return response('', 204);
     }
 
@@ -288,6 +293,7 @@ class SystemVersionController extends Controller
             $item_for_update->active = 1;
             $item_for_update->save();
         }
+        Cache::forget("SystemVersion_isactive_" . $platform_id);
         return response('', 204);
     }
 
@@ -331,6 +337,8 @@ class SystemVersionController extends Controller
         $prev_active = $item->active;
         $prev_platform_id = $item->platform_id;
         SystemVersion::where('id', '=', $id)->update($input);
+
+        Cache::forget("SystemVersion_isactive_" . $platform_id);
         return response('', 204);
     }
 }

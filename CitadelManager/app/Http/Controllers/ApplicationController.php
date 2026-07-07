@@ -134,6 +134,9 @@ class ApplicationController extends Controller
 
             AppGroupToApp::insert($arr_assigned_groups);
         }
+		
+		$this->rebuildGroupDataByApp($app->id);
+		
         return response('', 204);
     }
 
@@ -151,6 +154,8 @@ class ApplicationController extends Controller
         if (!is_null($application)) {
             $application->delete();
         }
+		
+		$this->rebuildGroupDataByApp($id);
 
         return response('', 204);
     }
@@ -178,6 +183,8 @@ class ApplicationController extends Controller
             }
 
             AppGroupToApp::insert($arr_assigned_groups);
+			
+			$this->rebuildGroupDataByApp($id);
         }
 
         return response('', 204);
@@ -240,7 +247,7 @@ class ApplicationController extends Controller
             $userGroupLists = UserGroupToAppGroup::whereIn('app_group_id', $arr_group_id)->get();
             if ($userGroupLists->count() > 0) {
                 foreach ($userGroupLists as $user_group) {
-                    Group::where('id', '=', $user_group->user_group_id)->rebuiltGroupData();
+                    Group::where('id', '=', $user_group->user_group_id)->first()->rebuildGroupData();
                 }
             }
         }

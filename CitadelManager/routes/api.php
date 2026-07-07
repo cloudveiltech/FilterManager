@@ -164,7 +164,7 @@ Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:a
  * Version 2 of the API.  This version relies upon basic authentication to retrieve a token and then
  * token authentication via headers for other requests.
  */
-Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'check.device_id', 'api', 'auth:api']], function () {
+Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'auth:api', 'check.device_id', 'api']], function () {
 
     Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
     Route::post('/me/data/check', 'UserController@checkUserData');
@@ -182,6 +182,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'check.device_id', '
     Route::post('/rules/get', 'UserController@getRules'); //This will return each file listed in its own key in a JSON request.
     Route::post('/rules/check', 'UserController@checkRules'); //This will return a checksum for all rules listed in the POST request
     Route::post('/rules/rebuild', 'UserController@rebuildRules');
+    Route::post('/debug/log', 'UserController@acceptDebugLogs');
 
     // New feature API calls.
     Route::post('/me/self_moderation/add', 'UserController@addSelfModeratedWebsite'); // This adds a website to the user's sef moderation list.
@@ -282,7 +283,9 @@ Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:a
 /* Token Management */
 Route::middleware(['auth.basic.once', 'role:admin|user|business-owner', 'check.device_id'])->post('/v2/user/gettoken', 'UserController@getUserToken');
 Route::get('/v2/activation/email', 'EmailActivationLinkController@activate')->name('email_activation_url');
-Route::middleware(['check.device_id'])->post('/v2/user/activation/email', 'EmailActivationLinkController@sendLink');
+Route::middleware(['check.device_id'])->post('/v2/user/activation/email', 'EmailActivationLinkController@activateOverEmail');
+Route::middleware(['check.device_id'])->post('/v2/user/activation/otp', 'EmailActivationLinkController@send2FACode');
+Route::middleware(['check.device_id'])->put('/v2/user/activation/otp', 'EmailActivationLinkController@activate2FA');
 Route::middleware(['check.device_id'])->post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
 
 /**
@@ -309,6 +312,7 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once
     Route::get('/activations', 'AppUserActivationController@index'); //Should be deprecated.
     Route::get('/activation', 'AppUserActivationController@index');
     Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
+    Route::post('/deactivation/create', 'DeactivationRequestController@apiCreateDeactivationRequest');
     Route::post('/deactivation/{id}', 'DeactivationRequestController@update');
     Route::get('/deactivation/{id}', 'DeactivationRequestController@update');
     Route::post('activations/delete/{id}', 'AppUserActivationController@destroy');

@@ -1,0 +1,75 @@
+<?php
+
+namespace DummyNamespace;
+
+use Backpack\CRUD\app\Http\Controllers\Operations\Concerns\HasForm;
+
+trait DummyClassOperation
+{
+    use HasForm;
+
+    /**
+     * Define which routes are needed for this operation.
+     *
+     * @param string $segment    Name of the current entity (singular). Used as first URL segment.
+     * @param string $routeName  Prefix of the route name.
+     * @param string $controller Name of the current CrudController.
+     */
+    protected function setupDummyClassRoutes(string $segment, string $routeName, string $controller): void
+    {
+        $this->formRoutes(
+            operationName: 'dummyClass',
+            routesHaveIdSegment: DUMMY_ROUTE_WITH_ID,
+            segment: $segment,
+            routeName: $routeName,
+            controller: $controller
+        );
+    }
+
+    /**
+     * Add the default settings, buttons, etc that this operation needs.
+     */
+    protected function setupDummyClassDefaults(): void
+    {
+        $this->formDefaults(
+            operationName: 'dummyClass',
+            buttonStack: 'DUMMY_BUTTON_STACK', // alternatives: top, bottom
+            // buttonMeta: [
+            //     'icon' => 'la la-home',
+            //     'label' => 'Dummy Class',
+            //     'wrapper' => [
+            //          'target' => '_blank',
+            //     ],
+            // ],
+        );
+    }
+
+    /**
+     * Method to handle the GET request and display the View with a Backpack form
+     *
+     */
+    public function getDummyClassForm(DUMMY_FUNCTION_PARAMETERS) : \Illuminate\Contracts\View\View
+    {
+        $this->crud->hasAccessOrFail('dummyClass');
+
+        return $this->formView(DUMMY_GETFORM_VIEW_PARAMETER);
+    }
+
+    /**
+    * Method to handle the POST request and perform the operation
+    *
+    * @return array|\Illuminate\Http\RedirectResponse
+    */
+    public function postDummyClassForm(DUMMY_FUNCTION_PARAMETERS)
+    {
+        $this->crud->hasAccessOrFail('dummyClass');
+
+        return $this->formAction(DUMMY_FORM_ACTION_CALLBACK
+            // You logic goes here...
+            // dd('got to ' . __METHOD__, $inputs, $entry);
+
+            // show a success message
+            \Alert::success('Something was done!')->flash();
+        });
+    }
+}

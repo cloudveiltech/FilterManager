@@ -318,3 +318,5 @@ dist/
 nbdist/
 
 _ide_helper.php
+/CloudVeilManager/storage/*
+/CloudVeilManager/docker/*

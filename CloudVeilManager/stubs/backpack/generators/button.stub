@@ -1,0 +1,3 @@
+@if ($crud->hasAccess('dummy'))
+  <a href="{{ url($crud->route.'/'.$entry->getKey().'/dummy') }}" class="btn btn-sm btn-link text-capitalize"><i class="la la-question"></i> dummy</a>
+@endif

@@ -1,0 +1,13 @@
+{{-- Include widget wrapper --}}
+@includeWhen(!empty($widget['wrapper']), 'backpack::widgets.inc.wrapper_start')
+
+{{-- Define your widget --}}
+<div class="alert alert-info">
+
+	@if (isset($widget['content']))
+		<p>{!! $widget['content'] !!}</p>
+	@endif
+
+</div>
+
+@includeWhen(!empty($widget['wrapper']), 'backpack::widgets.inc.wrapper_end')

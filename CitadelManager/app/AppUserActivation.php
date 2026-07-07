@@ -11,6 +11,49 @@ class AppUserActivation extends Model
 {
     use SoftDeletes;
 
+    public static $WORKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+    public static $ALL_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    public static $DEFAULT = [
+        "monday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "tuesday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "wednesday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "thursday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "friday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "saturday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "sunday" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+    ];
+    public static $TEMPLATES = [
+        "workdays" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+        "all" => [
+            "EnabledThrough" => ["00.00", "24.00"],
+            "RestrictionsEnabled" => false
+        ],
+    ];
+
     protected $fillable = [
         'identifier', 'device_id', 'user_id', 'ip_address', 'group_id',
         'bypass_quantity','bypass_period','bypass_used', 'debug_enabled',
@@ -41,5 +84,57 @@ class AppUserActivation extends Model
             $query = AppUserActivation::where('ip_address', $requestIp);
         }
         $query->update(["last_update_requested_time" => Carbon::now()]);
+    }
+
+    public static  function applyTemplates($timeRestrictions, $templates): array {
+        if(empty($timeRestrictions)) {
+            $timeRestrictions = self::$DEFAULT;
+        }
+        if(empty($templates)) {
+            $templates = self::$TEMPLATES;
+        }
+        $timeRestrictions = self::applyTemplate($timeRestrictions, $templates["workdays"], self::$WORKDAYS);
+        $timeRestrictions = self::applyTemplate($timeRestrictions, $templates["all"], self::$ALL_DAYS);
+        return $timeRestrictions;
+    }
+
+    public static function applyTemplate($timeRestrictions, $template, $days): array {
+        if($template["RestrictionsEnabled"]) {
+            foreach($days as $day) {
+                if(!$timeRestrictions[$day]["RestrictionsEnabled"]) {
+                    $timeRestrictions[$day]["EnabledThrough"] = $template["EnabledThrough"];
+                    $timeRestrictions[$day]["RestrictionsEnabled"] = true;
+                }
+            }
+        }
+        return $timeRestrictions;
+    }
+
+    public function getUpdateChannel() {
+        $config = json_decode($this->config_override);
+        if (isset($config->UpdateChannel)) {
+            return $config->UpdateChannel;
+        }
+
+        $user = $this->user;
+        if($user) {
+            $config = json_decode($user->config_override);
+            if (isset($config->UpdateChannel)) {
+                return $config->UpdateChannel;
+            }
+        }
+
+        $group = $this->group;
+        if(!$group) {
+            $group = $user->group;
+        }
+        if($group) {
+            $config = json_decode($group->app_cfg);
+            if (isset($config->UpdateChannel)) {
+                return $config->UpdateChannel;
+            }
+        }
+
+        return "Stable";
     }
 }

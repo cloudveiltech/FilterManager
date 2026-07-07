@@ -6,9 +6,11 @@ use App\AppUserActivation;
 use App\SystemPlatform;
 use Carbon\Carbon;
 use Closure;
+use Illuminate\Support\Facades\Cache;
 
 class CheckAndUpdateDeviceId
 {
+    const CACHE_TIMEOUT_MINUTES = 5;
     /**
      * Handle an incoming request.
      *
@@ -39,7 +41,6 @@ class CheckAndUpdateDeviceId
                 $appVersion = $input["app_version"];
             }
 
-            // Get Specific Activation with $identifier
             $activation = AppUserActivation::whereRaw($whereStatement, $args)->first();
             if (!$activation && $request->has('identifier_2') && $request->has('device_id_2')) {//identifier_2 is passed in case we changed device name locally
                 $args = [0 => $input['identifier_2'], 1 => $input['device_id_2']];
@@ -50,6 +51,16 @@ class CheckAndUpdateDeviceId
                     $activation->device_id = $input['device_id'];
                 }
             }
+            if(!$activation) {
+                $activation = AppUserActivation::withTrashed()->
+                    where("identifier", $input['identifier'])->
+                    where("device_id", $input['device_id'])->
+                    orderBy("last_sync_time", "DESC")->first();
+                if ($activation && $activation->trashed()) {
+                    $activation->restore();
+                }
+            }
+
             if ($activation) {
                 if ($appVersion != "") {
                     $activation->app_version = $appVersion;
@@ -60,6 +71,14 @@ class CheckAndUpdateDeviceId
                 $activation->save();
                 if($activation->banned == 1) {
                     return response("Device is blocked by server", 406);
+                }
+
+                $user = \Auth::user();
+                if($user && $activation->user->id != $user->id) {
+                    $token = $user->token();
+                    $token->user_id = $activation->user->id;
+                    $token->save();
+                    \Auth::setUser($activation->user);
                 }
             }
         }
