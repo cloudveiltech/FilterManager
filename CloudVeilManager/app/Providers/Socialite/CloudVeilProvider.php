@@ -46,7 +46,13 @@ class CloudVeilProvider extends AbstractProvider implements ProviderInterface
     protected function getUserByToken($token)
     {
         $response = $this->getHttpClient()->get(
-            'https://www.cloudveil.org/oauth/me?access_token=' . $token
+            'https://www.cloudveil.org/oauth/me',
+            [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Authorization' => 'Bearer ' . $token,
+                ],
+            ]
         );
 
         return json_decode($response->getBody()->getContents(), true);

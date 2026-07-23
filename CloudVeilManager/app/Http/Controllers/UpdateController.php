@@ -173,7 +173,23 @@ class UpdateController extends Controller
         }
         Log::info("Update download from " . $request->ip() . " id: " . $activationId);
         AppUserActivation::setLastUpdateRequestTime($request->ip(), $activationId);
-        $file = public_path() . "/releases/" . $fileName;
+
+        // Prevent path traversal: only allow a basename under public/releases.
+        $safeName = basename((string) $fileName);
+        if ($safeName === '' || $safeName === '.' || $safeName === '..' || $safeName !== $fileName) {
+            abort(404);
+        }
+
+        $releasesDir = realpath(public_path('releases'));
+        if ($releasesDir === false) {
+            abort(404);
+        }
+
+        $file = realpath($releasesDir . DIRECTORY_SEPARATOR . $safeName);
+        if ($file === false || !str_starts_with($file, $releasesDir . DIRECTORY_SEPARATOR) || !is_file($file)) {
+            abort(404);
+        }
+
         return response()->download($file);
     }
 

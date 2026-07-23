@@ -162,9 +162,9 @@ class UserController extends Controller
             ], 400);
         }
 
-        if (!$request->has('new_password') || $request->input('new_password') == null || strlen($request->input('new_password')) < 4) {
+        if (!$request->has('new_password') || $request->input('new_password') == null || strlen($request->input('new_password')) < 8) {
             return response()->json([
-                'error' => 'The new password you entered should be filled out and longer than 3 characters'
+                'error' => 'The new password you entered should be filled out and at least 8 characters'
             ], 400);
         }
 
@@ -558,8 +558,9 @@ class UserController extends Controller
     }
 
     /**
-     * Handles when the application has lost it's credentials.  If the activation exists
-     * it returns a token and the users email address.
+     * Handles when the application has lost its credentials. Requires HTTP basic
+     * auth (same as gettoken). Issues a token only when the activation belongs
+     * to the authenticated user.
      * @param Request $request
      */
     public function retrieveUserToken(Request $request)
@@ -569,39 +570,43 @@ class UserController extends Controller
             'device_id' => 'required',
         ]);
 
-        if (!$validator->fails()) {
-            $activation = AppUserActivation::where('identifier', $request->input('identifier'))
+        if ($validator->fails()) {
+            return response($validator->errors(), 401);
+        }
+
+        $authUser = \Auth::user();
+        if (!$authUser) {
+            return response('Unauthorized', 401);
+        }
+
+        $activation = AppUserActivation::where('identifier', $request->input('identifier'))
+            ->where('device_id', $request->input('device_id'))
+            ->where('user_id', $authUser->id)
+            ->first();
+        if(!$activation) {
+            $activation = AppUserActivation::withTrashed()
+                ->where('identifier', $request->input('identifier'))
                 ->where('device_id', $request->input('device_id'))
+                ->where('user_id', $authUser->id)
+                ->orderBy("last_sync_time", "DESC")
                 ->first();
-            if(!$activation) {
-                $activation = AppUserActivation::withTrashed()
-                    ->where('identifier', $request->input('identifier'))
-                    ->where('device_id', $request->input('device_id'))
-                    ->orderBy("last_sync_time", "DESC")
-                    ->first();
-                if($activation) {
-                    $activation->restore();
-                }
-            }
-            if ($activation) {
-                // Lookup the user this activation belongs to.
-                $user = User::where('id', $activation->user_id)->first();
-                if ($user->isactive) {
-                    // Creating a token without scopes...
-                    $token = $user->createToken('Token Name')->accessToken;
-                    return response([
-                        'authToken' => $token,
-                        'userEmail' => $user->email,
-                    ], 200);
-                } else {
-                    // User is not active.km
-                    return response('User is not active', 401);
-                }
-            } else {
-                return response('Activation does not exist.', 401);
+            if($activation) {
+                $activation->restore();
             }
         }
-        return response($validator->errors(), 401);
+        if ($activation) {
+            if ($authUser->isactive) {
+                $token = $authUser->createToken('Token Name')->accessToken;
+                return response([
+                    'authToken' => $token,
+                    'userEmail' => $authUser->email,
+                ], 200);
+            } else {
+                return response('User is not active', 401);
+            }
+        } else {
+            return response('Activation does not exist.', 401);
+        }
     }
 
     /**
@@ -677,16 +682,22 @@ class UserController extends Controller
 
     /**
      * Used by our debugging tool to provide a central place to store logs received from users.
+     * Requires authentication; stores under the authenticated user's email.
      * @param Request $request
      */
     public function uploadLog(Request $request)
     {
+        $user = \Auth::user();
+        if (!$user) {
+            return response('Unauthorized', 401);
+        }
+
         $this->validate($request, [
-            'user_email' => 'required|email',
-            'log' => 'required',
-            'source' => 'required',
+            'log' => 'required|file|max:10240',
+            'source' => 'required|string|max:255',
         ]);
-        $path = $request->file('log')->store('user_logs/' . $request->input('user_email'));
+
+        $path = $request->file('log')->store('user_logs/' . $user->email);
         return "OK";
     }
 
@@ -746,25 +757,21 @@ class UserController extends Controller
                 $activation->save();
                 //Log::debug('Activation Exists.  Saved');
             } else {
-                $activation = AppUserActivation::withTrashed()->orderBy("last_sync_time", "DESC")->first();
-                if(!$activation) {
-                    $activation = new AppUserActivation;
-                    $activation->updated_at = Carbon::now()->timestamp;
-                    $activation->last_sync_time = Carbon::now();
-                    $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';
-                    $activation->user_id = $user->id;
-                    $activation->device_id = $request->input('device_id');
-                    $activation->identifier = $request->input('identifier');
-                    $activation->ip_address = $request->ip();
-                    $activation->platform_name = $os;
-                    if ($token) {
-                        $activation->token_id = $token->id;
-                    }
-                    $activation->bypass_used = 0;
-                    $activation->save();
-                } else {
-                    $activation->restore();
+                // Never restore an unrelated activation; always create for this user.
+                $activation = new AppUserActivation;
+                $activation->updated_at = Carbon::now()->timestamp;
+                $activation->last_sync_time = Carbon::now();
+                $activation->app_version = $hasAppVersion ? $request->input('app_version') : 'none';
+                $activation->user_id = $user->id;
+                $activation->device_id = $request->input('device_id');
+                $activation->identifier = $request->input('identifier');
+                $activation->ip_address = $request->ip();
+                $activation->platform_name = $os;
+                if ($token) {
+                    $activation->token_id = $token->id;
                 }
+                $activation->bypass_used = 0;
+                $activation->save();
             }
             return $activation;
         }

@@ -75,7 +75,7 @@ class LoginController extends LoginControllerBase
     }
 
     public function login(Request $request) {
-        $redirect = $request->input('redirect');
+        $redirect = safe_redirect_path($request->input('redirect'));
 
         if($redirect != null) {
             $this->innerRedirectTo = $redirect;
@@ -94,7 +94,7 @@ class LoginController extends LoginControllerBase
         $authUser = $this->findOrCreateUser($user, $provider);
         Auth::login($authUser, true);
 
-        $redirect = $request->input('redirect');
+        $redirect = safe_redirect_path($request->input('redirect'));
 
         if($redirect != null) {
             $this->innerRedirectTo = $redirect;
@@ -115,6 +115,11 @@ class LoginController extends LoginControllerBase
         $authUser = User::where('email', $user->email)->first();
 
         if($authUser) {
+            // Do not silently link password-backed accounts to SSO (account takeover risk).
+            if (!empty($authUser->password)) {
+                abort(403, 'An account with this email already exists. Please log in with your password first.');
+            }
+
             $authUser->provider = $provider;
             $authUser->provider_id = $user->id;
             $authUser->save();

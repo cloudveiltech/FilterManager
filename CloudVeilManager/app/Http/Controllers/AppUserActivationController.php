@@ -12,14 +12,53 @@ namespace App\Http\Controllers;
 use App\Events\ActivationBypassDenied;
 use App\Events\ActivationBypassGranted;
 use App\Models\AppUserActivation;
+use App\Models\SystemPlatform;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class AppUserActivationController extends Controller {
 
     public function __construct() {
 
+    }
+
+    /**
+     * Update OS/platform metadata for an activation bound by identifier + device_id.
+     */
+    public function updateVersion(Request $request) {
+        if(!$request->has("acid") || !$request->has("os") || !$request->has("os_version")) {
+            return response('', 200);
+        }
+
+        if (!$request->has('identifier') || !$request->has('device_id')) {
+            return response('Unauthorized', 401);
+        }
+
+        // acid must match the device-bound identifier from check.device_id.
+        if ($request->input('identifier') !== $request->input('acid')) {
+            return response('Unauthorized', 401);
+        }
+
+        $osName = $request->input("os");
+        $osVersion = $request->input("os_version");
+
+        $activation = AppUserActivation::where('identifier', $request->input("acid"))
+            ->where('device_id', $request->input('device_id'))
+            ->first();
+
+        if (!$activation) {
+            return response('Activation does not exist.', 404);
+        }
+
+        if(in_array($osName, SystemPlatform::PLATFORM_SUPPORTED)) {
+            $activation->platform_name = $osName;
+        }
+        $activation->os_version = is_string($osVersion) ? substr($osVersion, 0, 255) : '';
+        $activation->save();
+
+        return response('', 200);
     }
 
     /**

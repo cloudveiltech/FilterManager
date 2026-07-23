@@ -31,6 +31,10 @@ class FilterRulesManager
 
     public function getFilename($listNamespace, $listCategory, $filename, $separatorChar = '.')
     {
+        $listNamespace = $this->sanitizeRulesetComponent($listNamespace);
+        $listCategory = $this->sanitizeRulesetComponent($listCategory);
+        $filename = $this->sanitizeRulesetComponent($filename);
+
         return $separatorChar . $listNamespace .
             $separatorChar . $listCategory .
             $separatorChar . $filename;
@@ -43,6 +47,7 @@ class FilterRulesManager
 
     public function getRulesetPath($namespace, $category, $type)
     {
+        $category = $this->sanitizeRulesetComponent($category);
         $filename = $this->getFilename($namespace, $category, "$type.txt");
 
         $storageDir = resource_path() . DIRECTORY_SEPARATOR . "rules" . DIRECTORY_SEPARATOR . $this->getDirForRuleset($category);
@@ -52,8 +57,28 @@ class FilterRulesManager
         return $storageDir . $filename;
     }
 
+    /**
+     * Strip path separators and parent-directory sequences from ruleset path components.
+     */
+    private function sanitizeRulesetComponent($value): string
+    {
+        $value = str_replace(["\0", '/', '\\'], '', (string) $value);
+        while (str_contains($value, '..')) {
+            $value = str_replace('..', '', $value);
+        }
+        if ($value === '.' || $value === '') {
+            return '_';
+        }
+        return $value;
+    }
+
     private function getDirForRuleset(string $category): string
     {
+        $category = $this->sanitizeRulesetComponent($category);
+        if (strlen($category) < 2) {
+            $category = str_pad($category, 2, '_');
+        }
+
         return $category[0] . DIRECTORY_SEPARATOR . $category[1] . DIRECTORY_SEPARATOR;
     }
 

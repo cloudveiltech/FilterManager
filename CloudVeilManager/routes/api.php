@@ -108,7 +108,7 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::put('activations/{id}', 'AppUserActivationController@update');
     });
 
-    Route::post('activations/version', 'AppUserActivationController@updateVersion');
+    Route::middleware(['check.device_id'])->post('activations/version', 'AppUserActivationController@updateVersion');
 
     Route::group(['prefix' => 'business', 'middleware' => ['db.live', 'web', 'role:admin|business-owner']], function () {
         Route::get('deactivations', 'BusinessController@getDeactivationRequests');
@@ -235,7 +235,7 @@ Route::namespace("App\Http\Controllers")->group(function () {
     Route::middleware(['check.device_id'])->post('/v2/user/activation/email', 'EmailActivationLinkController@activateOverEmail');
     Route::middleware(['check.device_id'])->post('/v2/user/activation/otp', 'EmailActivationLinkController@send2FACode');
     Route::middleware(['check.device_id'])->put('/v2/user/activation/otp', 'EmailActivationLinkController@activate2FA');
-    Route::middleware(['check.device_id'])->post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
+    Route::middleware(['auth.basic.once', 'role:admin|user|business-owner', 'check.device_id'])->post('/v2/user/retrievetoken', 'UserController@retrieveUserToken');
 
     /**
      * Management section of the API.  This is used for working with users from external sources and relies upon basic auth.
@@ -259,12 +259,9 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::get('/activation', 'AppUserActivationController@index');
         Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
         Route::post('/deactivation/{id}', 'DeactivationRequestController@update');
-        Route::get('/deactivation/{id}', 'DeactivationRequestController@update');
         Route::post('activations/delete/{id}', 'AppUserActivationController@destroy');
         Route::post('activations/block/{id}', 'AppUserActivationController@block');
     });
 
-    Route::group(['middleware' => []], function () {
-        Route::post('upload/log', 'UserController@uploadLog');
-    });
+    Route::middleware(['auth.basic.once', 'role:admin|user|business-owner'])->post('upload/log', 'UserController@uploadLog');
 });

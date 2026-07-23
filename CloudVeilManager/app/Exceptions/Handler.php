@@ -54,9 +54,9 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        // 403 errors should be redirected to login.
+        // 403 errors should be redirected to login with a same-origin relative path only.
         if ($exception instanceof HttpException && $exception->getStatusCode() == 403) {
-            return redirect('/login?redirect=' . urlencode($request->fullUrl()));
+            return redirect('/login?redirect=' . urlencode($request->getRequestUri()));
         }
         // XXX TODO - We don't want the ugly laravel exception pages.
         // In the parent, I think it's just the $exception->getResponse() that
