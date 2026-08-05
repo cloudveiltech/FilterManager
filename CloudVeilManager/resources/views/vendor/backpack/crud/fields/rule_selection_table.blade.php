@@ -1,44 +1,78 @@
 {{-- Rule selection table field --}}
 {{--
-    Self-contained field. Renders one row per FilterList with a single status control
-    (Blacklist / Whitelist / Bypass / blank). On submit, JS serializes every non-ignored row into a
-    single hidden input (rule_status_json) — one form variable regardless of list count, so the POST
-    can't be truncated by PHP's max_input_vars, and DataTables detaching off-page rows can't drop
-    inputs (we read all rows via the DataTables API, not the DOM). GroupCrudController::store()/update()
-    json_decode that map and sync() the single Group::assignedFilters() relation into
-    group_filter_assignments — no per-row inputs, no hidden relationship fields, no patchRules().
+    Self-contained, reusable field: one row per FilterList with a single status control. On submit,
+    JS serializes every row whose status differs from the default into a single hidden input — one
+    form variable regardless of list count, so the POST can't be truncated by PHP's max_input_vars,
+    and DataTables detaching off-page rows can't drop inputs (we read all rows via the DataTables
+    API, not the DOM).
+
+    Used in two places:
+    - Group "Rule Selection" (the defaults below): statuses blacklist/whitelist/bypass posted as
+      rule_status_json; GroupCrudController::store()/update() json_decode the map and sync() the
+      Group::assignedFilters() relation into group_filter_assignments.
+    - User/Activation "Category Overrides": statuses Blacklist/Whitelist/BypassList/Ignored posted
+      under the model attribute name (category_overrides); the model mutator stores them in
+      config_override.CategoryOverrides.
+
+    Field options:
+    - filter_lists          collection of FilterList rows (id, category, type) to render
+    - input_name            name of the single hidden input (defaults to the field name)
+    - statuses              ordered map of status value => select label (excluding the default)
+    - default_status        the "no selection" value; rendered blank, omitted from the payload
+    - filter_labels         optional map of status value => label for the status filter dropdown
+    - default_filter_label  label for the default status in the filter dropdown
+    - status_colors         map of status value => text color for the status control
+    - prefill               'assigned_filters' to prefill from $entry->assignedFilters pivot flags;
+                            otherwise the field's value (an id => status map) is used
 
     Search filters the Category column only. A single-select status dropdown filters rows by their
-    current status. The status column sorts by status. Persistence happens only on group form Save.
+    current status. The status column sorts by status. Persistence happens only on form Save.
 --}}
 @php
     $filterLists = $field['filter_lists'] ?? collect();
     $tableId = 'rule_selection_table_' . \Illuminate\Support\Str::random(6);
 
-    // Sort rank for the status column (blank/ignored sorts last).
-    $rankMap = ['blacklist' => 0, 'whitelist' => 1, 'bypass' => 2, 'ignored' => 9];
+    // Configuration, defaulting to the Group rule-selection behavior.
+    $inputName = $field['input_name'] ?? $field['name'];
+    $statuses = $field['statuses'] ?? ['blacklist' => 'Blacklist', 'whitelist' => 'Whitelist', 'bypass' => 'Bypass'];
+    $defaultStatus = $field['default_status'] ?? 'ignored';
+    $filterLabels = $field['filter_labels']
+        ?? $field['statuses']
+        ?? ['blacklist' => 'Blacklists', 'whitelist' => 'Whitelists', 'bypass' => 'Bypassed'];
+    $defaultFilterLabel = $field['default_filter_label'] ?? 'Ignored';
+    $statusColors = $field['status_colors'] ?? ['blacklist' => '#d63939', 'whitelist' => '#1f9d57', 'bypass' => '#d9a406'];
 
-    // Prefill: old() input wins (validation error re-render), else the group's saved assignments.
-    // old() now carries the JSON map (rule_status_json); an empty map is still a valid "all ignored"
-    // submission, so key off presence of the field, not truthiness of the decoded array.
-    $hasOld = old('rule_status_json') !== null;
-    $oldStatuses = $hasOld ? (json_decode(old('rule_status_json'), true) ?: []) : [];
+    // Sort rank for the status column, in the order the statuses were declared (default sorts last).
+    $rankMap = array_flip(array_keys($statuses));
+    $rankMap[$defaultStatus] = 99;
+
+    // Prefill: old() input wins (validation error re-render), else the saved value. An empty map is
+    // still a valid "all default" submission, so key off presence of the input, not truthiness.
+    $hasOld = old($inputName) !== null;
+    $oldStatuses = $hasOld ? (json_decode(old($inputName), true) ?: []) : [];
     $currentStatuses = [];
-    if (!$hasOld && isset($entry) && $entry) {
-        foreach ($entry->assignedFilters as $assigned) {
-            $p = $assigned->pivot;
-            $currentStatuses[$assigned->id] = $p->as_blacklist ? 'blacklist'
-                : ($p->as_whitelist ? 'whitelist'
-                : ($p->as_bypass ? 'bypass' : 'ignored'));
+    if (!$hasOld) {
+        if (($field['prefill'] ?? null) === 'assigned_filters' && isset($entry) && $entry) {
+            foreach ($entry->assignedFilters as $assigned) {
+                $p = $assigned->pivot;
+                $currentStatuses[$assigned->id] = $p->as_blacklist ? 'blacklist'
+                    : ($p->as_whitelist ? 'whitelist'
+                    : ($p->as_bypass ? 'bypass' : $defaultStatus));
+            }
+        } elseif (isset($field['value']) && is_array($field['value'])) {
+            // e.g. a model accessor returning a filter_list_id => status map (category overrides)
+            $currentStatuses = $field['value'];
         }
     }
 @endphp
 
 @include('crud::fields.inc.wrapper_start')
 
-    <label>Rule Selection</label>
+    <label>{{ $field['label'] ?? 'Rule Selection' }}</label>
 
-    <div class="rule-selection-field" data-init="0" data-table="#{{ $tableId }}">
+    <div class="rule-selection-field" data-init="0" data-table="#{{ $tableId }}"
+         data-default-status="{{ $defaultStatus }}"
+         data-status-ranks="{{ json_encode($rankMap, JSON_FORCE_OBJECT) }}">
 
         <div class="row mb-2">
             <div class="col-md-4 mb-2">
@@ -48,10 +82,10 @@
             <div class="col-md-3 mb-2">
                 <select class="form-select rule-status-filter">
                     <option value="">All statuses</option>
-                    <option value="blacklist">Blacklists</option>
-                    <option value="whitelist">Whitelists</option>
-                    <option value="bypass">Bypassed</option>
-                    <option value="ignored">Ignored</option>
+                    @foreach ($filterLabels as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                    <option value="{{ $defaultStatus }}">{{ $defaultFilterLabel }}</option>
                 </select>
             </div>
         </div>
@@ -68,20 +102,20 @@
                 @foreach ($filterLists as $list)
                     @php
                         $isTrigger = $list->type === 'Triggers';
-                        $status = $oldStatuses[$list->id] ?? $currentStatuses[$list->id] ?? 'ignored';
-                        $rank = $rankMap[$status] ?? 9;
+                        $status = $oldStatuses[$list->id] ?? $currentStatuses[$list->id] ?? $defaultStatus;
+                        $rank = $rankMap[$status] ?? 99;
                     @endphp
                     <tr data-list-id="{{ $list->id }}" data-status="{{ $status }}">
                         <td>{{ $list->category }}</td>
                         <td>{{ $isTrigger ? 'Trigger' : 'Filter' }}</td>
                         {{-- data-order drives the (dynamic) sort of the status column; JS keeps it in sync --}}
                         <td class="rule-status-cell" data-order="{{ $rank }}">
-                            {{-- No name: values are gathered into rule_status_json on submit (below). --}}
+                            {{-- No name: values are gathered into the hidden input on submit (below). --}}
                             <select class="form-select form-select-sm rule-status-select">
-                                <option value="ignored" @selected($status === 'ignored')></option>
-                                <option value="blacklist" @selected($status === 'blacklist')>Blacklist</option>
-                                <option value="whitelist" @selected($status === 'whitelist')>Whitelist</option>
-                                <option value="bypass" @selected($status === 'bypass')>Bypass</option>
+                                <option value="{{ $defaultStatus }}" @selected($status === $defaultStatus)></option>
+                                @foreach ($statuses as $value => $label)
+                                    <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
+                                @endforeach
                             </select>
                         </td>
                     </tr>
@@ -91,8 +125,8 @@
 
         {{-- Single form variable for the whole table. JS fills it on submit; the value here keeps a
              valid payload if JS never runs (e.g. save before boot) and preserves old() on re-render. --}}
-        <input type="hidden" name="rule_status_json" class="rule-status-json"
-               value="{{ $hasOld ? old('rule_status_json') : json_encode(array_filter($currentStatuses, fn ($s) => $s !== 'ignored')) }}">
+        <input type="hidden" name="{{ $inputName }}" class="rule-status-json"
+               value="{{ $hasOld ? old($inputName) : json_encode(array_filter($currentStatuses, fn ($s) => $s !== $defaultStatus), JSON_FORCE_OBJECT) }}">
     </div>
 
     {{-- HINT --}}
@@ -112,9 +146,9 @@
 
         table.rule-selection-datatable tbody td:first-child { font-weight: 600; }
 
-        tr[data-status="blacklist"] .rule-status-select { color: #d63939; font-weight: 600; }
-        tr[data-status="whitelist"] .rule-status-select { color: #1f9d57; font-weight: 600; }
-        tr[data-status="bypass"]    .rule-status-select { color: #d9a406; font-weight: 600; }
+        @foreach ($statusColors as $value => $color)
+        table.rule-selection-datatable tr[data-status="{{ $value }}"] .rule-status-select { color: {{ $color }}; font-weight: 600; }
+        @endforeach
     </style>
 @endpush
 
@@ -136,8 +170,10 @@
                 var $table = $(root.getAttribute('data-table'));
                 var $hidden = $root.find('.rule-status-json');
 
-                // Sort rank for the status column (blank/ignored sorts last).
-                var STATUS_RANK = { blacklist: 0, whitelist: 1, bypass: 2, ignored: 9 };
+                // Per-instance config: sort rank per status, and the default ("no selection")
+                // status, whose rows are omitted from the payload.
+                var STATUS_RANK = JSON.parse(root.getAttribute('data-status-ranks'));
+                var DEFAULT_STATUS = root.getAttribute('data-default-status');
 
                 // DataTables: search Category column only; status column sorts by data-order.
                 var dt = $table.DataTable({
@@ -177,14 +213,14 @@
                     dt.draw();
                 });
 
-                // Serialize every non-ignored row into the single hidden input. Reads via the
+                // Serialize every non-default row into the single hidden input. Reads via the
                 // DataTables API (dt.rows().nodes()) rather than the DOM, so rows detached by
                 // pagination are still included — that's the whole point of the JSON payload.
                 function serialize() {
                     var map = {};
                     dt.rows().nodes().to$().find('.rule-status-select').each(function () {
                         var v = this.value;
-                        if (v && v !== 'ignored') {
+                        if (v !== DEFAULT_STATUS) {
                             map[this.closest('tr').getAttribute('data-list-id')] = v;
                         }
                     });
@@ -204,7 +240,7 @@
                     var status = $select.val();
                     var rank = STATUS_RANK[status];
                     $tr.attr('data-status', status);
-                    $tr.find('.rule-status-cell').attr('data-order', rank == null ? 9 : rank);
+                    $tr.find('.rule-status-cell').attr('data-order', rank == null ? 99 : rank);
                     dt.cell($tr.find('.rule-status-cell')[0]).invalidate();
                     dt.draw(false);
                     serialize();

@@ -245,6 +245,8 @@ class GroupCrudController extends CrudController
                 'name' => 'rule_selection_table',
                 'type' => 'rule_selection_table',
                 'tab' => 'Rule Selection',
+                'input_name' => 'rule_status_json',
+                'prefill' => 'assigned_filters',
                 'filter_lists' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
                     ->get(['id', 'namespace', 'category', 'type']),
             ],

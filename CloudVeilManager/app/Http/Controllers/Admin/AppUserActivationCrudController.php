@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use App\Models\FilterList;
 use App\Models\User;
 use App\Models\SystemPlatform;
 use Backpack\CRUD\app\Library\Widget;
@@ -324,6 +325,33 @@ class AppUserActivationCrudController extends CrudController
                     'options' => ["Stable" => "Stable", "Alpha" => "Alpha", "Beta" => "Beta"],
                     'label' => 'Update Channel',
                     'tab' => 'Activation',
+                ],
+                // Category overrides — the shared rule-selection table field. Posts a
+                // filter_list_id => override map as JSON under 'category_overrides'; the model
+                // mutator stores it in config_override.CategoryOverrides. Activation overrides win
+                // over user overrides for the same category in the client config merge.
+                [
+                    'label' => 'Category Overrides',
+                    'name' => 'category_overrides',
+                    'type' => 'rule_selection_table',
+                    'tab' => 'Categories',
+                    'filter_lists' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
+                        ->get(['id', 'namespace', 'category', 'type']),
+                    'statuses' => [
+                        'Blacklist' => 'Blacklist',
+                        'Whitelist' => 'Whitelist',
+                        'BypassList' => 'Bypass',
+                        'Ignored' => 'Ignored',
+                    ],
+                    'default_status' => 'none',
+                    'default_filter_label' => 'No override',
+                    'status_colors' => [
+                        'Blacklist' => '#d63939',
+                        'Whitelist' => '#1f9d57',
+                        'BypassList' => '#d9a406',
+                        'Ignored' => '#6c757d',
+                    ],
+                    'hint' => 'Overrides the group\'s rule selection for this activation. Blank inherits from the group; "Ignored" removes the category even if the group assigns it.',
                 ],
                 [
                     'label' => 'Blocked Sites',

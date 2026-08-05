@@ -201,7 +201,7 @@ class Group extends Model
                 $listId = $list->id;
 
                 $filterFile = $filterRulesManager->getRulesetPath($listNamespace, $listCategory, FilterRulesManager::TYPES[$listType]);
-                $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/' . FilterRulesManager::TYPES[$listType] . '.txt';
+                $entryRelativePath = $list->getRelativeListPath();
 
                 if (file_exists($filterFile)) {
                     //Log::error('We should be including this file rather than exporting everything again: ' . $filterFile);
