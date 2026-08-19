@@ -10,7 +10,7 @@
 use Illuminate\Http\Request;
 
 Route::namespace("App\Http\Controllers")->group(function () {
-    Route::group(['prefix' => 'admin', 'middleware' => ['db.live', 'web', 'role:admin']], function () {
+    Route::group(['prefix' => 'admin', 'as' => 'api.admin.', 'middleware' => ['db.live', 'web', 'role:admin']], function () {
 
         Route::resource('users', 'UserController');
 
@@ -164,7 +164,7 @@ Route::namespace("App\Http\Controllers")->group(function () {
      * or activation hasn't been removed from the web service.  In that case we accept the system "identifier" and
      * generate a new token.  We return that token and email address so the app can login again.
      */
-    Route::group(['prefix' => 'v2/admin', 'middleware' => ['db.live', 'api', 'auth:api', 'role:admin']], function () {
+    Route::group(['prefix' => 'v2/admin', 'as' => 'api.v2.admin.', 'middleware' => ['db.live', 'api', 'auth:api', 'role:admin']], function () {
         /* Manage Users */
         Route::put('/users/{id}', 'UserController@update');
         Route::get('/users', 'UserController@index');
