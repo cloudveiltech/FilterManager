@@ -7,6 +7,7 @@ use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use App\Models\Group;
 use App\Models\GroupFilterAssignment;
+use App\Services\GroupFilterAssignmentService;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Carbon\Carbon;
@@ -39,6 +40,7 @@ class FilterListCrudController extends CrudController
         CRUD::setModel(\App\Models\FilterList::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/filter-list');
         CRUD::setEntityNameStrings('filter list', 'filter lists');
+        CRUD::allowAccess('groups');
     }
 
     /**
@@ -89,12 +91,14 @@ class FilterListCrudController extends CrudController
                 'type' => 'text',
                 'name' => 'groups',
                 'limit' => 200000,
+                'searchLogic' => false,
+                'orderable' => false,
                 'value' => function ($entry) {
+                    $assignmentService = app(GroupFilterAssignmentService::class);
+
                     return $entry->groups
-                        ->map(function ($group) {
-                            $status = $group->pivot->as_blacklist ? 'Blacklist'
-                                : ($group->pivot->as_whitelist ? 'Whitelist'
-                                : ($group->pivot->as_bypass ? 'Bypass' : 'Unknown'));
+                        ->map(function ($group) use ($assignmentService) {
+                            $status = ucfirst($assignmentService->statusFromPivot($group->pivot));
 
                             return $group->name . ' (' . $status . ')';
                         })
@@ -150,6 +154,73 @@ class FilterListCrudController extends CrudController
                     $query->where('group_filter_assignments.' . $pivotColumn, 1);
                 });
             });
+
+        $this->crud->button('groups')->stack('line')->view('crud::buttons.quick')->meta([
+            'wrapper' => [
+                'href' => function ($entry, $crud) {
+                    return backpack_url('filter-list/' . $entry->getKey() . '/groups');
+                },
+            ],
+            'icon' => 'la la-users',
+            'access' => true,
+            'label' => 'Groups',
+        ]);
+    }
+
+    public function groups($id)
+    {
+        CRUD::hasAccessOrFail('groups');
+
+        $filterList = FilterList::with('groups')->findOrFail($id);
+
+        return $this->renderGroupAssignments($filterList);
+    }
+
+    public function updateGroups(Request $request, $id, GroupFilterAssignmentService $assignmentService)
+    {
+        CRUD::hasAccessOrFail('groups');
+
+        $filterList = FilterList::findOrFail($id);
+        $statuses = $assignmentService->statusesFromRequest($request, 'group_status_json');
+        $affectedGroups = $assignmentService->syncFilterListAssignments($filterList, $statuses);
+
+        if ($affectedGroups !== []) {
+            ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+        }
+
+        \Alert::success('Group assignments updated.')->flash();
+
+        return redirect()->route('filter-list.groups', ['id' => $filterList->getKey()]);
+    }
+
+    private function renderGroupAssignments(FilterList $filterList)
+    {
+        $this->data['crud'] = $this->crud;
+        $this->data['entry'] = $filterList;
+        $this->data['filterList'] = $filterList;
+        $this->data['field'] = [
+            'name' => 'group_status_json',
+            'type' => 'status_assignment_table',
+            'label' => 'Groups',
+            'input_name' => 'group_status_json',
+            'current_relation' => 'groups',
+            'row_label' => 'Group',
+            'show_sublabel' => false,
+            'rows' => Group::query()
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(function ($group) {
+                    return [
+                        'id' => $group->id,
+                        'label' => $group->name,
+                        'sublabel' => null,
+                    ];
+                }),
+        ];
+
+        $this->data['title'] = 'Group assignments';
+
+        return view('crud::filter_list_groups', $this->data);
     }
 
     /**

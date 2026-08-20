@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Jobs\ProcessTextFilterArchiveUpload;
 use App\Models\FilterList;
 use App\Models\Group;
 use App\Models\SystemPlatform;
 use App\Models\UserGroupToAppGroup;
+use App\Services\GroupFilterAssignmentService;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -266,16 +268,28 @@ class GroupCrudController extends CrudController
                 'name' => 'notes',
                 'tab' => 'Settings',
             ],
-            // Rule Selection table — a self-contained field. Renders one row per FilterList with a
+            // Status assignment table — a self-contained field. Renders one row per FilterList with a
             // single status control (Blacklist / Whitelist / Bypass / blank). The table serializes all
-            // non-ignored rows into one hidden field (rule_status_json); store()/update() json_decode
-            // it and sync() the single Group::assignedFilters() relation into group_filter_assignments.
+            // non-ignored rows into one hidden field; store()/update() pass it to the shared assignment
+            // service, which syncs Group::assignedFilters() into group_filter_assignments.
             [
-                'name' => 'rule_selection_table',
-                'type' => 'rule_selection_table',
+                'name' => 'rule_status_json',
+                'type' => 'status_assignment_table',
                 'tab' => 'Rule Selection',
-                'filter_lists' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
-                    ->get(['id', 'namespace', 'category', 'type']),
+                'label' => 'Rule Selection',
+                'input_name' => 'rule_status_json',
+                'current_relation' => 'assignedFilters',
+                'row_label' => 'Category',
+                'row_sublabel' => 'Type',
+                'rows' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
+                    ->get(['id', 'category', 'type'])
+                    ->map(function ($list) {
+                        return [
+                            'id' => $list->id,
+                            'label' => $list->category,
+                            'sublabel' => $list->type === 'Triggers' ? 'Trigger' : 'Filter',
+                        ];
+                    }),
             ],
             [
                 'label' => 'Application Groups Type',
@@ -343,68 +357,39 @@ class GroupCrudController extends CrudController
         });
     }
 
-    public function store()
+    public function store(GroupFilterAssignmentService $assignmentService)
     {
         if(!$this->validate(CRUD::getRequest(), $this->rules)) {
             return $this->traitStore();
         }
         // Capture the rule-selection table's input before Backpack strips unregistered inputs.
-        $ruleStatuses = $this->ruleStatusesFromRequest(CRUD::getRequest());
+        $ruleStatuses = $assignmentService->statusesFromRequest(CRUD::getRequest());
         $result = $this->traitStore();
         $model = $this->data["entry"] ?? null;
         if ($model) {
-            $this->syncRuleAssignments($model, $ruleStatuses);
-            $model->rebuildGroupData();
+            $affectedGroups = $assignmentService->syncGroupAssignments($model, $ruleStatuses);
+            if ($affectedGroups !== []) {
+                ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+            }
         }
         return $result;
     }
 
-    public function update()
+    public function update(GroupFilterAssignmentService $assignmentService)
     {
         if(!$this->validate(CRUD::getRequest(), $this->rules)) {
             return $this->traitUpdate();
         }
-        $ruleStatuses = $this->ruleStatusesFromRequest(CRUD::getRequest());
+        $ruleStatuses = $assignmentService->statusesFromRequest(CRUD::getRequest());
         $result = $this->traitUpdate();
         $model = $this->data["entry"] ?? null;
         if ($model) {
-            $this->syncRuleAssignments($model, $ruleStatuses);
-            $model->rebuildGroupData();
+            $affectedGroups = $assignmentService->syncGroupAssignments($model, $ruleStatuses);
+            if ($affectedGroups !== []) {
+                ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+            }
         }
         return $result;
-    }
-
-    /**
-     * Decode the rule-selection table's single JSON payload (rule_status_json) into a
-     * filter_list_id => status map. The table posts one hidden field for the whole grid, so the map
-     * can't be truncated by max_input_vars. A missing/invalid payload yields an empty map, which
-     * sync() interprets as "clear all assignments" — matching an all-ignored table.
-     */
-    private function ruleStatusesFromRequest($request): array
-    {
-        $decoded = json_decode((string) $request->input('rule_status_json', ''), true);
-        return is_array($decoded) ? $decoded : [];
-    }
-
-    /**
-     * Persist the rule-selection table into group_filter_assignments via a single sync().
-     * $statuses maps filter_list_id => 'blacklist'|'whitelist'|'bypass'|'ignored'. Anything not one
-     * of the three active statuses is omitted, so sync() removes any existing assignment row for it.
-     */
-    private function syncRuleAssignments(Group $group, array $statuses): void
-    {
-        $sync = [];
-        foreach ($statuses as $filterListId => $status) {
-            if (!in_array($status, ['blacklist', 'whitelist', 'bypass'], true)) {
-                continue;
-            }
-            $sync[(int) $filterListId] = [
-                'as_blacklist' => $status === 'blacklist' ? 1 : 0,
-                'as_whitelist' => $status === 'whitelist' ? 1 : 0,
-                'as_bypass'    => $status === 'bypass' ? 1 : 0,
-            ];
-        }
-        $group->assignedFilters()->sync($sync);
     }
 
     public function destroy($id)
