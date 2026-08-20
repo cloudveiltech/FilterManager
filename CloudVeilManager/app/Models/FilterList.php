@@ -40,9 +40,16 @@ class FilterList extends Model
     /**
      * Gets the groups that have this filter list assigned.
      */
-    public function group()
+    public function groups()
     {
-        return $this->belongsToMany('App\Models\Group');
+        return $this->belongsToMany(
+            Group::class,
+            'group_filter_assignments',
+            'filter_list_id',
+            'group_id'
+        )
+            ->withPivot('as_blacklist', 'as_whitelist', 'as_bypass')
+            ->withTimestamps();
     }
 
     public function getLabelAttribute() {

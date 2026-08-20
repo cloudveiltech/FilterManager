@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Jobs\ProcessTextFilterArchiveUpload;
 use App\Models\FilterList;
 use App\Models\FilterRulesManager;
+use App\Models\Group;
 use App\Models\GroupFilterAssignment;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -48,6 +49,10 @@ class FilterListCrudController extends CrudController
      */
     protected function setupListOperation()
     {
+        $this->crud->query
+            ->withCount('groups')
+            ->with('groups');
+
         $this->crud->setColumns([
             [
                 'label' => 'Category Name',
@@ -70,11 +75,81 @@ class FilterListCrudController extends CrudController
                 'name' => 'entries_count',
             ],
             [
+                'label' => 'Groups',
+                'type' => 'number',
+                'name' => 'groups_count',
+                'searchLogic' => false,
+                'orderable' => true,
+                'orderLogic' => function ($query, $column, $columnDirection) {
+                    return $query->orderBy('groups_count', $columnDirection);
+                },
+            ],
+            [
+                'label' => 'Group Assignments',
+                'type' => 'text',
+                'name' => 'groups',
+                'limit' => 200000,
+                'value' => function ($entry) {
+                    return $entry->groups
+                        ->map(function ($group) {
+                            $status = $group->pivot->as_blacklist ? 'Blacklist'
+                                : ($group->pivot->as_whitelist ? 'Whitelist'
+                                : ($group->pivot->as_bypass ? 'Bypass' : 'Unknown'));
+
+                            return $group->name . ' (' . $status . ')';
+                        })
+                        ->sort()
+                        ->join(', ');
+                },
+                'wrapper' => [
+                    'style' => 'white-space: normal',
+                ],
+            ],
+            [
                 'label' => 'Updated At',
                 'type' => 'datetime',
                 'name' => 'updated_at'
             ],
         ]);
+
+        CRUD::filter('assigned_group')
+            ->type('select2')
+            ->label('Assigned to group')
+            ->values(function () {
+                return Group::query()
+                    ->orderBy('name')
+                    ->pluck('name', 'id')
+                    ->toArray();
+            })
+            ->whenActive(function ($value) {
+                CRUD::addClause('whereHas', 'groups', function ($query) use ($value) {
+                    $query->where('groups.id', $value);
+                });
+            });
+
+        CRUD::filter('assignment_status')
+            ->type('dropdown')
+            ->label('Assignment status')
+            ->values([
+                'blacklist' => 'Blacklist',
+                'whitelist' => 'Whitelist',
+                'bypass' => 'Bypass',
+            ])
+            ->whenActive(function ($value) {
+                $pivotColumn = [
+                    'blacklist' => 'as_blacklist',
+                    'whitelist' => 'as_whitelist',
+                    'bypass' => 'as_bypass',
+                ][$value] ?? null;
+
+                if ($pivotColumn === null) {
+                    return;
+                }
+
+                CRUD::addClause('whereHas', 'groups', function ($query) use ($pivotColumn) {
+                    $query->where('group_filter_assignments.' . $pivotColumn, 1);
+                });
+            });
     }
 
     /**
