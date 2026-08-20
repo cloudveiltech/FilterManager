@@ -79,9 +79,7 @@ class FilterListCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        $this->crud->query
-            ->withCount('groups')
-            ->with('groups');
+        $this->crud->query->withCount('groups');
 
         $this->crud->setColumns([
             [
@@ -113,29 +111,6 @@ class FilterListCrudController extends CrudController
                 'orderLogic' => function ($query, $column, $columnDirection) {
                     return $query->orderBy('groups_count', $columnDirection);
                 },
-            ],
-            [
-                'label' => 'Group Assignments',
-                'type' => 'text',
-                'name' => 'groups',
-                'limit' => 200000,
-                'searchLogic' => false,
-                'orderable' => false,
-                'value' => function ($entry) {
-                    $assignmentService = app(GroupFilterAssignmentService::class);
-
-                    return $entry->groups
-                        ->map(function ($group) use ($assignmentService) {
-                            $status = ucfirst($assignmentService->statusFromPivot($group->pivot));
-
-                            return $group->name . ' (' . $status . ')';
-                        })
-                        ->sort()
-                        ->join(', ');
-                },
-                'wrapper' => [
-                    'style' => 'white-space: normal',
-                ],
             ],
             [
                 'label' => 'Updated At',
