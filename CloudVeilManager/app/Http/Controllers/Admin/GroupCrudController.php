@@ -59,13 +59,40 @@ class GroupCrudController extends CrudController
      */
     protected function setupListOperation()
     {
+        // let the user hide/show columns from the "Column visibility" dropdown
+        $this->crud->enableExportButtons();
+
+        // counts for the Users / Devices columns, without an N+1
+        $this->crud->query->withCount(['users', 'activations']);
+
         $this->crud->setColumns([
             [
                 'label' => 'Name',
                 'type' => 'text',
                 'name' => 'name',
+                'limit' => 120,
                 'searchLogic' => function ($query, $column, $searchTerm) {
                     $this->applyAllWordsAnyOrderSearch($query, 'groups.name', $searchTerm);
+                },
+            ],
+            [
+                'label' => 'Users',
+                'type' => 'text',
+                'name' => 'users_count',
+                'searchLogic' => false,
+                'orderable' => true,
+                'orderLogic' => function ($query, $column, $columnDirection) {
+                    return $query->orderBy('users_count', $columnDirection);
+                },
+            ],
+            [
+                'label' => 'Devices',
+                'type' => 'text',
+                'name' => 'activations_count',
+                'searchLogic' => false,
+                'orderable' => true,
+                'orderLogic' => function ($query, $column, $columnDirection) {
+                    return $query->orderBy('activations_count', $columnDirection);
                 },
             ],
             [
@@ -86,13 +113,15 @@ class GroupCrudController extends CrudController
             [
                 'label' => 'Date Registered',
                 'type' => 'datetime',
-                'name' => 'name',
+                'name' => 'created_at',
+                'visibleInTable' => false,
             ],
             [
                 'label' => 'Notes',
                 'type' => 'text',
-                'name' => 'name',
-                'priority' => 2,
+                'name' => 'notes',
+                'limit' => 80,
+                'visibleInTable' => false,
             ],
         ]);
     }

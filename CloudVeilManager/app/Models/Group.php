@@ -47,6 +47,11 @@ class Group extends Model
         ];
     }
 
+    public function activations()
+    {
+        return $this->hasMany('App\Models\AppUserActivation');
+    }
+
     public function assignedFilterIds()
     {
         return $this->hasMany('App\Models\GroupFilterAssignment');
