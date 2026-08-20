@@ -80,3 +80,46 @@ test('it reports only changed group ids from the filter list side', function () 
         7 => 'blacklist',
     ]))->toBe([7]);
 });
+
+test('partial filter list updates preserve assignments outside the target groups', function () {
+    $assignedWhitelistGroup = new Group();
+    $assignedWhitelistGroup->setAttribute('id', 7);
+    $assignedWhitelistGroup->setRelation('pivot', (object) [
+        'as_blacklist' => 0,
+        'as_whitelist' => 1,
+        'as_bypass' => 0,
+    ]);
+
+    $assignedBypassGroup = new Group();
+    $assignedBypassGroup->setAttribute('id', 9);
+    $assignedBypassGroup->setRelation('pivot', (object) [
+        'as_blacklist' => 0,
+        'as_whitelist' => 0,
+        'as_bypass' => 1,
+    ]);
+
+    $relation = Mockery::mock(BelongsToMany::class);
+    $relation->shouldReceive('get')->once()->andReturn(collect([
+        $assignedWhitelistGroup,
+        $assignedBypassGroup,
+    ]));
+    $relation->shouldReceive('sync')->once()->with([
+        7 => [
+            'as_blacklist' => 1,
+            'as_whitelist' => 0,
+            'as_bypass' => 0,
+        ],
+        9 => [
+            'as_blacklist' => 0,
+            'as_whitelist' => 0,
+            'as_bypass' => 1,
+        ],
+    ]);
+
+    $filterList = Mockery::mock(FilterList::class);
+    $filterList->shouldReceive('groups')->once()->andReturn($relation);
+
+    expect((new GroupFilterAssignmentService())->updateFilterListGroupAssignments($filterList, [
+        7 => 'blacklist',
+    ]))->toBe([7]);
+});

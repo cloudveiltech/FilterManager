@@ -15,6 +15,7 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -41,6 +42,32 @@ class FilterListCrudController extends CrudController
         CRUD::setRoute(config('backpack.base.route_prefix') . '/filter-list');
         CRUD::setEntityNameStrings('filter list', 'filter lists');
         CRUD::allowAccess('groups');
+    }
+
+    protected function setupBulkAssignGroupsRoutes($segment, $routeName, $controller)
+    {
+        Route::post($segment . '/bulk-assign-groups', [
+            'as' => $routeName . '.bulkAssignGroups',
+            'uses' => $controller . '@bulkAssignGroups',
+            'operation' => 'bulkAssignGroups',
+        ]);
+    }
+
+    protected function setupBulkAssignGroupsDefaults()
+    {
+        CRUD::allowAccess('bulkAssignGroups');
+
+        CRUD::operation('bulkAssignGroups', function () {
+            CRUD::loadDefaultOperationSettingsFromConfig();
+        });
+
+        CRUD::operation('list', function () {
+            CRUD::enableBulkActions();
+            CRUD::addButton('bottom', 'bulk_assign_groups', 'view', 'crud::buttons.bulk_assign_groups', 'beginning')
+                ->meta([
+                    'groups' => Group::query()->orderBy('name')->get(['id', 'name']),
+                ]);
+        });
     }
 
     /**
@@ -375,5 +402,72 @@ class FilterListCrudController extends CrudController
         }
 
         return $deletedEntries;
+    }
+
+    public function bulkAssignGroups(Request $request, GroupFilterAssignmentService $assignmentService)
+    {
+        $this->crud->hasAccessOrFail('bulkAssignGroups');
+
+        $status = $request->input('assignment_status');
+        $filterListIds = collect((array) $request->input('entries', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+        $groupIds = Group::query()
+            ->whereKey(collect((array) $request->input('group_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->filter(fn ($id) => $id > 0)
+                ->unique()
+                ->values())
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        if (!in_array($status, [...GroupFilterAssignmentService::ACTIVE_STATUSES, 'clear'], true)) {
+            return response()->json(['message' => 'Choose an assignment status.'], 422);
+        }
+
+        if ($filterListIds->isEmpty()) {
+            return response()->json(['message' => 'Select at least one filter list.'], 422);
+        }
+
+        if ($groupIds->isEmpty()) {
+            return response()->json(['message' => 'Select at least one group.'], 422);
+        }
+
+        $targetStatuses = array_fill_keys(
+            $groupIds->all(),
+            $status === 'clear' ? 'ignored' : $status
+        );
+        $affectedGroups = [];
+        $updatedFilterLists = 0;
+
+        foreach (FilterList::whereKey($filterListIds)->get() as $filterList) {
+            if (!$this->crud->hasAccess('bulkAssignGroups', $filterList)) {
+                continue;
+            }
+
+            $changedGroups = $assignmentService->updateFilterListGroupAssignments(
+                $filterList,
+                $targetStatuses
+            );
+
+            if ($changedGroups !== []) {
+                $updatedFilterLists++;
+                $affectedGroups = array_merge($affectedGroups, $changedGroups);
+            }
+        }
+
+        $affectedGroups = array_values(array_unique(array_map('intval', $affectedGroups)));
+
+        if ($affectedGroups !== []) {
+            ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+        }
+
+        return response()->json([
+            'updated_filter_lists' => $updatedFilterLists,
+            'affected_groups' => count($affectedGroups),
+        ]);
     }
 }

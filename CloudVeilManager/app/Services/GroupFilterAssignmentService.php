@@ -20,14 +20,45 @@ class GroupFilterAssignmentService
 
     public function syncGroupAssignments(Group $group, array $statuses): array
     {
-        $changedFilterIds = $this->syncRelation($group->assignedFilters(), $statuses);
+        $changedFilterIds = $this->syncRelation(
+            $group->assignedFilters(),
+            $this->desiredPivotStates($statuses)
+        );
 
         return $changedFilterIds === [] ? [] : [(int) $group->getKey()];
     }
 
     public function syncFilterListAssignments(FilterList $filterList, array $statuses): array
     {
-        return $this->syncRelation($filterList->groups(), $statuses);
+        return $this->syncRelation(
+            $filterList->groups(),
+            $this->desiredPivotStates($statuses)
+        );
+    }
+
+    public function updateFilterListGroupAssignments(FilterList $filterList, array $statuses): array
+    {
+        $relation = $filterList->groups();
+        $current = $this->currentPivotStates($relation);
+        $desired = $current;
+
+        foreach ($statuses as $id => $status) {
+            $id = (int) $id;
+
+            if ($id < 1) {
+                continue;
+            }
+
+            $attributes = $this->pivotAttributesForStatus($status);
+
+            if ($attributes === null) {
+                unset($desired[$id]);
+            } else {
+                $desired[$id] = $attributes;
+            }
+        }
+
+        return $this->syncRelation($relation, $desired, $current);
     }
 
     public function statusFromPivot($pivot): string
@@ -69,18 +100,9 @@ class GroupFilterAssignmentService
         };
     }
 
-    private function syncRelation(BelongsToMany $relation, array $statuses): array
+    private function syncRelation(BelongsToMany $relation, array $desired, ?array $current = null): array
     {
-        $desired = $this->desiredPivotStates($statuses);
-        $current = [];
-
-        foreach ($relation->get() as $assigned) {
-            $current[(int) $assigned->getKey()] = [
-                'as_blacklist' => (int) $assigned->pivot->as_blacklist,
-                'as_whitelist' => (int) $assigned->pivot->as_whitelist,
-                'as_bypass' => (int) $assigned->pivot->as_bypass,
-            ];
-        }
+        $current ??= $this->currentPivotStates($relation);
 
         $candidateIds = array_unique(array_merge(array_keys($current), array_keys($desired)));
         $changedIds = array_values(array_filter(
@@ -95,6 +117,21 @@ class GroupFilterAssignmentService
         $relation->sync($desired);
 
         return array_map('intval', $changedIds);
+    }
+
+    private function currentPivotStates(BelongsToMany $relation): array
+    {
+        $current = [];
+
+        foreach ($relation->get() as $assigned) {
+            $current[(int) $assigned->getKey()] = [
+                'as_blacklist' => (int) $assigned->pivot->as_blacklist,
+                'as_whitelist' => (int) $assigned->pivot->as_whitelist,
+                'as_bypass' => (int) $assigned->pivot->as_bypass,
+            ];
+        }
+
+        return $current;
     }
 
     private function desiredPivotStates(array $statuses): array
