@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Jobs\ProcessTextFilterArchiveUpload;
+use App\Jobs\RebuildGroupData;
 use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use App\Models\Group;
@@ -212,7 +213,7 @@ class FilterListCrudController extends CrudController
         $affectedGroups = $assignmentService->syncFilterListAssignments($filterList, $statuses);
 
         if ($affectedGroups !== []) {
-            ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+            RebuildGroupData::dispatch($affectedGroups);
         }
 
         \Alert::success('Group assignments updated.')->flash();
@@ -462,7 +463,7 @@ class FilterListCrudController extends CrudController
         $affectedGroups = array_values(array_unique(array_map('intval', $affectedGroups)));
 
         if ($affectedGroups !== []) {
-            ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+            RebuildGroupData::dispatch($affectedGroups);
         }
 
         return response()->json([
