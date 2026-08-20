@@ -48,3 +48,15 @@
         </div>
     </div>
 @endsection
+
+{{-- This view extends the blank layout rather than a CRUD form view, so nothing else renders the
+     field stacks. Without these the status_assignment_table field's JS never loads, its hidden
+     input keeps the server-rendered value, and every save posts the unchanged current state.
+     Mirrors crud::form_content, which does exactly this for the create/update forms. --}}
+@section('after_styles')
+    @stack('crud_fields_styles')
+@endsection
+
+@section('after_scripts')
+    @stack('crud_fields_scripts')
+@endsection
