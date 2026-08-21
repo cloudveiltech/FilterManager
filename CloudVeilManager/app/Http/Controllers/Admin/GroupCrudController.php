@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Jobs\ProcessTextFilterArchiveUpload;
 use App\Models\FilterList;
 use App\Models\Group;
 use App\Models\SystemPlatform;
@@ -367,10 +366,11 @@ class GroupCrudController extends CrudController
         $result = $this->traitStore();
         $model = $this->data["entry"] ?? null;
         if ($model) {
-            $affectedGroups = $assignmentService->syncGroupAssignments($model, $ruleStatuses);
-            if ($affectedGroups !== []) {
-                ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
-            }
+            $assignmentService->syncGroupAssignments($model, $ruleStatuses);
+            // Always rebuild: the payload also carries app_cfg and the application-group lists, so a
+            // save that changed only those still needs one. Gating on changed rule assignments is
+            // for the filter-list side, where one save can fan out across every group.
+            $model->rebuildGroupData();
         }
         return $result;
     }
@@ -384,10 +384,9 @@ class GroupCrudController extends CrudController
         $result = $this->traitUpdate();
         $model = $this->data["entry"] ?? null;
         if ($model) {
-            $affectedGroups = $assignmentService->syncGroupAssignments($model, $ruleStatuses);
-            if ($affectedGroups !== []) {
-                ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
-            }
+            $assignmentService->syncGroupAssignments($model, $ruleStatuses);
+            // Always rebuild — see store().
+            $model->rebuildGroupData();
         }
         return $result;
     }
