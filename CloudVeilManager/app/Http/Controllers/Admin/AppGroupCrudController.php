@@ -6,6 +6,7 @@ use App\Models\AppGroup;
 use App\Models\AppGroupToApp;
 use App\Models\SystemPlatform;
 use App\Models\UserGroupToAppGroup;
+use App\Http\Controllers\Admin\Traits\RebuildsGroupData;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -17,9 +18,14 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 class AppGroupCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+        store as traitStore;
+    }
+    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
+        update as traitUpdate;
+    }
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use RebuildsGroupData;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -115,8 +121,27 @@ class AppGroupCrudController extends CrudController
         $this->setupCreateOperation();
     }
 
+    public function store()
+    {
+        $result = $this->traitStore();
+        $this->rebuildGroupsForEntry();
+
+        return $result;
+    }
+
+    public function update()
+    {
+        $result = $this->traitUpdate();
+        $this->rebuildGroupsForEntry();
+
+        return $result;
+    }
+
     public function destroy($id)
     {
+        // Collected before the pivot rows go away, so we still know which groups to rebuild.
+        $userGroupIds = $this->userGroupIdsForAppGroups([$id]);
+
         AppGroupToApp::where('app_group_id', $id)->delete();
         UserGroupToAppGroup::where('app_group_id', $id)->delete();
         $applicationGroup = AppGroup::where('id', $id)->first();
@@ -124,6 +149,17 @@ class AppGroupCrudController extends CrudController
             $applicationGroup->delete();
         }
 
+        $this->rebuildGroups($userGroupIds);
+
         return true;
+    }
+
+    private function rebuildGroupsForEntry(): void
+    {
+        $entry = $this->data['entry'] ?? null;
+
+        if ($entry) {
+            $this->rebuildGroups($this->userGroupIdsForAppGroups([$entry->id]));
+        }
     }
 }
