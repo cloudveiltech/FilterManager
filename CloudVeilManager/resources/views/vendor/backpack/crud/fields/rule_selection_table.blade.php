@@ -18,6 +18,8 @@
     - filter_lists          collection of FilterList rows (id, category, type) to render
     - input_name            name of the single hidden input (defaults to the field name)
     - statuses              ordered map of status value => select label (excluding the default)
+    - statuses_by_type      optional map of FilterList::type => statuses map, replacing `statuses`
+                            for rows of that type (e.g. 'Triggers' => ['TextTrigger' => …])
     - default_status        the "no selection" value; rendered blank, omitted from the payload
     - filter_labels         optional map of status value => label for the status filter dropdown
     - default_filter_label  label for the default status in the filter dropdown
@@ -35,15 +37,32 @@
     // Configuration, defaulting to the Group rule-selection behavior.
     $inputName = $field['input_name'] ?? $field['name'];
     $statuses = $field['statuses'] ?? ['blacklist' => 'Blacklist', 'whitelist' => 'Whitelist', 'bypass' => 'Bypass'];
+    // Per-list-type status overrides, keyed by FilterList::type (e.g. 'Triggers'). Rows of that
+    // type offer this map instead of $statuses: a trigger list holds free-text phrases, so it is
+    // only ever loadable as TextTrigger — offering it as a domain blacklist would hand the file to
+    // the client's adblock rule parser.
+    $statusesByType = $field['statuses_by_type'] ?? [];
     $defaultStatus = $field['default_status'] ?? 'ignored';
-    $filterLabels = $field['filter_labels']
-        ?? $field['statuses']
-        ?? ['blacklist' => 'Blacklists', 'whitelist' => 'Whitelists', 'bypass' => 'Bypassed'];
     $defaultFilterLabel = $field['default_filter_label'] ?? 'Ignored';
     $statusColors = $field['status_colors'] ?? ['blacklist' => '#d63939', 'whitelist' => '#1f9d57', 'bypass' => '#d9a406'];
 
+    // Every status any row can offer, in declaration order. Drives the filter dropdown and the sort
+    // rank, both of which span the whole table regardless of which rows offer what.
+    $allStatuses = $statuses;
+    foreach ($statusesByType as $typeStatuses) {
+        $allStatuses += $typeStatuses;
+    }
+
+    if (isset($field['filter_labels'])) {
+        $filterLabels = $field['filter_labels'];
+    } elseif (isset($field['statuses'])) {
+        $filterLabels = $allStatuses;
+    } else {
+        $filterLabels = ['blacklist' => 'Blacklists', 'whitelist' => 'Whitelists', 'bypass' => 'Bypassed'];
+    }
+
     // Sort rank for the status column, in the order the statuses were declared (default sorts last).
-    $rankMap = array_flip(array_keys($statuses));
+    $rankMap = array_flip(array_keys($allStatuses));
     $rankMap[$defaultStatus] = 99;
 
     // Prefill: old() input wins (validation error re-render), else the saved value. An empty map is
@@ -102,7 +121,13 @@
                 @foreach ($filterLists as $list)
                     @php
                         $isTrigger = $list->type === 'Triggers';
+                        $rowStatuses = $statusesByType[$list->type] ?? $statuses;
                         $status = $oldStatuses[$list->id] ?? $currentStatuses[$list->id] ?? $defaultStatus;
+                        // Data written before this row's type was constrained (or edited by hand) can
+                        // hold a status the row no longer offers. Render it rather than let the select
+                        // silently snap to another option; saving drops it, since the model mutator
+                        // rejects it for this type — which is the cleanup we want, visibly.
+                        $isInvalid = $status !== $defaultStatus && !array_key_exists($status, $rowStatuses);
                         $rank = $rankMap[$status] ?? 99;
                     @endphp
                     <tr data-list-id="{{ $list->id }}" data-status="{{ $status }}">
@@ -113,9 +138,12 @@
                             {{-- No name: values are gathered into the hidden input on submit (below). --}}
                             <select class="form-select form-select-sm rule-status-select">
                                 <option value="{{ $defaultStatus }}" @selected($status === $defaultStatus)></option>
-                                @foreach ($statuses as $value => $label)
+                                @foreach ($rowStatuses as $value => $label)
                                     <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
                                 @endforeach
+                                @if ($isInvalid)
+                                    <option value="{{ $status }}" selected>{{ $status }} — not valid for this type</option>
+                                @endif
                             </select>
                         </td>
                     </tr>

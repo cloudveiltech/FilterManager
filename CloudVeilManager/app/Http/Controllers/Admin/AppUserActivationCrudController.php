@@ -343,15 +343,25 @@ class AppUserActivationCrudController extends CrudController
                         'BypassList' => 'Bypass',
                         'Ignored' => 'Ignored',
                     ],
+                    // Trigger lists are free-text phrase files, not domain lists — loading one as a
+                    // blacklist/whitelist feeds it to the client's adblock rule parser. Enforced
+                    // server-side by OverridableConfigTrait::allowedCategoryOverridesForType().
+                    'statuses_by_type' => [
+                        'Triggers' => [
+                            'TextTrigger' => 'Text Trigger',
+                            'Ignored' => 'Ignored',
+                        ],
+                    ],
                     'default_status' => 'none',
                     'default_filter_label' => 'No override',
                     'status_colors' => [
                         'Blacklist' => '#d63939',
                         'Whitelist' => '#1f9d57',
                         'BypassList' => '#d9a406',
+                        'TextTrigger' => '#d63939',
                         'Ignored' => '#6c757d',
                     ],
-                    'hint' => 'Overrides the group\'s rule selection for this activation. Blank inherits from the group; "Ignored" removes the category even if the group assigns it.',
+                    'hint' => 'Overrides the group\'s rule selection for this activation. Blank inherits from the group; "Ignored" removes the category even if the group assigns it. Trigger categories can only be overridden to Text Trigger or Ignored.',
                 ],
                 [
                     'label' => 'Blocked Sites',

@@ -362,9 +362,16 @@ class UserController extends Controller
                     }
                 }
 
+                // Resolve every referenced category in one query — this runs on /config/get and
+                // /config/check, which both clients poll on a timer, so a per-override lookup here
+                // would be N extra queries per poll per device.
+                $categories = FilterList::whereIn('id', array_keys($mergedCategoryOverrides))
+                    ->get()
+                    ->keyBy('id');
+
                 $configuration['ConfiguredLists'] = $configuration['ConfiguredLists'] ?? [];
                 foreach ($mergedCategoryOverrides as $categoryOverride) {
-                    $category = FilterList::find($categoryOverride['categoryId']);
+                    $category = $categories->get((int) $categoryOverride['categoryId']);
                     if (is_null($category)) {
                         continue;
                     }
