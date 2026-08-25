@@ -7,8 +7,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Carbon\Carbon;
+use App\FilterListImport;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use Log;
 
 class ProcessTextFilterArchiveUpload implements ShouldQueue
@@ -70,14 +73,29 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         }
 
         $file = $this->file;
+        $tempFile = null;
+
         if ($this->disk) {
-            $tempFile = tempnam(sys_get_temp_dir(), 'export_');
-            file_put_contents($tempFile, Storage::disk($this->disk)->get($this->file));
+            $tempFile = $this->copyFromDiskToLocalArchive();
             $file = $tempFile;
         }
 
-        $flc = new \App\Http\Controllers\FilterListController;
-        $flc->processTextFilterArchive($this->listNamespace, $file, $this->shouldOverwrite);
+        try {
+            $flc = new \App\Http\Controllers\FilterListController;
+            $flc->processTextFilterArchive($this->listNamespace, $file, $this->shouldOverwrite);
+        } finally {
+            // processTextFilterArchive() unlinks the archive on success. Clean up
+            // after ourselves anyway so a failure part way through does not leave
+            // the downloaded copy (or the directory PharData extracts beside it)
+            // sitting in storage.
+            if (!is_null($tempFile)) {
+                $this->cleanUpLocalArchive($tempFile);
+            }
+        }
+
+        if ($this->disk) {
+            $this->recordImport();
+        }
 
         Log::info('Finished processTextFilterArchive Job.');
 
@@ -98,5 +116,141 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             Log::error($e);
         }
 
+    }
+
+    /**
+     * Notes which version of the object we just imported.
+     *
+     * Deliberately kept on this side rather than marking the object in the
+     * bucket: the export pipeline owns those objects and CloudVeilManager reads
+     * the same bucket, so consuming them here would break the other app.
+     */
+    private function recordImport()
+    {
+        try {
+            $disk = Storage::disk($this->disk);
+            $adapter = $disk->getAdapter();
+
+            $etag = null;
+            if ($adapter instanceof AwsS3Adapter) {
+                $metadata = $adapter->getMetadata($this->file);
+                $etag = isset($metadata['etag']) ? trim($metadata['etag'], '"') : null;
+            }
+
+            FilterListImport::updateOrCreate(
+                ['disk' => $this->disk, 'file' => $this->file],
+                [
+                    'category' => $this->category,
+                    'etag' => $etag,
+                    'size' => $disk->size($this->file),
+                    'object_last_modified' => Carbon::createFromTimestamp($disk->lastModified($this->file)),
+                    'imported_at' => Carbon::now(),
+                ]
+            );
+        } catch (\Exception $e) {
+            // Bookkeeping must never fail an import that already succeeded.
+            Log::error('Could not record import of ' . $this->file . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Streams the archive off of the configured disk into a local file.
+     *
+     * The local copy must keep its .zip extension: processTextFilterArchive()
+     * hands the path to PharData, which refuses any file whose extension it does
+     * not recognise. Contents are streamed rather than read into a string, since
+     * these archives can be large.
+     *
+     * @return string The path of the local archive.
+     */
+    private function copyFromDiskToLocalArchive(): string
+    {
+        $localDir = storage_path('app/exports');
+
+        if (!is_dir($localDir) && !mkdir($localDir, 0755, true) && !is_dir($localDir)) {
+            throw new \RuntimeException('Unable to create export staging directory: ' . $localDir);
+        }
+
+        $localArchive = $localDir . '/' . uniqid('export_', true) . '.zip';
+
+        $disk = Storage::disk($this->disk);
+        $adapter = $disk->getAdapter();
+
+        if ($adapter instanceof AwsS3Adapter) {
+            // Hand the download to the SDK, which sinks the body straight to the
+            // given path. Flysystem's readStream() asks Guzzle for a streamed
+            // response, and that forces it off the cURL handler onto the PHP
+            // stream handler - which does not share cURL's CA trust, so it fails
+            // against endpoints such as a local Herd/MinIO with its own CA.
+            $adapter->getClient()->getObject([
+                'Bucket' => $adapter->getBucket(),
+                'Key' => $adapter->applyPathPrefix($this->file),
+                'SaveAs' => $localArchive,
+            ]);
+
+            Log::info('Copied ' . $this->file . ' from the ' . $this->disk . ' disk to ' . $localArchive
+                . ' (' . filesize($localArchive) . ' bytes).');
+
+            return $localArchive;
+        }
+
+        $source = $disk->readStream($this->file);
+
+        if (!is_resource($source)) {
+            throw new \RuntimeException('Unable to read ' . $this->file . ' from the ' . $this->disk . ' disk.');
+        }
+
+        $destination = fopen($localArchive, 'w+b');
+
+        if (!is_resource($destination)) {
+            fclose($source);
+            throw new \RuntimeException('Unable to open local archive for writing: ' . $localArchive);
+        }
+
+        try {
+            $written = stream_copy_to_stream($source, $destination);
+        } finally {
+            fclose($source);
+            fclose($destination);
+        }
+
+        if ($written === false) {
+            @unlink($localArchive);
+            throw new \RuntimeException('Failed to copy ' . $this->file . ' from the ' . $this->disk . ' disk.');
+        }
+
+        Log::info('Copied ' . $this->file . ' from the ' . $this->disk . ' disk to ' . $localArchive . ' (' . $written . ' bytes).');
+
+        return $localArchive;
+    }
+
+    /**
+     * Removes the local archive and anything PharData left beside it.
+     *
+     * @param string $localArchive
+     */
+    private function cleanUpLocalArchive(string $localArchive)
+    {
+        if (file_exists($localArchive)) {
+            @unlink($localArchive);
+        }
+
+        // PharData keeps the opened archive in its cache for the life of the
+        // process; unlinking it is enough for a queue worker, but the extracted
+        // directory processTextFilterArchive() names is ours to remove.
+        $extractedDir = $localArchive . '-dir';
+
+        if (is_dir($extractedDir)) {
+            $files = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($extractedDir, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            );
+
+            foreach ($files as $fileInfo) {
+                $fileInfo->isDir() ? @rmdir($fileInfo->getPathname()) : @unlink($fileInfo->getPathname());
+            }
+
+            @rmdir($extractedDir);
+        }
     }
 }

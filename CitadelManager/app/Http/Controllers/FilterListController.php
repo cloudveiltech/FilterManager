@@ -12,6 +12,7 @@ namespace App\Http\Controllers;
 use App\Group;
 use Carbon\Carbon;
 use App\FilterList;
+use App\FilterListImport;
 use GuzzleHttp\Client;
 use App\FilterRulesManager;
 use Illuminate\Support\Str;
@@ -60,13 +61,85 @@ class FilterListController extends Controller {
         $category = preg_replace('/[^0-9a-zA-Z\-_\.]+/', '', $request->input('category'));
         $filename = 'export_' . $category . '.zip';
 
-        if (!Storage::disk('export')->exists($filename)) {
+        try {
+            $exists = Storage::disk('export')->exists($filename);
+        } catch (\Throwable $e) {
+            return $this->exportDiskUnavailable($e);
+        }
+
+        if (!$exists) {
+            // exists() reports false for a genuinely absent object *and* for a
+            // disk we cannot talk to at all (bad credentials, wrong endpoint,
+            // wrong bucket). A HEAD on the bucket itself tells the two apart: it
+            // throws when the disk is misconfigured, and succeeds when the
+            // object is simply not there yet.
+            try {
+                $adapter = Storage::disk('export')->getAdapter();
+                $adapter->getClient()->headBucket(['Bucket' => $adapter->getBucket()]);
+            } catch (\Throwable $e) {
+                return $this->exportDiskUnavailable($e);
+            }
+
             return response()->json(['error' => 'File not found on export disk: ' . $filename], 404);
         }
 
         ProcessTextFilterArchiveUpload::dispatch('default', $filename, true, $category, 'export');
 
         return response()->json(['message' => 'Import has been triggered for category: ' . $category]);
+    }
+
+    /**
+     * Lists the export archives available on the export disk, along with when
+     * each was last imported, so a caller does not have to already know the
+     * category names. Read only - nothing in the bucket is modified.
+     */
+    public function listExports() {
+        try {
+            $disk = Storage::disk('export');
+            $files = $disk->files();
+        } catch (\Throwable $e) {
+            return $this->exportDiskUnavailable($e);
+        }
+
+        $imports = FilterListImport::where('disk', 'export')->get()->keyBy('file');
+
+        $exports = [];
+        foreach ($files as $file) {
+            if (!Str::startsWith($file, 'export_') || !Str::endsWith($file, '.zip')) {
+                continue;
+            }
+
+            $import = $imports->get($file);
+
+            $exports[] = [
+                'category' => Str::after(Str::before($file, '.zip'), 'export_'),
+                'file' => $file,
+                'size' => $disk->size($file),
+                'last_modified' => Carbon::createFromTimestamp($disk->lastModified($file))->toIso8601ZuluString(),
+                'imported_at' => is_null($import) || is_null($import->imported_at)
+                    ? null
+                    : $import->imported_at->toIso8601ZuluString(),
+            ];
+        }
+
+        return response()->json(['exports' => $exports]);
+    }
+
+    /**
+     * Reports a broken export disk, rather than letting it masquerade as a
+     * missing file.
+     *
+     * @param \Throwable $e
+     * @return \Illuminate\Http\JsonResponse
+     */
+    private function exportDiskUnavailable(\Throwable $e) {
+        Log::error('Export disk is unreachable (bucket: ' . config('filesystems.disks.export.bucket')
+            . ', endpoint: ' . config('filesystems.disks.export.endpoint') . '): ' . $e->getMessage());
+
+        return response()->json([
+            'error' => 'Could not reach the export disk. Check the DO_* credentials, endpoint and bucket.',
+            'detail' => $e->getMessage(),
+        ], 502);
     }
 
     /**

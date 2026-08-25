@@ -67,9 +67,14 @@ return [
             'key' => env('DO_ACCESS_KEY_ID'),
             'secret' => env('DO_SECRET_ACCESS_KEY'),
             'region' => env('DO_DEFAULT_REGION', 'nyc3'),
-            'bucket' => env('DO_EXPORT_BUCKET', 'cloudveil-exports'),
+            // These must match the 'export' disk in the list building pipeline
+            // (list_management/v3), which is what writes export_<category>.zip
+            // into this bucket. DigitalOcean Spaces uses virtual host style
+            // addressing, so path style stays off by default and is only turned
+            // on in .env for local (MinIO/Herd) testing.
+            'bucket' => env('DO_BUCKET', 'cloudveil-exports'),
             'endpoint' => env('DO_ENDPOINT', 'https://nyc3.digitaloceanspaces.com'),
-            'use_path_style_endpoint' => env('DO_USE_PATH_STYLE_ENDPOINT', true),
+            'use_path_style_endpoint' => env('DO_USE_PATH_STYLE_ENDPOINT', false),
             'visibility' => 'public',
         ],
 

@@ -296,6 +296,7 @@ Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once
     // For handling mass upload of filter lists.
     Route::post('/filterlists/upload', 'FilterListController@processUploadedFilterLists');
     Route::post('/filterlists/trigger-update', 'FilterListController@triggerUpdateFromExport');
+    Route::get('/filterlists/exports', 'FilterListController@listExports');
 
     /* Manage Users */
     Route::post('/users/{id}', 'UserController@update'); //Should be deprecated.
