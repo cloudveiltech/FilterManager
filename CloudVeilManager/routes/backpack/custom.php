@@ -18,6 +18,16 @@ Route::group([
     ),
     'namespace' => 'App\Http\Controllers\Admin',
 ], function () { // custom admin routes
+    Route::get('filter-list/{id}/groups', [
+        'as' => 'filter-list.groups',
+        'uses' => 'FilterListCrudController@groups',
+        'operation' => 'groups',
+    ]);
+    Route::post('filter-list/{id}/groups', [
+        'as' => 'filter-list.groups.update',
+        'uses' => 'FilterListCrudController@updateGroups',
+        'operation' => 'groups',
+    ]);
     Route::crud('filter-list', 'FilterListCrudController');
     Route::crud('user', 'UserCrudController');
     Route::crud('group', 'GroupCrudController');
