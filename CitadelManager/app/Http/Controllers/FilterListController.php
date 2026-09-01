@@ -12,9 +12,10 @@ namespace App\Http\Controllers;
 use App\Group;
 use Carbon\Carbon;
 use App\FilterList;
-use App\FilterListImport;
 use GuzzleHttp\Client;
 use App\FilterRulesManager;
+use App\Services\FilterImportGate;
+use App\Services\FilterImportOutcome;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\GroupFilterAssignment;
@@ -31,7 +32,6 @@ class FilterListController extends Controller {
      **/
     public function triggerUpdate(Request $request) {
         $timestamp = Carbon::now()->toIso8601ZuluString();
-        $client = new Client();
         $filename = 'export.zip';
         $category = '';
         if ($request->has('file')) {
@@ -39,6 +39,33 @@ class FilterListController extends Controller {
             $filename = preg_replace('/[^0-9a-zA-Z\-_\.]+/', '', $filename);
             $category = Str::after(Str::before($filename, '.zip'), 'export_');
         }
+
+        // Adoption intentionally bypasses the allowlist and modified-time
+        // checks. It must still use the shared deny policy, however, because
+        // the pipeline links to this endpoint for every exported category.
+        if ($category !== '' && $filename !== 'export.zip') {
+            try {
+                // A non-null metadata value keeps this HTTP adoption path
+                // independent of the S3 export disk. Only the gate's deny
+                // outcome is authoritative here; the other outcomes are
+                // deliberately ignored so a new category can be adopted.
+                $decision = $this->makeFilterImportGate(false)->decide($filename, 0);
+            } catch (\Throwable $e) {
+                return response(
+                    'Unable to verify the deny policy for category [' . $category . ']: ' . $e->getMessage(),
+                    500
+                );
+            }
+
+            if ($decision !== null && $decision->outcome === FilterImportOutcome::DENIED) {
+                return response(
+                    'Import refused for category [' . $category . ']: ' . $decision->reason,
+                    403
+                );
+            }
+        }
+
+        $client = $this->makeHttpClient();
         $results = 'Downloading File from ' . config('app.default_list_export_url') . $filename . '<br>';
         $response = $client->get(config('app.default_list_export_url') . $filename);
         $results .= 'Saving to: ' . $timestamp . '.zip<br>';
@@ -51,95 +78,32 @@ class FilterListController extends Controller {
     }
 
     /**
-     * Trigger an import from a file on the S3-compatible export disk.
+     * @return \GuzzleHttp\Client
      */
-    public function triggerUpdateFromExport(Request $request) {
-        $this->validate($request, [
-            'category' => 'required|string|min:1|max:64',
-        ]);
-
-        $category = preg_replace('/[^0-9a-zA-Z\-_\.]+/', '', $request->input('category'));
-        $filename = 'export_' . $category . '.zip';
-
-        try {
-            $exists = Storage::disk('export')->exists($filename);
-        } catch (\Throwable $e) {
-            return $this->exportDiskUnavailable($e);
-        }
-
-        if (!$exists) {
-            // exists() reports false for a genuinely absent object *and* for a
-            // disk we cannot talk to at all (bad credentials, wrong endpoint,
-            // wrong bucket). A HEAD on the bucket itself tells the two apart: it
-            // throws when the disk is misconfigured, and succeeds when the
-            // object is simply not there yet.
-            try {
-                $adapter = Storage::disk('export')->getAdapter();
-                $adapter->getClient()->headBucket(['Bucket' => $adapter->getBucket()]);
-            } catch (\Throwable $e) {
-                return $this->exportDiskUnavailable($e);
-            }
-
-            return response()->json(['error' => 'File not found on export disk: ' . $filename], 404);
-        }
-
-        ProcessTextFilterArchiveUpload::dispatch('default', $filename, true, $category, 'export');
-
-        return response()->json(['message' => 'Import has been triggered for category: ' . $category]);
+    protected function makeHttpClient() {
+        return new Client();
     }
 
     /**
-     * Lists the export archives available on the export disk, along with when
-     * each was last imported, so a caller does not have to already know the
-     * category names. Read only - nothing in the bucket is modified.
-     */
-    public function listExports() {
-        try {
-            $disk = Storage::disk('export');
-            $files = $disk->files();
-        } catch (\Throwable $e) {
-            return $this->exportDiskUnavailable($e);
-        }
-
-        $imports = FilterListImport::where('disk', 'export')->get()->keyBy('file');
-
-        $exports = [];
-        foreach ($files as $file) {
-            if (!Str::startsWith($file, 'export_') || !Str::endsWith($file, '.zip')) {
-                continue;
-            }
-
-            $import = $imports->get($file);
-
-            $exports[] = [
-                'category' => Str::after(Str::before($file, '.zip'), 'export_'),
-                'file' => $file,
-                'size' => $disk->size($file),
-                'last_modified' => Carbon::createFromTimestamp($disk->lastModified($file))->toIso8601ZuluString(),
-                'imported_at' => is_null($import) || is_null($import->imported_at)
-                    ? null
-                    : $import->imported_at->toIso8601ZuluString(),
-            ];
-        }
-
-        return response()->json(['exports' => $exports]);
-    }
-
-    /**
-     * Reports a broken export disk, rather than letting it masquerade as a
-     * missing file.
+     * Resolve the shared import gate with the requested disk behaviour.
      *
-     * @param \Throwable $e
-     * @return \Illuminate\Http\JsonResponse
+     * @param bool $useExportDisk
+     * @return FilterImportGate
      */
-    private function exportDiskUnavailable(\Throwable $e) {
-        Log::error('Export disk is unreachable (bucket: ' . config('filesystems.disks.export.bucket')
-            . ', endpoint: ' . config('filesystems.disks.export.endpoint') . '): ' . $e->getMessage());
+    private function makeFilterImportGate($useExportDisk) {
+        $parameters = [];
 
-        return response()->json([
-            'error' => 'Could not reach the export disk. Check the DO_* credentials, endpoint and bucket.',
-            'detail' => $e->getMessage(),
-        ], 502);
+        if ($useExportDisk) {
+            $parameters['exportDisk'] = Storage::disk(FilterImportGate::EXPORT_DISK);
+        } else {
+            // The adoption endpoint downloads over HTTP. It supplies the
+            // metadata argument to decide(), so this placeholder is never
+            // asked to access an export object.
+            $parameters['exportDisk'] = new class {
+            };
+        }
+
+        return app()->makeWith(FilterImportGate::class, $parameters);
     }
 
     /**
@@ -459,6 +423,7 @@ class FilterListController extends Controller {
         // set to true. So, we keep a map of all list ID's that we've already
         // purged so we only do this once.
         $purgedCategories = array();
+        $categoryFilterLists = array();
 
         $zippedData = new \PharData($tmpArchiveLoc);
         $filterListManager = new FilterRulesManager();
@@ -542,29 +507,40 @@ class FilterListController extends Controller {
                     continue;
                 }
 
-                if ($overwrite) {
-                    Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
+                try {
+                    if ($overwrite) {
+                        Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
 
-                    $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
-                    if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
-                        $filterListManager->deleteFiles($existingList);
-                        array_push($purgedCategories, $existingList->id);
+                        $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
+                        if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
+                            $filterListManager->deleteFiles($existingList);
+                            array_push($purgedCategories, $existingList->id);
+                        }
                     }
+
+                    $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
+
+                    if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
+                        array_push($purgedCategories, $newFilterListEntry->id);
+                    }
+
+                    // In case this is existing, pull group assignment of this filter.
+                    $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
+
+                    // Register every output for this category before writing so a partial write can be removed.
+                    $categoryFilterLists[$categoryName][$newFilterListEntry->id] = $newFilterListEntry;
+
+                    $appendToEndOfFile = $fileCountByType[$finalListType] > 1;
+                    $filterListManager->buildFileFromSpl($pharFileInfo->openFile('r'), $newFilterListEntry, $convertToAbp, $appendToEndOfFile);
+
+                    $newFilterListEntry->touch();
+                } catch (\Throwable $e) {
+                    foreach ($categoryFilterLists[$categoryName] ?? [] as $categoryFilterList) {
+                        $filterListManager->deleteFiles($categoryFilterList);
+                    }
+
+                    throw $e;
                 }
-
-                $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
-
-                if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
-                    array_push($purgedCategories, $newFilterListEntry->id);
-                }
-
-                // In case this is existing, pull group assignment of this filter.
-                $affectedGroups = array_merge($affectedGroups, $this->getGroupsAttachedToFilterId($newFilterListEntry->id));
-
-                $appendToEndOfFile = $fileCountByType[$finalListType] > 1;
-                $filterListManager->buildFileFromSpl($pharFileInfo->openFile('r'), $newFilterListEntry, $convertToAbp, $appendToEndOfFile);
-
-                $newFilterListEntry->touch();
             }
         }
 
