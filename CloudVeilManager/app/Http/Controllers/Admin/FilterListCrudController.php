@@ -8,17 +8,18 @@ use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use App\Models\Group;
 use App\Models\GroupFilterAssignment;
+use App\Services\FilterImportGate;
+use App\Services\FilterImportOutcome;
 use App\Services\GroupFilterAssignmentService;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Carbon\Carbon;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Class FilterListCrudController
@@ -284,8 +285,6 @@ class FilterListCrudController extends CrudController
 
     public function triggerUpdate(Request $request)
     {
-        $timestamp = Carbon::now()->toIso8601ZuluString();
-        $client = new Client();
         $filename = 'export.zip';
         $category = '';
         if ($request->has('file')) {
@@ -293,15 +292,82 @@ class FilterListCrudController extends CrudController
             $filename = preg_replace('/[^0-9a-zA-Z\-_\.]+/', '', $filename);
             $category = Str::after(Str::before($filename, '.zip'), 'export_');
         }
-        $results = 'Downloading File from ' . config('app.default_list_export_url') . $filename . '<br>';
-        $response = $client->get(config('app.default_list_export_url') . $filename);
-        $results .= 'Saving to: ' . $timestamp . '.zip<br>';
-        Storage::put('export' . $timestamp . '.zip', $response->getBody());
-        $file = Storage::size('export' . $timestamp . '.zip');
-        ProcessTextFilterArchiveUpload::dispatch('default', storage_path('app/export' . $timestamp . '.zip'), true, $category);
-        $results .= 'File is : ' . $file . ' bytes.<br>';
-        $results .= 'Import has been triggered.<br>';
-        return response($results);
+
+        try {
+            $exportDisk = Storage::disk(FilterImportGate::EXPORT_DISK);
+            $gate = app()->makeWith(FilterImportGate::class, [
+                'exportDisk' => $exportDisk,
+            ]);
+        } catch (Throwable $exception) {
+            return response(
+                "Unable to import category [{$category}]: export disk error: {$exception->getMessage()}",
+                500,
+            );
+        }
+
+        $decision = $gate->decide($filename);
+
+        if ($decision?->outcome === FilterImportOutcome::DENIED) {
+            return response(
+                'Import refused for category ['.$category.']: '.($decision->reason ?? 'The category is denied.'),
+                403,
+            );
+        }
+
+        if ($decision?->outcome === FilterImportOutcome::OBJECT_MISSING) {
+            return response(
+                'Unable to import category ['.$category.']: '.($decision->reason ?? 'The export object is missing.'),
+                404,
+            );
+        }
+
+        if ($decision?->outcome === FilterImportOutcome::DISK_ERROR) {
+            return response(
+                'Unable to import category ['.$category.']: export disk error: '.($decision->reason ?? 'Unknown disk error.'),
+                500,
+            );
+        }
+
+        if ($decision === null) {
+            if ($filename !== 'export.zip') {
+                return response("Unable to derive a category from export object [{$filename}].", 400);
+            }
+
+            try {
+                if (! $exportDisk->exists($filename)) {
+                    return response(
+                        'Unable to import the all-category export: the bucket object does not exist on the export disk.',
+                        404,
+                    );
+                }
+            } catch (Throwable $exception) {
+                return response(
+                    'Unable to import the all-category export: export disk error: '.$exception->getMessage(),
+                    500,
+                );
+            }
+        }
+
+        // Adoption intentionally bypasses the allowlist and current-file check. The gate is
+        // used above to retain its deny policy and export-disk/object validation.
+        try {
+            ProcessTextFilterArchiveUpload::dispatch(
+                FilterImportGate::DEFAULT_NAMESPACE,
+                $filename,
+                true,
+                $category,
+                FilterImportGate::EXPORT_DISK,
+            );
+        } catch (Throwable $exception) {
+            return response(
+                'Unable to dispatch import for category ['.$category.']: '.$exception->getMessage(),
+                500,
+            );
+        }
+
+        return response(
+            'Import has been triggered for category ['.$category.'] from export disk object ['.$filename.'].',
+        );
     }
 
 
