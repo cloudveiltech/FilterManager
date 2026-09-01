@@ -19,6 +19,8 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\FilterUpload::class,
         Commands\ExportFilterRulesToFileSystem::class,
+        Commands\DiscoverFilterImports::class,
+        Commands\FilterImportExport::class,
         //
     ];
 
@@ -36,6 +38,7 @@ class Kernel extends ConsoleKernel
         $this->scheduleSentryUpdateAlerts($schedule);
 
         $schedule->command("activation:disable")->weekly();
+        $schedule->command('filter:discover')->everyFifteenMinutes()->withoutOverlapping();
     }
 
     private function scheduleDeletingDeactivationRequests(Schedule $schedule)
