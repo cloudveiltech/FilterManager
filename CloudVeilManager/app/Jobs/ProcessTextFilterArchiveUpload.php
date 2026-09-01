@@ -6,22 +6,18 @@ use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use App\Models\Group;
 use App\Models\GroupFilterAssignment;
+use GuzzleHttp\Client;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ProcessTextFilterArchiveUpload implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    public $listNamespace;
-    public $file;
-    public $shouldOverwrite;
-    public $category;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -32,16 +28,14 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
 
     /**
      * Create a new job instance.
-     *
-     * @return void
      */
-    public function __construct(string $listNamespace, string $file, bool $shouldOverwrite, string $category = '')
-    {
-        $this->listNamespace = $listNamespace;
-        $this->file = $file;
-        $this->shouldOverwrite = $shouldOverwrite;
-        $this->category = $category;
-    }
+    public function __construct(
+        public string $listNamespace,
+        public string $file,
+        public bool $shouldOverwrite,
+        public string $category = '',
+        public ?string $disk = null,
+    ) {}
 
     /**
      * Execute the job.
@@ -70,7 +64,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             Log::error($e);
         }
 
-        ProcessTextFilterArchiveUpload::processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
+        $this->processArchive();
 
         Log::info('Finished processTextFilterArchive Job.');
 
@@ -89,6 +83,67 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             );
         } catch (\Exception $e) {
             Log::error($e);
+        }
+    }
+
+    private function processArchive(): void
+    {
+        if ($this->disk === null) {
+            ProcessTextFilterArchiveUpload::processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
+
+            return;
+        }
+
+        $temporaryDirectory = storage_path('app/exports');
+        $temporaryArchive = $temporaryDirectory.'/'.uniqid().'.zip';
+        $sourceStream = null;
+        $destinationStream = null;
+
+        try {
+            if (! is_dir($temporaryDirectory)
+                && ! mkdir($temporaryDirectory, 0755, true)
+                && ! is_dir($temporaryDirectory)) {
+                throw new \RuntimeException("Unable to create temporary archive directory: {$temporaryDirectory}");
+            }
+
+            $sourceStream = Storage::disk($this->disk)->readStream($this->file);
+
+            if (! is_resource($sourceStream)) {
+                throw new \RuntimeException("Unable to read archive from disk [{$this->disk}]: {$this->file}");
+            }
+
+            $destinationStream = fopen($temporaryArchive, 'wb');
+
+            if (! is_resource($destinationStream)) {
+                throw new \RuntimeException("Unable to create temporary archive: {$temporaryArchive}");
+            }
+
+            if (stream_copy_to_stream($sourceStream, $destinationStream) === false) {
+                throw new \RuntimeException("Unable to copy archive to temporary file: {$temporaryArchive}");
+            }
+
+            fclose($destinationStream);
+            $destinationStream = null;
+            fclose($sourceStream);
+            $sourceStream = null;
+
+            ProcessTextFilterArchiveUpload::processTextFilterArchive(
+                $this->listNamespace,
+                $temporaryArchive,
+                $this->shouldOverwrite,
+            );
+        } finally {
+            if (is_resource($destinationStream)) {
+                fclose($destinationStream);
+            }
+
+            if (is_resource($sourceStream)) {
+                fclose($sourceStream);
+            }
+
+            if (file_exists($temporaryArchive)) {
+                @unlink($temporaryArchive);
+            }
         }
     }
 
@@ -121,6 +176,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         // set to true. So, we keep a map of all list ID's that we've already
         // purged so we only do this once.
         $purgedCategories = array();
+        $categoryFilterLists = array();
 
         $zippedData = new \PharData($tmpArchiveLoc);
         $filterListManager = new FilterRulesManager();
@@ -204,29 +260,40 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
                     continue;
                 }
 
-                if ($overwrite) {
-                    Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
+                try {
+                    if ($overwrite) {
+                        Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
 
-                    $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
-                    if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
-                        $filterListManager->deleteFiles($existingList);
-                        array_push($purgedCategories, $existingList->id);
+                        $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
+                        if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
+                            $filterListManager->deleteFiles($existingList);
+                            array_push($purgedCategories, $existingList->id);
+                        }
                     }
+
+                    $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
+
+                    if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
+                        array_push($purgedCategories, $newFilterListEntry->id);
+                    }
+
+                    // In case this is existing, pull group assignment of this filter.
+                    $affectedGroups = array_merge($affectedGroups, ProcessTextFilterArchiveUpload::getGroupsAttachedToFilterId($newFilterListEntry->id));
+
+                    // Register every output for this category before writing so a partial write can be removed.
+                    $categoryFilterLists[$categoryName][$newFilterListEntry->id] = $newFilterListEntry;
+
+                    $appendToEndOfFile = $fileCountByType[$finalListType] > 1;
+                    $filterListManager->buildFileFromSpl($pharFileInfo->openFile('r'), $newFilterListEntry, $convertToAbp, $appendToEndOfFile);
+
+                    $newFilterListEntry->touch();
+                } catch (\Throwable $e) {
+                    foreach ($categoryFilterLists[$categoryName] ?? [] as $categoryFilterList) {
+                        $filterListManager->deleteFiles($categoryFilterList);
+                    }
+
+                    throw $e;
                 }
-
-                $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
-
-                if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
-                    array_push($purgedCategories, $newFilterListEntry->id);
-                }
-
-                // In case this is existing, pull group assignment of this filter.
-                $affectedGroups = array_merge($affectedGroups, ProcessTextFilterArchiveUpload::getGroupsAttachedToFilterId($newFilterListEntry->id));
-
-                $appendToEndOfFile = $fileCountByType[$finalListType] > 1;
-                $filterListManager->buildFileFromSpl($pharFileInfo->openFile('r'), $newFilterListEntry, $convertToAbp, $appendToEndOfFile);
-
-                $newFilterListEntry->touch();
             }
         }
 
