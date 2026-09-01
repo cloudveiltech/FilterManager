@@ -7,8 +7,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Carbon\Carbon;
-use App\FilterListImport;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
@@ -93,10 +91,6 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             }
         }
 
-        if ($this->disk) {
-            $this->recordImport();
-        }
-
         Log::info('Finished processTextFilterArchive Job.');
 
         try {
@@ -116,41 +110,6 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             Log::error($e);
         }
 
-    }
-
-    /**
-     * Notes which version of the object we just imported.
-     *
-     * Deliberately kept on this side rather than marking the object in the
-     * bucket: the export pipeline owns those objects and CloudVeilManager reads
-     * the same bucket, so consuming them here would break the other app.
-     */
-    private function recordImport()
-    {
-        try {
-            $disk = Storage::disk($this->disk);
-            $adapter = $disk->getAdapter();
-
-            $etag = null;
-            if ($adapter instanceof AwsS3Adapter) {
-                $metadata = $adapter->getMetadata($this->file);
-                $etag = isset($metadata['etag']) ? trim($metadata['etag'], '"') : null;
-            }
-
-            FilterListImport::updateOrCreate(
-                ['disk' => $this->disk, 'file' => $this->file],
-                [
-                    'category' => $this->category,
-                    'etag' => $etag,
-                    'size' => $disk->size($this->file),
-                    'object_last_modified' => Carbon::createFromTimestamp($disk->lastModified($this->file)),
-                    'imported_at' => Carbon::now(),
-                ]
-            );
-        } catch (\Exception $e) {
-            // Bookkeeping must never fail an import that already succeeded.
-            Log::error('Could not record import of ' . $this->file . ': ' . $e->getMessage());
-        }
     }
 
     /**
