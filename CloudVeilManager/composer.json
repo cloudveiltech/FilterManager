@@ -29,6 +29,7 @@
         "laravel/socialite": "^5.21",
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
+        "league/flysystem-aws-s3-v3": "^3.25.1",
         "patriciy/entrust": "dev-master",
         "predis/predis": "^3.0",
         "sentry/sentry-laravel": "^4.14",
@@ -94,6 +95,9 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
+        "platform": {
+            "php": "8.2.0"
+        },
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
