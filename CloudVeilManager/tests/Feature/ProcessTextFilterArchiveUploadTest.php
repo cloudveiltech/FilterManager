@@ -17,6 +17,7 @@ beforeEach(function () {
         $table->string('type');
         $table->string('file_sha1')->nullable();
         $table->unsignedInteger('entries_count')->default(0);
+        $table->boolean('import_enabled')->default(true);
         $table->timestamps();
     });
 
