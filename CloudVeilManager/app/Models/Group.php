@@ -47,6 +47,11 @@ class Group extends Model
         ];
     }
 
+    public function activations()
+    {
+        return $this->hasMany('App\Models\AppUserActivation');
+    }
+
     public function assignedFilterIds()
     {
         return $this->hasMany('App\Models\GroupFilterAssignment');
@@ -87,6 +92,22 @@ class Group extends Model
             "id")
             ->withPivot("as_blacklist", "as_whitelist", "as_bypass")
             ->wherePivot("as_bypass", "=", 1);
+    }
+
+    /**
+     * All filter-list assignments for this group in a single relation, carrying the status flags
+     * as pivot data. This is the encompassing relation the rule-selection admin field reads and
+     * writes (via sync()) — it replaces the three per-status belongsToMany relations on the write
+     * side. The three per-status relations remain only for legacy/read convenience.
+     */
+    public function assignedFilters()
+    {
+        return $this->belongsToMany('App\Models\FilterList',
+            'group_filter_assignments',
+            'group_id',
+            'filter_list_id')
+            ->withPivot('as_blacklist', 'as_whitelist', 'as_bypass')
+            ->withTimestamps();
     }
 
     public function assignedApplicationRules()

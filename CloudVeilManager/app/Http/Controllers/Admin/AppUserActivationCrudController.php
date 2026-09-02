@@ -6,8 +6,10 @@ use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\User;
 use App\Models\SystemPlatform;
+use App\Models\AppUserActivation;
 use Backpack\CRUD\app\Library\Widget;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 /**
  * Class AppUserActivationCrudController
@@ -51,10 +53,20 @@ class AppUserActivationCrudController extends CrudController
                 'value' => function ($entry) {
                     $friendlyName = $entry->friendly_name ?: '-';
                     $deviceId = $entry->device_id ?: '-';
-                    return '<div>' . e($friendlyName) . '</div><div class="text-muted small">' . e($deviceId) . '</div>';
+                    $deletedBadge = $entry->trashed()
+                        ? ' <span class="badge bg-danger text-white">Deleted</span>'
+                        : '';
+                    return '<div>' . e($friendlyName) . $deletedBadge . '</div><div class="text-muted small">' . e($deviceId) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1
+                'priority' => 1,
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $table = $query->getModel()->getTable();
+                    $operator = config('backpack.operations.list.searchOperator', 'like');
+                    $pattern = '%' . $searchTerm . '%';
+                    $query->orWhere($table . '.friendly_name', $operator, $pattern)
+                        ->orWhere($table . '.device_id', $operator, $pattern);
+                },
             ],
             [
                 'label' => 'User',
@@ -68,7 +80,15 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($user->name) . '</div><div class="text-muted small">' . e($user->email) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1
+                'priority' => 1,
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $operator = config('backpack.operations.list.searchOperator', 'like');
+                    $pattern = '%' . $searchTerm . '%';
+                    $query->orWhereHas('user', function ($q) use ($operator, $pattern) {
+                        $q->where('name', $operator, $pattern)
+                            ->orWhere('email', $operator, $pattern);
+                    });
+                },
             ],
             [
                 'label' => 'Group',
@@ -102,6 +122,11 @@ class AppUserActivationCrudController extends CrudController
                 'searchLogic' => 'text'
             ]
         ]);
+
+        // Deleted activations can't be deleted again - hide the button for them
+        CRUD::setAccessCondition('delete', function ($entry) {
+            return $entry === null || !$entry->trashed();
+        });
 
         // Platform filter
         CRUD::filter('platform_name')
@@ -146,6 +171,14 @@ class AppUserActivationCrudController extends CrudController
                 if ($dates->to) {
                     CRUD::addClause('where', 'last_sync_time', '<=', $dates->to . ' 23:59:59');
                 }
+            });
+
+        // Soft-deleted activations are hidden until this toggle is switched on
+        CRUD::filter('trashed')
+            ->type('simple')
+            ->label('Include deleted')
+            ->whenActive(function () {
+                CRUD::addClause('withTrashed');
             });
 
         // OS Version filter
@@ -289,7 +322,7 @@ class AppUserActivationCrudController extends CrudController
                 ],
                 [
                     'label' => 'Group',
-                    'type' => 'select2',
+                    'type' => 'select2_word_search',
                     'entity' => 'group',
                     'model' => 'App\Models\Group',
                     'name' => 'group',
@@ -409,6 +442,13 @@ class AppUserActivationCrudController extends CrudController
      */
     protected function setupUpdateOperation()
     {
+        // Soft-deleted activations must still be viewable/editable in the edit form.
+        // Replacing the soft-delete global scope with a no-op (for this request only)
+        // makes both the entry lookup and the save find trashed rows. Deleting still
+        // soft-deletes, and nothing here restores an activation.
+        AppUserActivation::addGlobalScope(SoftDeletingScope::class, function () {
+        });
+
         $this->setupCreateOperation();
     }
 
