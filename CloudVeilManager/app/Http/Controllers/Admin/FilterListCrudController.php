@@ -29,6 +29,7 @@ use Throwable;
 class FilterListCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+    use \Backpack\EditableColumns\Http\Controllers\Operations\MinorUpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\BulkDeleteOperation { bulkDelete as traitBulkDelete; }
@@ -114,11 +115,29 @@ class FilterListCrudController extends CrudController
                 },
             ],
             [
+                'label' => 'Import',
+                'type' => 'editable_switch',
+                'name' => 'import_enabled',
+                // Turning this off on any of a category's rows stops
+                // filter:discover from importing that category.
+            ],
+            [
                 'label' => 'Updated At',
                 'type' => 'datetime',
                 'name' => 'updated_at'
             ],
         ]);
+
+        CRUD::filter('import_enabled')
+            ->type('dropdown')
+            ->label('Import from export bucket')
+            ->values([
+                1 => 'Enabled',
+                0 => 'Disabled',
+            ])
+            ->whenActive(function ($value) {
+                CRUD::addClause('where', 'import_enabled', (int) $value);
+            });
 
         CRUD::filter('assigned_group')
             ->type('select2')

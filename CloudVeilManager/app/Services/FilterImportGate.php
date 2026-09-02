@@ -25,28 +25,22 @@ final class FilterImportGate
 
     private readonly FilterRulesManager $rulesManager;
 
-    /** @var list<string> */
-    private readonly array $deniedCategories;
-
     private readonly int $clockToleranceSeconds;
 
-    /** @var Closure(string, string): bool */
-    private readonly Closure $hasFilterLists;
+    /** @var Closure(string, string): ?bool */
+    private readonly Closure $categoryImportState;
 
     /**
-     * @param  list<string>|null  $deniedCategories
-     * @param  Closure(string, string): bool|null  $hasFilterLists
+     * @param  Closure(string, string): ?bool|null  $categoryImportState
      */
     public function __construct(
         ?Filesystem $exportDisk = null,
         ?FilterRulesManager $rulesManager = null,
-        ?array $deniedCategories = null,
         ?int $clockToleranceSeconds = null,
-        ?Closure $hasFilterLists = null,
+        ?Closure $categoryImportState = null,
     ) {
         $this->exportDisk = $exportDisk ?? Storage::disk(self::EXPORT_DISK);
         $this->rulesManager = $rulesManager ?? new FilterRulesManager;
-        $this->deniedCategories = array_values($deniedCategories ?? config('filter_imports.deny', []));
         $this->clockToleranceSeconds = max(
             0,
             $clockToleranceSeconds ?? (int) config(
@@ -54,11 +48,19 @@ final class FilterImportGate
                 self::DEFAULT_CLOCK_TOLERANCE_SECONDS,
             ),
         );
-        $this->hasFilterLists = $hasFilterLists ?? static function (string $namespace, string $category): bool {
-            return FilterList::query()
+        // null: the category has no rows at all. false: at least one of its rows
+        // has importing turned off. true: every row allows importing.
+        $this->categoryImportState = $categoryImportState ?? static function (string $namespace, string $category): ?bool {
+            $flags = FilterList::query()
                 ->where('namespace', $namespace)
                 ->where('category', $category)
-                ->exists();
+                ->pluck('import_enabled');
+
+            if ($flags->isEmpty()) {
+                return null;
+            }
+
+            return ! $flags->contains(static fn ($enabled): bool => ! $enabled);
         };
     }
 
@@ -103,17 +105,8 @@ final class FilterImportGate
             return $resolvedLastModified;
         }
 
-        if (in_array(strtolower($category), array_map('strtolower', $this->deniedCategories), true)) {
-            return new FilterImportDecision(
-                outcome: FilterImportOutcome::DENIED,
-                objectKey: $objectKey,
-                category: $category,
-                reason: 'The category is present in filter_imports.deny.',
-            );
-        }
-
         try {
-            $isAllowlisted = ($this->hasFilterLists)(self::DEFAULT_NAMESPACE, $category);
+            $importState = ($this->categoryImportState)(self::DEFAULT_NAMESPACE, $category);
         } catch (Throwable $exception) {
             return $this->diskError(
                 $objectKey,
@@ -122,12 +115,21 @@ final class FilterImportGate
             );
         }
 
-        if (! $isAllowlisted) {
+        if ($importState === null) {
             return new FilterImportDecision(
                 outcome: FilterImportOutcome::NOT_IN_ALLOWLIST,
                 objectKey: $objectKey,
                 category: $category,
                 reason: 'No default filter_lists row exists for the category.',
+            );
+        }
+
+        if ($importState === false) {
+            return new FilterImportDecision(
+                outcome: FilterImportOutcome::DENIED,
+                objectKey: $objectKey,
+                category: $category,
+                reason: 'Importing is turned off for the category on its filter list.',
             );
         }
 

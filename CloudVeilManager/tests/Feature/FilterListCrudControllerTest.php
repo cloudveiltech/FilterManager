@@ -15,8 +15,7 @@ afterEach(function (): void {
 function filterListCrudControllerGateFixture(
     string $objectKey,
     int|false|Throwable $objectLastModified = 2000,
-    bool $hasFilterLists = true,
-    array $deniedCategories = [],
+    ?bool $importState = true,
 ): array {
     $directory = sys_get_temp_dir().'/filter-list-crud-'.bin2hex(random_bytes(8));
     mkdir($directory, 0755, true);
@@ -51,9 +50,8 @@ function filterListCrudControllerGateFixture(
         new FilterImportGate(
             exportDisk: $exportDisk,
             rulesManager: $rulesManager,
-            deniedCategories: $deniedCategories,
             clockToleranceSeconds: 5,
-            hasFilterLists: static fn (string $namespace, string $category): bool => $hasFilterLists,
+            categoryImportState: static fn (string $namespace, string $category): ?bool => $importState,
         ),
         $directory,
     ];
@@ -72,7 +70,7 @@ test('adoption dispatches an unknown category from the export disk', function ()
     Bus::fake();
     [$gate, $directory] = filterListCrudControllerGateFixture(
         'export_new-category.zip',
-        hasFilterLists: false,
+        importState: null,
     );
     $this->app->bind(FilterImportGate::class, static fn (): FilterImportGate => $gate);
 
@@ -99,7 +97,7 @@ test('adoption refuses a denied category by the gate policy', function (): void 
     Bus::fake();
     [$gate, $directory] = filterListCrudControllerGateFixture(
         'export_Uncategorized.zip',
-        deniedCategories: ['Uncategorized'],
+        importState: false,
     );
     $this->app->bind(FilterImportGate::class, static fn (): FilterImportGate => $gate);
 
@@ -108,7 +106,7 @@ test('adoption refuses a denied category by the gate policy', function (): void 
 
         $response->assertForbidden()
             ->assertSee('Import refused for category [Uncategorized]')
-            ->assertSee('The category is present in filter_imports.deny.');
+            ->assertSee('Importing is turned off');
 
         Bus::assertNothingDispatched();
     } finally {

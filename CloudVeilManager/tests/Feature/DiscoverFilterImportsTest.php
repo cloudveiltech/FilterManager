@@ -59,13 +59,14 @@ test('discovery dry-run reports gate outcomes without dispatching jobs', functio
         app()->instance(FilterImportGate::class, new FilterImportGate(
             exportDisk: $metadataDisk,
             rulesManager: $rulesManager,
-            deniedCategories: ['Uncategorized'],
             clockToleranceSeconds: 0,
-            hasFilterLists: static fn (string $namespace, string $category): bool => in_array(
-                $category,
-                ['movies', 'current'],
-                true,
-            ),
+            categoryImportState: static function (string $namespace, string $category): ?bool {
+                if (strcasecmp($category, 'Uncategorized') === 0) {
+                    return false;
+                }
+
+                return in_array($category, ['movies', 'current'], true) ? true : null;
+            },
         ));
 
         Bus::fake();
@@ -123,7 +124,7 @@ test('discovery dispatches an allowed changed category with the export disk', fu
         app()->instance(FilterImportGate::class, new FilterImportGate(
             exportDisk: $metadataDisk,
             rulesManager: $rulesManager,
-            hasFilterLists: static fn (string $namespace, string $category): bool => $category === 'movies',
+            categoryImportState: static fn (string $namespace, string $category): ?bool => $category === 'movies' ? true : null,
         ));
 
         Bus::fake();

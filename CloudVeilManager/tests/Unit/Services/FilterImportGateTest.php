@@ -50,19 +50,19 @@ function removeFilterImportFixture(string $directory): void
     rmdir($directory);
 }
 
+// $importState mirrors the gate's contract: null means the category has no
+// filter_lists rows, false means importing is turned off on one of them.
 function makeFilterImportGate(
     FilterRulesManager $rulesManager,
-    bool $hasFilterLists = true,
-    array $deniedCategories = [],
+    ?bool $importState = true,
     int $clockToleranceSeconds = 0,
     ?Filesystem $exportDisk = null,
 ): FilterImportGate {
     return new FilterImportGate(
         exportDisk: $exportDisk ?? \Mockery::mock(Filesystem::class),
         rulesManager: $rulesManager,
-        deniedCategories: $deniedCategories,
         clockToleranceSeconds: $clockToleranceSeconds,
-        hasFilterLists: static fn (string $namespace, string $category): bool => $hasFilterLists,
+        categoryImportState: static fn (string $namespace, string $category): ?bool => $importState,
     );
 }
 
@@ -174,13 +174,13 @@ test('the clock tolerance prevents a near-equal mtime from reimporting', functio
     }
 });
 
-test('a denied category is never importable even when filter list rows exist', function (): void {
+test('a category with importing turned off is never importable', function (): void {
     [$directory, $rulesManager] = filterImportGateFixture();
 
     try {
         $decision = makeFilterImportGate(
             $rulesManager,
-            deniedCategories: ['movies'],
+            importState: false,
         )->decide('export_movies.zip', 2000);
 
         expect($decision->outcome)->toBe(FilterImportOutcome::DENIED)
@@ -190,17 +190,17 @@ test('a denied category is never importable even when filter list rows exist', f
     }
 });
 
-test('a differently cased denied category is still refused', function (): void {
+test('a category with importing turned off reports why', function (): void {
     [$directory, $rulesManager] = filterImportGateFixture();
 
     try {
         $decision = makeFilterImportGate(
             $rulesManager,
-            deniedCategories: ['Uncategorized'],
+            importState: false,
         )->decide('export_uncategorized.zip', 2000);
 
         expect($decision->outcome)->toBe(FilterImportOutcome::DENIED)
-            ->and($decision->shouldImport())->toBeFalse();
+            ->and($decision->reason)->toContain('turned off');
     } finally {
         removeFilterImportFixture($directory);
     }
@@ -210,7 +210,7 @@ test('a category without a default filter list row is not in the allowlist', fun
     [$directory, $rulesManager] = filterImportGateFixture();
 
     try {
-        $decision = makeFilterImportGate($rulesManager, hasFilterLists: false)
+        $decision = makeFilterImportGate($rulesManager, importState: null)
             ->decide('export_movies.zip', 2000);
 
         expect($decision->outcome)->toBe(FilterImportOutcome::NOT_IN_ALLOWLIST)

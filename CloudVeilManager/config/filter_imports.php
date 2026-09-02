@@ -1,13 +1,10 @@
 <?php
 
-// These categories must never be imported from the export bucket, even if filter_lists rows exist.
 return [
-    // Comma separated in FILTER_IMPORT_DENY. Matching is case-insensitive, and an
-    // empty value denies nothing.
-    'deny' => array_values(array_filter(array_map(
-        'trim',
-        explode(',', (string) env('FILTER_IMPORT_DENY', 'Uncategorized,test,invalid')),
-    ), static fn (string $category): bool => $category !== '')),
+    // Whether a category may be imported is stored on its filter_lists rows
+    // (the import_enabled column), so it can be changed from the admin UI and
+    // is shared by every app pointed at this database.
+
     'clock_tolerance_seconds' => 5,
 
     // Whether schedule:run sweeps the export bucket. Turn this off to stop

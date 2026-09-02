@@ -13,8 +13,7 @@ afterEach(function (): void {
 function filterImportExportTestGate(
     string $objectKey,
     int|false|\Throwable $objectLastModified = 2000,
-    bool $hasFilterLists = true,
-    array $deniedCategories = [],
+    ?bool $importState = true,
     bool $writeCurrentRules = false,
 ): array {
     $directory = sys_get_temp_dir().'/filter-import-export-'.bin2hex(random_bytes(8));
@@ -58,9 +57,8 @@ function filterImportExportTestGate(
         new FilterImportGate(
             exportDisk: $exportDisk,
             rulesManager: $rulesManager,
-            deniedCategories: $deniedCategories,
             clockToleranceSeconds: 5,
-            hasFilterLists: static fn (string $namespace, string $category): bool => $hasFilterLists,
+            categoryImportState: static fn (string $namespace, string $category): ?bool => $importState,
         ),
         $directory,
     ];
@@ -126,7 +124,7 @@ test('--force cannot dispatch a denied category', function (): void {
     Bus::fake();
     [$gate, $directory] = filterImportExportTestGate(
         'export_Uncategorized.zip',
-        deniedCategories: ['Uncategorized'],
+        importState: false,
     );
     $this->app->bind(FilterImportGate::class, static fn (): FilterImportGate => $gate);
 
@@ -136,7 +134,7 @@ test('--force cannot dispatch a denied category', function (): void {
             '--force' => true,
         ])
             ->expectsOutput('Outcome: denied')
-            ->expectsOutput('Reason: The category is present in filter_imports.deny.')
+            ->expectsOutputToContain('Reason: Importing is turned off')
             ->assertExitCode(0);
 
         Bus::assertNothingDispatched();
@@ -149,7 +147,7 @@ test('--force cannot dispatch a category outside the allowlist', function (): vo
     Bus::fake();
     [$gate, $directory] = filterImportExportTestGate(
         'export_new-category.zip',
-        hasFilterLists: false,
+        importState: null,
     );
     $this->app->bind(FilterImportGate::class, static fn (): FilterImportGate => $gate);
 
