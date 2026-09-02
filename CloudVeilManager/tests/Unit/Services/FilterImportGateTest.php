@@ -5,6 +5,8 @@ use App\Services\FilterImportGate;
 use App\Services\FilterImportOutcome;
 use Illuminate\Contracts\Filesystem\Filesystem;
 
+uses(Tests\TestCase::class);
+
 afterEach(function (): void {
     \Mockery::close();
 });
@@ -103,8 +105,7 @@ test('the newest local rule file controls change detection', function (): void {
 
         $decision = makeFilterImportGate($rulesManager)->decide('export_movies.zip', 2500);
 
-        expect($decision->outcome)->toBe(FilterImportOutcome::SKIPPED_ALREADY_CURRENT)
-            ->and($decision->newestLocalMtime)->toBe(3000);
+        expect($decision->outcome)->toBe(FilterImportOutcome::SKIPPED_ALREADY_CURRENT);
     } finally {
         removeFilterImportFixture($directory);
     }
@@ -119,7 +120,6 @@ test('a missing Filters file with an ancient Triggers file causes an import', fu
         $decision = makeFilterImportGate($rulesManager)->decide('export_movies.zip', 2500);
 
         expect($decision->outcome)->toBe(FilterImportOutcome::IMPORTED)
-            ->and($decision->newestLocalMtime)->toBe(1000)
             ->and($decision->reason)->toContain('newest local rule file');
     } finally {
         removeFilterImportFixture($directory);
@@ -134,8 +134,7 @@ test('a fresh Filters file keeps a category current when Triggers is missing', f
 
         $decision = makeFilterImportGate($rulesManager)->decide('export_movies.zip', 2500);
 
-        expect($decision->outcome)->toBe(FilterImportOutcome::SKIPPED_ALREADY_CURRENT)
-            ->and($decision->newestLocalMtime)->toBe(3000);
+        expect($decision->outcome)->toBe(FilterImportOutcome::SKIPPED_ALREADY_CURRENT);
     } finally {
         removeFilterImportFixture($directory);
     }
@@ -151,8 +150,7 @@ test('a category whose local files are current is skipped', function (): void {
         $decision = makeFilterImportGate($rulesManager)->decide('export_movies.zip', 1999);
 
         expect($decision->outcome)->toBe(FilterImportOutcome::SKIPPED_ALREADY_CURRENT)
-            ->and($decision->shouldImport())->toBeFalse()
-            ->and($decision->newestLocalMtime)->toBe(2000);
+            ->and($decision->shouldImport())->toBeFalse();
     } finally {
         removeFilterImportFixture($directory);
     }
@@ -250,7 +248,7 @@ test('a bucket metadata failure is reported as a disk error', function (): void 
             ->decide('export_movies.zip');
 
         expect($decision->outcome)->toBe(FilterImportOutcome::DISK_ERROR)
-            ->and($decision->reason)->toContain('credentials failed');
+            ->and($decision->reason)->toBe(FilterImportGate::DISK_ERROR_REASON);
     } finally {
         removeFilterImportFixture($directory);
     }

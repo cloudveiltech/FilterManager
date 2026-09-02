@@ -150,7 +150,7 @@ test('adoption reports an export disk error', function (): void {
 
         $response->assertServerError()
             ->assertSee('Unable to import category [movies]: export disk error')
-            ->assertSee('credentials failed');
+            ->assertSee(FilterImportGate::DISK_ERROR_REASON);
 
         Bus::assertNothingDispatched();
     } finally {

@@ -8,8 +8,6 @@ final readonly class FilterImportDecision
         public FilterImportOutcome $outcome,
         public ?string $objectKey = null,
         public ?string $category = null,
-        public ?int $objectLastModified = null,
-        public ?int $newestLocalMtime = null,
         public ?string $reason = null,
     ) {}
 

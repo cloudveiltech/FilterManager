@@ -7,6 +7,7 @@ use App\Models\FilterRulesManager;
 use Closure;
 use DateTimeInterface;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -17,6 +18,8 @@ final class FilterImportGate
     public const EXPORT_DISK = 'export';
 
     public const DEFAULT_CLOCK_TOLERANCE_SECONDS = 5;
+
+    public const DISK_ERROR_REASON = 'The export object or the local rule files could not be read.';
 
     private readonly Filesystem $exportDisk;
 
@@ -105,7 +108,6 @@ final class FilterImportGate
                 outcome: FilterImportOutcome::DENIED,
                 objectKey: $objectKey,
                 category: $category,
-                objectLastModified: $resolvedLastModified,
                 reason: 'The category is present in filter_imports.deny.',
             );
         }
@@ -116,7 +118,6 @@ final class FilterImportGate
             return $this->diskError(
                 $objectKey,
                 $category,
-                $resolvedLastModified,
                 'Unable to inspect the filter_lists allowlist: '.$exception->getMessage(),
             );
         }
@@ -126,7 +127,6 @@ final class FilterImportGate
                 outcome: FilterImportOutcome::NOT_IN_ALLOWLIST,
                 objectKey: $objectKey,
                 category: $category,
-                objectLastModified: $resolvedLastModified,
                 reason: 'No default filter_lists row exists for the category.',
             );
         }
@@ -137,7 +137,6 @@ final class FilterImportGate
             return $this->diskError(
                 $objectKey,
                 $category,
-                $resolvedLastModified,
                 $localRules['error'],
             );
         }
@@ -147,7 +146,6 @@ final class FilterImportGate
                 outcome: FilterImportOutcome::IMPORTED,
                 objectKey: $objectKey,
                 category: $category,
-                objectLastModified: $resolvedLastModified,
                 reason: 'A local rule file is missing: '.$localRules['missingFilename'].'.',
             );
         }
@@ -158,7 +156,6 @@ final class FilterImportGate
             return $this->diskError(
                 $objectKey,
                 $category,
-                $resolvedLastModified,
                 'No rule file types are configured for the category.',
             );
         }
@@ -168,8 +165,6 @@ final class FilterImportGate
                 outcome: FilterImportOutcome::SKIPPED_ALREADY_CURRENT,
                 objectKey: $objectKey,
                 category: $category,
-                objectLastModified: $resolvedLastModified,
-                newestLocalMtime: $newestLocalMtime,
                 reason: 'The newest local rule file is current within the clock tolerance.',
             );
         }
@@ -178,8 +173,6 @@ final class FilterImportGate
             outcome: FilterImportOutcome::IMPORTED,
             objectKey: $objectKey,
             category: $category,
-            objectLastModified: $resolvedLastModified,
-            newestLocalMtime: $newestLocalMtime,
             reason: 'The bucket object is newer than the newest local rule file.',
         );
     }
@@ -212,7 +205,6 @@ final class FilterImportGate
             return $this->diskError(
                 $objectKey,
                 $category,
-                null,
                 'Unable to read the bucket object metadata: '.$exception->getMessage(),
             );
         }
@@ -322,15 +314,21 @@ final class FilterImportGate
     private function diskError(
         string $objectKey,
         string $category,
-        ?int $objectLastModified,
-        string $reason,
+        string $detail,
     ): FilterImportDecision {
+        // Operators get one reason; the specific failure goes to the log so a
+        // broken sweep is still diagnosable.
+        Log::warning('Filter import disk error', [
+            'object' => $objectKey,
+            'category' => $category,
+            'detail' => $detail,
+        ]);
+
         return new FilterImportDecision(
             outcome: FilterImportOutcome::DISK_ERROR,
             objectKey: $objectKey,
             category: $category,
-            objectLastModified: $objectLastModified,
-            reason: $reason,
+            reason: self::DISK_ERROR_REASON,
         );
     }
 }

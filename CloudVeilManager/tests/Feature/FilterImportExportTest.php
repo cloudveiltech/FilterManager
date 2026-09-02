@@ -199,7 +199,7 @@ test('returns failure when export metadata cannot be read', function (): void {
     try {
         $this->artisan('filter:import-export', ['category' => 'movies'])
             ->expectsOutput('Outcome: disk-error')
-            ->expectsOutputToContain('Reason: Unable to read the bucket object metadata: credentials failed')
+            ->expectsOutputToContain('Reason: '.FilterImportGate::DISK_ERROR_REASON)
             ->assertExitCode(1);
 
         Bus::assertNothingDispatched();
