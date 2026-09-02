@@ -13,9 +13,11 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command("sentry:report_update_failed")->hourly();//dailyAt("00:00");
 
-Schedule::command('filter:discover')
-    ->everyFifteenMinutes()
-    ->withoutOverlapping();
+if (config('filter_imports.schedule_enabled')) {
+    Schedule::command('filter:discover')
+        ->everyFifteenMinutes()
+        ->withoutOverlapping();
+}
 
 Schedule::call(function () {
     /* Delete deactivation requests which are haven't been touched for more than X days. */
