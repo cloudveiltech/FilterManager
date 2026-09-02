@@ -2,7 +2,12 @@
 
 // These categories must never be imported from the export bucket, even if filter_lists rows exist.
 return [
-    'deny' => ['Uncategorized', 'test', 'invalid'],
+    // Comma separated in FILTER_IMPORT_DENY. Matching is case-insensitive, and an
+    // empty value denies nothing.
+    'deny' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('FILTER_IMPORT_DENY', 'Uncategorized,test,invalid')),
+    ), static fn (string $category): bool => $category !== '')),
     'clock_tolerance_seconds' => 5,
 
     // Whether schedule:run sweeps the export bucket. Turn this off to stop
