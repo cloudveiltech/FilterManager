@@ -38,7 +38,6 @@ class Kernel extends ConsoleKernel
         $this->scheduleSentryUpdateAlerts($schedule);
 
         $schedule->command("activation:disable")->weekly();
-        $schedule->command('filter:discover')->everyFifteenMinutes()->withoutOverlapping();
     }
 
     private function scheduleDeletingDeactivationRequests(Schedule $schedule)
