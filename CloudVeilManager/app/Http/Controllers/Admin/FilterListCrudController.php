@@ -312,6 +312,13 @@ class FilterListCrudController extends CrudController
             $category = Str::after(Str::before($filename, '.zip'), 'export_');
         }
 
+        if ($filename === 'export.zip') {
+            return response(
+                'The all-category export cannot be imported. Use an export_<category>.zip object instead.',
+                400,
+            );
+        }
+
         try {
             $exportDisk = Storage::disk(FilterImportGate::EXPORT_DISK);
             $gate = app()->makeWith(FilterImportGate::class, [
@@ -348,23 +355,7 @@ class FilterListCrudController extends CrudController
         }
 
         if ($decision === null) {
-            if ($filename !== 'export.zip') {
-                return response("Unable to derive a category from export object [{$filename}].", 400);
-            }
-
-            try {
-                if (! $exportDisk->exists($filename)) {
-                    return response(
-                        'Unable to import the all-category export: the bucket object does not exist on the export disk.',
-                        404,
-                    );
-                }
-            } catch (Throwable $exception) {
-                return response(
-                    'Unable to import the all-category export: export disk error: '.$exception->getMessage(),
-                    500,
-                );
-            }
+            return response("Unable to derive a category from export object [{$filename}].", 400);
         }
 
         // Adoption intentionally bypasses the allowlist and current-file check. The gate is

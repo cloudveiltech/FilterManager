@@ -66,6 +66,19 @@ function removeFilterListCrudControllerFixture(string $directory): void
     rmdir($directory);
 }
 
+test('adoption refuses the all-category export', function (): void {
+    Bus::fake();
+
+    foreach (['/admin/update', '/admin/update?file=export.zip'] as $url) {
+        $this->withoutMiddleware()
+            ->get($url)
+            ->assertBadRequest()
+            ->assertSee('The all-category export cannot be imported');
+    }
+
+    Bus::assertNothingDispatched();
+});
+
 test('adoption dispatches an unknown category from the export disk', function (): void {
     Bus::fake();
     [$gate, $directory] = filterListCrudControllerGateFixture(
