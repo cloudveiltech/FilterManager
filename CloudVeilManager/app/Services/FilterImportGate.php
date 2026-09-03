@@ -50,18 +50,7 @@ final class FilterImportGate
         );
         // null: the category has no rows at all. false: at least one of its rows
         // has importing turned off. true: every row allows importing.
-        $this->categoryImportState = $categoryImportState ?? static function (string $namespace, string $category): ?bool {
-            $flags = FilterList::query()
-                ->where('namespace', $namespace)
-                ->where('category', $category)
-                ->pluck('import_enabled');
-
-            if ($flags->isEmpty()) {
-                return null;
-            }
-
-            return ! $flags->contains(static fn ($enabled): bool => ! $enabled);
-        };
+        $this->categoryImportState = $categoryImportState ?? self::storedCategoryImportState(...);
     }
 
     /**
@@ -89,6 +78,20 @@ final class FilterImportGate
         }
 
         return preg_replace('/\s+/', '_', strtolower($category));
+    }
+
+    public static function storedCategoryImportState(string $namespace, string $category): ?bool
+    {
+        $flags = FilterList::query()
+            ->where('namespace', $namespace)
+            ->where('category', self::normalizeCategory($category))
+            ->pluck('import_enabled');
+
+        if ($flags->isEmpty()) {
+            return null;
+        }
+
+        return ! $flags->contains(static fn ($enabled): bool => ! $enabled);
     }
 
     /**

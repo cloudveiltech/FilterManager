@@ -312,11 +312,10 @@ class FilterListCrudController extends CrudController
             $category = Str::after(Str::before($filename, '.zip'), 'export_');
         }
 
-        if ($filename === 'export.zip') {
-            return response(
-                'The all-category export cannot be imported. Use an export_<category>.zip object instead.',
-                400,
-            );
+        $isAllCategoryImport = $filename === 'export.zip';
+
+        if ($isAllCategoryImport && (! $request->isMethod('post') || ! $request->boolean('confirm_all'))) {
+            return view('admin.filter_lists.confirm_all_import');
         }
 
         try {
@@ -355,7 +354,23 @@ class FilterListCrudController extends CrudController
         }
 
         if ($decision === null) {
-            return response("Unable to derive a category from export object [{$filename}].", 400);
+            if (! $isAllCategoryImport) {
+                return response("Unable to derive a category from export object [{$filename}].", 400);
+            }
+
+            try {
+                if (! $exportDisk->exists($filename)) {
+                    return response(
+                        'Unable to import all categories: the export.zip object does not exist on the export disk.',
+                        404,
+                    );
+                }
+            } catch (Throwable $exception) {
+                return response(
+                    'Unable to import all categories: export disk error: '.$exception->getMessage(),
+                    500,
+                );
+            }
         }
 
         // Adoption intentionally bypasses the allowlist and current-file check. The gate is
@@ -378,7 +393,9 @@ class FilterListCrudController extends CrudController
         }
 
         return response(
-            'Import has been triggered for category ['.$category.'] from export disk object ['.$filename.'].',
+            $isAllCategoryImport
+                ? 'Import has been triggered for all categories from export disk object [export.zip].'
+                : 'Import has been triggered for category ['.$category.'] from export disk object ['.$filename.'].',
         );
     }
 

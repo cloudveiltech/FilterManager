@@ -66,17 +66,32 @@ function removeFilterListCrudControllerFixture(string $directory): void
     rmdir($directory);
 }
 
-test('adoption refuses the all-category export', function (): void {
+test('all-category import requires confirmation before dispatch', function (): void {
     Bus::fake();
+    Storage::fake(FilterImportGate::EXPORT_DISK);
+    Storage::disk(FilterImportGate::EXPORT_DISK)->put('export.zip', 'fixture');
 
     foreach (['/admin/update', '/admin/update?file=export.zip'] as $url) {
         $this->withoutMiddleware()
             ->get($url)
-            ->assertBadRequest()
-            ->assertSee('The all-category export cannot be imported');
+            ->assertOk()
+            ->assertViewIs('admin.filter_lists.confirm_all_import')
+            ->assertSee('Are you sure you want to import all categories?')
+            ->assertSee('This can take some time.');
     }
 
-    Bus::assertNothingDispatched();
+    $this->withoutMiddleware()
+        ->post('/admin/update', ['confirm_all' => true])
+        ->assertOk()
+        ->assertSee('Import has been triggered for all categories');
+
+    Bus::assertDispatched(ProcessTextFilterArchiveUpload::class, static function (ProcessTextFilterArchiveUpload $job): bool {
+        return $job->listNamespace === 'default'
+            && $job->file === 'export.zip'
+            && $job->shouldOverwrite === true
+            && $job->category === ''
+            && $job->disk === 'export';
+    });
 });
 
 test('adoption dispatches an unknown category from the export disk', function (): void {

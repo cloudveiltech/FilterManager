@@ -80,6 +80,49 @@ test('rejects a category export containing another category before writing files
     }
 });
 
+test('all-category import skips disabled categories and adopts unknown categories', function () {
+    $namespace = 'default';
+    $disabledCategory = 'all_import_disabled';
+    $unknownCategory = 'all_import_unknown';
+    $rulesManager = new FilterRulesManager();
+    $disabledPath = $rulesManager->getRulesetPath($namespace, $disabledCategory, 'rules');
+    $unknownPath = $rulesManager->getRulesetPath($namespace, $unknownCategory, 'rules');
+    $archivePath = tempnam(sys_get_temp_dir(), 'filter-import-').'.zip';
+
+    file_put_contents($disabledPath, "existing disabled rule\n");
+    FilterList::query()->create([
+        'namespace' => $namespace,
+        'category' => $disabledCategory,
+        'type' => 'Filters',
+        'import_enabled' => false,
+    ]);
+
+    $zip = new ZipArchive();
+    $zip->open($archivePath, ZipArchive::CREATE);
+    $zip->addFromString($disabledCategory.'/domains.txt', "disabled.example\n");
+    $zip->addFromString($unknownCategory.'/domains.txt', "unknown.example\n");
+    $zip->close();
+
+    try {
+        (new ProcessTextFilterArchiveUpload($namespace, $archivePath, true))
+            ->processTextFilterArchive($namespace, $archivePath, true, null, true);
+
+        expect(file_get_contents($disabledPath))->toBe("existing disabled rule\n")
+            ->and(file_get_contents($unknownPath))->toBe("||unknown.example\n")
+            ->and(FilterList::query()
+                ->where('namespace', $namespace)
+                ->where('category', $unknownCategory)
+                ->where('type', 'Filters')
+                ->exists())->toBeTrue();
+    } finally {
+        @unlink($archivePath);
+        @unlink($disabledPath);
+        @unlink($unknownPath);
+        @rmdir(dirname($disabledPath));
+        @rmdir(dirname(dirname($disabledPath)));
+    }
+});
+
 test('removes every rule file for a category when a later input fails', function () {
     $namespace = 'durability_test';
     $category = 'failure';

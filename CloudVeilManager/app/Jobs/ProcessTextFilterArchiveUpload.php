@@ -168,6 +168,7 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
                 $temporaryArchive,
                 $this->shouldOverwrite,
                 $this->category !== '' ? $this->category : null,
+                $this->category === '',
             );
         } finally {
             if (is_resource($destinationStream)) {
@@ -191,12 +192,14 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
      * @param string $file The location of the file to be processed.
      * @param bool $overwrite Whether or not to overwrite.
      * @param string|null $expectedCategory Restrict the archive to one category when provided.
+     * @param bool $honorImportEnabled Skip categories whose stored import policy is disabled.
      */
     public function processTextFilterArchive(
         string $namespace,
         string $tmpArchiveLoc,
         bool $overwrite,
         ?string $expectedCategory = null,
+        bool $honorImportEnabled = false,
     )
     {
         $affectedGroups = array();
@@ -222,7 +225,20 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
         $categoryFilterLists = array();
 
         $zippedData = new \PharData($tmpArchiveLoc);
-        $this->assertExpectedArchiveCategory($zippedData, $tmpArchiveLoc, $expectedCategory);
+        $archiveCategories = $expectedCategory !== null || $honorImportEnabled
+            ? $this->archiveCategories($zippedData, $tmpArchiveLoc)
+            : [];
+        $this->assertExpectedArchiveCategory($archiveCategories, $expectedCategory);
+        $disabledCategories = [];
+
+        if ($honorImportEnabled) {
+            foreach ($archiveCategories as $archiveCategory) {
+                if (FilterImportGate::storedCategoryImportState($namespace, $archiveCategory) === false) {
+                    $disabledCategories[$archiveCategory] = true;
+                }
+            }
+        }
+
         $filterListManager = new FilterRulesManager();
         $pharIterator = new \RecursiveIteratorIterator($zippedData, \RecursiveIteratorIterator::CHILD_FIRST);
         $fileCountByType = [];
@@ -287,15 +303,20 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
                         break;
                 }
 
-                if (!isset($fileCountByType[$finalListType])) {
-                    $fileCountByType[$finalListType] = 0;
-                }
-                $fileCountByType[$finalListType]++;
-
                 if (is_null($finalListType)) {
                     Log::debug("invalid/improperly named/unrecognized file");
                     continue;
                 }
+
+                if (isset($disabledCategories[$categoryName])) {
+                    Log::info('Skipping disabled import category: '.$categoryName);
+                    continue;
+                }
+
+                if (!isset($fileCountByType[$finalListType])) {
+                    $fileCountByType[$finalListType] = 0;
+                }
+                $fileCountByType[$finalListType]++;
 
                 try {
                     if ($overwrite) {
@@ -343,15 +364,13 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
         }
     }
 
-    private function assertExpectedArchiveCategory(
+    /**
+     * @return array<int, string>
+     */
+    private function archiveCategories(
         \PharData $archive,
         string $archivePath,
-        ?string $expectedCategory,
-    ): void {
-        if ($expectedCategory === null) {
-            return;
-        }
-
+    ): array {
         $categories = [];
         $archiveIterator = new \RecursiveIteratorIterator($archive, \RecursiveIteratorIterator::CHILD_FIRST);
 
@@ -378,6 +397,19 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
 
         $categories = array_keys($categories);
         sort($categories);
+
+        return $categories;
+    }
+
+    /**
+     * @param  array<int, string>  $categories
+     */
+    private function assertExpectedArchiveCategory(array $categories, ?string $expectedCategory): void
+    {
+        if ($expectedCategory === null) {
+            return;
+        }
+
         $normalizedExpectedCategory = FilterImportGate::normalizeCategory($expectedCategory);
 
         if ($categories !== [$normalizedExpectedCategory]) {

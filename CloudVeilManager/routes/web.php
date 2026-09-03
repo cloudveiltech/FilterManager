@@ -40,6 +40,7 @@ Route::namespace("App\Http\Controllers")->group(function () {
 
     Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () {
         Route::get('/update', 'Admin\FilterListCrudController@triggerUpdate');
+        Route::post('/update', 'Admin\FilterListCrudController@triggerUpdate');
     });
 
     Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user|business-owner']], function () {
@@ -90,7 +91,6 @@ Route::namespace("App\Http\Controllers")->group(function () {
     Route::get('/home', 'HomeController@index')->name('home');
 
 });
-
 
 
 
