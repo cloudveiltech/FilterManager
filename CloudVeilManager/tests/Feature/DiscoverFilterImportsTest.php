@@ -72,7 +72,7 @@ test('discovery dry-run reports gate outcomes without dispatching jobs', functio
         Bus::fake();
 
         $this->artisan('filter:discover', ['--dry-run' => true])
-            ->expectsOutputToContain('[denied] category=Uncategorized object=export_Uncategorized.zip')
+            ->expectsOutputToContain('[denied] category=uncategorized object=export_Uncategorized.zip')
             ->expectsOutputToContain('[imported] category=movies object=export_movies.zip')
             ->expectsOutputToContain('[skipped-already-current] category=current object=export_current.zip')
             ->expectsOutputToContain('[not-in-allowlist] category=unknown object=export_unknown.zip')

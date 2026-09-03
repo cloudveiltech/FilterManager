@@ -6,8 +6,10 @@ use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use App\Models\Group;
 use App\Models\GroupFilterAssignment;
+use App\Services\FilterImportGate;
 use GuzzleHttp\Client;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -15,9 +17,22 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-class ProcessTextFilterArchiveUpload implements ShouldQueue
+class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    private const IMPORTABLE_ARCHIVE_FILENAMES = [
+        'domains',
+        'domains.txt',
+        'urls',
+        'urls.txt',
+        'triggers',
+        'triggers.txt',
+        'rules',
+        'rules.txt',
+        'filters',
+        'filters.txt',
+    ];
 
     /**
      * The number of seconds the job can run before timing out.
@@ -25,6 +40,14 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
      * @var int
      */
     public $timeout = 1700;
+
+    /**
+     * Release a stranded uniqueness lock after two hours. Successful and
+     * terminally failed jobs release the lock as soon as they finish.
+     *
+     * @var int
+     */
+    public $uniqueFor = 7200;
 
     /**
      * Create a new job instance.
@@ -36,6 +59,19 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         public string $category = '',
         public ?string $disk = null,
     ) {}
+
+    public function uniqueId(): string
+    {
+        $source = $this->category !== ''
+            ? 'category:'.FilterImportGate::normalizeCategory($this->category)
+            : 'file:'.$this->file;
+
+        return hash('sha256', implode('|', [
+            $this->listNamespace,
+            $this->disk ?? 'local',
+            $source,
+        ]));
+    }
 
     /**
      * Execute the job.
@@ -89,7 +125,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
     private function processArchive(): void
     {
         if ($this->disk === null) {
-            ProcessTextFilterArchiveUpload::processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
+            $this->processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
 
             return;
         }
@@ -127,10 +163,11 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             fclose($sourceStream);
             $sourceStream = null;
 
-            ProcessTextFilterArchiveUpload::processTextFilterArchive(
+            $this->processTextFilterArchive(
                 $this->listNamespace,
                 $temporaryArchive,
                 $this->shouldOverwrite,
+                $this->category !== '' ? $this->category : null,
             );
         } finally {
             if (is_resource($destinationStream)) {
@@ -153,8 +190,14 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
      * @param string $namespace The namespace of the parent filter list.
      * @param string $file The location of the file to be processed.
      * @param bool $overwrite Whether or not to overwrite.
+     * @param string|null $expectedCategory Restrict the archive to one category when provided.
      */
-    public function processTextFilterArchive(string $namespace, string $tmpArchiveLoc, bool $overwrite)
+    public function processTextFilterArchive(
+        string $namespace,
+        string $tmpArchiveLoc,
+        bool $overwrite,
+        ?string $expectedCategory = null,
+    )
     {
         $affectedGroups = array();
 
@@ -179,6 +222,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         $categoryFilterLists = array();
 
         $zippedData = new \PharData($tmpArchiveLoc);
+        $this->assertExpectedArchiveCategory($zippedData, $tmpArchiveLoc, $expectedCategory);
         $filterListManager = new FilterRulesManager();
         $pharIterator = new \RecursiveIteratorIterator($zippedData, \RecursiveIteratorIterator::CHILD_FIRST);
         $fileCountByType = [];
@@ -204,14 +248,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
                     continue;
                 }
 
-                // We have to limit the length of our string to the max length
-                // constraint of our DB field.
-                if (strlen($categoryName) > 64) {
-                    $categoryName = substr($categoryName, 0, 64);
-                }
-
-                // Ensure no spaces etc in cat name.
-                $categoryName = preg_replace('/\s+/', '_', strtolower($categoryName));
+                $categoryName = FilterImportGate::normalizeCategory($categoryName);
 
                 $fileName = strtolower(basename($pharFileInfo->getPathname()));
                 Log::debug("filename = $fileName");
@@ -303,6 +340,52 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         Log::info('Removing Archived File: ' . $tmpArchiveLoc);
         if (file_exists($tmpArchiveLoc)) {
             @unlink($tmpArchiveLoc);
+        }
+    }
+
+    private function assertExpectedArchiveCategory(
+        \PharData $archive,
+        string $archivePath,
+        ?string $expectedCategory,
+    ): void {
+        if ($expectedCategory === null) {
+            return;
+        }
+
+        $categories = [];
+        $archiveIterator = new \RecursiveIteratorIterator($archive, \RecursiveIteratorIterator::CHILD_FIRST);
+
+        foreach ($archiveIterator as $archiveFile) {
+            if ($archiveFile->isDir()) {
+                continue;
+            }
+
+            $filename = strtolower(basename($archiveFile->getPathname()));
+
+            if (! in_array($filename, self::IMPORTABLE_ARCHIVE_FILENAMES, true)) {
+                continue;
+            }
+
+            $category = strtolower(basename(dirname($archiveFile->getPathname())));
+
+            if (in_array($category, ['/', '\\', '.', '..'], true)
+                || strcasecmp($category, basename($archivePath)) === 0) {
+                throw new \RuntimeException('The category export contains an importable file outside a category directory.');
+            }
+
+            $categories[FilterImportGate::normalizeCategory($category)] = true;
+        }
+
+        $categories = array_keys($categories);
+        sort($categories);
+        $normalizedExpectedCategory = FilterImportGate::normalizeCategory($expectedCategory);
+
+        if ($categories !== [$normalizedExpectedCategory]) {
+            $foundCategories = $categories === [] ? '(none)' : implode(', ', $categories);
+
+            throw new \RuntimeException(
+                "The category export expected [{$normalizedExpectedCategory}] but contained [{$foundCategories}].",
+            );
         }
     }
 

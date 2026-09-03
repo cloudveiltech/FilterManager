@@ -82,6 +82,32 @@ test('export.zip is structurally excluded and produces no category candidate', f
     }
 });
 
+test('object key categories are normalized before policy and local file checks', function (): void {
+    [$directory, $rulesManager] = filterImportGateFixture();
+    $checkedCategory = null;
+
+    try {
+        $gate = new FilterImportGate(
+            exportDisk: \Mockery::mock(Filesystem::class),
+            rulesManager: $rulesManager,
+            clockToleranceSeconds: 0,
+            categoryImportState: static function (string $namespace, string $category) use (&$checkedCategory): bool {
+                $checkedCategory = $category;
+
+                return true;
+            },
+        );
+
+        $decision = $gate->decide('export_Uncategorized.zip', 2000);
+
+        expect($checkedCategory)->toBe('uncategorized')
+            ->and($decision->category)->toBe('uncategorized')
+            ->and($decision->outcome)->toBe(FilterImportOutcome::IMPORTED);
+    } finally {
+        removeFilterImportFixture($directory);
+    }
+});
+
 test('a category with no local rule files must be imported', function (): void {
     [$directory, $rulesManager] = filterImportGateFixture();
 

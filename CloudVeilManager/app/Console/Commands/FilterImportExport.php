@@ -80,7 +80,7 @@ class FilterImportExport extends Command
             FilterImportGate::DEFAULT_NAMESPACE,
             $objectKey,
             true,
-            $category,
+            $decision->category ?? $category,
             FilterImportGate::EXPORT_DISK,
         );
 

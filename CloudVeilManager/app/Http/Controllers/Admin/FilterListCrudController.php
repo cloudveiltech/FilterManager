@@ -369,12 +369,14 @@ class FilterListCrudController extends CrudController
 
         // Adoption intentionally bypasses the allowlist and current-file check. The gate is
         // used above to retain its deny policy and export-disk/object validation.
+        $dispatchCategory = $decision?->category ?? $category;
+
         try {
             ProcessTextFilterArchiveUpload::dispatch(
                 FilterImportGate::DEFAULT_NAMESPACE,
                 $filename,
                 true,
-                $category,
+                $dispatchCategory,
                 FilterImportGate::EXPORT_DISK,
             );
         } catch (Throwable $exception) {

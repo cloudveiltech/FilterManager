@@ -78,7 +78,17 @@ final class FilterImportGate
             return null;
         }
 
-        return $matches['category'] !== '' ? $matches['category'] : null;
+        return $matches['category'] !== '' ? self::normalizeCategory($matches['category']) : null;
+    }
+
+    public static function normalizeCategory(string $category): string
+    {
+        // Match the category transformation used for filter_lists and rule files.
+        if (strlen($category) > 64) {
+            $category = substr($category, 0, 64);
+        }
+
+        return preg_replace('/\s+/', '_', strtolower($category));
     }
 
     /**
