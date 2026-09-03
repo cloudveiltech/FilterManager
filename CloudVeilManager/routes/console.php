@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command("sentry:report_update_failed")->hourly();//dailyAt("00:00");
 
 if (config('filter_imports.schedule_enabled')) {
+    $filterDiscoverInterval = config('filter_imports.schedule_interval_minutes', 15);
+
     Schedule::command('filter:discover')
-        ->everyFifteenMinutes()
+        ->cron("*/{$filterDiscoverInterval} * * * *")
         ->withoutOverlapping();
 }
 
