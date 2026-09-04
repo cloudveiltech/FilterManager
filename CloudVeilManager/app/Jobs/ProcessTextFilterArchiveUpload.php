@@ -6,22 +6,33 @@ use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use App\Models\Group;
 use App\Models\GroupFilterAssignment;
+use App\Services\FilterImportGate;
+use GuzzleHttp\Client;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
-class ProcessTextFilterArchiveUpload implements ShouldQueue
+class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $listNamespace;
-    public $file;
-    public $shouldOverwrite;
-    public $category;
+    private const IMPORTABLE_ARCHIVE_FILENAMES = [
+        'domains',
+        'domains.txt',
+        'urls',
+        'urls.txt',
+        'triggers',
+        'triggers.txt',
+        'rules',
+        'rules.txt',
+        'filters',
+        'filters.txt',
+    ];
 
     /**
      * The number of seconds the job can run before timing out.
@@ -31,16 +42,35 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
     public $timeout = 1700;
 
     /**
-     * Create a new job instance.
+     * Release a stranded uniqueness lock after two hours. Successful and
+     * terminally failed jobs release the lock as soon as they finish.
      *
-     * @return void
+     * @var int
      */
-    public function __construct(string $listNamespace, string $file, bool $shouldOverwrite, string $category = '')
+    public $uniqueFor = 7200;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(
+        public string $listNamespace,
+        public string $file,
+        public bool $shouldOverwrite,
+        public string $category = '',
+        public ?string $disk = null,
+    ) {}
+
+    public function uniqueId(): string
     {
-        $this->listNamespace = $listNamespace;
-        $this->file = $file;
-        $this->shouldOverwrite = $shouldOverwrite;
-        $this->category = $category;
+        $source = $this->category !== ''
+            ? 'category:'.FilterImportGate::normalizeCategory($this->category)
+            : 'file:'.$this->file;
+
+        return hash('sha256', implode('|', [
+            $this->listNamespace,
+            $this->disk ?? 'local',
+            $source,
+        ]));
     }
 
     /**
@@ -70,7 +100,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
             Log::error($e);
         }
 
-        ProcessTextFilterArchiveUpload::processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
+        $this->processArchive();
 
         Log::info('Finished processTextFilterArchive Job.');
 
@@ -92,14 +122,85 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         }
     }
 
+    private function processArchive(): void
+    {
+        if ($this->disk === null) {
+            $this->processTextFilterArchive($this->listNamespace, $this->file, $this->shouldOverwrite);
+
+            return;
+        }
+
+        $temporaryDirectory = storage_path('app/exports');
+        $temporaryArchive = $temporaryDirectory.'/'.uniqid().'.zip';
+        $sourceStream = null;
+        $destinationStream = null;
+
+        try {
+            if (! is_dir($temporaryDirectory)
+                && ! mkdir($temporaryDirectory, 0755, true)
+                && ! is_dir($temporaryDirectory)) {
+                throw new \RuntimeException("Unable to create temporary archive directory: {$temporaryDirectory}");
+            }
+
+            $sourceStream = Storage::disk($this->disk)->readStream($this->file);
+
+            if (! is_resource($sourceStream)) {
+                throw new \RuntimeException("Unable to read archive from disk [{$this->disk}]: {$this->file}");
+            }
+
+            $destinationStream = fopen($temporaryArchive, 'wb');
+
+            if (! is_resource($destinationStream)) {
+                throw new \RuntimeException("Unable to create temporary archive: {$temporaryArchive}");
+            }
+
+            if (stream_copy_to_stream($sourceStream, $destinationStream) === false) {
+                throw new \RuntimeException("Unable to copy archive to temporary file: {$temporaryArchive}");
+            }
+
+            fclose($destinationStream);
+            $destinationStream = null;
+            fclose($sourceStream);
+            $sourceStream = null;
+
+            $this->processTextFilterArchive(
+                $this->listNamespace,
+                $temporaryArchive,
+                $this->shouldOverwrite,
+                $this->category !== '' ? $this->category : null,
+                $this->category === '',
+            );
+        } finally {
+            if (is_resource($destinationStream)) {
+                fclose($destinationStream);
+            }
+
+            if (is_resource($sourceStream)) {
+                fclose($sourceStream);
+            }
+
+            if (file_exists($temporaryArchive)) {
+                @unlink($temporaryArchive);
+            }
+        }
+    }
+
     /**
      * Processes an uploaded archive, extracting the text files inside and processing
      * them according to their type and category.
      * @param string $namespace The namespace of the parent filter list.
      * @param string $file The location of the file to be processed.
      * @param bool $overwrite Whether or not to overwrite.
+     * @param string|null $expectedCategory Restrict the archive to one category when provided.
+     * @param bool $honorImportEnabled Skip categories whose stored import policy is disabled.
      */
-    public function processTextFilterArchive(string $namespace, string $tmpArchiveLoc, bool $overwrite)
+    public function processTextFilterArchive(
+        string $namespace,
+        string $tmpArchiveLoc,
+        bool $overwrite,
+        ?string $expectedCategory = null,
+        bool $honorImportEnabled = false,
+    )
     {
         $affectedGroups = array();
 
@@ -121,8 +222,23 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         // set to true. So, we keep a map of all list ID's that we've already
         // purged so we only do this once.
         $purgedCategories = array();
+        $categoryFilterLists = array();
 
         $zippedData = new \PharData($tmpArchiveLoc);
+        $archiveCategories = $expectedCategory !== null || $honorImportEnabled
+            ? $this->archiveCategories($zippedData, $tmpArchiveLoc)
+            : [];
+        $this->assertExpectedArchiveCategory($archiveCategories, $expectedCategory);
+        $disabledCategories = [];
+
+        if ($honorImportEnabled) {
+            foreach ($archiveCategories as $archiveCategory) {
+                if (FilterImportGate::storedCategoryImportState($namespace, $archiveCategory) === false) {
+                    $disabledCategories[$archiveCategory] = true;
+                }
+            }
+        }
+
         $filterListManager = new FilterRulesManager();
         $pharIterator = new \RecursiveIteratorIterator($zippedData, \RecursiveIteratorIterator::CHILD_FIRST);
         $fileCountByType = [];
@@ -148,14 +264,7 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
                     continue;
                 }
 
-                // We have to limit the length of our string to the max length
-                // constraint of our DB field.
-                if (strlen($categoryName) > 64) {
-                    $categoryName = substr($categoryName, 0, 64);
-                }
-
-                // Ensure no spaces etc in cat name.
-                $categoryName = preg_replace('/\s+/', '_', strtolower($categoryName));
+                $categoryName = FilterImportGate::normalizeCategory($categoryName);
 
                 $fileName = strtolower(basename($pharFileInfo->getPathname()));
                 Log::debug("filename = $fileName");
@@ -194,39 +303,55 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
                         break;
                 }
 
-                if (!isset($fileCountByType[$finalListType])) {
-                    $fileCountByType[$finalListType] = 0;
-                }
-                $fileCountByType[$finalListType]++;
-
                 if (is_null($finalListType)) {
                     Log::debug("invalid/improperly named/unrecognized file");
                     continue;
                 }
 
-                if ($overwrite) {
-                    Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
+                if (isset($disabledCategories[$categoryName])) {
+                    Log::info('Skipping disabled import category: '.$categoryName);
+                    continue;
+                }
 
-                    $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
-                    if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
-                        $filterListManager->deleteFiles($existingList);
-                        array_push($purgedCategories, $existingList->id);
+                if (!isset($fileCountByType[$finalListType])) {
+                    $fileCountByType[$finalListType] = 0;
+                }
+                $fileCountByType[$finalListType]++;
+
+                try {
+                    if ($overwrite) {
+                        Log::info('Overwriting: ' . $namespace . ' Category: ' . $categoryName);
+
+                        $existingList = FilterList::where([['namespace', '=', $namespace], ['category', '=', $categoryName], ['type', '=', $finalListType]])->first();
+                        if (!is_null($existingList) && !in_array($existingList->id, $purgedCategories)) {
+                            $filterListManager->deleteFiles($existingList);
+                            array_push($purgedCategories, $existingList->id);
+                        }
                     }
+
+                    $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
+
+                    if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
+                        array_push($purgedCategories, $newFilterListEntry->id);
+                    }
+
+                    // In case this is existing, pull group assignment of this filter.
+                    $affectedGroups = array_merge($affectedGroups, ProcessTextFilterArchiveUpload::getGroupsAttachedToFilterId($newFilterListEntry->id));
+
+                    // Register every output for this category before writing so a partial write can be removed.
+                    $categoryFilterLists[$categoryName][$newFilterListEntry->id] = $newFilterListEntry;
+
+                    $appendToEndOfFile = $fileCountByType[$finalListType] > 1;
+                    $filterListManager->buildFileFromSpl($pharFileInfo->openFile('r'), $newFilterListEntry, $convertToAbp, $appendToEndOfFile);
+
+                    $newFilterListEntry->touch();
+                } catch (\Throwable $e) {
+                    foreach ($categoryFilterLists[$categoryName] ?? [] as $categoryFilterList) {
+                        $filterListManager->deleteFiles($categoryFilterList);
+                    }
+
+                    throw $e;
                 }
-
-                $newFilterListEntry = FilterList::firstOrCreate(['namespace' => $namespace, 'category' => $categoryName, 'type' => $finalListType]);
-
-                if ($overwrite && $newFilterListEntry->wasRecentlyCreated) {
-                    array_push($purgedCategories, $newFilterListEntry->id);
-                }
-
-                // In case this is existing, pull group assignment of this filter.
-                $affectedGroups = array_merge($affectedGroups, ProcessTextFilterArchiveUpload::getGroupsAttachedToFilterId($newFilterListEntry->id));
-
-                $appendToEndOfFile = $fileCountByType[$finalListType] > 1;
-                $filterListManager->buildFileFromSpl($pharFileInfo->openFile('r'), $newFilterListEntry, $convertToAbp, $appendToEndOfFile);
-
-                $newFilterListEntry->touch();
             }
         }
 
@@ -236,6 +361,63 @@ class ProcessTextFilterArchiveUpload implements ShouldQueue
         Log::info('Removing Archived File: ' . $tmpArchiveLoc);
         if (file_exists($tmpArchiveLoc)) {
             @unlink($tmpArchiveLoc);
+        }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function archiveCategories(
+        \PharData $archive,
+        string $archivePath,
+    ): array {
+        $categories = [];
+        $archiveIterator = new \RecursiveIteratorIterator($archive, \RecursiveIteratorIterator::CHILD_FIRST);
+
+        foreach ($archiveIterator as $archiveFile) {
+            if ($archiveFile->isDir()) {
+                continue;
+            }
+
+            $filename = strtolower(basename($archiveFile->getPathname()));
+
+            if (! in_array($filename, self::IMPORTABLE_ARCHIVE_FILENAMES, true)) {
+                continue;
+            }
+
+            $category = strtolower(basename(dirname($archiveFile->getPathname())));
+
+            if (in_array($category, ['/', '\\', '.', '..'], true)
+                || strcasecmp($category, basename($archivePath)) === 0) {
+                throw new \RuntimeException('The category export contains an importable file outside a category directory.');
+            }
+
+            $categories[FilterImportGate::normalizeCategory($category)] = true;
+        }
+
+        $categories = array_keys($categories);
+        sort($categories);
+
+        return $categories;
+    }
+
+    /**
+     * @param  array<int, string>  $categories
+     */
+    private function assertExpectedArchiveCategory(array $categories, ?string $expectedCategory): void
+    {
+        if ($expectedCategory === null) {
+            return;
+        }
+
+        $normalizedExpectedCategory = FilterImportGate::normalizeCategory($expectedCategory);
+
+        if ($categories !== [$normalizedExpectedCategory]) {
+            $foundCategories = $categories === [] ? '(none)' : implode(', ', $categories);
+
+            throw new \RuntimeException(
+                "The category export expected [{$normalizedExpectedCategory}] but contained [{$foundCategories}].",
+            );
         }
     }
 

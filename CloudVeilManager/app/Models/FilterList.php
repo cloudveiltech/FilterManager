@@ -28,13 +28,19 @@ class FilterList extends Model
      * @var array
      */
     protected $fillable = [
-        'namespace', 'category', 'type', 'file_sha1', 'created_at', 'updated_at', 'entries_count'
+        'namespace', 'category', 'type', 'file_sha1', 'created_at', 'updated_at', 'entries_count',
+        'import_enabled'
+    ];
+
+    protected $casts = [
+        'import_enabled' => 'boolean',
     ];
 
     protected $appends = array('label');
 
     protected $attributes = [
-        'entries_count' => 0
+        'entries_count' => 0,
+        'import_enabled' => true
     ];
 
     /**
