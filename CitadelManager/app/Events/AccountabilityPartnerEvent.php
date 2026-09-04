@@ -85,24 +85,33 @@ class AccountabilityPartnerEvent
     public $certainty;
 
     /**
+     * @var string|null
+     */
+    public $device_identifier;
+
+    /**
      * AccountabilityPartnerEvent constructor.
      * @param User $user
      * @param String $data_type
-     * @param String $url
      * @param String $source_name
+     * @param String $url
+     * @param String $message
      * @param int $severity
      * @param int $certainty
+     * @param string|null $device_identifier
      */
     public function __construct(User $user, String $data_type, String $source_name,
-                                String $url, String $message, int $severity, int $certainty)
+                                String $url, String $message, int $severity, int $certainty,
+                                ?string $device_identifier = null)
     {
         $this->user = $user;
         $this->data_type = $data_type;
         $this->source_name = $source_name;
         $this->url = $url;
-        $this->message = $message;	
+        $this->message = $message;
         $this->severity = $severity;
         $this->certainty = $certainty;
+        $this->device_identifier = $device_identifier;
     }
 
     /**

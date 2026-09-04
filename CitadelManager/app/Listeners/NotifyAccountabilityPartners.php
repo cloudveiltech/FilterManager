@@ -43,6 +43,7 @@ class NotifyAccountabilityPartners implements ShouldQueue
                 'message' => $event->message,
                 'importance_level' => $event->severity,
                 'certainty_level' => $event->certainty,
+                'device_identifier' => $event->device_identifier,
             ];
 
             $client = new Client([
