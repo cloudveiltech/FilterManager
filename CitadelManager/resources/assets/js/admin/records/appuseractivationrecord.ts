@@ -30,6 +30,16 @@ namespace Citadel {
         GET_APP_AUTOSUGGEST_URL = 'api/admin/app_suggest';
         URL_ROUTE = 'api/admin/user_activations';
 
+        CATEGORY_OVERRIDES_OPTIONS = [
+            '',
+            'Whitelist',
+            'Blacklist',
+            'BypassList',
+            'Ignored',
+        ]
+
+
+
         // ──────────────────────────────────────────────────────
         //   :::::: APP USER ACTIVATION   M E M B E R S ::::::
         // ──────────────────────────────────────────────────────
@@ -47,10 +57,12 @@ namespace Citadel {
         private m_friendlyName: string;
 
         private configOverride: any;
+        private categoryOverrides: any;
         private selfModeration: any;
         private activationWhitelist: any;
         private triggerBlacklist: any;
         private appBlocklist: any;
+        private allCategories: any;
 
         // ──────────────────────────────────────────────────────────
         //   :::::: E D I T O R   H T M L   E L E M E N T S ::::::
@@ -77,6 +89,8 @@ namespace Citadel {
         private m_whitelistTable: SelfModerationTable;
         private m_triggerBlacklistTable: SelfModerationTable;
         private m_appBlocklistTable: SelfModerationTable;
+
+        private m_categoryOverridesTable: any;
 
         private m_btnSubmit: HTMLButtonElement;
         private m_btnCancel: HTMLButtonElement;
@@ -164,6 +178,59 @@ namespace Citadel {
             this.m_appBlocklistTable.render();
         }
 
+        private InitCategoryOverridesTable() {
+            let that = this;
+            const options = this.CATEGORY_OVERRIDES_OPTIONS;
+
+            let columns = [
+                {
+                    title: 'Category',
+                    data: 'categoryName',
+                    visible: true,
+                },
+                {
+                    title: 'Type',
+                    data: 'type',
+                    visible: true,
+                },
+                {
+                    title: 'Override',
+                    data: 'override',
+                    visible: true,
+                    render: function (data, type, row) {
+                        const optionsHtml = options.map((option) => {
+                            const selected = data === option ? 'selected' : '';
+                            return `<option ${selected}>${option}</option>`;
+                        }).join('');
+                        const html = `<select class="category-override-select" data-category-id="${row.categoryId}">
+                            ${optionsHtml}
+                        </select>`;
+
+
+                        return html;
+                    }
+                }
+            ];
+
+            let settings = {
+                autoWidth: true,
+                stateSave: true,
+                responsive: true,
+                columns: columns,
+                data: this.categoryOverrides,
+                destroy: true,
+                createdRow: function (row, data, dataIndex) {
+                    const select = $(row).find('.category-override-select')[0] as HTMLSelectElement;
+                    select.addEventListener('change', function () {
+                        data.override = select.value;
+                    });
+                },
+            };
+
+            this.m_categoryOverridesTable = $('#activation_category_table').DataTable(settings);
+        }
+
+
         private InitButtonHandlers(): void {
             let that = this;
 
@@ -240,6 +307,17 @@ namespace Citadel {
                 this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();
                 this.m_selectUpdateChannel.selectedIndex = 0;
             }
+
+            if (this.configOverride && this.configOverride.CategoryOverrides) {
+                // console.log(this.myConfigData.CategoryOverrides)
+                this.categoryOverrides = this.categoryOverrides.map((category) => {
+                    const categoryOverride = this.configOverride.CategoryOverrides.find((override) => override.categoryId === category.categoryId);
+                    if (categoryOverride) {
+                        category.override = categoryOverride.override;
+                    }
+                    return category;
+                });
+            }
         }
 
         private getValueFromSelect(selectBox: HTMLSelectElement): number {
@@ -265,12 +343,17 @@ namespace Citadel {
             this.triggerBlacklist = this.m_triggerBlacklistTable.getData();
             this.appBlocklist = this.m_appBlocklistTable.getData();
 
+            this.categoryOverrides = this.m_categoryOverridesTable.data().toArray();
+
             this.configOverride = {
                 SelfModeration: this.selfModeration,
                 CustomWhitelist: this.activationWhitelist,
                 CustomTriggerBlacklist: this.triggerBlacklist,
-                CustomBlockedApps: this.appBlocklist
+                CustomBlockedApps: this.appBlocklist,
+                CategoryOverrides: this.categoryOverrides.filter((category) => category.override !== '')
             };
+
+
             if(this.m_selectUpdateChannel.selectedIndex != 0) {
                 this.configOverride.UpdateChannel = this.m_selectUpdateChannel.options[this.m_selectUpdateChannel.selectedIndex].value;
             }
@@ -287,7 +370,16 @@ namespace Citadel {
             }
         }
 
-        public StartEditing(allGroups, userData: Object = null): void {
+        public StartEditing(allGroups, allCategories: Array, userData: Object = null): void {
+            this.categoryOverrides = allCategories.map((category) => {
+                return {
+                    categoryId: category.id,
+                    categoryName: category.category,
+                    type: category.type,
+                    override: '',
+                }
+            });
+
             this.LoadFromObject(userData);
 
             if (this.m_selectGroup.options != null) {
@@ -332,6 +424,7 @@ namespace Citadel {
             }
 
             this.InitSelfModerationTables();
+            this.InitCategoryOverridesTable();
             // Covers creation of new users, because this doesn't get assigned to in that circumstance.
             if (!this.m_timeRestrictionsUI.timeRestrictions) {
                 this.m_timeRestrictionsUI.InitEmptyTimeRestrictionsObject();

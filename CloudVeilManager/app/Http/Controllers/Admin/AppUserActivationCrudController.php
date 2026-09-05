@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use App\Models\FilterList;
 use App\Models\User;
 use App\Models\SystemPlatform;
 use Backpack\CRUD\app\Library\Widget;
@@ -54,7 +55,14 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($friendlyName) . '</div><div class="text-muted small">' . e($deviceId) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1
+                'priority' => 1,
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $table = $query->getModel()->getTable();
+                    $operator = config('backpack.operations.list.searchOperator', 'like');
+                    $pattern = '%' . $searchTerm . '%';
+                    $query->orWhere($table . '.friendly_name', $operator, $pattern)
+                        ->orWhere($table . '.device_id', $operator, $pattern);
+                },
             ],
             [
                 'label' => 'User',
@@ -68,7 +76,15 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($user->name) . '</div><div class="text-muted small">' . e($user->email) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1
+                'priority' => 1,
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $operator = config('backpack.operations.list.searchOperator', 'like');
+                    $pattern = '%' . $searchTerm . '%';
+                    $query->orWhereHas('user', function ($q) use ($operator, $pattern) {
+                        $q->where('name', $operator, $pattern)
+                            ->orWhere('email', $operator, $pattern);
+                    });
+                },
             ],
             [
                 'label' => 'Group',
@@ -289,7 +305,7 @@ class AppUserActivationCrudController extends CrudController
                 ],
                 [
                     'label' => 'Group',
-                    'type' => 'select2',
+                    'type' => 'select2_word_search',
                     'entity' => 'group',
                     'model' => 'App\Models\Group',
                     'name' => 'group',
@@ -309,6 +325,43 @@ class AppUserActivationCrudController extends CrudController
                     'options' => ["Stable" => "Stable", "Alpha" => "Alpha", "Beta" => "Beta"],
                     'label' => 'Update Channel',
                     'tab' => 'Activation',
+                ],
+                // Category overrides — the shared rule-selection table field. Posts a
+                // filter_list_id => override map as JSON under 'category_overrides'; the model
+                // mutator stores it in config_override.CategoryOverrides. Activation overrides win
+                // over user overrides for the same category in the client config merge.
+                [
+                    'label' => 'Category Overrides',
+                    'name' => 'category_overrides',
+                    'type' => 'rule_selection_table',
+                    'tab' => 'Categories',
+                    'filter_lists' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
+                        ->get(['id', 'namespace', 'category', 'type']),
+                    'statuses' => [
+                        'Blacklist' => 'Blacklist',
+                        'Whitelist' => 'Whitelist',
+                        'BypassList' => 'Bypass',
+                        'Ignored' => 'Ignored',
+                    ],
+                    // Trigger lists are free-text phrase files, not domain lists — loading one as a
+                    // blacklist/whitelist feeds it to the client's adblock rule parser. Enforced
+                    // server-side by OverridableConfigTrait::allowedCategoryOverridesForType().
+                    'statuses_by_type' => [
+                        'Triggers' => [
+                            'TextTrigger' => 'Text Trigger',
+                            'Ignored' => 'Ignored',
+                        ],
+                    ],
+                    'default_status' => 'none',
+                    'default_filter_label' => 'No override',
+                    'status_colors' => [
+                        'Blacklist' => '#d63939',
+                        'Whitelist' => '#1f9d57',
+                        'BypassList' => '#d9a406',
+                        'TextTrigger' => '#d63939',
+                        'Ignored' => '#6c757d',
+                    ],
+                    'hint' => 'Overrides the group\'s rule selection for this activation. Blank inherits from the group; "Ignored" removes the category even if the group assigns it. Trigger categories can only be overridden to Text Trigger or Ignored.',
                 ],
                 [
                     'label' => 'Blocked Sites',

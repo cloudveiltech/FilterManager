@@ -750,6 +750,7 @@ namespace Citadel {
                 };
 
                 this.m_tableFilterLists = $('#filter_table').DataTable(filterTableSettings);
+                console.log(this.m_tableFilterLists)
 
             });
 
@@ -1684,7 +1685,7 @@ namespace Citadel {
                             this.ForceTableRedraw(this.m_tableUsers);
                         });
 
-                        userRecord.StartEditing(this.m_allGroups, data);
+                        userRecord.StartEditing(this.m_allGroups, this.m_allFilters, data);
                     }
                     break;
 
@@ -1754,7 +1755,7 @@ namespace Citadel {
                             appUserActivationRecord.StopEditing();
                             this.ForceTableRedraw(this.m_tableActivation);
                         });
-                        appUserActivationRecord.StartEditing(this.m_allGroups, data);
+                        appUserActivationRecord.StartEditing(this.m_allGroups, this.m_allFilters, data);
                     }
                     break;
 
@@ -1806,7 +1807,7 @@ namespace Citadel {
             let newUser = new UserRecord();
 
             var usergoup_data = this.m_tableGroups.data();
-            newUser.StartEditing(this.m_allGroups, this.m_tableUsers.data()['all_user_roles']);
+            newUser.StartEditing(this.m_allGroups, this.m_allFilters, this.m_tableUsers.data()['all_user_roles']);
 
             newUser.ActionCompleteCallback = ((action: string): void => {
                 newUser.StopEditing();

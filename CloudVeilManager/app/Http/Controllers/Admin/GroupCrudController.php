@@ -64,6 +64,9 @@ class GroupCrudController extends CrudController
                 'label' => 'Name',
                 'type' => 'text',
                 'name' => 'name',
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $this->applyAllWordsAnyOrderSearch($query, 'groups.name', $searchTerm);
+                },
             ],
             [
                 'label' => 'Primary DNS',
@@ -234,96 +237,18 @@ class GroupCrudController extends CrudController
                 'name' => 'notes',
                 'tab' => 'Settings',
             ],
+            // Rule Selection table — a self-contained field. Renders one row per FilterList with a
+            // single status control (Blacklist / Whitelist / Bypass / blank). The table serializes all
+            // non-ignored rows into one hidden field (rule_status_json); store()/update() json_decode
+            // it and sync() the single Group::assignedFilters() relation into group_filter_assignments.
             [
-                'label' => 'Whitelist Rules',
-                'type' => 'relationship',
-                'name' => 'assignedWhitelistFilters',
-                'entity' => 'assignedWhitelistFilters',
-                'attribute' => 'label',
-                'model' => 'App\Models\FilterList',
-                'pivot' => true,
+                'name' => 'rule_selection_table',
+                'type' => 'rule_selection_table',
                 'tab' => 'Rule Selection',
-                'options' => function ($query) {
-                    return $query->orderBy('category', 'ASC')->get();
-                }
-            ],
-            [
-                'label' => 'Blacklist Rules',
-                'type' => 'relationship',
-                'name' => 'assignedBlacklistFilters',
-                'entity' => 'assignedBlacklistFilters',
-                'attribute' => 'label',
-                'model' => 'App\Models\FilterList',
-                'pivot' => true,
-                'tab' => 'Rule Selection',
-                'options' => function ($query) {
-                    return $query->orderBy('category', 'ASC')->get();
-                }
-            ],
-            [
-                'label' => 'Bypass Rules',
-                'type' => 'relationship',
-                'name' => 'assignedBypassFilters',
-                'entity' => 'assignedBypassFilters',
-                'attribute' => 'label',
-                'model' => 'App\Models\FilterList',
-                'pivot' => true,
-                'tab' => 'Rule Selection',
-                'options' => function ($query) {
-                    return $query->orderBy('category', 'ASC')->get();
-                },
-            ],
-            [
-                'type' => 'custom_html',
-                'name' => 'my_custom_html',
-                'value' => '<script>
-                            function hideConnectedOptions(elName, otherName, label) {
-                                $("select[name=\'" + otherName + "\'] option").each(function(i, el) {
-                                    let val = $(el).val();
-                                    let selected = $(el).is(":selected");
-                                    $("select[name=\'" + elName + "\']").find("option[value=\'" + val + "\']").each(function(i, optionEl) {
-                                        let text = $(optionEl).text();
-                                        if(selected) {
-                                            if(text.indexOf(" — #") === -1) {
-                                                text = text + " — #" + label;
-                                            }
-                                        } else {
-                                            if(text.indexOf(" — #" + label) !== -1) {
-                                                text = text.replace(" — #" + label, "")
-                                            }
-                                        }
-                                        $(optionEl).text(text).prop("disabled", text.indexOf(" — #") !== -1);
-                                    });
-                                    });
-
-                                    let recreateEl = $("select[name=\'" + elName + "\']");
-                                    if (recreateEl.hasClass("select2-hidden-accessible")) {
-                                        recreateEl.select2("destroy");
-                                        bpFieldInitRelationshipSelectElement(recreateEl);
-                                    }
-                                }
-                                document.addEventListener("DOMContentLoaded", function() {
-                                    crud.field("assignedWhitelistFilters").onChange(function(field) {
-                                        debounce(function() {
-                                                hideConnectedOptions("assignedBypassFilters[]", "assignedWhitelistFilters[]", "whitelist");
-                                                hideConnectedOptions("assignedBlacklistFilters[]", "assignedWhitelistFilters[]", "whitelist");
-                                        }, 100)();
-                                    }).change();
-                                    crud.field("assignedBlacklistFilters").onChange(function(field) {
-                                        debounce(function() {
-                                            hideConnectedOptions("assignedWhitelistFilters[]", "assignedBlacklistFilters[]", "blacklist");
-                                            hideConnectedOptions("assignedBypassFilters[]", "assignedBlacklistFilters[]", "blacklist");
-                                        }, 100)();
-                                    }).change();
-                                    crud.field("assignedBypassFilters").onChange(function(field) {
-                                        debounce(function() {
-                                            hideConnectedOptions("assignedWhitelistFilters[]", "assignedBypassFilters[]", "bypasslist");
-                                            hideConnectedOptions("assignedBlacklistFilters[]", "assignedBypassFilters[]", "bypasslist");
-                                        }, 100)();
-                                    }).change();
-                                });
-                                </script>',
-                'tab' => 'Rule Selection',
+                'input_name' => 'rule_status_json',
+                'prefill' => 'assigned_filters',
+                'filter_lists' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
+                    ->get(['id', 'namespace', 'category', 'type']),
             ],
             [
                 'label' => 'Application Groups Type',
@@ -376,15 +301,32 @@ class GroupCrudController extends CrudController
         $this->setupCreateOperation();
     }
 
+    private function applyAllWordsAnyOrderSearch($query, string $column, string $searchTerm): void
+    {
+        $words = preg_split('/\s+/', trim($searchTerm), -1, PREG_SPLIT_NO_EMPTY);
+
+        if (empty($words)) {
+            return;
+        }
+
+        $query->orWhere(function ($query) use ($column, $words) {
+            foreach ($words as $word) {
+                $query->where($column, 'LIKE', '%' . $word . '%');
+            }
+        });
+    }
+
     public function store()
     {
         if(!$this->validate(CRUD::getRequest(), $this->rules)) {
             return $this->traitStore();
         }
-        $this->patchRules();
+        // Capture the rule-selection table's input before Backpack strips unregistered inputs.
+        $ruleStatuses = $this->ruleStatusesFromRequest(CRUD::getRequest());
         $result = $this->traitStore();
         $model = $this->data["entry"] ?? null;
         if ($model) {
+            $this->syncRuleAssignments($model, $ruleStatuses);
             $model->rebuildGroupData();
         }
         return $result;
@@ -395,40 +337,47 @@ class GroupCrudController extends CrudController
         if(!$this->validate(CRUD::getRequest(), $this->rules)) {
             return $this->traitUpdate();
         }
-        $this->patchRules();
+        $ruleStatuses = $this->ruleStatusesFromRequest(CRUD::getRequest());
         $result = $this->traitUpdate();
         $model = $this->data["entry"] ?? null;
         if ($model) {
+            $this->syncRuleAssignments($model, $ruleStatuses);
             $model->rebuildGroupData();
         }
         return $result;
     }
 
-    private function patchRules()
+    /**
+     * Decode the rule-selection table's single JSON payload (rule_status_json) into a
+     * filter_list_id => status map. The table posts one hidden field for the whole grid, so the map
+     * can't be truncated by max_input_vars. A missing/invalid payload yields an empty map, which
+     * sync() interprets as "clear all assignments" — matching an all-ignored table.
+     */
+    private function ruleStatusesFromRequest($request): array
     {
-        $this->patchRule("assignedBlacklistFilters", 1, 0, 0);
-        $this->patchRule("assignedWhitelistFilters", 0, 1, 0);
-        $this->patchRule("assignedBypassFilters", 0, 0, 1);
+        $decoded = json_decode((string) $request->input('rule_status_json', ''), true);
+        return is_array($decoded) ? $decoded : [];
     }
 
-    private function patchRule($key, $asBlacklist, $asWhitelist, $asBypass)
+    /**
+     * Persist the rule-selection table into group_filter_assignments via a single sync().
+     * $statuses maps filter_list_id => 'blacklist'|'whitelist'|'bypass'|'ignored'. Anything not one
+     * of the three active statuses is omitted, so sync() removes any existing assignment row for it.
+     */
+    private function syncRuleAssignments(Group $group, array $statuses): void
     {
-        $request = CRUD::getRequest();
-        $listFilters = $request->input($key);
-        if (!empty($listFilters)) {
-            $newData = [];
-            foreach ($listFilters as $listFilterId) {
-                $newData[] = [
-                    $key => $listFilterId,
-                    "as_blacklist" => $asBlacklist,
-                    "as_whitelist" => $asWhitelist,
-                    "as_bypass" => $asBypass
-                ];
+        $sync = [];
+        foreach ($statuses as $filterListId => $status) {
+            if (!in_array($status, ['blacklist', 'whitelist', 'bypass'], true)) {
+                continue;
             }
-
-            $request->request->set($key, $newData);
-            CRUD::setRequest($request);
+            $sync[(int) $filterListId] = [
+                'as_blacklist' => $status === 'blacklist' ? 1 : 0,
+                'as_whitelist' => $status === 'whitelist' ? 1 : 0,
+                'as_bypass'    => $status === 'bypass' ? 1 : 0,
+            ];
         }
+        $group->assignedFilters()->sync($sync);
     }
 
     public function destroy($id)
