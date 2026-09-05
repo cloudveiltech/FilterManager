@@ -18,4 +18,14 @@ return [
         1,
         min(59, (int) env('FILTER_DISCOVER_SCHEDULE_INTERVAL_MINUTES', 15)),
     ),
+
+    // Rebuilding a group's data.zip is expensive, and a single discover sweep
+    // can ask to rebuild the same group once per category it imports. Group
+    // rebuilds are dispatched as a ShouldBeUnique job delayed by this many
+    // seconds, so repeated requests for the same group within the window
+    // collapse into a single rebuild instead of running once per request.
+    'group_rebuild_debounce_seconds' => max(
+        0,
+        (int) env('FILTER_GROUP_REBUILD_DEBOUNCE_SECONDS', 120),
+    ),
 ];

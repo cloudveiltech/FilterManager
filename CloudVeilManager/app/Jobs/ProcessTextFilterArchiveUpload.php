@@ -355,9 +355,14 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
             }
         }
 
-        // Force rebuild of group data for all affected groups.
+        // Debounce a rebuild of every affected group rather than rebuilding inline: a discover
+        // sweep can dispatch one of these import jobs per category, and most default categories
+        // are assigned to nearly every group, so rebuilding synchronously here would redo the same
+        // ~100-group rebuild once per category. RebuildGroupData::debounceMany() collapses repeat
+        // requests for the same group (from this import and any others running around the same
+        // time) into a single delayed rebuild.
         $affectedGroups = array_unique($affectedGroups);
-        ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+        RebuildGroupData::debounceMany($affectedGroups);
         Log::info('Removing Archived File: ' . $tmpArchiveLoc);
         if (file_exists($tmpArchiveLoc)) {
             @unlink($tmpArchiveLoc);
@@ -421,6 +426,15 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
         }
     }
 
+    /**
+     * Rebuilds every given group synchronously, immediately, with no debouncing.
+     *
+     * The app no longer calls this itself — imports and admin group-assignment changes go through
+     * RebuildGroupData::debounce()/debounceMany() instead, so a burst of changes collapses into one
+     * rebuild per group. Kept only as a manual/ops escape hatch (e.g. from tinker) for forcing a
+     * rebuild right now; do not call this in a loop over many categories/filter lists, since that
+     * reintroduces the "rebuild every affected group once per category" cost this was fixed to avoid.
+     */
     public static function forceRebuildOnGroups(array $arrOfGroupIds)
     {
         Log::debug('Rebuilding Group Data.  Total Groups: ' . count($arrOfGroupIds));

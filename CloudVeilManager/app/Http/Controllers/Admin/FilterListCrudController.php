@@ -208,7 +208,7 @@ class FilterListCrudController extends CrudController
         $affectedGroups = $assignmentService->syncFilterListAssignments($filterList, $statuses);
 
         if ($affectedGroups !== []) {
-            RebuildGroupData::dispatch($affectedGroups);
+            RebuildGroupData::debounceMany($affectedGroups);
         }
 
         \Alert::success('Group assignments updated.')->flash();
@@ -416,9 +416,10 @@ class FilterListCrudController extends CrudController
             $existingList->delete();
         }
 
-        // Force rebuild of group data for all affected groups.
+        // Debounce a rebuild of every affected group instead of rebuilding inline, so this
+        // request doesn't block on rezipping every group that had this filter list assigned.
         $affectedGroups = array_unique($affectedGroups);
-        ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+        RebuildGroupData::debounceMany($affectedGroups);
 
         return true;
     }
@@ -533,7 +534,7 @@ class FilterListCrudController extends CrudController
         $affectedGroups = array_values(array_unique(array_map('intval', $affectedGroups)));
 
         if ($affectedGroups !== []) {
-            RebuildGroupData::dispatch($affectedGroups);
+            RebuildGroupData::debounceMany($affectedGroups);
         }
 
         return response()->json([

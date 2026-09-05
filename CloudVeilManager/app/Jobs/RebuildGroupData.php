@@ -2,7 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Models\Group;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -10,17 +12,19 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Rebuilds the cached data payload (data.zip + config_cache) for a set of groups.
+ * Rebuilds the cached data payload (data.zip + config_cache) for a single group.
  *
- * Group::rebuildGroupData() zips every ruleset assigned to a group, so a rebuild is expensive and a
- * single assignment change from the filter-list side can touch many groups at once. Callers pass
- * only the groups whose assignment actually changed (see GroupFilterAssignmentService) and dispatch
- * this job rather than rebuilding inline, so the web request doesn't block on the zips.
+ * Group::rebuildGroupData() zips every ruleset assigned to a group, so a rebuild is expensive, and
+ * many unrelated changes can each ask to rebuild the same group (a discover sweep touching dozens of
+ * categories, a bulk group-assignment change touching many filter lists). This job is ShouldBeUnique
+ * per group id: while a delayed rebuild for a group is still pending, further dispatches for that same
+ * group are silently dropped instead of queuing another rebuild, so a burst of requests for the same
+ * group collapses into a single rebuild that picks up everything that changed in the meantime.
  *
- * Note: ProcessTextFilterArchiveUpload::forceRebuildOnGroups() is a synchronous loop, not a queue
- * dispatch — it's safe to call from inside a queued job like this one, but not from a controller.
+ * Always dispatch this through RebuildGroupData::debounce() (or debounceMany()) rather than calling
+ * dispatch() directly, so the delay window is applied consistently.
  */
-class RebuildGroupData implements ShouldQueue
+class RebuildGroupData implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -32,33 +36,61 @@ class RebuildGroupData implements ShouldQueue
     public $timeout = 1700;
 
     /**
-     * @var array<int, int>
+     * Release a stranded uniqueness lock after this many seconds. Successful and terminally failed
+     * jobs release the lock as soon as they finish; this is only a safety valve for a job that never
+     * runs (e.g. a crashed worker holding the lock).
+     *
+     * @var int
      */
-    public $groupIds;
+    public $uniqueFor = 3600;
+
+    public function __construct(public int $groupId)
+    {
+    }
+
+    public function uniqueId(): string
+    {
+        return 'group:'.$this->groupId;
+    }
 
     /**
+     * Dispatch a debounced rebuild for a single group.
+     */
+    public static function debounce(int $groupId): void
+    {
+        static::dispatch($groupId)->delay(now()->addSeconds(static::debounceSeconds()));
+    }
+
+    /**
+     * Dispatch a debounced rebuild for each of the given groups.
+     *
      * @param  array<int, int>  $groupIds
      */
-    public function __construct(array $groupIds)
+    public static function debounceMany(array $groupIds): void
     {
-        $this->groupIds = array_values(array_unique(array_map('intval', $groupIds)));
+        foreach (array_unique(array_map('intval', $groupIds)) as $groupId) {
+            static::debounce($groupId);
+        }
+    }
+
+    private static function debounceSeconds(): int
+    {
+        return (int) config('filter_imports.group_rebuild_debounce_seconds', 120);
     }
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
-        if ($this->groupIds === []) {
+        $group = Group::find($this->groupId);
+
+        if ($group === null) {
             return;
         }
 
-        Log::info('Running RebuildGroupData job. Total Groups: ' . count($this->groupIds));
-
-        ProcessTextFilterArchiveUpload::forceRebuildOnGroups($this->groupIds);
-
-        Log::info('Finished RebuildGroupData job.');
+        Log::debug('Running debounced RebuildGroupData job for group: '.$this->groupId);
+        $group->rebuildGroupData();
+        Log::debug('Finished debounced RebuildGroupData job for group: '.$this->groupId);
     }
 }
