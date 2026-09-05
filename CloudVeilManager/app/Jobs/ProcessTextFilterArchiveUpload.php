@@ -357,7 +357,8 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
 
         // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
-        ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+        // stop rebuilding groups since not needed for list files on current versions. 
+        // ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
         Log::info('Removing Archived File: ' . $tmpArchiveLoc);
         if (file_exists($tmpArchiveLoc)) {
             @unlink($tmpArchiveLoc);
