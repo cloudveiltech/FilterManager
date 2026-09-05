@@ -8,6 +8,7 @@ use App\Models\Group;
 use App\Models\GroupFilterAssignment;
 use App\Services\FilterImportGate;
 use GuzzleHttp\Client;
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private const IMPORTABLE_ARCHIVE_FILENAMES = [
         'domains',
@@ -355,9 +356,20 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
             }
         }
 
-        // Force rebuild of group data for all affected groups.
         $affectedGroups = array_unique($affectedGroups);
-        ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+
+        if ($this->batch() === null) {
+            // Not running as part of a filter:discover batch (e.g. a single admin-triggered
+            // category import): nothing else is going to rebuild these groups, so debounce a
+            // rebuild now. See RebuildGroupData for why this is debounced rather than inline.
+            RebuildGroupData::debounceMany($affectedGroups);
+        } else {
+            // Running as part of a filter:discover batch: the batch's finally() callback
+            // rebuilds every group affected by the whole sweep exactly once, after every
+            // category import in it has finished, so skip rebuilding here.
+            Log::debug('Skipping inline group rebuild; batch '.$this->batch()->id.' will rebuild affected groups once the sweep finishes.');
+        }
+
         Log::info('Removing Archived File: ' . $tmpArchiveLoc);
         if (file_exists($tmpArchiveLoc)) {
             @unlink($tmpArchiveLoc);
@@ -421,6 +433,15 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
         }
     }
 
+    /**
+     * Rebuilds every given group synchronously, immediately, with no debouncing or batching.
+     *
+     * The app no longer calls this itself — a single import debounces via RebuildGroupData, and a
+     * filter:discover sweep rebuilds affected groups once via a job batch (see DiscoverFilterImports).
+     * Kept only as a manual/ops escape hatch (e.g. from tinker) for forcing a rebuild right now; do
+     * not call this in a loop over many categories/filter lists, since that reintroduces the
+     * "rebuild every affected group once per category" cost this was fixed to avoid.
+     */
     public static function forceRebuildOnGroups(array $arrOfGroupIds)
     {
         Log::debug('Rebuilding Group Data.  Total Groups: ' . count($arrOfGroupIds));
@@ -446,6 +467,39 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
         }
 
         return $ret;
+    }
+
+    /**
+     * All group ids with any filter list (of any type) for the given namespace/categories assigned.
+     *
+     * Used after a filter:discover batch finishes to compute, in one pass, every group the whole
+     * sweep touched — a category import doesn't change which groups a category is assigned to, only
+     * its rule file contents, so this can be computed independently of which import jobs ran.
+     *
+     * @param  array<int, string>  $categories
+     * @return array<int, int>
+     */
+    public static function getGroupsForCategories(string $namespace, array $categories): array
+    {
+        if ($categories === []) {
+            return [];
+        }
+
+        $filterListIds = FilterList::query()
+            ->where('namespace', $namespace)
+            ->whereIn('category', array_unique($categories))
+            ->pluck('id');
+
+        if ($filterListIds->isEmpty()) {
+            return [];
+        }
+
+        return GroupFilterAssignment::query()
+            ->whereIn('filter_list_id', $filterListIds)
+            ->pluck('group_id')
+            ->unique()
+            ->values()
+            ->all();
     }
 
 }

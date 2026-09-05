@@ -1,9 +1,11 @@
 <?php
 
 use App\Jobs\ProcessTextFilterArchiveUpload;
+use App\Jobs\RebuildGroupData;
 use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 
@@ -168,4 +170,108 @@ test('removes every rule file for a category when a later input fails', function
         @rmdir(dirname($filtersPath));
         @rmdir(dirname(dirname($filtersPath)));
     }
+});
+
+test('a standalone import (not part of a batch) debounces an immediate group rebuild', function () {
+    config()->set('cache.default', 'array');
+    Queue::fake();
+
+    $namespace = 'standalone_batch_test';
+    $category = 'standalone_category';
+    $groupId = 9001;
+    $rulesManager = new FilterRulesManager();
+    $path = $rulesManager->getRulesetPath($namespace, $category, 'rules');
+    $archivePath = tempnam(sys_get_temp_dir(), 'filter-import-').'.zip';
+
+    $filterList = FilterList::query()->create([
+        'namespace' => $namespace,
+        'category' => $category,
+        'type' => 'Filters',
+    ]);
+    DB::table('group_filter_assignments')->insert([
+        'group_id' => $groupId,
+        'filter_list_id' => $filterList->id,
+    ]);
+
+    $zip = new ZipArchive();
+    $zip->open($archivePath, ZipArchive::CREATE);
+    $zip->addFromString($category.'/domains.txt', "example.com\n");
+    $zip->close();
+
+    try {
+        // A plain instance, dispatched neither via a job batch nor a queue: $this->batch() is
+        // null, so this must fall back to debouncing the rebuild itself.
+        (new ProcessTextFilterArchiveUpload($namespace, $archivePath, true, $category))
+            ->processTextFilterArchive($namespace, $archivePath, true, $category);
+
+        Queue::assertPushed(RebuildGroupData::class, static fn (RebuildGroupData $job): bool => $job->groupId === $groupId);
+    } finally {
+        @unlink($archivePath);
+        @unlink($path);
+        @rmdir(dirname($path));
+        @rmdir(dirname(dirname($path)));
+    }
+});
+
+test('an import running inside a batch skips the inline rebuild', function () {
+    config()->set('cache.default', 'array');
+    Queue::fake();
+
+    $namespace = 'batched_import_test';
+    $category = 'batched_category';
+    $groupId = 9002;
+    $rulesManager = new FilterRulesManager();
+    $path = $rulesManager->getRulesetPath($namespace, $category, 'rules');
+    $archivePath = tempnam(sys_get_temp_dir(), 'filter-import-').'.zip';
+
+    $filterList = FilterList::query()->create([
+        'namespace' => $namespace,
+        'category' => $category,
+        'type' => 'Filters',
+    ]);
+    DB::table('group_filter_assignments')->insert([
+        'group_id' => $groupId,
+        'filter_list_id' => $filterList->id,
+    ]);
+
+    $zip = new ZipArchive();
+    $zip->open($archivePath, ZipArchive::CREATE);
+    $zip->addFromString($category.'/domains.txt', "example.com\n");
+    $zip->close();
+
+    try {
+        $job = new ProcessTextFilterArchiveUpload($namespace, $archivePath, true, $category);
+        [$job] = $job->withFakeBatch();
+
+        // Part of a (fake) batch: the batch's finally() callback is responsible for rebuilding
+        // affected groups once the whole sweep finishes, so this must NOT dispatch its own rebuild.
+        $job->processTextFilterArchive($namespace, $archivePath, true, $category);
+
+        Queue::assertNotPushed(RebuildGroupData::class);
+    } finally {
+        @unlink($archivePath);
+        @unlink($path);
+        @rmdir(dirname($path));
+        @rmdir(dirname(dirname($path)));
+    }
+});
+
+test('getGroupsForCategories returns the union of groups assigned to the given categories', function () {
+    $namespace = 'union_test';
+
+    $moviesFilters = FilterList::query()->create(['namespace' => $namespace, 'category' => 'movies', 'type' => 'Filters']);
+    $moviesTriggers = FilterList::query()->create(['namespace' => $namespace, 'category' => 'movies', 'type' => 'Triggers']);
+    $newsFilters = FilterList::query()->create(['namespace' => $namespace, 'category' => 'news', 'type' => 'Filters']);
+    $otherNamespaceFilters = FilterList::query()->create(['namespace' => 'other_namespace', 'category' => 'movies', 'type' => 'Filters']);
+
+    DB::table('group_filter_assignments')->insert([
+        ['group_id' => 1, 'filter_list_id' => $moviesFilters->id],
+        ['group_id' => 2, 'filter_list_id' => $moviesTriggers->id], // same group as another category's row
+        ['group_id' => 2, 'filter_list_id' => $newsFilters->id],    // duplicate group id across categories
+        ['group_id' => 3, 'filter_list_id' => $otherNamespaceFilters->id], // different namespace: excluded
+    ]);
+
+    $groups = ProcessTextFilterArchiveUpload::getGroupsForCategories($namespace, ['movies', 'news']);
+
+    expect($groups)->toEqualCanonicalizing([1, 2]);
 });

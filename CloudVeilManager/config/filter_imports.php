@@ -18,4 +18,13 @@ return [
         1,
         min(59, (int) env('FILTER_DISCOVER_SCHEDULE_INTERVAL_MINUTES', 15)),
     ),
+
+    // Rebuilding a group's data.zip is expensive. Admin group-assignment changes debounce
+    // duplicate rebuild requests for the same group by this many seconds (see RebuildGroupData);
+    // a filter:discover sweep instead rebuilds each affected group exactly once via a job batch
+    // (see DiscoverFilterImports), so this delay mainly matters outside of discover sweeps.
+    'group_rebuild_debounce_seconds' => max(
+        0,
+        (int) env('FILTER_GROUP_REBUILD_DEBOUNCE_SECONDS', 120),
+    ),
 ];

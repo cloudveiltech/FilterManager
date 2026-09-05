@@ -3,10 +3,13 @@
 namespace App\Console\Commands;
 
 use App\Jobs\ProcessTextFilterArchiveUpload;
+use App\Jobs\RebuildGroupData;
 use App\Services\FilterImportDecision;
 use App\Services\FilterImportGate;
 use App\Services\FilterImportOutcome;
+use Illuminate\Bus\Batch;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\StorageAttributes;
 use Throwable;
@@ -36,6 +39,12 @@ class DiscoverFilterImports extends Command
         $dispatchErrors = 0;
         $gateErrors = 0;
         $listingErrors = 0;
+
+        // Collected instead of dispatched immediately: every import in this sweep runs as one
+        // Bus::batch(), so its finally() callback can rebuild each affected group exactly once,
+        // after every category import in the sweep has finished, instead of once per category.
+        $batchJobs = [];
+        $batchCategories = [];
 
         $this->line($dryRun
             ? 'Filter import discovery started (dry-run; no jobs will be dispatched).'
@@ -101,15 +110,16 @@ class DiscoverFilterImports extends Command
                 }
 
                 try {
-                    ProcessTextFilterArchiveUpload::dispatch(
+                    $batchJobs[] = new ProcessTextFilterArchiveUpload(
                         FilterImportGate::DEFAULT_NAMESPACE,
                         $objectKey,
                         true,
                         $decision->category,
                         FilterImportGate::EXPORT_DISK,
                     );
+                    $batchCategories[] = $decision->category;
                     $jobsDispatched++;
-                    $this->line($detail.' — dispatched');
+                    $this->line($detail.' — queued for this sweep\'s batch');
                 } catch (Throwable $exception) {
                     $dispatchErrors++;
                     $this->error($detail.' — dispatch-error: '.$exception->getMessage());
@@ -122,6 +132,27 @@ class DiscoverFilterImports extends Command
             $this->renderSummary($objectsSeen, $jobsDispatched, $dispatchErrors, $gateErrors, $listingErrors);
 
             return self::FAILURE;
+        }
+
+        if ($batchJobs !== []) {
+            $namespace = FilterImportGate::DEFAULT_NAMESPACE;
+            $categories = array_values(array_unique($batchCategories));
+
+            try {
+                Bus::batch($batchJobs)
+                    ->name('filter:discover sweep')
+                    ->finally(function (Batch $batch) use ($namespace, $categories): void {
+                        // Runs once every import job in the sweep has finished (success or
+                        // failure), so every affected group gets rebuilt exactly once, no matter
+                        // how many categories the sweep imported.
+                        $affectedGroups = ProcessTextFilterArchiveUpload::getGroupsForCategories($namespace, $categories);
+                        RebuildGroupData::debounceMany($affectedGroups);
+                    })
+                    ->dispatch();
+            } catch (Throwable $exception) {
+                $dispatchErrors++;
+                $this->error('[dispatch-error] Unable to dispatch this sweep\'s import batch: '.$exception->getMessage());
+            }
         }
 
         $this->renderSummary($objectsSeen, $jobsDispatched, $dispatchErrors, $gateErrors, $listingErrors);

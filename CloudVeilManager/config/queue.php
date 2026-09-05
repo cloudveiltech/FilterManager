@@ -68,6 +68,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Job Batching
+    |--------------------------------------------------------------------------
+    |
+    | Used by Bus::batch() to track a group of queued jobs and run a callback
+    | once every job in the batch has finished. Needed so a filter:discover
+    | sweep can rebuild each affected group exactly once, after every category
+    | import in that sweep has completed, instead of guessing at a delay.
+    |
+    */
+
+    'batching' => [
+        'database' => env('DB_CONNECTION', 'mysql'),
+        'table' => 'job_batches',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Failed Queue Jobs
     |--------------------------------------------------------------------------
     |

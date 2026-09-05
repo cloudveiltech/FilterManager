@@ -3,6 +3,7 @@
 use App\Jobs\ProcessTextFilterArchiveUpload;
 use App\Models\FilterRulesManager;
 use App\Services\FilterImportGate;
+use Illuminate\Bus\PendingBatch;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
@@ -134,12 +135,18 @@ test('discovery dispatches an allowed changed category with the export disk', fu
             ->expectsOutputToContain('jobs-dispatched: 1')
             ->assertExitCode(0);
 
-        Bus::assertDispatched(ProcessTextFilterArchiveUpload::class, static function (ProcessTextFilterArchiveUpload $job): bool {
-            return $job->listNamespace === 'default'
-                && $job->file === 'export_movies.zip'
-                && $job->shouldOverwrite === true
-                && $job->category === 'movies'
-                && $job->disk === 'export';
+        // The whole sweep dispatches as a single batch (see DiscoverFilterImports) so its
+        // finally() callback can rebuild each affected group once, rather than each import
+        // dispatching individually — so assert against the batch, not a bare dispatch.
+        Bus::assertBatched(static function (PendingBatch $batch): bool {
+            return $batch->jobs->contains(static function ($job): bool {
+                return $job instanceof ProcessTextFilterArchiveUpload
+                    && $job->listNamespace === 'default'
+                    && $job->file === 'export_movies.zip'
+                    && $job->shouldOverwrite === true
+                    && $job->category === 'movies'
+                    && $job->disk === 'export';
+            });
         });
     } finally {
         foreach (glob($directory.'/*') ?: [] as $path) {
