@@ -4,6 +4,7 @@ use App\Jobs\ProcessTextFilterArchiveUpload;
 use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 
@@ -167,5 +168,44 @@ test('removes every rule file for a category when a later input fails', function
         @unlink($triggersPath);
         @rmdir(dirname($filtersPath));
         @rmdir(dirname(dirname($filtersPath)));
+    }
+});
+
+test('importing a category does not touch groups it is assigned to', function () {
+    $namespace = 'no_rebuild_test';
+    $category = 'no_rebuild_category';
+    $rulesManager = new FilterRulesManager();
+    $path = $rulesManager->getRulesetPath($namespace, $category, 'rules');
+    $archivePath = tempnam(sys_get_temp_dir(), 'filter-import-').'.zip';
+
+    $filterList = FilterList::query()->create([
+        'namespace' => $namespace,
+        'category' => $category,
+        'type' => 'Filters',
+    ]);
+    // No "groups" row exists for this id at all (this suite's schema doesn't even create a
+    // groups table — see beforeEach). Group::rebuildGroupData() would query it, so if the import
+    // still tried to rebuild this group, this would fail with "no such table: groups" instead of
+    // succeeding — proving the import path no longer reaches any group-rebuild code at all.
+    DB::table('group_filter_assignments')->insert([
+        'group_id' => 999999,
+        'filter_list_id' => $filterList->id,
+    ]);
+
+    $zip = new ZipArchive();
+    $zip->open($archivePath, ZipArchive::CREATE);
+    $zip->addFromString($category.'/domains.txt', "example.com\n");
+    $zip->close();
+
+    try {
+        (new ProcessTextFilterArchiveUpload($namespace, $archivePath, true, $category))
+            ->processTextFilterArchive($namespace, $archivePath, true, $category);
+
+        expect(file_get_contents($path))->toBe("||example.com\n");
+    } finally {
+        @unlink($archivePath);
+        @unlink($path);
+        @rmdir(dirname($path));
+        @rmdir(dirname(dirname($path)));
     }
 });

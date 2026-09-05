@@ -202,8 +202,6 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
         bool $honorImportEnabled = false,
     )
     {
-        $affectedGroups = array();
-
         // Zipped filter lists are expected to use the following
         // structure:
         // /  <-- ROOT
@@ -335,9 +333,6 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
                         array_push($purgedCategories, $newFilterListEntry->id);
                     }
 
-                    // In case this is existing, pull group assignment of this filter.
-                    $affectedGroups = array_merge($affectedGroups, ProcessTextFilterArchiveUpload::getGroupsAttachedToFilterId($newFilterListEntry->id));
-
                     // Register every output for this category before writing so a partial write can be removed.
                     $categoryFilterLists[$categoryName][$newFilterListEntry->id] = $newFilterListEntry;
 
@@ -355,9 +350,20 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
             }
         }
 
-        // Force rebuild of group data for all affected groups.
-        $affectedGroups = array_unique($affectedGroups);
-        ProcessTextFilterArchiveUpload::forceRebuildOnGroups($affectedGroups);
+        // Intentionally not rebuilding group data here. A category import only rewrites that
+        // category's rule/trigger file content — it never changes which filter lists a group has
+        // assigned, and 1.7+ clients read rule content directly (per-file ETag via /rules/*) and
+        // build their config from Group::config_cache, neither of which depends on this. The only
+        // thing that goes stale without a rebuild is storage/group_data/<id>/data.zip, which is
+        // fetched only by the legacy <=1.6 getUserData endpoint. Rebuilding here per category was
+        // also the cause of a filter:discover sweep taking upwards of 11 hours (each category
+        // rebuilt every one of its ~100 assigned groups from scratch).
+        //
+        // Group rebuilds still happen from group-assignment changes (FilterListCrudController's
+        // updateGroups/bulkAssignGroups/destroy), since those really do change config_cache's
+        // ConfiguredLists and still matter for any group with a legacy client. Restore a rebuild
+        // here (debounced or batched, not synchronous-per-category) once those last <=1.6
+        // activations are gone and it's clear data.zip no longer needs to stay current at all.
         Log::info('Removing Archived File: ' . $tmpArchiveLoc);
         if (file_exists($tmpArchiveLoc)) {
             @unlink($tmpArchiveLoc);
