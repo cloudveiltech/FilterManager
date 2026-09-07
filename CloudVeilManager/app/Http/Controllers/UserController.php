@@ -343,6 +343,61 @@ class UserController extends Controller
             $configuration = array_merge($groupConfiguration, $userConfiguration, $activationConfiguration);
 
             /* -------------------------------------------------------------- */
+            /*                 Merge the category overrides                   */
+            /* -------------------------------------------------------------- */
+            // User and activation CategoryOverrides adjust the group's ConfiguredLists per
+            // category: change its ListType, add a category the group doesn't assign, or remove
+            // one it does ('Ignored'). An activation override wins over a user override for the
+            // same category. Applied before the DisableBypass rewrite below so overridden bypass
+            // lists are converted to blacklists like any other.
+            $categoryOverrides = array_merge(
+                $userConfiguration['CategoryOverrides'] ?? [],
+                $activationConfiguration['CategoryOverrides'] ?? []
+            );
+            if (!empty($categoryOverrides)) {
+                $mergedCategoryOverrides = [];
+                foreach ($categoryOverrides as $categoryOverride) {
+                    if (isset($categoryOverride['categoryId'], $categoryOverride['override'])) {
+                        $mergedCategoryOverrides[$categoryOverride['categoryId']] = $categoryOverride;
+                    }
+                }
+
+                // Resolve every referenced category in one query — this runs on /config/get and
+                // /config/check, which both clients poll on a timer, so a per-override lookup here
+                // would be N extra queries per poll per device.
+                $categories = FilterList::whereIn('id', array_keys($mergedCategoryOverrides))
+                    ->get()
+                    ->keyBy('id');
+
+                $configuration['ConfiguredLists'] = $configuration['ConfiguredLists'] ?? [];
+                foreach ($mergedCategoryOverrides as $categoryOverride) {
+                    $category = $categories->get((int) $categoryOverride['categoryId']);
+                    if (is_null($category)) {
+                        continue;
+                    }
+                    $path = $category->getRelativeListPath();
+                    // look for the category in the ConfiguredLists array
+                    $matchIndex = array_search($path, array_column($configuration['ConfiguredLists'], 'RelativeListPath'));
+                    if ($matchIndex !== false) {
+                        if ($categoryOverride['override'] == 'Ignored') {
+                            // remove the category from the ConfiguredLists array
+                            unset($configuration['ConfiguredLists'][$matchIndex]);
+                            $configuration['ConfiguredLists'] = array_values($configuration['ConfiguredLists']);
+                        } else {
+                            // merge the category override into the existing category
+                            $configuration['ConfiguredLists'][$matchIndex]['ListType'] = $categoryOverride['override'];
+                        }
+                    } elseif ($categoryOverride['override'] != 'Ignored') {
+                        // add the category override to the ConfiguredLists array
+                        $configuration['ConfiguredLists'][] = [
+                            'ListType' => $categoryOverride['override'],
+                            'RelativeListPath' => $path,
+                        ];
+                    }
+                }
+            }
+
+            /* -------------------------------------------------------------- */
             /*                 Merge the arrays for these keys                */
             /* -------------------------------------------------------------- */
             $properties = [

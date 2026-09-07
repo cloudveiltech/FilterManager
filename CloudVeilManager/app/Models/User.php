@@ -249,6 +249,7 @@ class User extends Authenticatable
         'customer_id', 'config_override', 'relaxed_policy_passcode',
         'config', 'enable_relaxed_policy_passcode', 'blocked_sites', 'allowed_sites',
         'bypassable_sites', 'blocked_triggers', 'blocked_applications', 'time_restrictions',
+        'category_overrides',
         "BypassesPermitted", "BypassDuration", "DisableBypass", "TwoFAAuthEnabled", "PasswordAuthEnabled"
     ];
 

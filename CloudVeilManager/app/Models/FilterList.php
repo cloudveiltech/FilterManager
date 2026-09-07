@@ -48,4 +48,13 @@ class FilterList extends Model
     public function getLabelAttribute() {
         return $this->namespace . "/" . $this->category . "(" . $this->type . ")";
     }
+
+    /**
+     * The list's path inside the group data zip, as referenced by
+     * ConfiguredLists[].RelativeListPath in the client configuration.
+     */
+    public function getRelativeListPath()
+    {
+        return '/' . $this->namespace . '/' . $this->category . '/' . FilterRulesManager::TYPES[$this->type] . '.txt';
+    }
 }

@@ -31,7 +31,7 @@ class AppUserActivation extends Model
         'check_in_days', 'alert_partner','config_override', 'last_update_requested_time',
         'last_sync_time', 'platform_name', 'friendly_name', 'app_version', 'os_version', 'banned',
         'config', 'blocked_sites', 'allowed_sites', 'blocked_triggers', 'blocked_applications',
-        'time_restrictions', 'update_channel', 'DisableBypass'
+        'time_restrictions', 'update_channel', 'DisableBypass', 'category_overrides'
     ];
 
     public function user()
