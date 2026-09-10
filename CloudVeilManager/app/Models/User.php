@@ -249,7 +249,8 @@ class User extends Authenticatable
         'customer_id', 'config_override', 'relaxed_policy_passcode',
         'config', 'enable_relaxed_policy_passcode', 'blocked_sites', 'allowed_sites',
         'bypassable_sites', 'blocked_triggers', 'blocked_applications', 'time_restrictions',
-        "BypassesPermitted", "BypassDuration", "DisableBypass", "TwoFAAuthEnabled", "PasswordAuthEnabled"
+        "BypassesPermitted", "BypassDuration", "DisableBypass", "TwoFAAuthEnabled", "PasswordAuthEnabled",
+        "DisableDns"
     ];
 
     /**
@@ -288,5 +289,26 @@ class User extends Authenticatable
 
     public function getUsernameEmailAttribute() {
         return $this->name . " - " . $this->email;
+    }
+
+    public function getDisableDnsAttribute() {
+        if(isset($this->config_override["PrimaryDns"], $this->config_override["SecondaryDns"])) {
+            if(empty($this->config_override["PrimaryDns"]) && empty($this->config_override["SecondaryDns"])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function setDisableDnsAttribute($value) {
+        $config = $this->config_override;
+        if($value) {
+            $config["PrimaryDns"] = "";
+            $config["SecondaryDns"] = "";
+        } else {
+            unset($config["PrimaryDns"]);
+            unset($config["SecondaryDns"]);
+        }
+        $this->config_override = $config;
     }
 }
