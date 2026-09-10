@@ -170,6 +170,13 @@ class UserCrudController extends CrudController
                     'wrapper' => ['class' => 'form-group col-md-6'],
                 ],
                 [
+                    'name' => 'DisableDns',
+                    'type' => 'switch',
+                    'label' => 'Disable DNS',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
+                ],
+                [
                     'label' => 'Check-In Days',
                     'type' => 'number',
                     'name' => 'check_in_days',
