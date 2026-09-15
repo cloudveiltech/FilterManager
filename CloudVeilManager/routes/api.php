@@ -249,6 +249,11 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::get('/user', 'ManageUserController@index');
         Route::post('/user', 'ManageUserController@store');
 
+        /* Return Current User (registered last, so it keeps overriding GET /user as before) */
+        Route::get('/user', function (Request $request) {
+            return $request->user();
+        });
+
         /* Manage Activations */
         Route::get('/activations', 'AppUserActivationController@index'); //Should be deprecated.
         Route::get('/activation', 'AppUserActivationController@index');
