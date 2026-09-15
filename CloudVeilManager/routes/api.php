@@ -243,16 +243,11 @@ Route::namespace("App\Http\Controllers")->group(function () {
      */
     Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once', 'role:admin']], function () {
         /* Manage Users */
-        Route::post('/users/{id}', 'UserController@update'); //Should be deprecated.
-        Route::post('/user/{id}', 'UserController@update');
-        Route::get('/users', 'UserController@index');  //Used to lookup users.
-        Route::get('/user', 'UserController@index');
-        Route::post('/user', 'UserController@store');
-
-        /* Return Current User */
-        Route::get('/user', function (Request $request) {
-            return $request->user();
-        });
+        Route::post('/users/{id}', 'ManageUserController@update'); //Should be deprecated.
+        Route::post('/user/{id}', 'ManageUserController@update');
+        Route::get('/users', 'ManageUserController@index');  //Used to lookup users.
+        Route::get('/user', 'ManageUserController@index');
+        Route::post('/user', 'ManageUserController@store');
 
         /* Manage Activations */
         Route::get('/activations', 'AppUserActivationController@index'); //Should be deprecated.
