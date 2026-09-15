@@ -255,13 +255,13 @@ Route::namespace("App\Http\Controllers")->group(function () {
         });
 
         /* Manage Activations */
-        Route::get('/activations', 'AppUserActivationController@index'); //Should be deprecated.
-        Route::get('/activation', 'AppUserActivationController@index');
-        Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
-        Route::post('/deactivation/{id}', 'DeactivationRequestController@update');
-        Route::get('/deactivation/{id}', 'DeactivationRequestController@update');
-        Route::post('activations/delete/{id}', 'AppUserActivationController@destroy');
-        Route::post('activations/block/{id}', 'AppUserActivationController@block');
+        Route::get('/activations', 'ManageActivationController@index'); //Should be deprecated.
+        Route::get('/activation', 'ManageActivationController@index');
+        Route::post('/deactivation/create', 'ManageDeactivationController@apiCreateDeactivationRequest');
+        Route::post('/deactivation/{id}', 'ManageDeactivationController@update')->where('id', '[0-9]+');
+        Route::get('/deactivation/{id}', 'ManageDeactivationController@update')->where('id', '[0-9]+');
+        Route::post('activations/delete/{id}', 'ManageActivationController@destroy')->where('id', '[0-9]+');
+        Route::post('activations/block/{id}', 'ManageActivationController@block')->where('id', '[0-9]+');
     });
 
     Route::group(['middleware' => []], function () {
