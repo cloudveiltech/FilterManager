@@ -12,97 +12,25 @@ class ManageUserController extends Controller
 {
     /**
      * List users for the external management API.
+     *
+     * The manage site looks a user up with `?email=` and reads `data[0]`.
      */
     public function index(Request $request)
     {
-        $draw = (int) $request->input('draw', 0);
-        $start = max((int) $request->input('start', 0), 0);
-        $length = $request->input('length');
-        $length = $length === null || $length === '' ? 10 : (int) $length;
-        if ($length < 1) {
-            $length = 10;
-        }
+        $search = trim((string) $request->query('search', ''));
 
-        $search = $request->input('search.value', '');
-        $search = $search === null ? '' : $search;
-
-        $orderName = 'email';
-        $orderColumn = $request->input('order.0.column');
-        if ($orderColumn !== null && $orderColumn !== '') {
-            $orderName = $request->input('columns.' . (int) $orderColumn . '.data', 'email');
-        }
-
-        $orderDirection = strtoupper((string) $request->input('order.0.dir', 'ASC'));
-        if (!in_array($orderDirection, ['ASC', 'DESC'], true)) {
-            $orderDirection = 'ASC';
-        }
-
-        $recordsTotal = User::count();
-
-        $query = User::with(['group', 'roles', 'activations'])
-            ->select('users.*');
-
-        if ($search !== '') {
-            $query->where(function ($query) use ($search) {
-                $query->where('users.name', 'like', "%{$search}%")
-                    ->orWhere('users.email', 'like', "%{$search}%")
-                    ->orWhereHas('activations', function ($query) use ($search) {
-                        $query->where('identifier', $search);
-                    });
-            });
-        }
-
-        $input = $request->all();
-        foreach (['email', 'id', 'customer_id', 'provider_id'] as $filter) {
-            if (!array_key_exists($filter, $input)) {
-                continue;
-            }
-
-            $value = $input[$filter];
-            if ($value === null || $value === '') {
-                $query->whereRaw('0 = 1');
-                continue;
-            }
-
-            if ($filter === 'provider_id') {
-                $query->where('users.provider', 'cloudveil')
-                    ->where('users.provider_id', $value);
-            } else {
-                $query->where('users.' . $filter, $value);
-            }
-        }
-
-        $orderColumns = [
-            'group.id' => 'groups.id',
-            'name' => 'users.name',
-            'email' => 'users.email',
-            'activations_allowed' => 'users.activations_allowed',
-            'isactive' => 'users.isactive',
-            'created_at' => 'users.created_at',
-        ];
-
-        if ($orderName === 'group.name' || $orderName === 'group.id') {
-            $query->leftJoin('groups', 'groups.id', '=', 'users.group_id')
-                ->orderBy($orderColumns[$orderName], $orderDirection);
-        } elseif ($orderName === 'roles[, ].display_name') {
-            $query->leftJoin('role_user', 'role_user.user_id', '=', 'users.id')
-                ->orderBy('role_user.role_id', $orderDirection);
-        } else {
-            $query->orderBy($orderColumns[$orderName] ?? 'users.email', $orderDirection);
-        }
-
-        $recordsFiltered = $query->count();
-        $users = $query->offset($start)
-            ->limit($length)
-            ->get();
-
-        return response()->json([
-            'draw' => $draw,
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
-            'search' => $search,
-            'data' => $users,
-        ]);
+        return User::with(['group:id,name', 'roles', 'activations'])
+            ->when($request->has('email'), fn ($query) => $query->where('email', (string) $request->input('email')))
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhereHas('activations', fn ($query) => $query->where('identifier', $search));
+                });
+            })
+            ->orderBy('email')
+            ->paginate(min(max($request->integer('per_page', 15), 1), 100))
+            ->withQueryString();
     }
 
     /**
