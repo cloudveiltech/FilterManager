@@ -56,7 +56,6 @@ class ManageUserController extends Controller
             'provider_id',
             'activations_allowed',
             'isactive',
-            'debug_enabled',
             'config_override',
         ]);
         $input['password'] = Hash::make($input['password']);
