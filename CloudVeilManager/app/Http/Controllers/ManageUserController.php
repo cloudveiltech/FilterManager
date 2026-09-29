@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Helpers\Utils;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -56,13 +55,8 @@ class ManageUserController extends Controller
             'provider_id',
             'activations_allowed',
             'isactive',
-            'config_override',
         ]);
         $input['password'] = Hash::make($input['password']);
-
-        if (array_key_exists('config_override', $input)) {
-            $input['config_override'] = $this->purgeConfigOverride($input['config_override']);
-        }
 
         $user = new User();
         $user->forceFill($input);
@@ -110,17 +104,10 @@ class ManageUserController extends Controller
             return response('provider_id is duplicated. please choose another provider_id', 403);
         }
 
-        $rules = [
+        $this->validate($request, [
             'name' => 'required',
             'email' => 'required',
-        ];
-        $includePassword = array_key_exists('password', $input)
-            && array_key_exists('password_verify', $input);
-        if ($includePassword) {
-            $rules['password'] = 'required|same:password_verify';
-        }
-
-        $this->validate($request, $rules);
+        ]);
 
         if (array_key_exists('role_id', $input)) {
             $this->validate($request, [
@@ -137,7 +124,6 @@ class ManageUserController extends Controller
             'provider_id',
             'activations_allowed',
             'isactive',
-            'config_override',
             'relaxed_policy_passcode',
             'enable_relaxed_policy_passcode',
         ];
@@ -146,14 +132,6 @@ class ManageUserController extends Controller
             if (array_key_exists($key, $input)) {
                 $changes[$key] = $input[$key];
             }
-        }
-
-        if (array_key_exists('config_override', $changes)) {
-            $changes['config_override'] = $this->purgeConfigOverride($changes['config_override']);
-        }
-
-        if ($includePassword) {
-            $changes['password'] = Hash::make($input['password']);
         }
 
         $user->forceFill($changes);
@@ -174,16 +152,5 @@ class ManageUserController extends Controller
         }
 
         return response('', 204);
-    }
-
-    private function purgeConfigOverride($configOverride)
-    {
-        $configOverride = Utils::purgeNullsFromJSONSelfModeration($configOverride);
-        if (!is_string($configOverride)) {
-            return $configOverride;
-        }
-
-        $decoded = json_decode($configOverride, true);
-        return json_last_error() === JSON_ERROR_NONE ? $decoded : $configOverride;
     }
 }
