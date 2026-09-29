@@ -25,7 +25,7 @@ class ManageActivationController extends Controller
 
         $search = trim((string) $request->query('search', ''));
 
-        return AppUserActivation::with(['user', 'group'])
+        return AppUserActivation::with(['user', 'group:id,name'])
             ->when($request->filled('user_id'), fn ($query) => $query->where('user_id', $request->integer('user_id')))
             ->when($request->has('banned'), fn ($query) => $query->where('banned', $request->boolean('banned')))
             ->when($search !== '', function ($query) use ($search) {
@@ -75,7 +75,7 @@ class ManageActivationController extends Controller
     private function activationsForUser(User $user)
     {
         return $user->activations()
-            ->with(['deactivation_request', 'group'])
+            ->with(['deactivation_request', 'group:id,name'])
             ->get();
     }
 }
