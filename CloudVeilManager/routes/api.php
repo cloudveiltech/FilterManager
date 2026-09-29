@@ -255,7 +255,7 @@ Route::namespace("App\Http\Controllers")->group(function () {
         });
 
         /* Manage Activations */
-        Route::get('/activations', 'ManageActivationController@index'); //Should be deprecated.
+        Route::get('/activations', 'ManageActivationController@index'); // Used by Manage.
         Route::get('/activation', 'ManageActivationController@index');
         Route::post('/deactivation/create', 'ManageDeactivationController@apiCreateDeactivationRequest');
         Route::post('/deactivation/{id}', 'ManageDeactivationController@update')->where('id', '[0-9]+');

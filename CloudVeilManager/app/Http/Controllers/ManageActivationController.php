@@ -97,12 +97,20 @@ class ManageActivationController extends Controller
         $rows = $query->offset($start)
             ->limit($length)
             ->get();
+        $nextStart = $start + $rows->count();
 
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data' => $rows,
+            'pagination' => [
+                'start' => $start,
+                'length' => $length,
+                'total' => $recordsFiltered,
+                'has_more' => $nextStart < $recordsFiltered,
+                'next_start' => $nextStart < $recordsFiltered ? $nextStart : null,
+            ],
         ]);
     }
 
