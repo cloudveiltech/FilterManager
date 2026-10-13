@@ -5,11 +5,14 @@ namespace App\Models;
 use App\Models\Casts\Json;
 use App\Models\Traits\OverridableConfigTrait;
 use App\Models\Traits\TimerRestrictionsTrait;
+use App\Observers\AppUserActivationObserver;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy(AppUserActivationObserver::class)]
 class AppUserActivation extends Model
 {
     use CrudTrait;
