@@ -5,14 +5,13 @@ namespace App\Services;
 use App\Jobs\SendDeviceWebhook;
 use App\Models\AppUserActivation;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 /**
  * Builds and queues the device webhook cv-manage uses to refresh a customer's devices.
  *
- * The webhook is only a nudge: cv-manage re-reads the customer's activations through
- * `manage/activations?email=`, so the payload just identifies who and which device changed.
+ * The job attaches the activation row (as `manage/activations?email=` returns it) when it is sent,
+ * so cv-manage can update its copy without a round trip.
  */
 class DeviceWebhook
 {
@@ -35,7 +34,7 @@ class DeviceWebhook
      */
     public static function send(string $event, AppUserActivation $activation, array $extra = [], ?string $email = null): void
     {
-        self::sendFor($event, $activation->user_id, $activation->identifier, $activation->device_id, $extra, $email);
+        self::dispatch($event, $activation->getKey(), $activation->user_id, $activation->identifier, $activation->device_id, $extra, $email);
     }
 
     /**
@@ -49,20 +48,32 @@ class DeviceWebhook
             return;
         }
 
+        $activationId = AppUserActivation::withTrashed()
+            ->where('user_id', $userId)
+            ->where('identifier', $identifier)
+            ->where('device_id', $deviceId)
+            ->value('id');
+
+        self::dispatch($event, $activationId, $userId, $identifier, $deviceId, $extra, $email);
+    }
+
+    private static function dispatch(string $event, $activationId, $userId, ?string $identifier, ?string $deviceId, array $extra, ?string $email): void
+    {
+        if (blank(config('services.cv_manage.device_webhook_url'))) {
+            return;
+        }
+
         $email ??= self::emailFor($userId);
         if ($email === null) {
             // Without an owner cv-manage has nothing to refresh; the nightly sync covers it.
             return;
         }
 
-        SendDeviceWebhook::dispatch([
-            'event' => $event,
-            'email' => $email,
+        SendDeviceWebhook::dispatch($activationId, $event, [
             'identifier' => $identifier,
             'device_id' => $deviceId,
             ...$extra,
-            'occurred_at' => Carbon::now()->toIso8601String(),
-        ])->afterCommit();
+        ], $email)->afterCommit();
     }
 
     /**

@@ -52,6 +52,14 @@ class AppUserActivation extends Model
         return $this->belongsTo('App\Models\Group');
     }
 
+    /**
+     * Eager loads that make up an activation row in the manage API and the device webhook.
+     */
+    public function scopeForManage($query)
+    {
+        return $query->with(['deactivation_request', 'group:id,name']);
+    }
+
     public static function setLastUpdateRequestTime($requestIp, $activationId) {
         $query = null;
         if(!empty($activationId)) {

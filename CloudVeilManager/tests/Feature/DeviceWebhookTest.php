@@ -1,13 +1,17 @@
 <?php
 
 use App\Events\DeactivationRequestReceived;
+use App\Http\Controllers\ManageActivationController;
 use App\Http\Controllers\UserController;
 use App\Jobs\SendDeviceWebhook;
 use App\Models\AppUserActivation;
 use App\Models\DeactivationRequest;
+use App\Models\Group;
 use App\Models\Helpers\UserActivationAttemptResult;
 use App\Models\User;
+use Illuminate\Contracts\Queue\Job as QueueJob;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
@@ -31,6 +35,7 @@ beforeEach(function () {
     Schema::create('app_user_activations', function (Blueprint $table) {
         $table->id();
         $table->unsignedBigInteger('user_id');
+        $table->unsignedBigInteger('group_id')->nullable();
         $table->string('identifier');
         $table->string('device_id');
         $table->string('platform_name')->nullable();
@@ -46,7 +51,9 @@ beforeEach(function () {
 
     Schema::create('groups', function (Blueprint $table) {
         $table->id();
+        $table->string('name')->nullable();
         $table->boolean('isactive')->default(true);
+        $table->timestamps();
     });
 
     Schema::create('deactivation_requests', function (Blueprint $table) {
@@ -289,15 +296,79 @@ test('nothing is queued when the webhook url is blank', function () {
 test('the job posts the payload with the api key', function () {
     Http::fake();
 
-    (new SendDeviceWebhook(['event' => 'added', 'email' => 'alice@example.com']))->handle();
+    (new SendDeviceWebhook($this->activation->id, 'added', [], 'alice@example.com'))->handle();
 
     Http::assertSent(fn ($request) => $request->url() === 'https://manage.test/webhooks/devices'
         && $request->hasHeader('X-Api-Key', 'secret-key')
-        && $request['event'] === 'added');
+        && $request['event'] === 'added'
+        && $request['email'] === 'alice@example.com');
+});
+
+test('the payload carries the same device row the per-email api returns', function () {
+    $group = Group::create(['name' => 'Family']);
+    $this->activation->update(['group_id' => $group->id]);
+    DeactivationRequest::create(['user_id' => $this->alice->id, 'identifier' => 'FP-1', 'device_id' => 'ALICE-PC']);
+    Http::fake();
+
+    (new SendDeviceWebhook($this->activation->id, 'added', [], 'alice@example.com'))->handle();
+
+    $row = json_decode(json_encode(app(ManageActivationController::class)->index(Request::create('/', 'GET', ['email' => 'alice@example.com']))->getData(true)[0]), true);
+    Http::assertSent(function ($request) use ($row) {
+        return $request['device'] === $row
+            && $request['device']['group']['name'] === 'Family'
+            && count($request['device']['deactivation_request']) === 1;
+    });
+});
+
+test('the device is the soft-deleted row for removed and null when the row is gone', function () {
+    Http::fake();
+    $id = $this->activation->id;
+    $this->activation->delete();
+
+    (new SendDeviceWebhook($id, 'removed', [], 'alice@example.com'))->handle();
+    (new SendDeviceWebhook(null, 'removed', [], 'alice@example.com'))->handle();
+
+    $devices = [];
+    Http::assertSentCount(2);
+    Http::assertSent(function ($request) use (&$devices) {
+        $devices[] = $request['device'];
+
+        return true;
+    });
+    expect($devices[0]['deleted_at'])->not->toBeNull()
+        ->and($devices[1])->toBeNull();
+});
+
+test('occurred_at is stamped when the job runs, not when it is queued', function () {
+    Http::fake();
+    $job = new SendDeviceWebhook($this->activation->id, 'added', [], 'alice@example.com');
+
+    $this->travelTo(now()->addMinutes(30));
+    $job->handle();
+
+    Http::assertSent(fn ($request) => $request['occurred_at'] === now()->toIso8601String());
 });
 
 test('the job throws so it is retried when cv-manage is down', function () {
     Http::fake(['*' => Http::response('', 503)]);
 
-    (new SendDeviceWebhook(['event' => 'added']))->handle();
-})->throws(Illuminate\Http\Client\RequestException::class);
+    (new SendDeviceWebhook($this->activation->id, 'added', [], 'alice@example.com'))->handle();
+})->throws(RequestException::class);
+
+test('the job throws so it is retried when rate limited', function () {
+    Http::fake(['*' => Http::response('', 429)]);
+
+    (new SendDeviceWebhook($this->activation->id, 'added', [], 'alice@example.com'))->handle();
+})->throws(RequestException::class);
+
+test('a rejected request is failed instead of retried', function () {
+    Http::fake(['*' => Http::response('', 422)]);
+    $queueJob = Mockery::mock(QueueJob::class);
+    $queueJob->shouldReceive('fail')->once();
+    $job = new SendDeviceWebhook($this->activation->id, 'added', [], 'alice@example.com');
+    $job->setJob($queueJob);
+
+    $job->handle();
+
+    Http::assertSentCount(1);
+});

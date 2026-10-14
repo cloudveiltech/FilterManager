@@ -75,7 +75,7 @@ class ManageActivationController extends Controller
     private function activationsForUser(User $user)
     {
         return $user->activations()
-            ->with(['deactivation_request', 'group:id,name'])
+            ->forManage()
             ->get();
     }
 }
