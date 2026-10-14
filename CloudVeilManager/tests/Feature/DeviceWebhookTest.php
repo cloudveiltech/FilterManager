@@ -13,6 +13,7 @@ use Illuminate\Contracts\Queue\Job as QueueJob;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -371,4 +372,31 @@ test('a rejected request is failed instead of retried', function () {
     $job->handle();
 
     Http::assertSentCount(1);
+});
+
+test('the listing rows carry deactivation_request and the owner email without a query per row', function () {
+    DeactivationRequest::create(['user_id' => $this->alice->id, 'identifier' => 'FP-1', 'device_id' => 'ALICE-PC']);
+    $listing = fn () => app(ManageActivationController::class)->index(Request::create('/', 'GET'));
+    $queries = function () use ($listing) {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $rows = $listing()->getCollection();
+        DB::disableQueryLog();
+
+        return [count(DB::getQueryLog()), $rows];
+    };
+
+    [$before, $rows] = $queries();
+    foreach (range(1, 5) as $i) {
+        AppUserActivation::create(['user_id' => User::create(['name' => "U{$i}", 'email' => "u{$i}@example.com"])->id, 'identifier' => "FP-X{$i}", 'device_id' => "PC-{$i}"]);
+    }
+    [$after, $more] = $queries();
+
+    $row = json_decode($rows->first()->toJson(), true);
+    expect($row)->toHaveKey('deactivation_request')
+        ->and($row['deactivation_request'])->toHaveCount(1)
+        ->and($row['user']['email'])->toBe('alice@example.com')
+        ->and($row['user'])->not->toHaveKey('activations_used')
+        ->and($more)->toHaveCount(6)
+        ->and($after)->toBe($before);
 });
