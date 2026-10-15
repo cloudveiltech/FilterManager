@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\SystemPlatform;
 use App\Models\AppUserActivation;
 use Backpack\CRUD\app\Library\Widget;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -113,6 +114,34 @@ class AppUserActivationCrudController extends CrudController
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDirection) {
                     return $query->orderBy('platform_name', $columnDirection);
+                }
+            ],
+            [
+                'label' => 'Last Seen',
+                'type' => 'custom_html',
+                'name' => 'last_sync_time',
+                'value' => function ($entry) {
+                    $format = 'M j, Y g:i A';
+
+                    // Last seen shows relative time ("3 days ago") with the exact date and time on hover
+                    $lastSeen = '-';
+                    if ($entry->last_sync_time) {
+                        $lastSync = Carbon::parse($entry->last_sync_time);
+                        $lastSeen = '<span title="' . e($lastSync->format($format . ' T')) . '">' . e($lastSync->diffForHumans()) . '</span>';
+                    }
+
+                    $created = $entry->created_at ? $entry->created_at->format($format) : '-';
+                    $html = '<div>' . $lastSeen . '</div><div class="text-muted small">Created ' . e($created) . '</div>';
+                    if ($entry->trashed()) {
+                        $html .= '<div class="text-danger small">Deleted ' . e($entry->deleted_at->format($format)) . '</div>';
+                    }
+                    return $html;
+                },
+                'escaped' => false,
+                'priority' => 1,
+                'orderable' => true,
+                'orderLogic' => function ($query, $column, $columnDirection) {
+                    return $query->orderBy('last_sync_time', $columnDirection);
                 }
             ],
             [
