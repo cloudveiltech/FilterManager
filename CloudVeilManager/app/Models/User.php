@@ -12,8 +12,10 @@ namespace App\Models;
 use App\Models\Traits\LoginPreferencesTrait;
 use App\Models\Traits\OverridableConfigTrait;
 use App\Models\Traits\TimerRestrictionsTrait;
+use App\Observers\UserObserver;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request;
@@ -23,6 +25,7 @@ use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\HasApiTokens;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 
+#[ObservedBy(UserObserver::class)]
 class User extends Authenticatable
 {
     use CrudTrait;
@@ -212,6 +215,14 @@ class User extends Authenticatable
                 $activation->delete();
                 return Helpers\UserActivationAttemptResult::ActivationLimitExceeded;
             }
+
+            // The same machine now belongs to this user, so retire other users' activations for it.
+            AppUserActivation::where('identifier', $activation->identifier)
+                ->where('device_id', $activation->device_id)
+                ->where('user_id', '!=', $this->id)
+                ->get()
+                ->each
+                ->delete();
 
             // Update timestamp on this user's access. This can be used to
             // track/identify stale activations.

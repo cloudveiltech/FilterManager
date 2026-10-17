@@ -243,25 +243,25 @@ Route::namespace("App\Http\Controllers")->group(function () {
      */
     Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once', 'role:admin']], function () {
         /* Manage Users */
-        Route::post('/users/{id}', 'UserController@update'); //Should be deprecated.
-        Route::post('/user/{id}', 'UserController@update');
-        Route::get('/users', 'UserController@index');  //Used to lookup users.
-        Route::get('/user', 'UserController@index');
-        Route::post('/user', 'UserController@store');
+        Route::post('/users/{id}', 'ManageUserController@update'); //Should be deprecated.
+        Route::post('/user/{id}', 'ManageUserController@update');
+        Route::get('/users', 'ManageUserController@index');  //Used to lookup users.
+        Route::get('/user', 'ManageUserController@index');
+        Route::post('/user', 'ManageUserController@store');
 
-        /* Return Current User */
+        /* Return Current User (registered last, so it keeps overriding GET /user as before) */
         Route::get('/user', function (Request $request) {
             return $request->user();
         });
 
         /* Manage Activations */
-        Route::get('/activations', 'AppUserActivationController@index'); //Should be deprecated.
-        Route::get('/activation', 'AppUserActivationController@index');
-        Route::get('/activation/status/{identify}', 'AppUserActivationController@status');
-        Route::post('/deactivation/{id}', 'DeactivationRequestController@update');
-        Route::get('/deactivation/{id}', 'DeactivationRequestController@update');
-        Route::post('activations/delete/{id}', 'AppUserActivationController@destroy');
-        Route::post('activations/block/{id}', 'AppUserActivationController@block');
+        Route::get('/activations', 'ManageActivationController@index'); // Used by Manage.
+        Route::get('/activation', 'ManageActivationController@index');
+        Route::post('/deactivation/create', 'ManageDeactivationController@apiCreateDeactivationRequest');
+        Route::post('/deactivation/{id}', 'ManageDeactivationController@update')->where('id', '[0-9]+');
+        Route::get('/deactivation/{id}', 'ManageDeactivationController@update')->where('id', '[0-9]+');
+        Route::post('activations/delete/{id}', 'ManageActivationController@destroy')->where('id', '[0-9]+');
+        Route::post('activations/block/{id}', 'ManageActivationController@block')->where('id', '[0-9]+');
     });
 
     Route::group(['middleware' => []], function () {
