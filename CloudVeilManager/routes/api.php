@@ -159,10 +159,26 @@ Route::namespace("App\Http\Controllers")->group(function () {
      * At some point this will be revoked and rolled into v2 of the api.
      */
     Route::group(['prefix' => 'manage', 'middleware' => ['db.live', 'auth.basic.once', 'role:admin']], function () {
-        /* Return Current User */
+        /* Manage Users */
+        Route::post('/users/{id}', 'ManageUserController@update'); //Should be deprecated.
+        Route::post('/user/{id}', 'ManageUserController@update');
+        Route::get('/users', 'ManageUserController@index');  //Used to lookup users.
+        Route::get('/user', 'ManageUserController@index');
+        Route::post('/user', 'ManageUserController@store');
+
+        /* Return Current User (registered last, so it keeps overriding GET /user as before) */
         Route::get('/user', function (Request $request) {
             return $request->user();
         });
+
+        /* Manage Activations */
+        Route::get('/activations', 'ManageActivationController@index'); // Used by Manage.
+        Route::get('/activation', 'ManageActivationController@index');
+        Route::post('/deactivation/create', 'ManageDeactivationController@apiCreateDeactivationRequest');
+        Route::post('/deactivation/{id}', 'ManageDeactivationController@update')->where('id', '[0-9]+');
+        Route::get('/deactivation/{id}', 'ManageDeactivationController@update')->where('id', '[0-9]+');
+        Route::post('activations/delete/{id}', 'ManageActivationController@destroy')->where('id', '[0-9]+');
+        Route::post('activations/block/{id}', 'ManageActivationController@block')->where('id', '[0-9]+');
     });
 
     Route::group(['middleware' => []], function () {
