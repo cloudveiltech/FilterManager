@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\SystemPlatform;
 use App\Models\AppUserActivation;
 use Backpack\CRUD\app\Library\Widget;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -51,12 +52,15 @@ class AppUserActivationCrudController extends CrudController
                 'type' => 'custom_html',
                 'name' => 'device',
                 'value' => function ($entry) {
-                    $friendlyName = $entry->friendly_name ?: '-';
-                    $deviceId = $entry->device_id ?: '-';
                     $deletedBadge = $entry->trashed()
                         ? ' <span class="badge bg-danger text-white">Deleted</span>'
                         : '';
-                    return '<div>' . e($friendlyName) . $deletedBadge . '</div><div class="text-muted small">' . e($deviceId) . '</div>';
+
+                    // Friendly name is primary when set, otherwise the computer name (device_id) takes its place
+                    if (!$entry->friendly_name) {
+                        return '<div>' . e($entry->device_id ?: '-') . $deletedBadge . '</div>';
+                    }
+                    return '<div>' . e($entry->friendly_name) . $deletedBadge . '</div><div class="text-muted small">' . e($entry->device_id ?: '-') . '</div>';
                 },
                 'escaped' => false,
                 'priority' => 1,
@@ -116,10 +120,55 @@ class AppUserActivationCrudController extends CrudController
                 }
             ],
             [
-                'label' => 'Identifier',
-                'type' => 'hidden',
+                'label' => 'Last Seen',
+                'type' => 'custom_html',
+                'name' => 'last_sync_time',
+                'value' => function ($entry) {
+                    $format = 'M j, Y g:i A';
+
+                    // Last seen shows relative time ("3 days ago") with the exact date and time on hover
+                    $lastSeen = '-';
+                    if ($entry->last_sync_time) {
+                        $lastSync = Carbon::parse($entry->last_sync_time);
+                        $lastSeen = '<span title="' . e($lastSync->format($format . ' T')) . '">' . e($lastSync->diffForHumans()) . '</span>';
+                    }
+
+                    $created = $entry->created_at ? $entry->created_at->format($format) : '-';
+                    $html = '<div>' . $lastSeen . '</div><div class="text-muted small">Created ' . e($created) . '</div>';
+                    if ($entry->trashed()) {
+                        $html .= '<div class="text-danger small">Deleted ' . e($entry->deleted_at->format($format)) . '</div>';
+                    }
+                    return $html;
+                },
+                'escaped' => false,
+                'priority' => 1,
+                'orderable' => true,
+                'orderLogic' => function ($query, $column, $columnDirection) {
+                    return $query->orderBy('last_sync_time', $columnDirection);
+                }
+            ],
+            [
+                'label' => '<div>IP Address</div><div class="text-muted small">Identifier</div>',
+                'type' => 'custom_html',
                 'name' => 'identifier',
-                'searchLogic' => 'text'
+                'value' => function ($entry) {
+                    $ipAddress = $entry->ip_address ?: '-';
+                    $identifier = $entry->identifier ?: '-';
+                    return '<div>' . e($ipAddress) . '</div><div class="text-muted small">' . e($identifier) . '</div>';
+                },
+                'escaped' => false,
+                'priority' => 1,
+                'orderable' => true,
+                'orderLogic' => function ($query, $column, $columnDirection) {
+                    return $query->orderBy('ip_address', $columnDirection);
+                },
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $table = $query->getModel()->getTable();
+                    $operator = config('backpack.operations.list.searchOperator', 'like');
+                    $pattern = '%' . $searchTerm . '%';
+                    $query->orWhere($table . '.ip_address', $operator, $pattern)
+                        ->orWhere($table . '.identifier', $operator, $pattern);
+                },
             ]
         ]);
 
