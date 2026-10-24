@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\AppUserActivation;
 use App\Exceptions\UpdateProbablyFailedException;
+use App\Models\AppUserActivation;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use App\Jobs\ProcessTextFilterArchiveUpload;
