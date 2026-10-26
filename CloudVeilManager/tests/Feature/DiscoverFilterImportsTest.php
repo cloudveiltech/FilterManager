@@ -4,7 +4,9 @@ use App\Jobs\ProcessTextFilterArchiveUpload;
 use App\Models\FilterRulesManager;
 use App\Services\FilterImportGate;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 afterEach(function (): void {
@@ -70,6 +72,8 @@ test('discovery dry-run reports gate outcomes without dispatching jobs', functio
         ));
 
         Bus::fake();
+        Http::fake();
+        config(['services.slack.url' => 'https://hooks.slack.test/webhook']);
 
         $this->artisan('filter:discover', ['--dry-run' => true])
             ->expectsOutputToContain('[denied] category=uncategorized object=export_Uncategorized.zip')
@@ -85,6 +89,7 @@ test('discovery dry-run reports gate outcomes without dispatching jobs', functio
             ->assertExitCode(0);
 
         Bus::assertNothingDispatched();
+        Http::assertNothingSent();
     } finally {
         foreach (glob($directory.'/*') ?: [] as $path) {
             unlink($path);
@@ -128,6 +133,8 @@ test('discovery dispatches an allowed changed category with the export disk', fu
         ));
 
         Bus::fake();
+        Http::fake();
+        config(['services.slack.url' => 'https://hooks.slack.test/webhook']);
 
         $this->artisan('filter:discover')
             ->expectsOutputToContain('[imported] category=movies object=export_movies.zip')
@@ -139,8 +146,13 @@ test('discovery dispatches an allowed changed category with the export disk', fu
                 && $job->file === 'export_movies.zip'
                 && $job->shouldOverwrite === true
                 && $job->category === 'movies'
-                && $job->disk === 'export';
+                && $job->disk === 'export'
+                && $job->notifySlack === false;
         });
+
+        Http::assertSentCount(1);
+        Http::assertSent(static fn (Request $request): bool => $request->url() === 'https://hooks.slack.test/webhook'
+            && $request['text'] === 'Filter import discovery queued 1 import(s): movies');
     } finally {
         foreach (glob($directory.'/*') ?: [] as $path) {
             unlink($path);

@@ -7,6 +7,9 @@ use App\Services\FilterImportDecision;
 use App\Services\FilterImportGate;
 use App\Services\FilterImportOutcome;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\StorageAttributes;
 use Throwable;
@@ -22,6 +25,11 @@ class DiscoverFilterImports extends Command
      * @var array<string, int>
      */
     private array $outcomeCounts = [];
+
+    /**
+     * @var array<int, string>
+     */
+    private array $dispatchedCategories = [];
 
     public function handle(FilterImportGate $gate): int
     {
@@ -107,8 +115,10 @@ class DiscoverFilterImports extends Command
                         true,
                         $decision->category,
                         FilterImportGate::EXPORT_DISK,
+                        notifySlack: false,
                     );
                     $jobsDispatched++;
+                    $this->dispatchedCategories[] = $decision->category;
                     $this->line($detail.' — dispatched');
                 } catch (Throwable $exception) {
                     $dispatchErrors++;
@@ -120,11 +130,13 @@ class DiscoverFilterImports extends Command
             $this->outcomeCounts[FilterImportOutcome::DISK_ERROR->value]++;
             $this->error('[disk-error] Unable to list the export disk: '.$exception->getMessage());
             $this->renderSummary($objectsSeen, $jobsDispatched, $dispatchErrors, $gateErrors, $listingErrors);
+            $this->postSlackSummary($dryRun, $jobsDispatched, $dispatchErrors, $gateErrors, $listingErrors);
 
             return self::FAILURE;
         }
 
         $this->renderSummary($objectsSeen, $jobsDispatched, $dispatchErrors, $gateErrors, $listingErrors);
+        $this->postSlackSummary($dryRun, $jobsDispatched, $dispatchErrors, $gateErrors, $listingErrors);
 
         return $dispatchErrors > 0 || $gateErrors > 0 || $listingErrors > 0
             ? self::FAILURE
@@ -161,5 +173,54 @@ class DiscoverFilterImports extends Command
         $this->line('  dispatch-errors: '.$dispatchErrors);
         $this->line('  gate-errors: '.$gateErrors);
         $this->line('  listing-errors: '.$listingErrors);
+    }
+
+    /**
+     * Posts one Slack message for the whole run instead of one per import job,
+     * which kept tripping Slack's webhook rate limit. Quiet runs post nothing.
+     */
+    private function postSlackSummary(
+        bool $dryRun,
+        int $jobsDispatched,
+        int $dispatchErrors,
+        int $gateErrors,
+        int $listingErrors,
+    ): void {
+        $errorCount = $dispatchErrors + $gateErrors + $listingErrors;
+
+        if ($dryRun || ($jobsDispatched === 0 && $errorCount === 0) || blank(config('services.slack.url'))) {
+            return;
+        }
+
+        $text = sprintf('Filter import discovery queued %d import(s)', $jobsDispatched);
+
+        if ($this->dispatchedCategories !== []) {
+            $text .= ': '.implode(', ', $this->dispatchedCategories);
+        }
+
+        if ($errorCount > 0) {
+            $text .= sprintf(
+                "\nErrors: %d dispatch, %d gate, %d listing. Check the scheduler output for details.",
+                $dispatchErrors,
+                $gateErrors,
+                $listingErrors,
+            );
+        }
+
+        try {
+            Http::post(config('services.slack.url'), [
+                'channel' => config('services.slack.channel.import'),
+                'text' => $text,
+                'username' => config('app.name'),
+            ])->throw();
+        } catch (Throwable $exception) {
+            // Log without the exception message: it includes the webhook URL, which is a secret.
+            Log::warning('Unable to post filter import summary to Slack.', [
+                'exception' => $exception::class,
+                'status' => $exception instanceof RequestException
+                    ? $exception->response->status()
+                    : null,
+            ]);
+        }
     }
 }

@@ -50,6 +50,14 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
     public $uniqueFor = 7200;
 
     /**
+     * Whether this job posts its own start/finish messages to Slack. Scheduled
+     * discovery turns this off and sends one summary for the whole run instead.
+     * Declared with a default (not promoted) so jobs queued before this property
+     * existed still unserialize with notifications on.
+     */
+    public bool $notifySlack = true;
+
+    /**
      * Create a new job instance.
      */
     public function __construct(
@@ -58,7 +66,10 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
         public bool $shouldOverwrite,
         public string $category = '',
         public ?string $disk = null,
-    ) {}
+        bool $notifySlack = true,
+    ) {
+        $this->notifySlack = $notifySlack;
+    }
 
     public function uniqueId(): string
     {
@@ -81,37 +92,31 @@ class ProcessTextFilterArchiveUpload implements ShouldBeUnique, ShouldQueue
     public function handle()
     {
         Log::info('Running processTextFilterArchive Job.');
-        $client = new Client();
 
-        try {
-            $payload = json_encode(
-                [
-                    'channel' => config('services.slack.channel.import'),
-                    'text' => "Beginning " . $this->category . " File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
-                    'username' => config('app.name')
-                ]);
-
-            $res = $client->request('POST', config('services.slack.url'),
-                [
-                    'body' => $payload
-                ]
-            );
-        } catch (\Exception $e) {
-            Log::error($e);
-        }
+        $this->postToSlack("Beginning " . $this->category . " File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace);
 
         $this->processArchive();
 
         Log::info('Finished processTextFilterArchive Job.');
 
+        $this->postToSlack("Completed " . $this->category . " File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace);
+    }
+
+    private function postToSlack(string $text): void
+    {
+        if (! $this->notifySlack) {
+            return;
+        }
+
         try {
             $payload = json_encode(
                 [
                     'channel' => config('services.slack.channel.import'),
-                    'text' => "Completed " . $this->category . " File Import. File: " . $this->file . " Should Overwrite: " . $this->shouldOverwrite . " List: " . $this->listNamespace,
+                    'text' => $text,
                     'username' => config('app.name')
                 ]);
 
+            $client = new Client();
             $res = $client->request('POST', config('services.slack.url'),
                 [
                     'body' => $payload
