@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command("sentry:report_update_failed")->hourly();//dailyAt("00:00");
 
+Schedule::command("activation:disable")->weekly();
+
 if (config('filter_imports.schedule_enabled')) {
     $filterDiscoverInterval = config('filter_imports.schedule_interval_minutes', 15);
 
@@ -34,8 +36,3 @@ Schedule::call(function () {
     DB::table('app_user_activations')
         ->update(['bypass_used' => 0]);
 })->dailyAt(config('app.bypass_used_delete_time'));
-
-Schedule::command('queue:work --daemon --tries=3 --timeout=2400')
-    ->name('queue')
-    ->everyMinute()
-    ->withoutOverlapping();
