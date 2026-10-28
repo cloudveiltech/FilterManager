@@ -53,7 +53,8 @@ class AccountabilityController extends Controller {
                substr($details->request_uri,0,100),
                'Device: ' . $request->input('device_id') . ' Site Blocked: ' . substr($details->request_uri,0,100),
                2,
-               10)
+               10,
+               $request->input('identifier'))
            );
         } 
 
