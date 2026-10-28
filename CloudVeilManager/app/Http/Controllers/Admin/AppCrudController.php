@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\App;
 use App\Models\AppGroupToApp;
 use App\Models\SystemPlatform;
+use App\Http\Controllers\Admin\Traits\RebuildsGroupData;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Support\Facades\Cache;
@@ -18,9 +19,14 @@ use Illuminate\Support\Facades\Log;
 class AppCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+        store as traitStore;
+    }
+    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
+        update as traitUpdate;
+    }
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use RebuildsGroupData;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -140,8 +146,29 @@ class AppCrudController extends CrudController
         $this->setupCreateOperation();
     }
 
+    public function store()
+    {
+        $result = $this->traitStore();
+        $this->rebuildGroupsForEntry();
+
+        return $result;
+    }
+
+    public function update()
+    {
+        // Groups the app is being removed from need rebuilding too, so remember them first.
+        $previousAppGroupIds = $this->appGroupIdsForApp(CRUD::getRequest()->input('id'));
+        $result = $this->traitUpdate();
+        $this->rebuildGroupsForEntry($previousAppGroupIds);
+
+        return $result;
+    }
+
     public function destroy($id)
     {
+        // Collected before the pivot rows go away, so we still know which groups to rebuild.
+        $userGroupIds = $this->userGroupIdsForAppGroups($this->appGroupIdsForApp($id));
+
         AppGroupToApp::where('app_id', $id)->delete();
 
         $application = App::where('id', $id)->first();
@@ -149,6 +176,18 @@ class AppCrudController extends CrudController
             $application->delete();
         }
 
+        $this->rebuildGroups($userGroupIds);
+
         return true;
+    }
+
+    private function rebuildGroupsForEntry(array $alsoAppGroupIds = []): void
+    {
+        $entry = $this->data['entry'] ?? null;
+
+        if ($entry) {
+            $appGroupIds = array_unique(array_merge($this->appGroupIdsForApp($entry->id), $alsoAppGroupIds));
+            $this->rebuildGroups($this->userGroupIdsForAppGroups($appGroupIds));
+        }
     }
 }

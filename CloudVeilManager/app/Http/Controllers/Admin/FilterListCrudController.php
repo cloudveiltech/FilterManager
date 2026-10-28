@@ -3,18 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Jobs\ProcessTextFilterArchiveUpload;
+use App\Jobs\RebuildGroupData;
 use App\Models\FilterList;
 use App\Models\FilterRulesManager;
+use App\Models\Group;
 use App\Models\GroupFilterAssignment;
+use App\Services\FilterImportGate;
+use App\Services\FilterImportOutcome;
+use App\Services\GroupFilterAssignmentService;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Carbon\Carbon;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Class FilterListCrudController
@@ -24,6 +29,7 @@ use Illuminate\Support\Str;
 class FilterListCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+    use \Backpack\EditableColumns\Http\Controllers\Operations\MinorUpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\BulkDeleteOperation { bulkDelete as traitBulkDelete; }
@@ -38,6 +44,33 @@ class FilterListCrudController extends CrudController
         CRUD::setModel(\App\Models\FilterList::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/filter-list');
         CRUD::setEntityNameStrings('filter list', 'filter lists');
+        CRUD::allowAccess('groups');
+    }
+
+    protected function setupBulkAssignGroupsRoutes($segment, $routeName, $controller)
+    {
+        Route::post($segment . '/bulk-assign-groups', [
+            'as' => $routeName . '.bulkAssignGroups',
+            'uses' => $controller . '@bulkAssignGroups',
+            'operation' => 'bulkAssignGroups',
+        ]);
+    }
+
+    protected function setupBulkAssignGroupsDefaults()
+    {
+        CRUD::allowAccess('bulkAssignGroups');
+
+        CRUD::operation('bulkAssignGroups', function () {
+            CRUD::loadDefaultOperationSettingsFromConfig();
+        });
+
+        CRUD::operation('list', function () {
+            CRUD::enableBulkActions();
+            CRUD::addButton('bottom', 'bulk_assign_groups', 'view', 'crud::buttons.bulk_assign_groups', 'beginning')
+                ->meta([
+                    'groups' => Group::query()->orderBy('name')->get(['id', 'name']),
+                ]);
+        });
     }
 
     /**
@@ -48,6 +81,8 @@ class FilterListCrudController extends CrudController
      */
     protected function setupListOperation()
     {
+        $this->crud->query->withCount('groups');
+
         $this->crud->setColumns([
             [
                 'label' => 'Category Name',
@@ -70,11 +105,145 @@ class FilterListCrudController extends CrudController
                 'name' => 'entries_count',
             ],
             [
+                'label' => 'Groups',
+                'type' => 'number',
+                'name' => 'groups_count',
+                'searchLogic' => false,
+                'orderable' => true,
+                'orderLogic' => function ($query, $column, $columnDirection) {
+                    return $query->orderBy('groups_count', $columnDirection);
+                },
+            ],
+            [
+                'label' => 'Import',
+                'type' => 'editable_switch',
+                'name' => 'import_enabled',
+                // Turning this off on any of a category's rows stops
+                // filter:discover from importing that category.
+            ],
+            [
                 'label' => 'Updated At',
                 'type' => 'datetime',
                 'name' => 'updated_at'
             ],
         ]);
+
+        CRUD::filter('import_enabled')
+            ->type('dropdown')
+            ->label('Import from export bucket')
+            ->values([
+                1 => 'Enabled',
+                0 => 'Disabled',
+            ])
+            ->whenActive(function ($value) {
+                CRUD::addClause('where', 'import_enabled', (int) $value);
+            });
+
+        CRUD::filter('assigned_group')
+            ->type('select2')
+            ->label('Assigned to group')
+            ->values(function () {
+                return Group::query()
+                    ->orderBy('name')
+                    ->pluck('name', 'id')
+                    ->toArray();
+            })
+            ->whenActive(function ($value) {
+                CRUD::addClause('whereHas', 'groups', function ($query) use ($value) {
+                    $query->where('groups.id', $value);
+                });
+            });
+
+        CRUD::filter('assignment_status')
+            ->type('dropdown')
+            ->label('Assignment status')
+            ->values([
+                'blacklist' => 'Blacklist',
+                'whitelist' => 'Whitelist',
+                'bypass' => 'Bypass',
+            ])
+            ->whenActive(function ($value) {
+                $pivotColumn = [
+                    'blacklist' => 'as_blacklist',
+                    'whitelist' => 'as_whitelist',
+                    'bypass' => 'as_bypass',
+                ][$value] ?? null;
+
+                if ($pivotColumn === null) {
+                    return;
+                }
+
+                CRUD::addClause('whereHas', 'groups', function ($query) use ($pivotColumn) {
+                    $query->where('group_filter_assignments.' . $pivotColumn, 1);
+                });
+            });
+
+        $this->crud->button('groups')->stack('line')->view('crud::buttons.quick')->meta([
+            'wrapper' => [
+                'href' => function ($entry, $crud) {
+                    return backpack_url('filter-list/' . $entry->getKey() . '/groups');
+                },
+            ],
+            'icon' => 'la la-users',
+            'access' => true,
+            'label' => 'Groups',
+        ]);
+    }
+
+    public function groups($id)
+    {
+        CRUD::hasAccessOrFail('groups');
+
+        $filterList = FilterList::with('groups')->findOrFail($id);
+
+        return $this->renderGroupAssignments($filterList);
+    }
+
+    public function updateGroups(Request $request, $id, GroupFilterAssignmentService $assignmentService)
+    {
+        CRUD::hasAccessOrFail('groups');
+
+        $filterList = FilterList::findOrFail($id);
+        $statuses = $assignmentService->statusesFromRequest($request, 'group_status_json');
+        $affectedGroups = $assignmentService->syncFilterListAssignments($filterList, $statuses);
+
+        if ($affectedGroups !== []) {
+            RebuildGroupData::dispatch($affectedGroups);
+        }
+
+        \Alert::success('Group assignments updated.')->flash();
+
+        return redirect()->route('filter-list.groups', ['id' => $filterList->getKey()]);
+    }
+
+    private function renderGroupAssignments(FilterList $filterList)
+    {
+        $this->data['crud'] = $this->crud;
+        $this->data['entry'] = $filterList;
+        $this->data['filterList'] = $filterList;
+        $this->data['field'] = [
+            'name' => 'group_status_json',
+            'type' => 'status_assignment_table',
+            'label' => 'Groups',
+            'input_name' => 'group_status_json',
+            'current_relation' => 'groups',
+            'row_label' => 'Group',
+            'show_sublabel' => false,
+            'rows' => Group::query()
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(function ($group) {
+                    return [
+                        'id' => $group->id,
+                        'label' => $group->name,
+                        'sublabel' => null,
+                    ];
+                }),
+        ];
+
+        $this->data['title'] = 'Group assignments';
+
+        return view('crud::filter_list_groups', $this->data);
     }
 
     /**
@@ -135,8 +304,6 @@ class FilterListCrudController extends CrudController
 
     public function triggerUpdate(Request $request)
     {
-        $timestamp = Carbon::now()->toIso8601ZuluString();
-        $client = new Client();
         $filename = 'export.zip';
         $category = '';
         if ($request->has('file')) {
@@ -144,15 +311,92 @@ class FilterListCrudController extends CrudController
             $filename = preg_replace('/[^0-9a-zA-Z\-_\.]+/', '', $filename);
             $category = Str::after(Str::before($filename, '.zip'), 'export_');
         }
-        $results = 'Downloading File from ' . config('app.default_list_export_url') . $filename . '<br>';
-        $response = $client->get(config('app.default_list_export_url') . $filename);
-        $results .= 'Saving to: ' . $timestamp . '.zip<br>';
-        Storage::put('export' . $timestamp . '.zip', $response->getBody());
-        $file = Storage::size('export' . $timestamp . '.zip');
-        ProcessTextFilterArchiveUpload::dispatch('default', storage_path('app/export' . $timestamp . '.zip'), true, $category);
-        $results .= 'File is : ' . $file . ' bytes.<br>';
-        $results .= 'Import has been triggered.<br>';
-        return response($results);
+
+        $isAllCategoryImport = $filename === 'export.zip';
+
+        if ($isAllCategoryImport && (! $request->isMethod('post') || ! $request->boolean('confirm_all'))) {
+            return view('admin.filter_lists.confirm_all_import');
+        }
+
+        try {
+            $exportDisk = Storage::disk(FilterImportGate::EXPORT_DISK);
+            $gate = app()->makeWith(FilterImportGate::class, [
+                'exportDisk' => $exportDisk,
+            ]);
+        } catch (Throwable $exception) {
+            return response(
+                "Unable to import category [{$category}]: export disk error: {$exception->getMessage()}",
+                500,
+            );
+        }
+
+        $decision = $gate->decide($filename);
+
+        if ($decision?->outcome === FilterImportOutcome::DENIED) {
+            return response(
+                'Import refused for category ['.$category.']: '.($decision->reason ?? 'The category is denied.'),
+                403,
+            );
+        }
+
+        if ($decision?->outcome === FilterImportOutcome::OBJECT_MISSING) {
+            return response(
+                'Unable to import category ['.$category.']: '.($decision->reason ?? 'The export object is missing.'),
+                404,
+            );
+        }
+
+        if ($decision?->outcome === FilterImportOutcome::DISK_ERROR) {
+            return response(
+                'Unable to import category ['.$category.']: export disk error: '.($decision->reason ?? 'Unknown disk error.'),
+                500,
+            );
+        }
+
+        if ($decision === null) {
+            if (! $isAllCategoryImport) {
+                return response("Unable to derive a category from export object [{$filename}].", 400);
+            }
+
+            try {
+                if (! $exportDisk->exists($filename)) {
+                    return response(
+                        'Unable to import all categories: the export.zip object does not exist on the export disk.',
+                        404,
+                    );
+                }
+            } catch (Throwable $exception) {
+                return response(
+                    'Unable to import all categories: export disk error: '.$exception->getMessage(),
+                    500,
+                );
+            }
+        }
+
+        // Adoption intentionally bypasses the allowlist and current-file check. The gate is
+        // used above to retain its deny policy and export-disk/object validation.
+        $dispatchCategory = $decision?->category ?? $category;
+
+        try {
+            ProcessTextFilterArchiveUpload::dispatch(
+                FilterImportGate::DEFAULT_NAMESPACE,
+                $filename,
+                true,
+                $dispatchCategory,
+                FilterImportGate::EXPORT_DISK,
+            );
+        } catch (Throwable $exception) {
+            return response(
+                'Unable to dispatch import for category ['.$category.']: '.$exception->getMessage(),
+                500,
+            );
+        }
+
+        return response(
+            $isAllCategoryImport
+                ? 'Import has been triggered for all categories from export disk object [export.zip].'
+                : 'Import has been triggered for category ['.$category.'] from export disk object ['.$filename.'].',
+        );
     }
 
 
@@ -229,5 +473,72 @@ class FilterListCrudController extends CrudController
         }
 
         return $deletedEntries;
+    }
+
+    public function bulkAssignGroups(Request $request, GroupFilterAssignmentService $assignmentService)
+    {
+        $this->crud->hasAccessOrFail('bulkAssignGroups');
+
+        $status = $request->input('assignment_status');
+        $filterListIds = collect((array) $request->input('entries', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+        $groupIds = Group::query()
+            ->whereKey(collect((array) $request->input('group_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->filter(fn ($id) => $id > 0)
+                ->unique()
+                ->values())
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        if (!in_array($status, [...GroupFilterAssignmentService::ACTIVE_STATUSES, 'clear'], true)) {
+            return response()->json(['message' => 'Choose an assignment status.'], 422);
+        }
+
+        if ($filterListIds->isEmpty()) {
+            return response()->json(['message' => 'Select at least one filter list.'], 422);
+        }
+
+        if ($groupIds->isEmpty()) {
+            return response()->json(['message' => 'Select at least one group.'], 422);
+        }
+
+        $targetStatuses = array_fill_keys(
+            $groupIds->all(),
+            $status === 'clear' ? 'ignored' : $status
+        );
+        $affectedGroups = [];
+        $updatedFilterLists = 0;
+
+        foreach (FilterList::whereKey($filterListIds)->get() as $filterList) {
+            if (!$this->crud->hasAccess('bulkAssignGroups', $filterList)) {
+                continue;
+            }
+
+            $changedGroups = $assignmentService->updateFilterListGroupAssignments(
+                $filterList,
+                $targetStatuses
+            );
+
+            if ($changedGroups !== []) {
+                $updatedFilterLists++;
+                $affectedGroups = array_merge($affectedGroups, $changedGroups);
+            }
+        }
+
+        $affectedGroups = array_values(array_unique(array_map('intval', $affectedGroups)));
+
+        if ($affectedGroups !== []) {
+            RebuildGroupData::dispatch($affectedGroups);
+        }
+
+        return response()->json([
+            'updated_filter_lists' => $updatedFilterLists,
+            'affected_groups' => count($affectedGroups),
+        ]);
     }
 }

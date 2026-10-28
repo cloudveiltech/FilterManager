@@ -135,6 +135,7 @@ class UpdateController extends Controller
                 $data['date'] = "---";
             }
         } else {
+            $data["is_web_installer"] = false;
             $data['app_name'] = "unavailable";
             $data['os_name'] = "unavailable";
             $data['file_name'] = "unavailable";
