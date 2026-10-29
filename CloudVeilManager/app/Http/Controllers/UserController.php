@@ -396,6 +396,9 @@ class UserController extends Controller
                     }
                 }
             }
+            // Internal to the manager — clients only see the resulting ConfiguredLists, and the
+            // key would otherwise change the /config/check hash.
+            unset($configuration['CategoryOverrides']);
 
             /* -------------------------------------------------------------- */
             /*                 Merge the arrays for these keys                */
