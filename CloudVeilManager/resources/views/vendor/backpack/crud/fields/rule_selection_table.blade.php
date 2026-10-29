@@ -6,13 +6,10 @@
     and DataTables detaching off-page rows can't drop inputs (we read all rows via the DataTables
     API, not the DOM).
 
-    Used in two places:
-    - Group "Rule Selection" (the defaults below): statuses blacklist/whitelist/bypass posted as
-      rule_status_json; GroupCrudController::store()/update() json_decode the map and sync() the
-      Group::assignedFilters() relation into group_filter_assignments.
-    - User/Activation "Category Overrides": statuses Blacklist/Whitelist/BypassList/Ignored posted
-      under the model attribute name (category_overrides); the model mutator stores them in
-      config_override.CategoryOverrides.
+    Used by the User/Activation "Category Overrides" tabs: statuses Blacklist/Whitelist/BypassList/
+    Ignored posted under the model attribute name (category_overrides); the model mutator stores
+    them in config_override.CategoryOverrides. (The Group "Rule Selection" tab uses
+    status_assignment_table; the blacklist/whitelist/bypass defaults below are its old behavior.)
 
     Field options:
     - filter_lists          collection of FilterList rows (id, category, type) to render
@@ -26,6 +23,13 @@
     - status_colors         map of status value => text color for the status control
     - prefill               'assigned_filters' to prefill from $entry->assignedFilters pivot flags;
                             otherwise the field's value (an id => status map) is used
+    - inherited             optional filter_list_id => ['status' => value|null, 'source' => label]
+                            map of what each row falls back to when left at the default; adds a
+                            column so an override can be compared with what it replaces
+    - inherited_label       header for that column
+
+    Rows that differ from the default sort first, and the status filter has an "Overridden only"
+    option with a live count.
 
     Search filters the Category column only. A single-select status dropdown filters rows by their
     current status. The status column sorts by status. Persistence happens only on form Save.
@@ -44,6 +48,9 @@
     $statusesByType = $field['statuses_by_type'] ?? [];
     $defaultStatus = $field['default_status'] ?? 'ignored';
     $defaultFilterLabel = $field['default_filter_label'] ?? 'Ignored';
+    $inherited = $field['inherited'] ?? null;
+    $showInherited = is_array($inherited);
+    $statusColumn = $showInherited ? 3 : 2;
     $statusColors = $field['status_colors'] ?? ['blacklist' => '#d63939', 'whitelist' => '#1f9d57', 'bypass' => '#d9a406'];
 
     // Every status any row can offer, in declaration order. Drives the filter dropdown and the sort
@@ -83,6 +90,7 @@
             $currentStatuses = $field['value'];
         }
     }
+    $overriddenCount = count(array_filter($hasOld ? $oldStatuses : $currentStatuses, fn ($s) => $s !== $defaultStatus));
 @endphp
 
 @include('crud::fields.inc.wrapper_start')
@@ -91,6 +99,7 @@
 
     <div class="rule-selection-field" data-init="0" data-table="#{{ $tableId }}"
          data-default-status="{{ $defaultStatus }}"
+         data-status-column="{{ $statusColumn }}"
          data-status-ranks="{{ json_encode($rankMap, JSON_FORCE_OBJECT) }}">
 
         <div class="row mb-2">
@@ -100,7 +109,8 @@
             </div>
             <div class="col-md-3 mb-2">
                 <select class="form-select rule-status-filter">
-                    <option value="">All statuses</option>
+                    <option value="">All categories</option>
+                    <option value="__overridden" class="rule-overridden-option">Overridden only ({{ $overriddenCount }})</option>
                     @foreach ($filterLabels as $value => $label)
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
@@ -114,6 +124,9 @@
                 <tr>
                     <th>Category</th>
                     <th>Type</th>
+                    @if ($showInherited)
+                        <th>{{ $field['inherited_label'] ?? 'Inherited' }}</th>
+                    @endif
                     <th style="width: 180px;">Status</th>
                 </tr>
             </thead>
@@ -133,6 +146,24 @@
                     <tr data-list-id="{{ $list->id }}" data-status="{{ $status }}">
                         <td>{{ $list->category }}</td>
                         <td>{{ $isTrigger ? 'Trigger' : 'Filter' }}</td>
+                        @if ($showInherited)
+                            @php
+                                $inheritedRow = $inherited[$list->id] ?? null;
+                                $inheritedStatus = $inheritedRow['status'] ?? null;
+                            @endphp
+                            <td class="rule-inherited-cell">
+                                @if ($inheritedRow === null)
+                                    <span class="text-muted">—</span>
+                                @else
+                                    <span @if ($inheritedStatus) style="color: {{ $statusColors[$inheritedStatus] ?? 'inherit' }};" @else class="text-muted" @endif>
+                                        {{ $inheritedStatus ? ($allStatuses[$inheritedStatus] ?? $inheritedStatus) : 'Removed' }}
+                                    </span>
+                                    @if (($inheritedRow['source'] ?? 'group') !== 'group')
+                                        <small class="text-muted">· {{ $inheritedRow['source'] }}</small>
+                                    @endif
+                                @endif
+                            </td>
+                        @endif
                         {{-- data-order drives the (dynamic) sort of the status column; JS keeps it in sync --}}
                         <td class="rule-status-cell" data-order="{{ $rank }}">
                             {{-- No name: values are gathered into the hidden input on submit (below). --}}
@@ -202,6 +233,11 @@
                 // status, whose rows are omitted from the payload.
                 var STATUS_RANK = JSON.parse(root.getAttribute('data-status-ranks'));
                 var DEFAULT_STATUS = root.getAttribute('data-default-status');
+                var STATUS_COLUMN = parseInt(root.getAttribute('data-status-column'), 10);
+                var nonLabelColumns = [];
+                for (var column = 1; column <= STATUS_COLUMN; column++) {
+                    nonLabelColumns.push(column);
+                }
 
                 // DataTables: search Category column only; status column sorts by data-order.
                 var dt = $table.DataTable({
@@ -210,10 +246,11 @@
                     lengthChange: true,
                     lengthMenu: [[10, 25, 50, 100, -1], ['10', '25', '50', '100', 'All']],
                     ordering: true,
-                    order: [[0, 'asc']],
+                    // Overridden rows first (status rank), then by category.
+                    order: [[STATUS_COLUMN, 'asc'], [0, 'asc']],
                     columnDefs: [
-                        // Type + Status columns aren't full-text searchable; Status sorts by data-order.
-                        { targets: [1, 2], searchable: false },
+                        // Only Category is full-text searchable; Status sorts by data-order.
+                        { targets: nonLabelColumns, searchable: false },
                     ],
                     // no default search box (we use our own); 'l' = length menu, 'i' = info, 'p' = pagination
                     dom: 'rltip',
@@ -233,8 +270,11 @@
                     if (!activeStatusFilter) {
                         return true;
                     }
-                    var row = settings.aoData[dataIndex].nTr;
-                    return row.getAttribute('data-status') === activeStatusFilter;
+                    var status = settings.aoData[dataIndex].nTr.getAttribute('data-status');
+                    if (activeStatusFilter === '__overridden') {
+                        return status !== DEFAULT_STATUS;
+                    }
+                    return status === activeStatusFilter;
                 });
                 $root.find('.rule-status-filter').on('change', function () {
                     activeStatusFilter = this.value;
@@ -252,7 +292,8 @@
                             map[this.closest('tr').getAttribute('data-list-id')] = v;
                         }
                     });
-                    $hidden.val(JSON.stringify(map));
+                    $hidden.val(JSON.stringify(map)).trigger('change');
+                    $root.find('.rule-overridden-option').text('Overridden only (' + Object.keys(map).length + ')');
                 }
 
                 // Keep the payload current on every change, and rebuild once more at submit time as the
@@ -261,7 +302,9 @@
                 $root.closest('form').on('submit', serialize);
 
                 // Row status change -> keep the row's data-status (drives color + filter) and the
-                // status-sort key in sync, refresh the payload, then redraw.
+                // status-sort key in sync, refresh the payload, then redraw. draw('page') keeps the
+                // row where it is instead of re-sorting it away mid-edit; the new order and filter
+                // apply on the next sort, search or filter change.
                 $table.on('change', '.rule-status-select', function () {
                     var $select = $(this);
                     var $tr = $select.closest('tr');
@@ -270,7 +313,7 @@
                     $tr.attr('data-status', status);
                     $tr.find('.rule-status-cell').attr('data-order', rank == null ? 99 : rank);
                     dt.cell($tr.find('.rule-status-cell')[0]).invalidate();
-                    dt.draw(false);
+                    dt.draw('page');
                     serialize();
                 });
             }

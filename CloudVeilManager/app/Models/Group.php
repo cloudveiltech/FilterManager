@@ -110,6 +110,29 @@ class Group extends Model
             ->withTimestamps();
     }
 
+    /**
+     * This group's rule selection as client list types (Blacklist / Whitelist / BypassList /
+     * TextTrigger), keyed by filter list id — the same mapping rebuildGroupData() writes into
+     * ConfiguredLists. The category override screens show it next to each override.
+     */
+    public function categoryListTypes(): array
+    {
+        $types = [];
+        foreach ($this->assignedFilters as $list) {
+            $pivot = $list->pivot;
+            if ($list->type === 'Triggers') {
+                $types[$list->id] = PlainTextFilteringListType::TextTrigger;
+            } elseif ($pivot->as_blacklist) {
+                $types[$list->id] = PlainTextFilteringListType::Blacklist;
+            } elseif ($pivot->as_whitelist) {
+                $types[$list->id] = PlainTextFilteringListType::Whitelist;
+            } elseif ($pivot->as_bypass) {
+                $types[$list->id] = PlainTextFilteringListType::BypassList;
+            }
+        }
+        return $types;
+    }
+
     public function assignedApplicationRules()
     {
         return $this->belongsToMany('App\Models\AppGroup',

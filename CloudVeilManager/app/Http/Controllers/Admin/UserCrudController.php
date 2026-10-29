@@ -112,6 +112,10 @@ class UserCrudController extends CrudController
         }
         CRUD::setValidation($validationRules);
 
+        // Count badges on the tabs (Categories, Blocked Sites, …) — see crud::inc.show_tabbed_fields.
+        CRUD::setOperationSetting('tabBadges', true);
+        $entry = $fromEdit ? ($this->crud->getCurrentEntry() ?: null) : null;
+
         $this->crud->addFields(
             [
                 [
@@ -268,6 +272,8 @@ class UserCrudController extends CrudController
                     ],
                     'default_status' => 'none',
                     'default_filter_label' => 'No override',
+                    'inherited' => $entry?->inheritedCategorySettings(),
+                    'inherited_label' => 'Group setting',
                     'status_colors' => [
                         'Blacklist' => '#d63939',
                         'Whitelist' => '#1f9d57',

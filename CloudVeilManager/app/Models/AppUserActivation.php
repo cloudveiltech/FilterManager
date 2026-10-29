@@ -49,6 +49,28 @@ class AppUserActivation extends Model
         return $this->belongsTo('App\Models\Group');
     }
 
+    /**
+     * What this activation's category overrides sit on top of: the group's list types with the
+     * user's overrides applied, the same order UserController::mergeConfigurations() uses. Shaped
+     * filter_list_id => ['status' => list type, or null when the user removes it, 'source' =>
+     * 'group'|'user'] for the override screen.
+     */
+    public function inheritedCategorySettings(): array
+    {
+        $group = $this->group ?? $this->user?->group;
+        $settings = collect($group?->categoryListTypes() ?? [])
+            ->map(fn ($type) => ['status' => $type, 'source' => 'group'])
+            ->all();
+
+        foreach ($this->user?->category_overrides ?? [] as $categoryId => $override) {
+            $settings[$categoryId] = [
+                'status' => $override === 'Ignored' ? null : $override,
+                'source' => 'user',
+            ];
+        }
+        return $settings;
+    }
+
     public static function setLastUpdateRequestTime($requestIp, $activationId) {
         $query = null;
         if(!empty($activationId)) {

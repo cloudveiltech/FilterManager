@@ -250,6 +250,10 @@ class AppUserActivationCrudController extends CrudController
     {
         CRUD::setValidation([]);
 
+        // Count badges on the tabs (Categories, Blocked Sites, …) — see crud::inc.show_tabbed_fields.
+        CRUD::setOperationSetting('tabBadges', true);
+        $entry = $this->crud->getCurrentEntry() ?: null;
+
         $this->crud->addFields(
             [
                 [
@@ -421,6 +425,9 @@ class AppUserActivationCrudController extends CrudController
                     ],
                     'default_status' => 'none',
                     'default_filter_label' => 'No override',
+                    // Group setting with the user's overrides applied — what this activation inherits.
+                    'inherited' => $entry?->inheritedCategorySettings(),
+                    'inherited_label' => 'Group / user setting',
                     'status_colors' => [
                         'Blacklist' => '#d63939',
                         'Whitelist' => '#1f9d57',

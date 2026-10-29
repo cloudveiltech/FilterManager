@@ -109,6 +109,17 @@ class User extends Authenticatable
         return $this->belongsTo('App\Models\Group');
     }
 
+    /**
+     * What this user's category overrides sit on top of: the group's list type per category, as
+     * filter_list_id => ['status' => list type, 'source' => 'group'] for the override screen.
+     */
+    public function inheritedCategorySettings(): array
+    {
+        return collect($this->group?->categoryListTypes() ?? [])
+            ->map(fn ($type) => ['status' => $type, 'source' => 'group'])
+            ->all();
+    }
+
     public function roles()
     {
         return $this->belongsToMany('App\Models\Role');
