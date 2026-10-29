@@ -13,7 +13,7 @@ class ManageUserController extends Controller
      * List users for the external management API.
      *
      * The manage site looks a user up with `?email=` and reads `data[0]`. Users and their
-     * activations include `category_overrides` (filter_list_id => override) read-only.
+     * activations include `category_override_details` read-only.
      */
     public function index(Request $request)
     {
@@ -32,9 +32,9 @@ class ManageUserController extends Controller
             ->paginate(min(max($request->integer('per_page', 15), 1), 100))
             ->withQueryString()
             ->through(function (User $user) {
-                $user->activations->each->append('category_overrides');
+                $user->activations->each->append('category_override_details');
 
-                return $user->append('category_overrides');
+                return $user->append('category_override_details');
             });
     }
 
