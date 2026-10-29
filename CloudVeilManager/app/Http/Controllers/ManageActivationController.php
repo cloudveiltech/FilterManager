@@ -12,7 +12,8 @@ class ManageActivationController extends Controller
      * List activations for the external management API.
      *
      * An `email` lookup keeps the legacy bare array of that user's activations the
-     * manage site reads; everything else is a standard paginated listing.
+     * manage site reads; everything else is a standard paginated listing. Activations (and the
+     * nested user) include `category_override_details` read-only.
      */
     public function index(Request $request)
     {
@@ -42,7 +43,12 @@ class ManageActivationController extends Controller
             })
             ->orderBy('id')
             ->paginate(min(max($request->integer('per_page', 15), 1), 100))
-            ->withQueryString();
+            ->withQueryString()
+            ->through(function (AppUserActivation $activation) {
+                $activation->user?->append('category_override_details');
+
+                return $activation->append('category_override_details');
+            });
     }
 
     /**
@@ -76,6 +82,7 @@ class ManageActivationController extends Controller
     {
         return $user->activations()
             ->with(['deactivation_request', 'group:id,name'])
-            ->get();
+            ->get()
+            ->each->append('category_override_details');
     }
 }

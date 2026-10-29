@@ -31,7 +31,7 @@ class AppUserActivation extends Model
         'check_in_days', 'alert_partner','config_override', 'last_update_requested_time',
         'last_sync_time', 'platform_name', 'friendly_name', 'app_version', 'os_version', 'banned',
         'config', 'blocked_sites', 'allowed_sites', 'blocked_triggers', 'blocked_applications',
-        'time_restrictions', 'update_channel', 'DisableBypass'
+        'time_restrictions', 'update_channel', 'DisableBypass', 'category_overrides'
     ];
 
     public function user()
@@ -47,6 +47,28 @@ class AppUserActivation extends Model
     public function group()
     {
         return $this->belongsTo('App\Models\Group');
+    }
+
+    /**
+     * What this activation's category overrides sit on top of: the group's list types with the
+     * user's overrides applied, the same order UserController::mergeConfigurations() uses. Shaped
+     * filter_list_id => ['status' => list type, or null when the user removes it, 'source' =>
+     * 'group'|'user'] for the override screen.
+     */
+    public function inheritedCategorySettings(): array
+    {
+        $group = $this->group ?? $this->user?->group;
+        $settings = collect($group?->categoryListTypes() ?? [])
+            ->map(fn ($type) => ['status' => $type, 'source' => 'group'])
+            ->all();
+
+        foreach ($this->user?->category_overrides ?? [] as $categoryId => $override) {
+            $settings[$categoryId] = [
+                'status' => $override === 'Ignored' ? null : $override,
+                'source' => 'user',
+            ];
+        }
+        return $settings;
     }
 
     public static function setLastUpdateRequestTime($requestIp, $activationId) {
