@@ -4,10 +4,8 @@ namespace App\Listeners;
 
 use App\Events\AccountabilityPartnerEvent;
 use App\Events\DeactivationRequestGranted;
-use App\Mail\DeactivationRequestGrantedMail;
 use App\Models\User;
 use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Mail;
 
 class SendDeactivationRequestGrantedNotification
 {
@@ -33,8 +31,6 @@ class SendDeactivationRequestGrantedNotification
         //Log::info("Logging an object: " . print_r($event, true));
         $user = User::find($event->deactivationRequest->user_id);
         $platform = $event->deactivationRequest->activation->platform_name;
-        Mail::to($user->email)
-            ->send(new DeactivationRequestGrantedMail($event->deactivationRequest, $user, $platform));
         $data = [];
         $data['user'] = $user;
         $data['deactivationRequest'] = $event->deactivationRequest;

@@ -4,10 +4,8 @@ namespace App\Listeners;
 
 use App\Events\AccountabilityPartnerEvent;
 use App\Events\DeactivationRequestReceived;
-use App\Mail\DeactivationRequestReceivedMail;
 use App\Models\User;
 use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 
 class SendDeactivationRequestNotification
@@ -32,9 +30,6 @@ class SendDeactivationRequestNotification
     {
         // We access the deactivationRequest via $event->deactivationRequest;
         $user = User::find($event->deactivationRequest->user_id);
-        Mail::to($user->email)
-            ->send(new DeactivationRequestReceivedMail($event->deactivationRequest, $user));
-        //Log::debug('Sent Deactivation Request to ' . $user->email);
         $data = [];
         $data['user'] = $user;
         $data['deactivationRequest'] = $event->deactivationRequest;
