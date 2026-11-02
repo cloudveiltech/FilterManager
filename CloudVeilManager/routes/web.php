@@ -43,7 +43,7 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::post('/update', 'Admin\FilterListCrudController@triggerUpdate');
     });
 
-    Route::group(['prefix' => 'user', 'middleware' => ['role:admin|user|business-owner']], function () {
+    Route::group(['prefix' => 'user', 'middleware' => ['auth', 'role:admin|user|business-owner']], function () {
         Route::get('/', function () {
             $roles = Role::all();
             return view('userhome')->with('roles', $roles);
