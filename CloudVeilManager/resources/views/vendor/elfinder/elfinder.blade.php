@@ -40,6 +40,12 @@
                         dark : 'https://cdn.jsdelivr.net/gh/RobiNN1/elFinder-Material-Theme/manifests/material-default.json',
                     },
                     theme: 'default',
+                    defaultView: 'list',
+                    contextmenu: {
+                        // Current directory (background) context menu
+                        cwd: ['reload'],
+                        files: ['download']
+                    }
                 });
             });
         </script>
