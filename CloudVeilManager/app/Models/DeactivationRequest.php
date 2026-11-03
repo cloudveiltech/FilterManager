@@ -9,13 +9,16 @@
 
 namespace App\Models;
 
+use App\Observers\DeactivationRequestObserver;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Description of DeactivationRequest
  *
  */
+#[ObservedBy(DeactivationRequestObserver::class)]
 class DeactivationRequest extends Model
 {
     use CrudTrait;

@@ -5,11 +5,14 @@ namespace App\Models;
 use App\Models\Casts\Json;
 use App\Models\Traits\OverridableConfigTrait;
 use App\Models\Traits\TimerRestrictionsTrait;
+use App\Observers\AppUserActivationObserver;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy(AppUserActivationObserver::class)]
 class AppUserActivation extends Model
 {
     use CrudTrait;
@@ -47,6 +50,14 @@ class AppUserActivation extends Model
     public function group()
     {
         return $this->belongsTo('App\Models\Group');
+    }
+
+    /**
+     * Eager loads that make up an activation row in the manage API and the device webhook.
+     */
+    public function scopeForManage($query)
+    {
+        return $query->with(['deactivation_request', 'group:id,name']);
     }
 
     public static function setLastUpdateRequestTime($requestIp, $activationId) {
