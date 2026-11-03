@@ -45,7 +45,8 @@
                         // Current directory (background) context menu
                         cwd: ['reload'],
                         files: ['download']
-                    }
+                    },
+                    height: $(window).height() - 200
                 });
             });
         </script>
