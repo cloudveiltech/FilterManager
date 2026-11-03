@@ -88,7 +88,7 @@ return [
     |
     */
     'root_options' => [
-        'uploadAllow' => ['application/x-executable', 'application/x-msi', 'application/x-apple-diskimage'],
+        'uploadAllow' => ['application/x-executable', 'application', 'application/x-apple-diskimage'],
         'uploadDeny' => ['all'],
         'uploadOrder' => ['deny', 'allow'],
     ],
