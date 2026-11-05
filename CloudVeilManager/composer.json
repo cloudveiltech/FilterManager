@@ -22,6 +22,7 @@
         "php": "^8.2",
         "backpack/crud": "^6.8",
         "backpack/editable-columns": "^3.0",
+        "backpack/filemanager": "^3.0",
         "backpack/pro": "^2.2",
         "backpack/theme-tabler": "^1.2",
         "laravel/framework": "^12.0",

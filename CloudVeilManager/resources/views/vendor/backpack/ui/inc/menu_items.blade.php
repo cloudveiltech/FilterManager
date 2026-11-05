@@ -10,3 +10,5 @@
 <x-backpack::menu-item title="Activations" :link="backpack_url('app-user-activation')" />
 <x-backpack::menu-item title="System versions" :link="backpack_url('system-version')" />
 <x-backpack::menu-item title="System platforms" :link="backpack_url('system-platform')" />
+
+<x-backpack::menu-item :title="trans('backpack::crud.file_manager')" icon="la la-files-o" :link="backpack_url('elfinder')" />
