@@ -43,6 +43,6 @@ trait RebuildsGroupData
             return;
         }
 
-        RebuildGroupData::dispatch($userGroupIds);
+        RebuildGroupData::dispatchForGroups($userGroupIds);
     }
 }

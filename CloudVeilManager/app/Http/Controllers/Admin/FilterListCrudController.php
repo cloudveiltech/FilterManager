@@ -208,7 +208,7 @@ class FilterListCrudController extends CrudController
         $affectedGroups = $assignmentService->syncFilterListAssignments($filterList, $statuses);
 
         if ($affectedGroups !== []) {
-            RebuildGroupData::dispatch($affectedGroups);
+            RebuildGroupData::dispatchForGroups($affectedGroups);
         }
 
         \Alert::success('Group assignments updated.')->flash();
@@ -533,7 +533,7 @@ class FilterListCrudController extends CrudController
         $affectedGroups = array_values(array_unique(array_map('intval', $affectedGroups)));
 
         if ($affectedGroups !== []) {
-            RebuildGroupData::dispatch($affectedGroups);
+            RebuildGroupData::dispatchForGroups($affectedGroups);
         }
 
         return response()->json([

@@ -67,15 +67,49 @@ afterEach(function (): void {
 
 function assertRebuildQueuedFor(array $expectedGroupIds): void
 {
-    Bus::assertDispatchedTimes(RebuildGroupData::class, 1);
-    Bus::assertDispatched(RebuildGroupData::class, static function (RebuildGroupData $job) use ($expectedGroupIds): bool {
-        $actual = $job->groupIds;
-        sort($actual);
-        sort($expectedGroupIds);
+    $actual = Bus::dispatched(RebuildGroupData::class)
+        ->map(static fn (RebuildGroupData $job): int => $job->groupId)
+        ->sort()
+        ->values()
+        ->all();
+    sort($expectedGroupIds);
 
-        return $actual === $expectedGroupIds;
-    });
+    expect($actual)->toBe($expectedGroupIds);
 }
+
+test('saving the same app twice while rebuilds are pending only queues one rebuild per group', function (): void {
+    Bus::fake();
+
+    $app = App::create(['name' => 'Firefox', 'platform_name' => 'WIN']);
+    AppGroupToApp::create(['app_group_id' => $this->browsers->id, 'app_id' => $app->id]);
+
+    foreach (['Firefox', 'Firefox ESR'] as $name) {
+        $this->withoutMiddleware(APP_REBUILD_TEST_SKIPPED_MIDDLEWARE)
+            ->put("/admin/app/{$app->id}", [
+                'id' => $app->id,
+                'name' => $name,
+                'platform_name' => 'WIN',
+                'group' => [$this->browsers->id],
+            ])
+            ->assertRedirect();
+    }
+
+    assertRebuildQueuedFor([10, 11]);
+});
+
+test('a legacy multi-group job fans out into deduplicated per-group jobs', function (): void {
+    Bus::fake();
+
+    // Simulate a payload queued before the deploy: groupIds set, no groupId.
+    $legacy = (new ReflectionClass(RebuildGroupData::class))->newInstanceWithoutConstructor();
+    $legacy->groupIds = [10, 11, 11, 20];
+
+    // A per-group rebuild for 10 is already waiting, so the fan-out should skip it.
+    RebuildGroupData::dispatch(10);
+    $legacy->handle();
+
+    assertRebuildQueuedFor([10, 11, 20]);
+});
 
 test('creating an app queues a rebuild for the user groups using its app groups', function (): void {
     Bus::fake();
