@@ -36,32 +36,6 @@ class UserController extends Controller
 {
     const ID_ACTIVATION_ALL = "ALL";
 
-
-    /**
-     * Get information about the currently applied user data. This includes
-     * filter rules and configuration data.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function checkUserData(Request $request)
-    {
-        $thisUser = \Auth::user();
-        $token = $thisUser->token();
-        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
-
-        $userGroup = $activation->group;
-        if ($userGroup == null) {
-            $userGroup = $thisUser->group()->first();
-        }
-
-        if (!is_null($userGroup)) {
-            if (!is_null($userGroup->data_sha1) && strcasecmp($userGroup->data_sha1, 'null') != 0) {
-                return $userGroup->data_sha1;
-            }
-        }
-        return response('', 204);
-    }
-
     public function rebuildRules(Request $request)
     {
         $globalFilterRules = new FilterRulesManager();
@@ -177,39 +151,6 @@ class UserController extends Controller
         $user->password = Hash::make($request->input('new_password'));
 
         $user->save();
-    }
-
-    /**
-     * Request the current user data. This includes filter rules and
-     * configuration data.  This is for versions <=1.6.  Version 1.7
-     * changes the way configuration is handled.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function getUserData(Request $request)
-    {
-        $this->validate($request, [
-            'identifier' => 'required',
-            'device_id' => 'required'
-        ]);
-        $thisUser = \Auth::user();
-        //Log::debug($request);
-        $token = $thisUser->token();
-        $activation = $this->getAndTouchActivation($thisUser, $request, $token);
-
-        $userGroup = $activation->group;
-        if ($userGroup == null) {
-            $userGroup = $thisUser->group()->first();
-        }
-
-        if (!is_null($userGroup)) {
-            $groupDataPayloadPath = $userGroup->getGroupDataPayloadPath();
-            if (file_exists($groupDataPayloadPath) && filesize($groupDataPayloadPath) > 0) {
-                return response()->download($groupDataPayloadPath);
-            }
-        }
-
-        return response('', 204);
     }
 
     private function getInternalType($type)

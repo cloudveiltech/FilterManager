@@ -32,7 +32,7 @@ class Group extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'isactive', 'app_cfg', 'data_sha1', 'config_cache', 'notes', 'assigned_application_rules_type', "group_config"
+        'name', 'isactive', 'app_cfg', 'config_cache', 'notes', 'assigned_application_rules_type', "group_config"
     ];
 
     public function users()
@@ -153,19 +153,6 @@ class Group extends Model
         return $value;
     }
 
-    public function getGroupDataPayloadPath(): string
-    {
-        $storageDir = storage_path();
-        $groupDataZipFolder = $storageDir . DIRECTORY_SEPARATOR . 'group_data' . DIRECTORY_SEPARATOR . $this->id;
-        if (!file_exists($groupDataZipFolder)) {
-            mkdir($groupDataZipFolder, 0755, true);
-        }
-
-        $groupDataZipPath = $groupDataZipFolder . DIRECTORY_SEPARATOR . 'data.zip';
-
-        return $groupDataZipPath;
-    }
-
     public function getGroupConfigAttribute()
     {
         return [$this->app_cfg];
@@ -181,38 +168,32 @@ class Group extends Model
         $this->attributes['notes'] = is_null($value) ? '' : $value;
     }
 
+    /**
+     * Rebuild the group's compiled client configuration (config_cache).
+     *
+     * Clients read this through /me/config/* and fetch each ruleset file separately.
+     */
     public function rebuildGroupData()
     {
         $filterRulesManager = new FilterRulesManager();
-        $groupDataZipPath = $this->getGroupDataPayloadPath();
-        Log::debug('Creating or overwriting zip file at location: ' . $groupDataZipPath);
-        $zip = new \ZipArchive();
-        $zip->open($groupDataZipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
-        // Build the app config into an array. We'll serialize this after
-        // and write it to the zip file last.
         $compiledAppConfiguration = array();
         $compiledAppConfiguration['ConfiguredLists'] = array();
 
-        $groupLists = $this->assignedFilterIds()->get();
+        $groupLists = $this->assignedFilterIds()->with('filterList')->get();
 
         foreach ($groupLists as $listIndex) {
-            $list = FilterList::where('id', $listIndex->filter_list_id)->first();
+            $list = $listIndex->filterList;
 
             if (!is_null($list)) {
                 $listNamespace = $list->namespace;
                 $listCategory = $list->category;
                 $listType = $list->type;
-                $listId = $list->id;
 
                 $filterFile = $filterRulesManager->getRulesetPath($listNamespace, $listCategory, FilterRulesManager::TYPES[$listType]);
                 $entryRelativePath = '/' . $listNamespace . '/' . $listCategory . '/' . FilterRulesManager::TYPES[$listType] . '.txt';
 
-                if (file_exists($filterFile)) {
-                    //Log::error('We should be including this file rather than exporting everything again: ' . $filterFile);
-                    Log::debug('Adding File: ' . $filterFile);
-                    $zip->addFile($filterFile, $entryRelativePath);
-                } else {
+                if (!file_exists($filterFile)) {
                     Log::error('File Does Not Exist: ' . $filterFile);
                 }
                 switch ($listType) {
@@ -259,7 +240,7 @@ class Group extends Model
         $blocklistApps = array_values($blocklistApps);
         $blacklistApps = array_values($blacklistApps);
 
-        //We remove the Whitelist or Blacklist setting before saving to the .zip file as it's not needed.
+        // The Whitelist/Blacklist/Blocklist mode flag isn't needed by clients, so drop it from the config.
         if (isset($app_cfg['Whitelist'])) {
             unset($app_cfg['Whitelist']);
             Log::info('Whitelisting apps for group: ' . $this->id);
@@ -278,27 +259,10 @@ class Group extends Model
         $compiledAppConfiguration = array_merge($compiledAppConfiguration, $app_cfg);
         $serializedFinalConfiguration = json_encode($compiledAppConfiguration);
 
-        $zip->addFromString('cfg.json', $serializedFinalConfiguration);
-        $zip->close();
-
-        // Lastly, update this group's data hash.
-        Group::where('id', $this->id)->update(
-            [
-                'data_sha1' => sha1_file($groupDataZipPath),
-                'config_cache' => $serializedFinalConfiguration,
-            ]
-        );
+        Group::where('id', $this->id)->update(['config_cache' => $serializedFinalConfiguration]);
 
         $this->config_cache = $serializedFinalConfiguration;
         Log::info('Caching Config.  Done rebuilding group data for group ' . $this->id);
-    }
-
-    function destroyGroupData()
-    {
-        $groupDataZipPath = $this->getGroupDataPayloadPath();
-        if (file_exists($groupDataZipPath)) {
-            unlink($groupDataZipPath);
-        }
     }
 
     function getPrimaryDnsAttribute()
