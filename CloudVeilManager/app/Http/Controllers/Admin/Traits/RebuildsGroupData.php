@@ -9,7 +9,7 @@ use App\Models\UserGroupToAppGroup;
 /**
  * Rebuilds the cached payload of every user group whose app lists were affected by a change
  * to an app or an app group. Group::rebuildGroupData() bakes the app names into the group's
- * zip and config_cache, so without this the clients keep serving stale app lists.
+ * config_cache, so without this the clients keep serving stale app lists.
  *
  * Rebuilds are queued rather than run inline: a popular app can belong to app groups used by
  * hundreds of user groups, and rebuilding them all inside the request blows the PHP time limit.

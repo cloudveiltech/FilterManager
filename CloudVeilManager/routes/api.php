@@ -34,13 +34,9 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::resource('version', 'SystemVersionController');
     });
 
-// Users should only be able to pull list updates. The routes available to them
-// are routes to get the sum of the current user data server side, and to request
-// a download of their user data.
+// Legacy (pre-v2) user routes.
     Route::group(['prefix' => 'user', 'middleware' => ['db.live', 'web', 'role:admin|user|business-owner']], function () {
         Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
-        Route::post('/me/data/check', 'UserController@checkUserData');
-        Route::post('/me/data/get', 'UserController@getUserData');
         Route::post('/me/terms', 'UserController@getUserTerms');
         Route::get('/time', 'UserController@getTime');
 
@@ -85,8 +81,6 @@ Route::namespace("App\Http\Controllers")->group(function () {
     Route::group(['prefix' => 'v2', 'middleware' => ['db.live', 'check.device_id', 'api', 'auth:api']], function () {
 
         Route::post('/me/deactivate', 'UserController@getCanUserDeactivate');
-        Route::post('/me/data/check', 'UserController@checkUserData');
-        Route::post('/me/data/get', 'UserController@getUserData');
 
         Route::post('/me/terms', 'UserController@getUserTerms');
         Route::post('/me/revoketoken', 'UserController@revokeUserToken');
