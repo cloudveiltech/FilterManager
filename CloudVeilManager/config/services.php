@@ -42,6 +42,11 @@ return [
         'client_secret' => env('WORDPRESS_CLIENT_SECRET'),
         'redirect' => env('WORDPRESS_REDIRECT')
     ],
+    'cv_manage' => [
+        'device_webhook_url' => env('CV_MANAGE_DEVICE_WEBHOOK_URL'),
+        'device_webhook_secret' => env('CV_MANAGE_DEVICE_WEBHOOK_SECRET'),
+        'device_webhook_sync_minutes' => env('CV_MANAGE_DEVICE_WEBHOOK_SYNC_MINUTES', 15),
+    ],
     'slack' => [
             'url' => env('SLACK_URL'),
             'channel' => [

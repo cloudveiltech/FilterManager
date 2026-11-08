@@ -525,7 +525,8 @@ class UserController extends Controller
 
                 // Remove this user's registration, since they're being
                 // granted an uninstall/removal.
-                AppUserActivation::where($reqArgs)->delete();
+                // Delete through the model so cv-manage is notified.
+                AppUserActivation::where($reqArgs)->get()->each->delete();
 
                 Cache::delete('AppUserActivation' . $reqArgs['identifier']);
 
