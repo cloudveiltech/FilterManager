@@ -52,6 +52,15 @@ class FilterRulesManager
         return $storageDir . $filename;
     }
 
+    /**
+     * The path of a list file, without creating its directory.
+     */
+    public function rulesetFilePath(string $namespace, string $category, string $type): string
+    {
+        return resource_path('rules') . DIRECTORY_SEPARATOR . $this->getDirForRuleset($category)
+            . $this->getFilename($namespace, $category, "$type.txt");
+    }
+
     private function getDirForRuleset(string $category): string
     {
         return $category[0] . DIRECTORY_SEPARATOR . $category[1] . DIRECTORY_SEPARATOR;

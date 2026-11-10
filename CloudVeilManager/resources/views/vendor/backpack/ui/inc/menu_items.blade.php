@@ -4,6 +4,7 @@
 <x-backpack::menu-item title="Users" :link="backpack_url('user')" />
 <x-backpack::menu-item title="Groups" :link="backpack_url('group')" />
 <x-backpack::menu-item title="Filter lists" :link="backpack_url('filter-list')" />
+<x-backpack::menu-item title="Filter check" :link="backpack_url('filter-check')" />
 <x-backpack::menu-item title="Deactivation requests" :link="backpack_url('deactivation-request')" />
 <x-backpack::menu-item title="Apps" :link="backpack_url('app')" />
 <x-backpack::menu-item title="App groups" :link="backpack_url('app-group')" />

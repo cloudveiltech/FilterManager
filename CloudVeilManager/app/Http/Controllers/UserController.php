@@ -9,7 +9,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Client\PlainTextFilteringListType;
 use App\Events\DeactivationRequestReceived;
 use App\Models\AppUserActivation;
 use App\Models\DeactivationRequest;
@@ -21,6 +20,7 @@ use App\Models\Role;
 use App\Models\SystemPlatform;
 use App\Models\Traits\TimerRestrictionsTrait;
 use App\Models\User;
+use App\Services\ClientConfigurationBuilder;
 use App\Models\Helpers\UserActivationAttemptResult;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -329,92 +329,7 @@ class UserController extends Controller
 
     private function mergeConfigurations($userGroup, $thisUser, $activation)
     {
-        if (!is_null($userGroup)) {
-            if ($userGroup->config_cache == null || strlen($userGroup->config_cache) == 0) {
-                $userGroup->rebuildGroupData();
-            }
-
-            $groupConfiguration = json_decode($userGroup->config_cache, true) ?? [];
-            $userConfiguration = $thisUser->config_override ?? [];
-            $activationConfiguration = $activation->config_override ?? [];
-
-            $activationConfiguration = Utils::purgeNulls($activationConfiguration);
-
-            $configuration = array_merge($groupConfiguration, $userConfiguration, $activationConfiguration);
-
-            /* -------------------------------------------------------------- */
-            /*                 Merge the arrays for these keys                */
-            /* -------------------------------------------------------------- */
-            $properties = [
-                'SelfModeration',
-                'CustomWhitelist',
-                'CustomBypasslist',
-                'CustomTriggerBlacklist',
-                'CustomBlockedApps'
-            ];
-
-            foreach ($properties as $property) {
-                $configuration[$property] = [];
-                // merge the arrays, remove duplicates and reset the keys
-                $userConfig = $userConfiguration[$property] ?? [];
-                $activationConfig = $activationConfiguration[$property] ?? [];
-                if(is_array($userConfig) && is_array($activationConfig)) {
-                    $configuration[$property] = array_values(array_unique(array_merge($userConfig, $activationConfig)));
-                }
-            }
-
-            $configuration = Utils::purgeNullsFromSelfModerationArrays($configuration);
-
-            $configuration['CustomTriggerBlacklist'] = array_map("strtolower", $configuration['CustomTriggerBlacklist']);
-
-            $configuration['DebugEnabled'] = 0;
-            if ($activation->debug_enabled) {
-                $configuration['DebugEnabled'] = $activation->debug_enabled;
-            } else if (isset($userConfiguration["DebugEnabled"])) {
-                $configuration['DebugEnabled'] = $userConfiguration["DebugEnabled"];
-            } else if (isset($groupConfiguration["DebugEnabled"])) {
-                $configuration['DebugEnabled'] = $groupConfiguration["DebugEnabled"];
-            }
-
-            if ($activation->bypass_quantity) {
-                $configuration['BypassesPermitted'] = $activation->bypass_quantity;
-            }
-
-            if ($activation->bypass_period) {
-                $configuration['BypassDuration'] = $activation->bypass_period;
-            }
-
-            if ($thisUser->enable_relaxed_policy_passcode) {
-                $configuration['EnableRelaxedPolicyPasscode'] = $thisUser->enable_relaxed_policy_passcode;
-            }
-
-            $configuration["FriendlyName"] = $activation->friendly_name;
-
-            $bypassDisabled = $configuration["DisableBypass"] ?? false;
-            if ($bypassDisabled || !isset($configuration['BypassesPermitted'])) {
-                $configuration['BypassesPermitted'] = 0;
-            }
-            if ($bypassDisabled || !isset($configuration['BypassDuration'])) {
-                $configuration['BypassDuration'] = 0;
-            }
-
-            if($bypassDisabled) {
-                $configuration["SelfModeration"] = array_merge($configuration["SelfModeration"] ?? [], $configuration["CustomBypasslist"] ?? []);
-                foreach ($configuration["ConfiguredLists"] as &$list) {
-                    if($list["ListType"] == PlainTextFilteringListType::BypassList) {
-                        $list["ListType"] = PlainTextFilteringListType::Blacklist;
-                    }
-                }
-            }
-
-            if (isset($configuration["TimeRestrictionsTemplates"])) {
-                $configuration["TimeRestrictions"] = AppUserActivation::applyTemplates($configuration["TimeRestrictions"] ?? [], $configuration["TimeRestrictionsTemplates"] ?? []);
-                unset($configuration["TimeRestrictionsTemplates"]);
-            }
-            return $configuration;
-        } else {
-            return null;
-        }
+        return app(ClientConfigurationBuilder::class)->build($userGroup, $thisUser, $activation);
     }
 
     /**

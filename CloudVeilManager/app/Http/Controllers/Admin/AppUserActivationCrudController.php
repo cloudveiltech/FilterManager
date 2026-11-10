@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Traits\AddsFilterCheckButton;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\User;
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
  */
 class AppUserActivationCrudController extends CrudController
 {
+    use AddsFilterCheckButton;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
@@ -46,6 +48,8 @@ class AppUserActivationCrudController extends CrudController
      */
     protected function setupListOperation()
     {
+        $this->addFilterCheckButton('activation_id');
+
         $this->crud->setColumns([
             [
                 'label' => 'Device',
