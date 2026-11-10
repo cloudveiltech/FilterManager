@@ -5,6 +5,7 @@ use App\Services\FilterCheck\AbpRule;
 use App\Services\FilterCheck\AbpRuleMatcher;
 use App\Services\FilterCheck\AbpRuleParser;
 use App\Services\FilterCheck\FilterCategory;
+use App\Services\FilterCheck\RuleTooComplexException;
 
 // Expected results follow github.com/patriciy/adblock (rules.go) and goproxy-managed,
 // the matcher both CloudVeil apps use.
@@ -157,4 +158,37 @@ test('rule parts are rewritten into the client chain', function () {
         [AbpRule::SUBSTRING, '/ads/'],
         [AbpRule::WILDCARD, ''],
     ]);
+});
+
+test('wildcards in a row are merged into one', function () {
+    $parser = new AbpRuleParser;
+
+    expect($parser->parse('**********zzz')->parts)->toBe($parser->parse('*zzz')->parts)
+        ->and($parser->parse('a***^**b')->parts)->toBe($parser->parse('a*^*b')->parts)
+        ->and(ruleMatches('ads***banner', 'https://example.com/ads/x/banner.png'))->toBeTrue();
+});
+
+test('a rule full of wildcards gives up quickly instead of hanging', function () {
+    $started = microtime(true);
+
+    expect(fn () => (new AbpRuleMatcher)->matches((new AbpRuleParser)->parse('*a*a*a*a*a*a*a*a*a*a*a*a*zzz'), 'https://example.org/'.str_repeat('a', 2000)))
+        ->toThrow(RuleTooComplexException::class)
+        ->and(microtime(true) - $started)->toBeLessThan(3.0)
+        // The same kind of rule on an ordinary-length URL is still checked.
+        ->and((new AbpRuleMatcher)->matches((new AbpRuleParser)->parse('*^*^*^*^zzz'), 'https://www.example.com/'.str_repeat('ab/', 60)))->toBeFalse();
+});
+
+test('a rule that needs more than the step limit stops with an error', function () {
+    $rule = (new AbpRuleParser)->parse('*a*a*a*zzz');
+
+    expect(fn () => (new AbpRuleMatcher(maxSteps: 50))->matches($rule, 'https://example.org/'.str_repeat('a', 80)))
+        ->toThrow(RuleTooComplexException::class, 'A rule is too complex to check: *a*a*a*zzz.');
+});
+
+test('normal rules match on long URLs', function () {
+    $matcher = new AbpRuleMatcher;
+    $url = 'https://www.example.com/'.str_repeat('path/', 200).'?'.str_repeat('q=1&', 200);
+
+    expect($matcher->matches((new AbpRuleParser)->parse('/path/*q=1^'), $url))->toBeTrue()
+        ->and($matcher->matches((new AbpRuleParser)->parse('||example.com^*/ads/*banner'), 'https://www.example.com/'.str_repeat('x/', 900).'ads/x/banner'))->toBeTrue();
 });

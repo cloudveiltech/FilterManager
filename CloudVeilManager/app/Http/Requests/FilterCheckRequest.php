@@ -2,12 +2,11 @@
 
 namespace App\Http\Requests;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * A filter check: one URL or several, an optional target (activation, user or
- * group; none means the default group), and optional bypass and time settings.
+ * group; none means the default group), and whether bypass is on.
  */
 class FilterCheckRequest extends FormRequest
 {
@@ -31,7 +30,6 @@ class FilterCheckRequest extends FormRequest
             'email' => ['nullable', 'email'],
             'group_id' => ['nullable', 'integer'],
             'bypass_active' => ['nullable', 'boolean'],
-            'at' => ['nullable', 'date'],
         ];
     }
 
@@ -43,10 +41,5 @@ class FilterCheckRequest extends FormRequest
         $urls = $this->filled('urls') ? $this->input('urls') : [$this->input('url')];
 
         return array_values(array_map('strval', $urls));
-    }
-
-    public function at(): ?CarbonImmutable
-    {
-        return $this->filled('at') ? CarbonImmutable::parse($this->input('at')) : null;
     }
 }

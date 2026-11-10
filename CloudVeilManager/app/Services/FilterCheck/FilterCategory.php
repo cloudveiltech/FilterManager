@@ -58,6 +58,15 @@ class FilterCategory
      */
     public function match(AbpRuleMatcher $matcher, string $url, string $host, string $referer = ''): ?CategoryMatch
     {
+        try {
+            return $this->firstMatch($matcher, $url, $host, $referer);
+        } catch (RuleTooComplexException $e) {
+            throw $e->inCategory($this);
+        }
+    }
+
+    private function firstMatch(AbpRuleMatcher $matcher, string $url, string $host, string $referer): ?CategoryMatch
+    {
         foreach ($this->excludes as $rule) {
             if ($matcher->matches($rule, $url, $referer)) {
                 return new CategoryMatch($this, $rule);

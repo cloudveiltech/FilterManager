@@ -7,10 +7,10 @@ use App\Models\AppUserActivation;
 use App\Models\FilterRulesManager;
 use App\Models\Group;
 use App\Models\User;
+use App\Services\FilterCheck\AbpRuleMatcher;
 use App\Services\FilterCheck\FilterChecker;
 use App\Services\FilterCheck\FilterTarget;
 use Backpack\CRUD\app\Http\Middleware\AuthenticateSession;
-use Carbon\CarbonImmutable;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -115,8 +115,8 @@ beforeEach(function () {
         'config_override' => ['CustomWhitelist' => ['casino.example']],
     ]);
 
-    $this->check = fn (array $urls, ?FilterTarget $target = null, bool $bypass = false, ?CarbonImmutable $at = null) => app(FilterChecker::class)
-        ->check($target ?? new FilterTarget(FilterTarget::GROUP, $this->group), $urls, $bypass, $at);
+    $this->check = fn (array $urls, ?FilterTarget $target = null, bool $bypass = false) => app(FilterChecker::class)
+        ->check($target ?? new FilterTarget(FilterTarget::GROUP, $this->group), $urls, $bypass);
 });
 
 afterEach(function () {
@@ -215,19 +215,28 @@ test('a URL on no list is allowed, and missing list files are reported', functio
         ->and($response['notes'])->toContain('The list file for /default/missing/rules.txt is missing on this server, so it was not checked.');
 });
 
-test('a time restriction blocks everything outside the allowed hours', function () {
+test('a rule too complex to match is reported for that URL, and the other URLs are still checked', function () {
+    app()->instance(AbpRuleMatcher::class, new AbpRuleMatcher(maxSteps: 50));
+    ($this->writeList)('adult', ['||adult.example', '*a*a*a*a*a*a*a*a*a*a*a*a*zzz']);
+
+    [$slow, $fine] = ($this->check)(['https://example.org/'.str_repeat('a', 80), 'https://adult.example/'])['results'];
+
+    expect($slow)->toBe([
+        'url' => 'https://example.org/'.str_repeat('a', 80),
+        'error' => 'A rule is too complex to check: *a*a*a*a*a*a*a*a*a*a*a*a*zzz (adult list).',
+    ])->and($fine['decided_by'])->toMatchArray(['category' => 'adult', 'rule' => '||adult.example']);
+});
+
+test('time restrictions are not part of the check', function () {
     $this->group->forceFill(['config_cache' => json_encode([
         ...json_decode($this->group->config_cache, true),
-        'TimeRestrictions' => ['monday' => ['RestrictionsEnabled' => true, 'EnabledThrough' => ['08.00', '20.30']]],
+        'TimeRestrictions' => array_fill_keys(['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'], ['RestrictionsEnabled' => true, 'EnabledThrough' => ['00.00', '00.00']]),
     ])])->save();
 
-    $inside = ($this->check)(['https://example.org/'], at: CarbonImmutable::parse('2026-11-09 20:30'));
-    $outside = ($this->check)(['https://example.org/'], at: CarbonImmutable::parse('2026-11-09 21:00'));
+    $response = ($this->check)(['https://example.org/']);
 
-    expect($inside['time_restriction']['restricted'])->toBeFalse()
-        ->and($inside['results'][0]['blocked'])->toBeFalse()
-        ->and($outside['time_restriction'])->toMatchArray(['day' => 'monday', 'restricted' => true])
-        ->and($outside['results'][0])->toMatchArray(['blocked' => true, 'verdict' => 'time_restricted']);
+    expect($response)->not->toHaveKey('time_restriction')
+        ->and($response['results'][0]['blocked'])->toBeFalse();
 });
 
 test('the manage endpoint checks an activation by id', function () {

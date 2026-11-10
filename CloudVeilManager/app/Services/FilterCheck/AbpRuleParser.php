@@ -88,7 +88,7 @@ class AbpRuleParser
         if ($parts === null) {
             return null;
         }
-        $parts = $this->replaceWildcardWithSubstring($this->addLeadingTrailingWildcards($parts));
+        $parts = $this->replaceWildcardWithSubstring($this->collapseWildcards($this->addLeadingTrailingWildcards($parts)));
 
         if ($parts === []) {
             return null;
@@ -163,6 +163,27 @@ class AbpRuleParser
             if ($i === $last && $part[0] !== AbpRule::START_ANCHOR) {
                 $rewritten[] = [AbpRule::WILDCARD, ''];
             }
+        }
+
+        return $rewritten;
+    }
+
+    /**
+     * Merge wildcards that follow each other. `**` matches the same as `*`, but
+     * each extra wildcard multiplies the work a failed match does.
+     *
+     * @param  array<int, array{0: string, 1: string}>  $parts
+     * @return array<int, array{0: string, 1: string}>
+     */
+    private function collapseWildcards(array $parts): array
+    {
+        $rewritten = [];
+
+        foreach ($parts as $part) {
+            if ($part[0] === AbpRule::WILDCARD && end($rewritten) !== false && end($rewritten)[0] === AbpRule::WILDCARD) {
+                continue;
+            }
+            $rewritten[] = $part;
         }
 
         return $rewritten;

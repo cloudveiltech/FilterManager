@@ -48,7 +48,8 @@ class AppUserActivationCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        $this->addFilterCheckButton('activation_id');
+        // A deleted device no longer gets rules, so there is nothing to check.
+        $this->addFilterCheckButton('activation_id', fn ($entry) => ! $entry?->trashed());
 
         $this->crud->setColumns([
             [

@@ -10,11 +10,40 @@ namespace App\Services\FilterCheck;
  */
 class AbpRuleMatcher
 {
+    /**
+     * How many steps one rule may take against one URL, a fraction of a second
+     * of work. Normal rules need a few hundred at most.
+     */
+    public const MAX_STEPS = 1_000_000;
+
+    private int $steps = 0;
+
+    /**
+     * Rule positions already known not to match, keyed by part index and how
+     * much of the URL was left. The remaining URL is always a suffix of the
+     * original, so its length identifies it. Without this, a rule with many
+     * wildcards retries the same positions an exponential number of times.
+     *
+     * @var array<string, true>
+     */
+    private array $failed = [];
+
+    private AbpRule $rule;
+
+    public function __construct(private readonly int $maxSteps = self::MAX_STEPS) {}
+
+    /**
+     * @throws RuleTooComplexException When the rule needs more than the step limit.
+     */
     public function matches(AbpRule $rule, string $url, string $referer = ''): bool
     {
         if ($rule->parts === []) {
             return false;
         }
+
+        $this->steps = 0;
+        $this->failed = [];
+        $this->rule = $rule;
 
         return $this->dispatch($rule->parts, 0, $url, $referer);
     }
@@ -78,7 +107,21 @@ class AbpRuleMatcher
             return true;
         }
 
-        return $this->dispatch($parts, $index, $url, $referer);
+        if (++$this->steps > $this->maxSteps) {
+            throw new RuleTooComplexException($this->rule);
+        }
+
+        $key = $index.':'.strlen($url);
+        if (isset($this->failed[$key])) {
+            return false;
+        }
+
+        if ($this->dispatch($parts, $index, $url, $referer)) {
+            return true;
+        }
+        $this->failed[$key] = true;
+
+        return false;
     }
 
     /**

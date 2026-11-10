@@ -21,7 +21,6 @@ class ManageFilterCheckController extends Controller
             $target,
             $request->urls(),
             $request->boolean('bypass_active'),
-            $request->at(),
         ));
     }
 }

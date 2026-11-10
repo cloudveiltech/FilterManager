@@ -9,7 +9,6 @@
         'allowed' => ['Allowed', 'bg-success'],
         'blocked' => ['Blocked', 'bg-danger'],
         'blocked_bypassable' => ['Blocked (bypassable)', 'bg-warning text-dark'],
-        'time_restricted' => ['Blocked (time restriction)', 'bg-danger'],
     ];
 @endphp
 
@@ -40,11 +39,6 @@
                     <div class="mb-3">
                         <label class="form-label" for="urls">Sites to check, one per line</label>
                         <textarea name="urls" id="urls" rows="6" class="form-control" placeholder="example.com&#10;https://example.com/page" required>{{ $urlText }}</textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="at">At this device time (optional)</label>
-                        <input type="datetime-local" name="at" id="at" class="form-control" value="{{ $at }}">
-                        <small class="text-muted">Checks time restrictions as well.</small>
                     </div>
                     <div class="form-check mb-3">
                         <input type="checkbox" name="bypass_active" id="bypass_active" value="1" class="form-check-input" @checked($bypassActive)>
@@ -77,11 +71,8 @@
                         @if ($report['target']['user_id'])
                             user #{{ $report['target']['user_id'] }},
                         @endif
-                        group <a href="{{ backpack_url('group/'.$report['target']['group']['id'].'/edit') }}">{{ $report['target']['group']['name'] }}</a>.
-                        @if ($report['time_restriction'])
-                            <br>Time restriction on {{ ucfirst($report['time_restriction']['day']) }} at {{ $report['time_restriction']['at'] }}:
-                            {{ $report['time_restriction']['restricted'] ? 'internet is off' : 'not in effect' }}.
-                        @endif
+                        group <a href="{{ backpack_url('group/'.$report['target']['group']['id'].'/edit') }}">{{ $report['target']['group']['name'] }}</a>,
+                        with no time restrictions in effect.
                     </div>
                 </div>
 

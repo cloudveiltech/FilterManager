@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\FilterCheck\FilterChecker;
 use App\Services\FilterCheck\FilterTargetResolver;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -36,7 +35,6 @@ class FilterCheckController extends Controller
             'targetId' => (string) $request->query('target_id', ''),
             'urlText' => implode("\n", $urls),
             'bypassActive' => $request->boolean('bypass_active'),
-            'at' => (string) $request->query('at', ''),
             'report' => null,
             'checkErrors' => [],
         ];
@@ -50,7 +48,6 @@ class FilterCheckController extends Controller
                 'urls' => ['array', 'max:'.config('filter_check.max_urls', 50)],
                 'urls.*' => ['string', 'max:2048'],
                 'target_id' => [$target === 'default' ? 'nullable' : 'required', 'string', 'max:255'],
-                'at' => ['nullable', 'date'],
             ], [], ['target_id' => self::TARGETS[$target]])->validate();
 
             $input = $target === 'default' ? [] : [$target => $data['targetId']];
@@ -58,7 +55,6 @@ class FilterCheckController extends Controller
                 $resolver->resolve($input),
                 $urls,
                 $data['bypassActive'],
-                $data['at'] === '' ? null : CarbonImmutable::parse($data['at']),
             );
         } catch (ValidationException $e) {
             $data['checkErrors'] = $e->validator->errors()->all();

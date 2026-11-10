@@ -7,7 +7,6 @@ use App\Models\AppUserActivation;
 use App\Models\FilterRulesManager;
 use App\Models\User;
 use App\Services\ClientConfigurationBuilder;
-use Carbon\CarbonInterface;
 use RuntimeException;
 
 /**
@@ -21,7 +20,8 @@ use RuntimeException;
  * is worked out too and flagged when it differs.
  *
  * Not covered: DNS filtering, page text (trigger words), image filtering,
- * blocked apps and the block threshold.
+ * blocked apps, the block threshold and time restrictions (results are what
+ * the apps do when no time restriction is in effect).
  */
 class FilterChecker
 {
@@ -43,7 +43,7 @@ class FilterChecker
      * @param  array<int, string>  $urls
      * @return array<string, mixed>
      */
-    public function check(FilterTarget $target, array $urls, bool $bypassActive = false, ?CarbonInterface $at = null): array
+    public function check(FilterTarget $target, array $urls, bool $bypassActive = false): array
     {
         $configuration = $this->configurationBuilder->build(
             $target->group,
@@ -62,16 +62,23 @@ class FilterChecker
 
         $windows = $this->windowsCategories($lists, $candidates, $configuration);
         $mac = $this->macCategories($lists, $candidates, $configuration);
-        $restriction = $at === null ? null : $this->timeRestriction($configuration, $at);
 
         $results = [];
         foreach ($requests as $request) {
-            $results[] = $request['host'] === null
-                ? ['url' => $request['input'], 'error' => 'This is not a valid URL.']
-                : $this->checkUrl($request, $windows, $mac, $bypassActive, $restriction);
+            if ($request['host'] === null) {
+                $results[] = ['url' => $request['input'], 'error' => 'This is not a valid URL.'];
+
+                continue;
+            }
+
+            try {
+                $results[] = $this->checkUrl($request, $windows, $mac, $bypassActive);
+            } catch (RuleTooComplexException $e) {
+                $results[] = ['url' => $request['input'], 'error' => $e->getMessage()];
+            }
         }
 
-        $notes = ['DNS filtering, page text (trigger words), image filtering and blocked apps are not checked.'];
+        $notes = ['DNS filtering, page text (trigger words), image filtering, blocked apps and time restrictions are not checked.'];
         foreach ($missing as $list) {
             $notes[] = "The list file for {$list} is missing on this server, so it was not checked.";
         }
@@ -79,7 +86,6 @@ class FilterChecker
         return [
             'target' => $target->toArray(),
             'bypass_active' => $bypassActive,
-            'time_restriction' => $restriction,
             'results' => $results,
             'notes' => $notes,
         ];
@@ -89,10 +95,9 @@ class FilterChecker
      * @param  array{input: string, url: string, host: string}  $request
      * @param  array{main: array<int, FilterCategory>, bypass: array<int, FilterCategory>}  $windows
      * @param  array{whitelist: array<int, FilterCategory>, blacklist: array<int, FilterCategory>, bypass: array<int, FilterCategory>}  $mac
-     * @param  array<string, mixed>|null  $restriction
      * @return array<string, mixed>
      */
-    private function checkUrl(array $request, array $windows, array $mac, bool $bypassActive, ?array $restriction): array
+    private function checkUrl(array $request, array $windows, array $mac, bool $bypassActive): array
     {
         $url = $request['url'];
         $host = $request['host'];
@@ -116,11 +121,6 @@ class FilterChecker
         };
 
         $macBlocked = $this->macBlocked($mac, $url, $host, $bypassActive);
-
-        if ($restriction['restricted'] ?? false) {
-            [$blocked, $verdict] = [true, 'time_restricted'];
-            $macBlocked = true;
-        }
 
         // Every list that matches, whatever wins, so support can see all the reasons.
         $trace = [];
@@ -393,50 +393,5 @@ class FilterChecker
         }
 
         return ['input' => $input, 'url' => $url, 'host' => trim($host, '[]')];
-    }
-
-    /**
-     * Whether the day's time restriction blocks everything at the given time:
-     * restrictions are on and the time is outside every allowed interval.
-     *
-     * @param  array<string, mixed>  $configuration
-     * @return array<string, mixed>
-     */
-    private function timeRestriction(array $configuration, CarbonInterface $at): array
-    {
-        $day = strtolower($at->englishDayOfWeek);
-        $settings = (array) ($configuration['TimeRestrictions'][$day] ?? []);
-        $enabled = (bool) ($settings['RestrictionsEnabled'] ?? false);
-
-        $restricted = false;
-        if ($enabled) {
-            $minute = $at->hour * 60 + $at->minute;
-            $bounds = array_values((array) ($settings['EnabledThrough'] ?? []));
-            $inside = false;
-            for ($i = 0; $i + 1 < count($bounds); $i += 2) {
-                if ($minute >= $this->minutes($bounds[$i]) && $minute <= $this->minutes($bounds[$i + 1])) {
-                    $inside = true;
-                    break;
-                }
-            }
-            $restricted = ! $inside;
-        }
-
-        return [
-            'at' => $at->format('Y-m-d H:i'),
-            'day' => $day,
-            'enabled' => $enabled,
-            'restricted' => $restricted,
-        ];
-    }
-
-    /**
-     * "08.30" means 8:30; "24.00" is the end of the day.
-     */
-    private function minutes(mixed $value): int
-    {
-        [$hours, $minutes] = array_pad(explode('.', (string) $value, 2), 2, '0');
-
-        return (int) $hours * 60 + (int) str_pad(substr($minutes, 0, 2), 2, '0');
     }
 }
