@@ -58,9 +58,13 @@ class AppUserActivationCrudController extends CrudController
 
                     // Friendly name is primary when set, otherwise the computer name (device_id) takes its place
                     if (!$entry->friendly_name) {
-                        return '<div>' . e($entry->device_id ?: '-') . $deletedBadge . '</div>';
+                        $html = '<div>' . e($entry->device_id ?: '-') . $deletedBadge . '</div>';
+                    } else {
+                        $html = '<div>' . e($entry->friendly_name) . $deletedBadge . '</div><div class="text-muted small">' . e($entry->device_id ?: '-') . '</div>';
                     }
-                    return '<div>' . e($entry->friendly_name) . $deletedBadge . '</div><div class="text-muted small">' . e($entry->device_id ?: '-') . '</div>';
+
+                    // Inline-block so the responsive "expand row" toggle sits beside the name instead of above it
+                    return '<div class="d-inline-block align-middle">' . $html . '</div>';
                 },
                 'escaped' => false,
                 'priority' => 1,
@@ -84,7 +88,7 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($user->name) . '</div><div class="text-muted small">' . e($user->email) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1,
+                'priority' => 3,
                 'searchLogic' => function ($query, $column, $searchTerm) {
                     $operator = config('backpack.operations.list.searchOperator', 'like');
                     $pattern = '%' . $searchTerm . '%';
@@ -101,7 +105,7 @@ class AppUserActivationCrudController extends CrudController
                 'attribute' => 'name',
                 'entity' => 'group',
                 'key' => 'group_name',
-                'priority' => 1
+                'priority' => 5
             ],
             [
                 'label' => 'Version',
@@ -113,7 +117,7 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($appVersion) . '</div><div class="text-muted small">' . e($osFormatted) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1,
+                'priority' => 6,
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDirection) {
                     return $query->orderBy('platform_name', $columnDirection);
@@ -141,7 +145,7 @@ class AppUserActivationCrudController extends CrudController
                     return $html;
                 },
                 'escaped' => false,
-                'priority' => 1,
+                'priority' => 4,
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDirection) {
                     return $query->orderBy('last_sync_time', $columnDirection);
@@ -157,7 +161,7 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($ipAddress) . '</div><div class="text-muted small">' . e($identifier) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1,
+                'priority' => 7,
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDirection) {
                     return $query->orderBy('ip_address', $columnDirection);
@@ -171,6 +175,10 @@ class AppUserActivationCrudController extends CrudController
                 },
             ]
         ]);
+
+        // Responsive hiding order on narrow screens (highest number hides first):
+        // IP/Identifier, Version, Group, Last Seen, User, then the action buttons. Device always stays.
+        CRUD::setActionsColumnPriority(2);
 
         // Deleted activations can't be deleted again - hide the button for them
         CRUD::setAccessCondition('delete', function ($entry) {
