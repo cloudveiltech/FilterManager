@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Traits\AddsFilterCheckButton;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\URL;
  */
 class UserCrudController extends CrudController
 {
+    use AddsFilterCheckButton;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
         store as traitStore;
@@ -34,6 +36,8 @@ class UserCrudController extends CrudController
 
     protected function setupListOperation()
     {
+        $this->addFilterCheckButton('user_id');
+
         $this->crud->setColumns([
             [
                 'label' => 'User Name',
