@@ -177,6 +177,16 @@ class UserCrudController extends CrudController
                     'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
                 ],
                 [
+                    'name' => 'UpdateChannel',
+                    'type' => 'select_from_array',
+                    'options' => ["Stable" => "Stable", "Beta" => "Beta", "Alpha" => "Alpha"],
+                    'allows_null' => true,
+                    'label' => 'Update Channel',
+                    'hint' => 'Leave empty to use the group setting.',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-4'],
+                ],
+                [
                     'label' => 'Check-In Days',
                     'type' => 'number',
                     'name' => 'check_in_days',

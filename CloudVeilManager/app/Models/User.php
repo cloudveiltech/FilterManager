@@ -250,7 +250,7 @@ class User extends Authenticatable
         'config', 'enable_relaxed_policy_passcode', 'blocked_sites', 'allowed_sites',
         'bypassable_sites', 'blocked_triggers', 'blocked_applications', 'time_restrictions',
         "BypassesPermitted", "BypassDuration", "DisableBypass", "TwoFAAuthEnabled", "PasswordAuthEnabled",
-        "DisableDns"
+        "DisableDns", "UpdateChannel"
     ];
 
     /**
@@ -285,6 +285,14 @@ class User extends Authenticatable
 
     public function setDisableBypassAttribute($value) {
         $this->setConfigValue("DisableBypass", $value);
+    }
+
+    public function getUpdateChannelAttribute() {
+        return $this->getConfigValue("UpdateChannel");
+    }
+
+    public function setUpdateChannelAttribute($value) {
+        $this->setConfigValue("UpdateChannel", $value);
     }
 
     public function getUsernameEmailAttribute() {
