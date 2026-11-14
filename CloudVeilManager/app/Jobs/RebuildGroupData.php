@@ -11,10 +11,9 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Rebuilds the cached data payload (data.zip + config_cache) for a single group.
+ * Rebuilds the compiled client configuration (config_cache) for a single group.
  *
- * Group::rebuildGroupData() zips every ruleset assigned to a group, so a rebuild is expensive, and
- * saving one popular app can touch hundreds of groups. Use dispatchForGroups() rather than
+ * Saving one popular app can touch hundreds of groups. Use dispatchForGroups() rather than
  * dispatching directly: it queues one job per group, and ShouldBeUniqueUntilProcessing drops a
  * dispatch while that group already has a rebuild waiting. Repeated saves therefore collapse into a
  * single pending rebuild per group instead of piling up. The lock is released as soon as the job
