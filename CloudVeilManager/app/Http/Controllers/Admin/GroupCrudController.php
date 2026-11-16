@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\FilterList;
-use App\Models\Group;
 use App\Models\SystemPlatform;
 use App\Models\UserGroupToAppGroup;
 use App\Services\GroupFilterAssignmentService;
@@ -29,9 +28,7 @@ class GroupCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
         update as traitUpdate;
     }
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation {
-        destroy as traitDelete;
-    }
+    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 
     private $rules = [
         'name' => 'required|min:2',
@@ -389,14 +386,5 @@ class GroupCrudController extends CrudController
             $model->rebuildGroupData();
         }
         return $result;
-    }
-
-    public function destroy($id)
-    {
-        $group = Group::find($id);
-        if ($group) {
-            $group->destroyGroupData();
-        }
-        return $this->traitDelete($id);
     }
 }
