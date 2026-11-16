@@ -92,7 +92,7 @@ class LoginController extends LoginControllerBase
         $user = Socialite::with($provider)->user();
 
         $authUser = $this->findOrCreateUser($user, $provider);
-        Auth::login($authUser, true);
+        Auth::login($authUser);
 
         $redirect = $request->input('redirect');
 
