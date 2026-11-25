@@ -349,3 +349,21 @@ test('the admin page shows target errors on the page', function () {
         ->assertOk()
         ->assertSee('No user was found.');
 });
+
+test('the admin page shows malformed query values as errors instead of failing', function () {
+    $this->withoutVite()
+        ->withoutMiddleware([CheckIfAdmin::class, AuthenticateSession::class])
+        ->get('/admin/filter-check?target[]=user_id&target_id[]=1&urls=adult.example')
+        ->assertOk()
+        ->assertSee('must be a string');
+});
+
+test('the admin page shows a failed list search on the page', function () {
+    config(['filter_check.grep_binary' => 'false-grep-that-does-not-exist']);
+
+    $this->withoutVite()
+        ->withoutMiddleware([CheckIfAdmin::class, AuthenticateSession::class])
+        ->get('/admin/filter-check?'.http_build_query(['target' => 'group_id', 'target_id' => $this->group->id, 'urls' => 'adult.example']))
+        ->assertOk()
+        ->assertSee('Searching the filter lists failed');
+});

@@ -8,6 +8,7 @@ use App\Services\FilterCheck\FilterTargetResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 /**
  * The admin "Filter check" page: would these URLs be blocked for a device, a
@@ -26,25 +27,34 @@ class FilterCheckController extends Controller
 
     public function index(Request $request, FilterTargetResolver $resolver, FilterChecker $checker)
     {
-        $target = array_key_exists($request->query('target'), self::TARGETS) ? $request->query('target') : 'default';
-        $urls = array_values(array_filter(array_map('trim', preg_split('/\R/', (string) $request->query('urls', '')))));
+        // Reject non-string query values (e.g. ?target[]=x) before anything reads them.
+        $query = Validator::make($request->query(), [
+            'target' => ['nullable', 'string'],
+            'target_id' => ['nullable', 'string', 'max:255'],
+            'urls' => ['nullable', 'string'],
+            'bypass_active' => ['nullable', 'boolean'],
+        ]);
+        $valid = $query->fails() ? [] : $query->validated();
+
+        $target = array_key_exists($valid['target'] ?? '', self::TARGETS) ? $valid['target'] : 'default';
+        $urls = array_values(array_filter(array_map('trim', preg_split('/\R/', $valid['urls'] ?? ''))));
 
         $data = [
             'targets' => self::TARGETS,
             'target' => $target,
-            'targetId' => (string) $request->query('target_id', ''),
+            'targetId' => $valid['target_id'] ?? '',
             'urlText' => implode("\n", $urls),
-            'bypassActive' => $request->boolean('bypass_active'),
+            'bypassActive' => filter_var($valid['bypass_active'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'report' => null,
-            'checkErrors' => [],
+            'checkErrors' => $query->errors()->all(),
         ];
 
-        if ($urls === []) {
+        if ($urls === [] || $data['checkErrors'] !== []) {
             return view('vendor.backpack.crud.filter_check', $data);
         }
 
         try {
-            Validator::make([...$request->query(), 'urls' => $urls], [
+            Validator::make(['urls' => $urls, 'target_id' => $data['targetId']], [
                 'urls' => ['array', 'max:'.config('filter_check.max_urls', 50)],
                 'urls.*' => ['string', 'max:2048'],
                 'target_id' => [$target === 'default' ? 'nullable' : 'required', 'string', 'max:255'],
@@ -58,6 +68,10 @@ class FilterCheckController extends Controller
             );
         } catch (ValidationException $e) {
             $data['checkErrors'] = $e->validator->errors()->all();
+        } catch (RuntimeException $e) {
+            // grep failed or timed out, or no configuration could be built for the target.
+            report($e);
+            $data['checkErrors'] = [$e->getMessage()];
         }
 
         return view('vendor.backpack.crud.filter_check', $data);
