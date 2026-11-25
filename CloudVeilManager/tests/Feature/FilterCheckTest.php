@@ -4,6 +4,7 @@ use App\Client\PlainTextFilteringListType;
 use App\Http\Middleware\AuthenticateOnceWithBasicAuth;
 use App\Http\Middleware\CheckIfAdmin;
 use App\Models\AppUserActivation;
+use App\Models\FilterList;
 use App\Models\FilterRulesManager;
 use App\Models\Group;
 use App\Models\User;
@@ -16,12 +17,23 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Zizaco\Entrust\Middleware\EntrustRole;
 
-const FILTER_CHECK_TEST_TABLES = ['app_user_activations', 'users', 'groups'];
+const FILTER_CHECK_TEST_TABLES = ['app_user_activations', 'users', 'groups', 'filter_lists'];
 
 beforeEach(function () {
     foreach (FILTER_CHECK_TEST_TABLES as $table) {
         Schema::dropIfExists($table);
     }
+
+    Schema::create('filter_lists', function (Blueprint $table) {
+        $table->id();
+        $table->string('namespace');
+        $table->string('category');
+        $table->string('type');
+        $table->string('file_sha1')->nullable();
+        $table->unsignedInteger('entries_count')->default(0);
+        $table->boolean('import_enabled')->default(true);
+        $table->timestamps();
+    });
 
     Schema::create('groups', function (Blueprint $table) {
         $table->id();
@@ -206,6 +218,27 @@ test('rules without a domain anchor, or with capitals, are still found', functio
     expect($tracker['decided_by'])->toMatchArray(['category' => 'adult', 'rule' => '/tracker/*'])
         ->and($spaced['decided_by'])->toMatchArray(['category' => 'adult', 'rule' => '||spaced.example'])
         ->and($neither['blocked'])->toBeFalse();
+});
+
+test('user and device category overrides change which lists are checked', function () {
+    $list = fn (string $category) => FilterList::forceCreate(['namespace' => 'default', 'category' => $category, 'type' => 'Filters']);
+    $gambling = $list('gambling');
+    $games = $list('games');
+
+    $this->user->forceFill(['config_override' => [
+        ...$this->user->config_override,
+        'CategoryOverrides' => [['categoryId' => $games->id, 'override' => PlainTextFilteringListType::Blacklist]],
+    ]])->save();
+    $this->activation->forceFill(['config_override' => [
+        'CategoryOverrides' => [['categoryId' => $gambling->id, 'override' => 'Ignored']],
+    ]])->save();
+
+    $target = new FilterTarget(FilterTarget::ACTIVATION, $this->group, $this->user, $this->activation);
+    [$casino, $games] = ($this->check)(['https://casino.example/', 'https://games.example/'], $target)['results'];
+
+    expect(collect($casino['matches'])->pluck('category')->all())->not->toContain('gambling')
+        ->and($games)->toMatchArray(['blocked' => true, 'verdict' => 'blocked'])
+        ->and($games['decided_by']['list_type'])->toBe(PlainTextFilteringListType::Blacklist);
 });
 
 test('a URL on no list is allowed, and missing list files are reported', function () {

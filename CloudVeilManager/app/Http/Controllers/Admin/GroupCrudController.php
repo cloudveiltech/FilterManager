@@ -14,7 +14,9 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * Class GroupCrudController
@@ -399,7 +401,31 @@ class GroupCrudController extends CrudController
     {
         $group = Group::find($id);
         if ($group) {
+            // Users and activations have no foreign key to groups, so deleting a group they still
+            // use would leave them pointing at nothing: bypass requests crash and filter updates stop.
+            $userCount = $group->users()->count();
+            $activationCount = $group->activations()->count();
+            if ($userCount > 0 || $activationCount > 0) {
+                // Backpack's delete button shows each message in this shape as a notification.
+                $inUseBy = collect([
+                    $userCount ? $userCount.' '.Str::plural('user', $userCount) : null,
+                    $activationCount ? $activationCount.' '.Str::plural('device', $activationCount) : null,
+                ])->filter()->join(' and ');
+
+                return ['error' => ["This group is still used by {$inUseBy}. Move them to another group before deleting it."]];
+            }
+
+            // The group's rule rows go with it, as CitadelManager's GroupController::destroy() does.
+            // user_group_to_app_groups has a restricting foreign key, so they have to go first.
+            $result = DB::transaction(function () use ($group, $id) {
+                $group->assignedFilterIds()->delete();
+                UserGroupToAppGroup::where('user_group_id', $group->id)->delete();
+
+                return $this->traitDelete($id);
+            });
             $group->destroyGroupData();
+
+            return $result;
         }
         return $this->traitDelete($id);
     }

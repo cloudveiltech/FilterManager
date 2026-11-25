@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Traits\AddsFilterCheckButton;
+use App\Models\FilterList;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -115,6 +116,10 @@ class UserCrudController extends CrudController
         }
         CRUD::setValidation($validationRules);
 
+        // Count badges on the tabs (Categories, Blocked Sites, …) — see crud::inc.show_tabbed_fields.
+        CRUD::setOperationSetting('tabBadges', true);
+        $entry = $fromEdit ? ($this->crud->getCurrentEntry() ?: null) : null;
+
         $this->crud->addFields(
             [
                 [
@@ -181,6 +186,16 @@ class UserCrudController extends CrudController
                     'wrapper' => ['class' => 'form-group col-md-2 d-flex pt-3'],
                 ],
                 [
+                    'name' => 'UpdateChannel',
+                    'type' => 'select_from_array',
+                    'options' => ["Stable" => "Stable", "Beta" => "Beta", "Alpha" => "Alpha"],
+                    'allows_null' => true,
+                    'label' => 'Update Channel',
+                    'hint' => 'Leave empty to use the group setting.',
+                    'tab' => 'Information',
+                    'wrapper' => ['class' => 'form-group col-md-4'],
+                ],
+                [
                     'label' => 'Check-In Days',
                     'type' => 'number',
                     'name' => 'check_in_days',
@@ -242,6 +257,45 @@ class UserCrudController extends CrudController
                             }).change();
                         });
                     </script>'
+                ],
+                // Category overrides — the shared rule-selection table field. Posts a
+                // filter_list_id => override map as JSON under 'category_overrides'; the model
+                // mutator stores it in config_override.CategoryOverrides, which the client config
+                // merge applies on top of the group's rule selection.
+                [
+                    'label' => 'Category Overrides',
+                    'name' => 'category_overrides',
+                    'type' => 'rule_selection_table',
+                    'tab' => 'Categories',
+                    'filter_lists' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
+                        ->get(['id', 'namespace', 'category', 'type']),
+                    'statuses' => [
+                        'Blacklist' => 'Blacklist',
+                        'Whitelist' => 'Whitelist',
+                        'BypassList' => 'Bypass',
+                        'Ignored' => 'Ignored',
+                    ],
+                    // Trigger lists are free-text phrase files, not domain lists — loading one as a
+                    // blacklist/whitelist feeds it to the client's adblock rule parser. Enforced
+                    // server-side by OverridableConfigTrait::allowedCategoryOverridesForType().
+                    'statuses_by_type' => [
+                        'Triggers' => [
+                            'TextTrigger' => 'Text Trigger',
+                            'Ignored' => 'Ignored',
+                        ],
+                    ],
+                    'default_status' => 'none',
+                    'default_filter_label' => 'No override',
+                    'inherited' => $entry?->inheritedCategorySettings(),
+                    'inherited_label' => 'Group setting',
+                    'status_colors' => [
+                        'Blacklist' => '#d63939',
+                        'Whitelist' => '#1f9d57',
+                        'BypassList' => '#d9a406',
+                        'TextTrigger' => '#d63939',
+                        'Ignored' => '#6c757d',
+                    ],
+                    'hint' => 'Overrides the group\'s rule selection. Blank inherits from the group; "Ignored" removes the category even if the group assigns it. Trigger categories can only be overridden to Text Trigger or Ignored.',
                 ],
                 [
                     'label' => 'Blocked Sites',

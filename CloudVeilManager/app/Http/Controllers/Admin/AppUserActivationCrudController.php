@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Traits\AddsFilterCheckButton;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use App\Models\FilterList;
 use App\Models\User;
 use App\Models\SystemPlatform;
 use App\Models\AppUserActivation;
@@ -63,9 +64,13 @@ class AppUserActivationCrudController extends CrudController
 
                     // Friendly name is primary when set, otherwise the computer name (device_id) takes its place
                     if (!$entry->friendly_name) {
-                        return '<div>' . e($entry->device_id ?: '-') . $deletedBadge . '</div>';
+                        $html = '<div>' . e($entry->device_id ?: '-') . $deletedBadge . '</div>';
+                    } else {
+                        $html = '<div>' . e($entry->friendly_name) . $deletedBadge . '</div><div class="text-muted small">' . e($entry->device_id ?: '-') . '</div>';
                     }
-                    return '<div>' . e($entry->friendly_name) . $deletedBadge . '</div><div class="text-muted small">' . e($entry->device_id ?: '-') . '</div>';
+
+                    // Inline-block so the responsive "expand row" toggle sits beside the name instead of above it
+                    return '<div class="d-inline-block align-middle">' . $html . '</div>';
                 },
                 'escaped' => false,
                 'priority' => 1,
@@ -89,7 +94,7 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($user->name) . '</div><div class="text-muted small">' . e($user->email) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1,
+                'priority' => 3,
                 'searchLogic' => function ($query, $column, $searchTerm) {
                     $operator = config('backpack.operations.list.searchOperator', 'like');
                     $pattern = '%' . $searchTerm . '%';
@@ -106,7 +111,7 @@ class AppUserActivationCrudController extends CrudController
                 'attribute' => 'name',
                 'entity' => 'group',
                 'key' => 'group_name',
-                'priority' => 1
+                'priority' => 5
             ],
             [
                 'label' => 'Version',
@@ -118,7 +123,7 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($appVersion) . '</div><div class="text-muted small">' . e($osFormatted) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1,
+                'priority' => 6,
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDirection) {
                     return $query->orderBy('platform_name', $columnDirection);
@@ -146,7 +151,7 @@ class AppUserActivationCrudController extends CrudController
                     return $html;
                 },
                 'escaped' => false,
-                'priority' => 1,
+                'priority' => 4,
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDirection) {
                     return $query->orderBy('last_sync_time', $columnDirection);
@@ -162,7 +167,7 @@ class AppUserActivationCrudController extends CrudController
                     return '<div>' . e($ipAddress) . '</div><div class="text-muted small">' . e($identifier) . '</div>';
                 },
                 'escaped' => false,
-                'priority' => 1,
+                'priority' => 7,
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDirection) {
                     return $query->orderBy('ip_address', $columnDirection);
@@ -176,6 +181,10 @@ class AppUserActivationCrudController extends CrudController
                 },
             ]
         ]);
+
+        // Responsive hiding order on narrow screens (highest number hides first):
+        // IP/Identifier, Version, Group, Last Seen, User, then the action buttons. Device always stays.
+        CRUD::setActionsColumnPriority(2);
 
         // Deleted activations can't be deleted again - hide the button for them
         CRUD::setAccessCondition('delete', function ($entry) {
@@ -253,6 +262,10 @@ class AppUserActivationCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation([]);
+
+        // Count badges on the tabs (Categories, Blocked Sites, …) — see crud::inc.show_tabbed_fields.
+        CRUD::setOperationSetting('tabBadges', true);
+        $entry = $this->crud->getCurrentEntry() ?: null;
 
         $this->crud->addFields(
             [
@@ -396,6 +409,46 @@ class AppUserActivationCrudController extends CrudController
                     'options' => ["Stable" => "Stable", "Alpha" => "Alpha", "Beta" => "Beta"],
                     'label' => 'Update Channel',
                     'tab' => 'Activation',
+                ],
+                // Category overrides — the shared rule-selection table field. Posts a
+                // filter_list_id => override map as JSON under 'category_overrides'; the model
+                // mutator stores it in config_override.CategoryOverrides. Activation overrides win
+                // over user overrides for the same category in the client config merge.
+                [
+                    'label' => 'Category Overrides',
+                    'name' => 'category_overrides',
+                    'type' => 'rule_selection_table',
+                    'tab' => 'Categories',
+                    'filter_lists' => FilterList::orderBy('category', 'ASC')->orderBy('type', 'ASC')
+                        ->get(['id', 'namespace', 'category', 'type']),
+                    'statuses' => [
+                        'Blacklist' => 'Blacklist',
+                        'Whitelist' => 'Whitelist',
+                        'BypassList' => 'Bypass',
+                        'Ignored' => 'Ignored',
+                    ],
+                    // Trigger lists are free-text phrase files, not domain lists — loading one as a
+                    // blacklist/whitelist feeds it to the client's adblock rule parser. Enforced
+                    // server-side by OverridableConfigTrait::allowedCategoryOverridesForType().
+                    'statuses_by_type' => [
+                        'Triggers' => [
+                            'TextTrigger' => 'Text Trigger',
+                            'Ignored' => 'Ignored',
+                        ],
+                    ],
+                    'default_status' => 'none',
+                    'default_filter_label' => 'No override',
+                    // Group setting with the user's overrides applied — what this activation inherits.
+                    'inherited' => $entry?->inheritedCategorySettings(),
+                    'inherited_label' => 'Group / user setting',
+                    'status_colors' => [
+                        'Blacklist' => '#d63939',
+                        'Whitelist' => '#1f9d57',
+                        'BypassList' => '#d9a406',
+                        'TextTrigger' => '#d63939',
+                        'Ignored' => '#6c757d',
+                    ],
+                    'hint' => 'Overrides the group\'s rule selection for this activation. Blank inherits from the group; "Ignored" removes the category even if the group assigns it. Trigger categories can only be overridden to Text Trigger or Ignored.',
                 ],
                 [
                     'label' => 'Blocked Sites',
