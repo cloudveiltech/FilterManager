@@ -9,7 +9,6 @@
 
 namespace App\Models;
 
-use App\Models\Traits\LoginPreferencesTrait;
 use App\Models\Traits\OverridableConfigTrait;
 use App\Models\Traits\TimerRestrictionsTrait;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
