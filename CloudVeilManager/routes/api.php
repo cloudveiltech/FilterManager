@@ -179,6 +179,9 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::get('/deactivation/{id}', 'ManageDeactivationController@update')->where('id', '[0-9]+');
         Route::post('activations/delete/{id}', 'ManageActivationController@destroy')->where('id', '[0-9]+');
         Route::post('activations/block/{id}', 'ManageActivationController@block')->where('id', '[0-9]+');
+
+        /* Manage Whitelists: a user's (by email) or an activation's (by identifier) custom whitelist */
+        Route::post('/whitelist', 'ManageWhitelistController@update');
     });
 
     Route::group(['middleware' => []], function () {
