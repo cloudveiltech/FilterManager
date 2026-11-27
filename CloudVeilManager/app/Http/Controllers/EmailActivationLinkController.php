@@ -61,7 +61,7 @@ class EmailActivationLinkController extends Controller {
         if ($user == null) {
             return response('User not found.', 401);
         }
-        
+
         TwoFactorCode::removeExpiredCodes();
 
         $code = $request->input("code");

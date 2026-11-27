@@ -9,6 +9,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\LoginPreferencesTrait;
 use App\Models\Traits\OverridableConfigTrait;
 use App\Models\Traits\TimerRestrictionsTrait;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
@@ -104,6 +105,17 @@ class User extends Authenticatable
     public function group()
     {
         return $this->belongsTo('App\Models\Group');
+    }
+
+    /**
+     * What this user's category overrides sit on top of: the group's list type per category, as
+     * filter_list_id => ['status' => list type, 'source' => 'group'] for the override screen.
+     */
+    public function inheritedCategorySettings(): array
+    {
+        return collect($this->group?->categoryListTypes() ?? [])
+            ->map(fn ($type) => ['status' => $type, 'source' => 'group'])
+            ->all();
     }
 
     public function roles()
@@ -222,8 +234,7 @@ class User extends Authenticatable
         return Helpers\UserActivationAttemptResult::Success;
     }
 
-    public function setisEnabledAttribute($value)
-    {
+    public function setisEnabledAttribute($value) {
         $this->isactive = $value;
         if ($value == '0') {
             $userTokens = $this->tokens;
@@ -233,11 +244,9 @@ class User extends Authenticatable
         }
     }
 
-    public function getisEnabledAttribute()
-    {
+    public function getisEnabledAttribute() {
         return $this->isactive;
     }
-
     /**
      * The attributes that are mass assignable.
      *
@@ -249,8 +258,9 @@ class User extends Authenticatable
         'customer_id', 'config_override', 'relaxed_policy_passcode',
         'config', 'enable_relaxed_policy_passcode', 'blocked_sites', 'allowed_sites',
         'bypassable_sites', 'blocked_triggers', 'blocked_applications', 'time_restrictions',
+        'category_overrides',
         "BypassesPermitted", "BypassDuration", "DisableBypass", "TwoFAAuthEnabled", "PasswordAuthEnabled",
-        "DisableDns"
+        "DisableDns", "UpdateChannel"
     ];
 
     /**
@@ -263,55 +273,54 @@ class User extends Authenticatable
     ];
 
 
-    public function getBypassesPermittedAttribute()
-    {
+    public function getBypassesPermittedAttribute() {
         return $this->getConfigValue("BypassesPermitted");
     }
 
-    public function setBypassesPermittedAttribute($value)
-    {
+    public function setBypassesPermittedAttribute($value) {
         $this->setConfigValue("BypassesPermitted", $value);
     }
 
-    public function getBypassDurationAttribute()
-    {
+    public function getBypassDurationAttribute() {
         return $this->getConfigValue("BypassDuration");
     }
 
-    public function setBypassDurationAttribute($value)
-    {
+    public function setBypassDurationAttribute($value) {
         $this->setConfigValue("BypassDuration", $value);
     }
 
-    public function getDisableBypassAttribute()
-    {
+    public function getDisableBypassAttribute() {
         return $this->getConfigValue("DisableBypass");
     }
 
-    public function setDisableBypassAttribute($value)
-    {
+    public function setDisableBypassAttribute($value) {
         $this->setConfigValue("DisableBypass", $value);
     }
 
-    public function getUsernameEmailAttribute()
-    {
+    public function getUpdateChannelAttribute() {
+        return $this->getConfigValue("UpdateChannel");
+    }
+
+    public function setUpdateChannelAttribute($value) {
+        $this->setConfigValue("UpdateChannel", $value);
+    }
+
+    public function getUsernameEmailAttribute() {
         return $this->name . " - " . $this->email;
     }
 
-    public function getDisableDnsAttribute()
-    {
-        if (isset($this->config_override["PrimaryDns"], $this->config_override["SecondaryDns"])) {
-            if (empty($this->config_override["PrimaryDns"]) && empty($this->config_override["SecondaryDns"])) {
+    public function getDisableDnsAttribute() {
+        if(isset($this->config_override["PrimaryDns"], $this->config_override["SecondaryDns"])) {
+            if(empty($this->config_override["PrimaryDns"]) && empty($this->config_override["SecondaryDns"])) {
                 return true;
             }
         }
         return false;
     }
 
-    public function setDisableDnsAttribute($value)
-    {
+    public function setDisableDnsAttribute($value) {
         $config = $this->config_override;
-        if ($value) {
+        if($value) {
             $config["PrimaryDns"] = "";
             $config["SecondaryDns"] = "";
         } else {
