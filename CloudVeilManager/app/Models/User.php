@@ -9,7 +9,6 @@
 
 namespace App\Models;
 
-use App\Models\Traits\LoginPreferencesTrait;
 use App\Models\Traits\OverridableConfigTrait;
 use App\Models\Traits\TimerRestrictionsTrait;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
@@ -33,10 +32,8 @@ class User extends Authenticatable
 
     use OverridableConfigTrait;
     use TimerRestrictionsTrait;
-    use LoginPreferencesTrait;
 
     public $timestamps = true;
-    protected string $loginPreferencesName = "config_override";
     /**
      * The accessors to append to the model's array form.
      *
@@ -225,7 +222,8 @@ class User extends Authenticatable
         return Helpers\UserActivationAttemptResult::Success;
     }
 
-    public function setisEnabledAttribute($value) {
+    public function setisEnabledAttribute($value)
+    {
         $this->isactive = $value;
         if ($value == '0') {
             $userTokens = $this->tokens;
@@ -235,9 +233,11 @@ class User extends Authenticatable
         }
     }
 
-    public function getisEnabledAttribute() {
+    public function getisEnabledAttribute()
+    {
         return $this->isactive;
     }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -263,46 +263,55 @@ class User extends Authenticatable
     ];
 
 
-    public function getBypassesPermittedAttribute() {
+    public function getBypassesPermittedAttribute()
+    {
         return $this->getConfigValue("BypassesPermitted");
     }
 
-    public function setBypassesPermittedAttribute($value) {
+    public function setBypassesPermittedAttribute($value)
+    {
         $this->setConfigValue("BypassesPermitted", $value);
     }
 
-    public function getBypassDurationAttribute() {
+    public function getBypassDurationAttribute()
+    {
         return $this->getConfigValue("BypassDuration");
     }
 
-    public function setBypassDurationAttribute($value) {
+    public function setBypassDurationAttribute($value)
+    {
         $this->setConfigValue("BypassDuration", $value);
     }
 
-    public function getDisableBypassAttribute() {
+    public function getDisableBypassAttribute()
+    {
         return $this->getConfigValue("DisableBypass");
     }
 
-    public function setDisableBypassAttribute($value) {
+    public function setDisableBypassAttribute($value)
+    {
         $this->setConfigValue("DisableBypass", $value);
     }
 
-    public function getUsernameEmailAttribute() {
+    public function getUsernameEmailAttribute()
+    {
         return $this->name . " - " . $this->email;
     }
 
-    public function getDisableDnsAttribute() {
-        if(isset($this->config_override["PrimaryDns"], $this->config_override["SecondaryDns"])) {
-            if(empty($this->config_override["PrimaryDns"]) && empty($this->config_override["SecondaryDns"])) {
+    public function getDisableDnsAttribute()
+    {
+        if (isset($this->config_override["PrimaryDns"], $this->config_override["SecondaryDns"])) {
+            if (empty($this->config_override["PrimaryDns"]) && empty($this->config_override["SecondaryDns"])) {
                 return true;
             }
         }
         return false;
     }
 
-    public function setDisableDnsAttribute($value) {
+    public function setDisableDnsAttribute($value)
+    {
         $config = $this->config_override;
-        if($value) {
+        if ($value) {
             $config["PrimaryDns"] = "";
             $config["SecondaryDns"] = "";
         } else {

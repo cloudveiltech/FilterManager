@@ -61,9 +61,7 @@ class EmailActivationLinkController extends Controller {
         if ($user == null) {
             return response('User not found.', 401);
         }
-        if (!$user->is2FAAuthEnabled()) {
-            return response('Two factor authentication not allowed. Use other methods instead.', 403);
-        }
+        
         TwoFactorCode::removeExpiredCodes();
 
         $code = $request->input("code");
