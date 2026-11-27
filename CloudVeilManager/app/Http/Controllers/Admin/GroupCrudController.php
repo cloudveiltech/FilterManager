@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Traits\AddsFilterCheckButton;
 use App\Models\FilterList;
 use App\Models\Group;
 use App\Models\SystemPlatform;
@@ -24,6 +25,7 @@ use Illuminate\Support\Str;
  */
 class GroupCrudController extends CrudController
 {
+    use AddsFilterCheckButton;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
         store as traitStore;
@@ -62,6 +64,8 @@ class GroupCrudController extends CrudController
      */
     protected function setupListOperation()
     {
+        $this->addFilterCheckButton('group_id');
+
         // let the user hide/show columns from the "Column visibility" dropdown
         $this->crud->enableExportButtons();
 

@@ -28,6 +28,10 @@ Route::group([
         'uses' => 'FilterListCrudController@updateGroups',
         'operation' => 'groups',
     ]);
+    Route::get('filter-check', [
+        'as' => 'filter-check',
+        'uses' => 'FilterCheckController@index',
+    ]);
     Route::crud('filter-list', 'FilterListCrudController');
     Route::crud('user', 'UserCrudController');
     Route::crud('group', 'GroupCrudController');

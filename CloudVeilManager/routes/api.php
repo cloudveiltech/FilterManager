@@ -179,6 +179,9 @@ Route::namespace("App\Http\Controllers")->group(function () {
         Route::get('/deactivation/{id}', 'ManageDeactivationController@update')->where('id', '[0-9]+');
         Route::post('activations/delete/{id}', 'ManageActivationController@destroy')->where('id', '[0-9]+');
         Route::post('activations/block/{id}', 'ManageActivationController@block')->where('id', '[0-9]+');
+
+        /* Filter checks: would these URLs be blocked for an activation, user or group? */
+        Route::post('/filter-check', 'ManageFilterCheckController@check');
     });
 
     Route::group(['middleware' => []], function () {
